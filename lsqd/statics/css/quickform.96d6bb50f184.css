@@ -1,0 +1,65 @@
+/**
+ * quickform
+ */
+
+.quick-form {
+    background: #f58220;
+    color: white;
+    padding: 20px;
+    text-shadow: 0 1px 1px rgba(66, 66, 66, 0.3);
+}
+
+.quick-form-well {
+    margin: 10px;
+}
+
+/* Do not modify page height when AJAX spinner is displayed */
+#row_id_quick-online_provider {
+    min-height: 42px;
+}
+
+.quick-form .error-row {
+    background: transparent;
+}
+
+.quick-form .error-row label {
+    color: red;
+}
+
+.full-quick-form {
+    margin-top: 10px;
+}
+
+.full-quick-form .quick-form {
+    box-shadow: 0 0 3px rgba(66, 66, 66, 0.5);
+}
+
+/* Narrow tune ups */
+
+.quick-form-wrapper-narrow .quick-form{
+    padding-top: 0;
+}
+
+/* HIde Purchasement label */
+.quick-form-wrapper-narrow #row_id_quick-action .control-label {
+    display: none;
+}
+
+.quick-form-wrapper-horizontal .quick-form {
+    margin-bottom: 0;
+}
+
+@media (min-width: 979px) {
+
+    .quick-form-wrapper-horizontal .row {
+        vertical-align: top;
+    }
+
+}
+
+
+@media (min-width: 992px) {
+    .currency-dd {
+        padding-left: 0;
+    }
+}

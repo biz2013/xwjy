@@ -1,0 +1,2961 @@
+body {
+    padding:60px 0 0 10px;
+    height:100%;
+}
+
+section {
+    padding-top:40px;
+}
+
+.megabutton {
+    font-size:20px;
+    padding:10px;
+}
+
+.label-new {
+    margin-left: 4px;
+    padding: 1px 2px;
+    color: #eee;
+    text-shadow: none;
+    background: #f58220;
+    font-weight: normal;
+    text-transform: uppercase;
+    font-size: 60%;
+    vertical-align: text-bottom;
+}
+
+.site-logo-img {
+    padding: 10px 15px;
+}
+
+/* Low risk payments */
+
+.safe-badge {
+    color: green;
+}
+
+/**********************/
+/* location_block.html*/
+/**********************/
+
+a.capitalize {
+    text-transform:capitalize;
+}
+
+div#zipcc {
+    font-size:24px;
+    padding:10px;
+}
+
+div#location_form {
+    float:right;
+}
+
+div#location_form input{
+    height: 23px;
+    padding-top: 13px;
+    font-size: 24px;
+}
+
+div#location_form button {
+    padding:10px;
+    font-size:24px;
+}
+
+button#map_toggle_btn {
+    font-size:24px;
+    padding:10px;
+}
+
+#mapdiv {
+    padding-bottom:20px;
+    display:none;
+}
+
+#mapsettings {
+    padding-top:10px;
+    display:none;
+}
+
+#mapsettings input {
+    margin-left: 20px;
+}
+
+.change-location-field {
+    margin: 0 auto;
+    max-width: 400px;
+}
+
+/*****************************************/
+
+/*****************************************
+ * listing.html
+ *************************************** */
+
+ .online-status {
+    vertical-align: super;
+    font-size: 70%;
+    text-shadow: 0 0 1px rgba(66, 66, 66, 0.5);
+ }
+
+ .tooltip-inner {
+    white-space: normal;
+ }
+
+/* vertical-align: super here would lead to misalign of headings */
+ h3 .online-status {
+    vertical-align: middle;
+ }
+
+ .online-status-online {
+    color: #afa;
+ }
+
+.online-status-away {
+    color: green;
+ }
+
+.online-status-recent {
+    color: #dd8;
+}
+
+.online-status-offline {
+    color: #ccc;
+}
+
+.response-time {
+    font-size: 120%;
+    vertical-align: middle;
+}
+
+.response-time-good {
+    color: #5c0;
+}
+
+.response-time-medium {
+    color: #FFAF54;
+}
+
+.response-time-bad {
+    color: #ccc;
+}
+
+ .popular-payment-methods ul {
+    list-style-type: none;
+ }
+
+.popular-payment-methods .dropdown-toggle,
+.show-more a {
+    margin: 5px 0;
+    font-size: 120%;
+    padding-right: 15px;
+}
+
+#listing-call-for-action {
+    padding: 8px 14px 8px 14px;
+}
+
+#listing-call-for-action,
+#listing-call-for-action h4 {
+    color: #333;
+}
+
+#listing-call-for-action-text {
+    margin-top: 5px;
+}
+
+#listing-call-for-action-button {
+}
+
+.bitcoinlist {
+    padding-top:20px
+}
+
+.bitcoinlist.bitcoinlist td {
+    height:30px;
+    vertical-align:middle;
+}
+
+#result-count {
+    text-align: right;
+}
+
+#cash-map {
+    height: 450px;
+    margin: 0 auto;
+    border: 2px solid #888C9F;
+}
+
+#cash-map.opened {
+    margin-bottom: 15px;
+}
+
+/* https://github.com/twitter/bootstrap/issues/1552#issuecomment-3770182 */
+#cash-map img {
+    max-width: none;
+}
+
+.info-window {
+    cursor: pointer;
+}
+
+.info-window .price {
+    font-weight: bold;
+}
+
+.pagination-block {
+    width: 100%;
+    text-align: center;
+    margin-top: 20px;
+}
+
+/********************************/
+#pricing_howto {
+    padding-top:40px;
+}
+
+.basicstrong {
+    font-size:15px;
+    font-weight:bold;
+    color:#757575;
+}
+
+tr.clickable.clickable > td {
+    vertical-align: middle;
+}
+
+tr.clickable:hover td {
+    background: #eeF !important;
+    cursor: pointer;
+}
+
+/**
+ * Adlisting page /ad/
+ */
+
+.well.adlisting {
+    background-color: #E4EBF3;
+    font-size:15px;
+}
+
+
+.adlisting h2 {
+    font-size: 20px;
+}
+
+.adlisting h3 {
+    font-size: 18px;
+    margin-top: 0 !important;
+}
+
+.adlisting .col-md-1 {
+    margin-right: 15px;
+}
+
+.adlisting .messagetext {
+    color:#1E3D3C;
+    font-style: italic;
+    margin-top: 10px;
+}
+
+.related-ad-link {
+    margin-right: 20px;
+}
+
+#ad-tips ul {
+    list-style: none;
+    margin-left: 0;
+    padding-left: 0;
+}
+
+#ad-tips ul li {
+    margin-bottom: 0.5em;
+}
+
+#ad-page-login {
+    margin-top: 0px;
+}
+
+#ad-page-login .row {
+    margin-bottom: 25px;
+}
+
+#ad-page-login a {
+    cursor: pointer !important;
+}
+
+/*****************************/
+/******** index.html *********/
+/*****************************/
+
+.tagline {
+    color: #f58220;
+}
+
+.bold-text {
+    font-weight: bold;
+}
+
+.front-page-button {
+    width: 100%;
+    text-align: center;
+}
+
+.front-page-button .dropdown-menu {
+    text-align: left;
+}
+
+
+.front-page-button-row {
+    margin-bottom: 10px;
+}
+
+#as-seen-on-label {
+    position: relative;
+    top: -30px;
+    background: white;
+    padding: 0 40px;
+    margin-left: 40px;
+}
+
+#as-seen-on-logo-container {
+    text-align: center;
+    color: #888;
+    margin: 0;
+}
+
+#as-seen-on-logo-container img {
+    margin: 0 50px;
+}
+
+#as-seen-on-logo-container img:first-child {
+    margin-left: 0;
+}
+
+.frontpage-promo {
+    padding-top: 40px;
+}
+
+.frontpage-promo h2 {
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+.frontpage-promo h2 a {
+    color: black;
+}
+
+.frontpage-promo .text-right {
+    text-align: right;
+}
+
+.frontpage-promo small {
+    display: block;
+}
+
+.frontpage-promo-readmore {
+    padding-top: 15px;
+}
+
+.frontpage-promo .fa-rss {
+    color: white;
+    background: #e5842f;
+    padding: 4px 5px;
+    border-radius: 4px;
+    float: right;
+    border: 1px solid rgba(128, 128, 128, 0.5);
+}
+
+.frontpage-promo .fa-rss:hover {
+    text-decoration: none;
+}
+
+.frontpage-promo .fa-rss:hover {
+    color: white;
+    background: black;
+}
+
+.lead strong {
+    font-weight: 500;
+}
+
+/**
+* Dropdown
+**/
+
+.dropdown-submenu {
+    position: relative;
+}
+
+.dropdown-submenu>.dropdown-menu {
+    top: 0;
+    left: 100%;
+    margin-top: -6px;
+    margin-left: -1px;
+    -webkit-border-radius: 0 6px 6px 6px;
+    -moz-border-radius: 0 6px 6px;
+    border-radius: 0 6px 6px 6px;
+}
+
+.dropdown-submenu:hover>.dropdown-menu {
+    display: block;
+}
+
+.dropdown-submenu>a:after {
+    display: block;
+    content: " ";
+    float: right;
+    width: 0;
+    height: 0;
+    border-color: transparent;
+    border-style: solid;
+    border-width: 5px 0 5px 5px;
+    border-left-color: #ccc;
+    margin-top: 5px;
+    margin-right: -10px;
+}
+
+.dropdown-submenu:hover>a:after {
+    border-left-color: #fff;
+}
+
+.dropdown-submenu.pull-left {
+    float: none;
+}
+
+.dropdown-submenu.pull-left>.dropdown-menu {
+    left: -100%;
+    margin-left: 10px;
+    -webkit-border-radius: 6px 0 6px 6px;
+    -moz-border-radius: 6px 0 6px 6px;
+    border-radius: 6px 0 6px 6px;
+}
+
+/**
+ * change_location.html
+ */
+
+#change-location {
+    border-bottom: 1px dashed #0088cc;
+}
+
+#change-location-form {
+    text-align: center;
+}
+
+#change-location-icon {
+    vertical-align: middle;
+}
+
+/*****************************/
+
+/*****************************/
+/* advertisement.html        */
+/*****************************/
+
+#ad-form .row {
+    margin-bottom: 1.5em;
+}
+
+#ad-form .label-col label {
+    font-weight: bold;
+}
+
+#ad-form .input-append input {
+    width: 5em;
+}
+
+#ad-form .two-col-help-text {
+    color: #666;
+    font-style: italic;
+}
+
+.error-row {
+    background: #fee;
+}
+
+#ad-form .error-row {
+    background: #fee;
+    padding: 5px 0;
+}
+
+#ad-form.form-horizontal .control-label {
+    padding-top: 0;
+}
+
+#ad-form label.control-label {
+    text-align: left;
+}
+
+/* Vertical form styles (wallet etc.) */
+
+.label-vertical label {
+    font-weight: bold;
+}
+
+.error-vertical {
+    font-weight: bold;
+    color: red;
+}
+
+.controls-vertical .help-block {
+    font-style: italic;
+}
+
+/* This field is required */
+#ad-form .help-block strong,
+#ad-form .help-inline strong{
+    color: red;
+}
+
+#id_ad-other_info {
+    width: 97%;
+    font-family: "Courier New", Courier, monospace;
+}
+
+.high-risk {
+    color: red;
+}
+
+.price-info-text {
+    font-style: italic;
+    display: block;
+    min-height: 50px; /* Mare sure page doesn't flick on AJAX load */
+}
+
+.price-info {
+    color: green;
+}
+
+.price-info .warning {
+    color: red;
+}
+
+.dynamic-info {
+    display: block;
+}
+
+#ad-form .row .opening_hours_row {
+    margin-bottom: 5px;
+}
+
+.form-inline .form-group {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.form-inline .form-control {
+    width: 100%;
+}
+
+/*****************************/
+
+.warning {
+    color:red;
+}
+
+/**
+ * Listing
+ */
+
+.price {
+    color: green;
+}
+
+.column-price {
+    width: 110px;
+    font-size: 16px;
+    font-weight: bold;
+    color: green;
+}
+
+.column-price .atm {
+    color: black;
+    font-weight: normal;
+}
+
+.column-button .megabutton {
+    float: right;
+}
+
+.column-limit {
+    width: 150px;
+}
+
+.column-user {
+    white-space: nowrap;
+}
+
+.show-more td {
+    text-align: right;
+    background: white !important;
+}
+
+.show-more a:hover {
+    text-decoration: none !important;
+}
+
+.show-more a:hover span {
+    text-decoration: underline !important;
+}
+
+/*********************/
+/* base.html template*/
+/*********************/
+
+#top-login-link a {
+    margin: 0;
+}
+
+#top-login-link a:first-child {
+    margin-left: 12px;
+}
+
+
+#register-modal {
+    min-width: 700px;
+}
+
+
+/* Make input fields on login page smaller when <480px */
+@media (min-width: 480px) {
+    .login-page-form #id_username,
+    .login-page-form #id_password,
+    .login-page-form #id_token {
+        max-width: 50%;
+    }
+}
+
+.modal-body {
+    max-height: 600px; /* Make sure reg form fits without scrollbar */
+}
+
+.base-logo {
+    margin-top:15px;
+    padding-bottom: 15px;
+}
+
+/* All forms */
+ul.errorlist {
+    list-style: none;
+    padding-left: 0;
+}
+
+.errorlist li {
+    color: red;
+}
+
+/* Top nav bar */
+
+.navbar-right {
+    margin-right: -20px;
+}
+
+#navbar-site li {
+    line-height: 32px;
+}
+
+#navbar-site .btn-navbar {
+    margin-top: 10px;
+}
+
+.navbar-inner.navbar-grey > ul > li > a {
+    color:#000000;
+    font-weight:bold;
+    text-shadow: 0px 1px 4px #fff;
+}
+
+.navbar-inner.navbar-grey > ul > li > a:hover {
+  color: #FFFFFF;
+  text-decoration: none;
+  background-color: transparent;
+  text-shadow: 0px 1px 4px #444444;
+
+}
+
+
+.navbar-inner.navbar-grey .active > a,
+.navbar-inner.navbar-grey .active > a:hover {
+    color: #ffffff;
+    text-decoration: none;
+    background-color: #86B0C0;
+    text-shadow: 0px 0px 0px #444444;
+}
+
+
+.notifications_dropdown0 a:hover .badge {
+    background: #da2f2f;
+}
+
+.notifications_dropdown0 .badge {
+    background-color: #da2f2f;
+}
+
+.read-notification-count.read-notification-count {
+    background-color: #777;
+}
+
+.notifications-dropdown > li > a {
+    overflow: hidden;
+    white-space: normal;
+}
+
+@media(max-width: 400px) {
+    .notifications-dropdown > li > a {
+        min-width: 80vw;
+    }
+}
+
+@media(max-width: 350px) {
+    .notifications-dropdown > li > a {
+        min-width: 68vw;
+    }
+}
+
+@media(min-width: 832px) {
+    .notifications-dropdown > li > a {
+        min-width: 400px;
+    }
+}
+
+.notifications-buttons {
+    margin-top: 5px;
+    margin-left: 15px;
+}
+
+/* Add scroll to notifications menu */
+.scrollable-menu {
+    height: auto;
+    max-height: 300px;
+    overflow-x: hidden;
+}
+
+@media(max-width: 831px) {
+    .scrollable-menu {
+        width: 80vw;
+    }
+}
+
+/* Visible scroll for notifications menu */
+.scrollable-menu::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 4px;
+}
+
+.scrollable-menu::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    background-color: lightgray;
+    -webkit-box-shadow: 0 0 1px rgba(255,255,255,.75);
+}
+
+#dashboard-weak-account-security {
+    color: red;
+}
+
+/* Have to override some Bootstrap defaults */
+footer{
+    color: #888;
+}
+
+.footer-block {
+    padding-bottom: 30px;
+}
+
+footer .nav-header{
+    font-size: 12px;
+    color: #747474;
+}
+
+footer .nav-list a{
+    font-size: 13px;
+    padding: 3px 15px;
+}
+
+footer #copyright{
+    margin: -9px 0 0 31px;
+    font-size: 11px;
+}
+
+footer .nav-list a:hover{
+    color: #000000;
+}
+
+footer .nav-list>.active>a, footer .nav-list>.active>a:hover, footer .nav-list>.active>a:focus{
+    background-color: #747474;
+    color: #ffffff;
+}
+
+footer a {
+    color: #888;
+}
+
+footer a i {
+    margin-right: 5px;
+}
+
+footer .fa {
+    color: #888;
+    min-width: 14px;
+    text-align: left;
+    display: inline-block;
+}
+
+footer .caret.caret.caret {
+    border-top-color: #888;
+    vertical-align: text-top;
+}
+
+.accordeon-link.accordeon-link {
+    color: #337ab7;
+}
+
+/**
+ * Downtime message
+ */
+
+.downtime {
+    text-align: center;
+}
+
+/**
+ * Form styles
+ */
+
+form .error {
+    background: #fee;
+    border: 1px ridge red;
+}
+
+.paper-form .error {
+    padding: 5px;
+    margin: 5px;
+}
+
+.three-factor-form {
+    margin: 25px 0;
+}
+
+/*********************/
+
+/*********************/
+/******* faq.html ****/
+/*********************/
+
+.faq-img {/* check-obsolete > will be after FAQ merge */
+    max-width: 100%;
+}
+
+.faq-read-more-item {
+    display: block;
+    white-space: normal;
+}
+
+.faq-read-more-item a {
+    text-decoration: none;
+    color: #000000;
+}
+
+.faq-read-more-item:hover {
+    background-color: #ffffff;
+}
+
+/*********************/
+
+/************************/
+/* dashboard (ads.html) */
+/************************/
+#dashboard_advertisements  td{
+    min-height:45px;
+    vertical-align:middle;
+}
+
+#dashboard_contacts td {
+    vertical-align: top;
+}
+
+#dashboard_contacts .contact-id {
+    min-height: 60px;
+}
+
+#dashboard_contacts .online-status {
+    vertical-align: baseline;
+}
+
+.status-bad {
+    color: red;
+}
+
+.status-good {
+    color: green;
+}
+
+/*
+Dashboard Edit Inline
+*/
+.dashboard-equ-text {
+    border-bottom: 1px dashed;
+    display: inline;
+    background-color: transparent;
+    transition: background-color 5000ms ease;
+
+}
+
+.button-cancel {
+    font-size: 20px;
+}
+
+.button-save {
+    float: right;
+    font-size: 20px;
+}
+
+.save-animation {
+    background-color: yellow;
+    display: inline;
+}
+
+/************************/
+#map_canvas {
+    height:450px;
+    margin:0 auto;
+    border: 2px solid #888C9F;
+    border-radius: 10px;
+    -moz-border-radius:10px;
+}
+/*
+Bootstrap-probleema
+*/
+#map_canvas img {
+    max-width: none;
+}
+/**/
+
+/**************************/
+/********* ad.html ********/
+/**************************/
+
+.ad-call-for-action {
+    margin-top: 30px;
+    font-size: 24px;
+    font-weight: bold;
+    color: green;
+    text-shadow: 0 1px 1px rgba(192, 192, 192, 0.7);
+}
+
+/*#ad-register-here {
+    margin-bottom: 20px;
+}*/
+
+
+#flag-ad {
+    margin: 10px 0;
+}
+
+#cactus-wrapper {
+    margin-top: 20px;
+}
+
+.ad-calculator-form-old #amountinput {
+    border: 1px solid #888;
+}
+
+.ad-calculator-form-old #amountdiv {
+    color: white;
+    font-size: 28px;
+    margin-bottom: 10px;
+    line-height: 40px;
+}
+
+.ad-calculator-form-old #amountdiv input {
+    max-width: 110px;
+    font-size: 20px;
+    margin-left: 5px;
+}
+
+#amountdiv div {
+    display: inline-flex;
+    width: 196px;
+    margin-left: 13px;
+    margin-bottom: 15px;
+    padding: 10px;
+    border:1px solid #90C5D0;
+    border-radius: 4px;
+    -moz-border-radius:4px;
+
+    background-image: linear-gradient(bottom, rgb(65,159,171) 4%, rgb(90,206,224) 95%);
+    background-image: -o-linear-gradient(bottom, rgb(65,159,171) 4%, rgb(90,206,224) 95%);
+    background-image: -moz-linear-gradient(bottom, rgb(65,159,171) 4%, rgb(90,206,224) 95%);
+    background-image: -webkit-linear-gradient(bottom, rgb(65,159,171) 4%, rgb(90,206,224) 95%);
+    background-image: -ms-linear-gradient(bottom, rgb(65,159,171) 4%, rgb(90,206,224) 95%);
+}
+
+#accordion-trade-quick-how-to {
+    margin-top: 10px;
+}
+
+.ad-calculator-form-old #trade_request_button.disabled  {
+    cursor: not-allowed;
+    margin-bottom: 1em;
+    padding: 1em;
+}
+
+.ad-calculator-form-old #trade_request_button {
+    font-size: 200%;
+    width: 100%;
+    padding: 15px;
+    filter: none;
+    white-space: normal;
+}
+
+.send-trade-request label,
+.send-trade-request input {
+    font-size: 115%;
+    font-weight: bold;
+}
+
+.send-trade-request input {
+    width: 90%;
+}
+
+.send-trade-request .form-group {
+    color: black;
+    font-size: 20px;
+    font-weight: bold;
+    width: 150px;
+    margin-left: 30px;
+    padding-bottom: 0px;
+}
+
+#request-text-area-wrapper textarea {
+    width: 100%;
+    resize: none;
+    padding: 5px;
+    margin-bottom: 1em;
+    font-size: 133%;
+    box-sizing: border-box;
+}
+
+.ad-calculator-form>#request-text-area-wrapper textarea {
+    resize: none;
+    margin-top: 25px;
+    font-size: 1.1em;
+}
+
+.centered {
+    padding:25px;
+    text-align: center;
+}
+
+.center-align {
+    text-align: center;
+}
+
+.bold-heading {
+    font-weight: bold;
+    margin: 25px 0;
+}
+
+.black-font {
+    color: #000000;
+}
+
+.profile-link span {
+    display: block;
+}
+
+.profile-link .online-status {
+    display: inline;
+}
+
+.see-profile {
+    color: #666;
+    font-size: 80%;
+}
+
+.messagetext {
+    font-family: "Courier New", Courier, monospace;
+    padding: 1em;
+    border: 1px solid #eee;
+    text-shadow: 0 1px rgba(224, 224, 224, 0.4);
+}
+
+.send-request-fail-reason {
+    font-size: 110%;
+    color: #c09853;
+    padding: 19px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    background-color: #fcf8e3;
+    border: 1px solid #fbeed5;
+    border-radius: 4px;
+}
+
+#listings-with-ad {
+    list-style-type: none;
+}
+
+#listings-with-ad li {
+    margin-bottom: 0.5em;
+}
+
+/* http://stackoverflow.com/questions/13354578/custom-li-list-style-with-font-awesome-icon */
+#listings-with-ad li:before {
+    content: "\f101";
+    font-family: FontAwesome;
+    display: inline-block;
+    margin-left: -1.2em; /*same as padding-left set on li*/
+    width: 1.2em; /*same as padding-left set on li*/
+}
+
+.ad-active-button {
+    color: red;
+}
+
+.ad-active-button {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    display: inline-block;
+    border-bottom: 1px dashed gray;
+}
+
+.change-ad-state {
+    padding: 0;
+    margin: 0;
+    display: inline-block;
+}
+
+.ad-active-button-visible {
+    color: green;
+    border-bottom-color: green;
+}
+
+.ad-active-button-hidden {
+    color: red;
+    border-bottom-color: red;
+}
+
+/**
+ * atm_ad.html
+ */
+#atm-location-map, #office-location-map {
+    width: 100%;;
+    min-height: 400px;
+}
+
+#atm-message-text, #office-message-text {
+    font-family: "Courier New", Courier, monospace;
+    border: 1px solid #eee;
+    text-shadow: 0 1px rgba(224, 224, 224, 0.4);
+    color: #1E3D3C;
+    font-style: italic;
+    padding: 1em;
+}
+
+/**
+ * Boostrap + Maps CSS conflict
+ * http://stackoverflow.com/a/9170756/315168
+ */
+#atm-location-map img, #office-location-map img {
+    max-width: none;
+}
+
+.atm-data-box, #office-data-box {
+    line-height: 200%;
+    font-size: 16px;
+}
+
+@media (min-width: 480px) {
+    .add-atmform select,
+    .add-atmform #id_ad-place,
+    .add-atmform #id_ad-other_info {
+        width: 50%;
+    }
+}
+
+/**
+ * ATM page atm.html
+ */
+
+#atm-mobile-quick-navigation {
+    display: none;
+}
+
+#atm-forms label {
+    font-weight: bold;
+}
+
+.atm-howto-icons {
+    font-size: 32px;
+    margin-left: 20px;
+    vertical-align: top;
+}
+
+.atm-howto-icons > .icon-money {
+    color: green;
+}
+
+.atm-howto-icons > .icon-money,
+.atm-howto-icons > .bitcoin-icon,
+.atm-howto-icons > .icon-long-arrow-right {
+    vertical-align: middle;
+}
+
+/* Demo page splash styling */
+.bitcoin-icon {
+    font-size: 15px;
+    color: #F7931A;
+    width: 32px;
+}
+
+.bitcoin-icon .fa-circle {
+    font-size: 32px;
+}
+
+.bitcoin-icon .fa-btc {
+    font-size: 22px;
+    -moz-transform: rotate(20deg);
+    -webkit-transform: rotate(20deg);
+    transform: rotate(20deg);
+    color: white;
+}
+
+
+
+/**************************/
+
+/**************************/
+/**************************/
+/**************************/
+
+@media (max-width: 980px) {
+    .add-adform input,
+    .add-adform select,
+    .add-adform #id_ad-other_info,
+    .add-adform .input-group,
+
+    .edit-adform input,
+    .edit-adform select,
+    .edit-adform .input-group,
+    .edit-adform textarea {
+        width: 90%;
+    }
+
+    .add-adform #submit-id-submit,
+    .edit-adform #submit-id-submit {
+        width: 100%;
+    }
+
+    .add-adform-radio.add-adform-radio.add-adform-radio {
+        position: static;
+        width: 20%;
+    }
+
+    input[type="checkbox"] {
+        width: 5%;
+    }
+}
+
+button#adform {
+    width:220px;
+}
+
+.smallinput {
+    width:99px;
+}
+
+select#currencydropdown {
+    width:70px;
+}
+
+div#adinfo {
+    float:right;
+}
+
+.noscripthidden {/* check-obsolete > search for Obsolete template */
+    display:none;
+}
+
+div#advert_div {/* check-obsolete > search for Obsolete template */
+    border-bottom: 1px solid #eeeeee;
+
+}
+
+button.bigbutton {
+    height:35px;
+    width:130px;
+}
+
+a.infolink {
+    font-size: 12px;
+}
+
+span.formtopic {
+    font-weight:bold;
+}
+
+div.btn-group {
+    padding-top:5px;
+    padding-bottom:5px;
+}
+
+div#advert_div {/* check-obsolete > search for Obsolete template */
+    border-top:1px solid #eeeeee;
+}
+
+button.radiobutton {
+    width:110px;
+}
+
+div.priceinfo {
+    font-size:16px;
+    font-weight:bold;
+    padding-bottom: 7px;
+}
+
+.alert .priceinfo {
+    font-size:16px;
+}
+
+.alert-plain {
+    border-color: #ccc;
+}
+
+.alert-grey {
+    border-color: #ddd;
+    background: #f8f8f8;
+    color: #555;
+}
+
+.trade-timeline-item {
+    padding: 5px;
+    width: 45%;
+    margin: 0px 0px 5px 0px;
+}
+
+/* Handle input text color in buy/sell form */
+
+.form-control.amount-error {
+    color: #a94442;
+    background-color: #eba99a;
+}
+
+.amount-error-text {
+    color: red;
+}
+
+.form-control.amount-success {
+    color: #3c763d;
+}
+
+.ad-calculator-form-old #btcinput {
+    border: 1px solid #888;
+    font-size: 20px;
+}
+
+/*************************************/
+/* ads_contact_edit.html contact.html*/
+/*************************************/
+
+span.feedbacktext {
+    font-style:italic;
+    font-size:14px;
+    padding:10px;
+}
+
+table.contactdetails td{
+    height: 30px;
+    vertical-align:middle;
+}
+
+table.contactdetails td:first-child {
+    font-weight: bold;
+}
+
+div.escrowbox {
+    color:black;
+}
+
+div#messages > small {
+    border-bottom:1px solid #D4D4D4;
+    color:#909090;
+}
+
+.payment-details {
+    font-family: "Courier New", Courier, monospace;
+    background: white;
+    padding: 10px;
+}
+
+p.fundtext {
+    font-size: 16px;
+    line-height: 150%;
+}
+
+textarea.widetextarea {
+    width:98%;
+}
+
+div#actionbuttons {
+    padding:20px;
+}
+
+/*************************************/
+/********** profile.html *************/
+/*************************************/
+
+.F100_score {
+    color: #008B00;
+}
+.F80_score {
+    color: #768B00;
+}
+
+.F60_score {
+    color: #818B00;
+}
+.F40_score {
+    color: #D29D00;
+}
+.F20_score {
+    color: #D25E00;
+}
+
+.F0_score {
+    color: #B90000;
+}
+
+#profile-info {
+    font-size: 16px;
+    line-height: 200%;
+}
+
+#profile-info .shaded {
+    background: rgb(249, 249, 249);
+}
+
+#profile-info .profile-label {
+    font-weight: bold;
+    font-size: 15px;
+    margin-right: 10px;
+}
+
+#profile-info .good {
+    color: green;
+}
+
+#profile-info .good.fa-star {
+    color: #f58220;
+    text-shadow: 0 1px 1px rgba(33, 33, 33, 0.9);
+}
+
+#profile-info .bad {
+    color: red;
+}
+
+.profile-col-right {
+    margin-left: 20px;
+}
+
+.btn-profile-trust {
+    width: 100%;
+    height: 100px;
+    font-size: 33px;
+    white-space: normal;
+}
+
+.smaller-text {
+    font-size: 30px;
+}
+
+.trusted-ok {
+    color: green;
+}
+
+.trusted-no {
+    color: red;
+}
+
+#trust_form { margin-bottom: 0px; }
+
+.overflow-catch {
+    word-wrap: break-word;
+}
+
+#coupon-message {
+    font-size: 140%;
+}
+
+#coupon-data th {
+    text-align: right;
+}
+
+#coupon-data td {
+    text-align: left;
+    padding-left: 1em;
+}
+
+
+/* Escrow */
+
+#security-checks .good {
+    color: green;
+}
+
+#security-checks .bad {
+    color: red;
+}
+
+/**
+ * profile_edit.html
+ */
+
+.icon-facebook-wrapper {
+    color: #3B5998;
+}
+
+.security-level-strong {
+    color: green;
+}
+
+.security-level-weak {
+    color: red;
+}
+
+@media (min-width: 480px) {
+    .edit-userprofile-form #id_timezone,
+    .edit-userprofile-form #id_introduction,
+    .edit-userprofile-form #id_homepage {
+        width: 50%;
+    }
+}
+
+/**
+ * security.html
+ */
+
+#security .text-warning {
+    color: red;
+}
+
+/**
+ * Forums
+ */
+
+#forum-pretty-please {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* We do not want non logged in users to have any actions, as
+   it will trigger moot.it login, not our login */
+#my-moot.anonymous .moot-hover .m-replyform,
+#my-moot.anonymous .m-replyform,
+#my-moot.anonymous .m-create,
+#my-moot.anonymous .m-action {
+    display: none;
+}
+
+/* Our site alredy displays logged in status in its own status bar */
+#my-moot .m-me {
+    display: none;
+}
+
+/* moot.it native login link, users would confuse with ours */
+#my-moot .m-login {
+    display: none;
+}
+
+/* Our pages are 1024 px Twitter Bootstrap layout and moot automatically limits itself */
+#my-moot  {
+    max-width: none;
+}
+
+/* Match Moot header to our site */
+#my-moot .m-header {
+    background: white;
+}
+
+/* By default Moot logo is floating when scrolling - it will uglily go over our footer */
+#my-moot .m-logo {
+    position: static;
+    text-align: right;
+}
+
+/* Add whitespace and separate to forum threads to make them more readable */
+#my-moot .m-moot {
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+    border: 0;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Generic link color matching to the site theme */
+#my-moot .m-page a {
+    color: #0088cc;
+}
+
+/* Use site specific nav highlight color */
+#my-moot .m-navi a.m-selected,
+#my-moot .m-pagepage .m-navi a.m-nav-forums,
+#my-moot .m-userpage .m-navi a.m-nav-online {
+    color: #f58220;
+}
+
+#my-moot .m-links p a.m-selected {
+    background: #f58220;
+}
+
+/* Fix issue where the number text inside bubbles (like comment count) is misaligned.
+   Probably related to the site font size */
+#my-moot .m-hilite, .m-newcount,
+#my-moot a.m-nav-online em,
+#my-moot .m-users-title em {
+    font-size: 10px;
+    line-height: 10px;
+}
+
+#my-moot .m-newcount {
+    font-size: 10px;
+    line-height: 10px;
+}
+
+/* Make action icons to have the same active color */
+#my-moot .m-follow.m-followed span,
+#my-moot .m-heart.m-has-likes span,
+#my-moot .m-meta .m-reply_count.m-has_replied:before,
+#my-moot .m-heart.m-is-liked span {
+    color: #f58220;
+}
+
+/* Enable Font-Awesome icons in moot context */
+#my-moot .icon,
+#my-moot .icon-white {
+    font-family: FontAwesome !important;
+}
+
+#forum-advertise {
+    padding: 0px;
+}
+
+#my-moot .tooltip-inner {
+    min-width: 300px;
+}
+
+/*************************************/
+
+/*************************************/
+/***********wallet.html***************/
+/*************************************/
+#wallet-qr-code {
+    margin: 0 auto;
+    display: block;
+}
+
+#spinner {
+    display: none;
+}
+
+/* Fix aligment issues with password strength indicator */
+#row_id_password1 .col-md-3 {
+    width: 300px !important;
+}
+
+#accordion-send-advanced {
+    margin-top: 20px;
+}
+
+/* password strength check */
+
+.pwstr { padding-left: 5px; white-space: nowrap; }
+.pwstr-weak { color: red; }
+.pwstr-medium { color: gold; }
+.pwstr-good { color: blue; }
+.pwstr-better { color: green; }
+
+#wallet-transactions .date-column {
+    min-width: 200px;
+}
+
+#sendform input {
+    min-width: 280px;
+}
+
+.amount-field {
+    display: inline-block;
+    width: 80%;
+}
+
+.amount-field-fiat {
+    display: inline-block;
+    width: 19%;
+}
+
+@media (min-width: 769px) {
+    .table-mobile {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .table-wallet {
+        display: none;
+    }
+
+    .two-column-table { /* Apply to th or td only */
+        display: inline-block;
+        width: 50%;
+    }
+
+    .btn-well-fit {
+        max-width: 250px;
+        white-space: inherit;
+    }
+}
+
+
+/**
+ * Security guide and other guides
+ */
+.guides-list-heading {
+    text-align: center;
+}
+
+.guides-list-heading h1 {
+    font-weight: bold;
+}
+
+.guides-list-item {
+    display: block;
+    max-width: 500px;
+    margin: 30px auto;
+    padding-bottom: 20px;
+    white-space: normal;
+}
+
+.guides-list-item a {
+    text-decoration: none;
+    color: #000000;
+}
+
+.guides-list-item:hover {
+    background-color: #ffffff;
+}
+
+.howtobuy-step {
+    padding-bottom: 40px;
+}
+
+.howtobuy-list-item {
+    display: block;
+    max-width: 500px;
+    min-height: 135px;
+    margin: 30px auto;
+    padding-bottom: 20px;
+    white-space: normal;
+}
+
+.howtobuy-list-item a {
+    text-decoration: none;
+    color: #000000;
+}
+
+.howtobuy-img {
+    margin-top: 20px;
+}
+
+/* Change to smaller images for mobile */
+@media (max-width: 979px) {
+    .howtobuy-img-mobile {
+        display: block;
+    }
+
+    .howtobuy-img-desktop {
+        display: none;
+    }
+}
+
+/* Change to bigger images for desktop */
+@media (min-width: 980px) {
+    .howtobuy-img-mobile {
+        display: none;
+    }
+
+    .howtobuy-img-desktop {
+        display: block;
+    }
+}
+
+@media (min-width: 832px) and (max-width: 979px) {
+    .menu-adjust {
+        float: none;
+        display: block;
+        width: 737px;
+    }
+}
+
+/* Equation guide */
+.equation-tool {
+    display: inline-block;
+    width: 50%;
+}
+
+/* Generic guide styles - make them more readable */
+.nobullet li {
+    list-style-type: none;
+}
+
+.unstyled {
+    list-style-type: none;
+    padding: 0;
+}
+
+#currency_list li {
+    display: inline-block;
+    width: 140px;
+}
+
+.guide li {
+    margin-bottom: 0.8em;
+}
+
+.col-risk-level {
+    width: 100px;
+}
+
+.risk-high { color: red; }
+.risk-medium { color: goldenrod; }
+.risk-unknown { color: gray; }
+.risk-low { color: green; }
+
+.col-payment-provider {
+    width:190px;
+}
+
+.col-ads {
+    width: 100px;
+}
+
+.intro-block {
+    margin: 40px 0;
+    perspective: 800;
+}
+
+.intro-block p {
+    text-align: justify;
+}
+
+.intro-block p.lead {
+    text-align: left;
+}
+
+.intro-image {
+    margin-left: 20px;
+    -webkit-transform: rotate3d(0, -0.5, 0.5, 15deg);
+    transform: rotate3d(0, -0.5, 0.5, 15deg);
+
+}
+
+#security-guide #toc {
+    margin-top: 60px;
+    width: auto;
+}
+
+#security-guide #toc > ul {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067);
+}
+
+#toc .nav-list > li > a {
+    padding: 3px 15px;
+}
+
+.intro-block ul {
+    list-style-type: none;
+}
+
+.intro-block ul li,
+.intro-block ol li {
+    margin-bottom: 0.5em;
+}
+
+/* http://stackoverflow.com/questions/13354578/custom-li-list-style-with-font-awesome-icon */
+.intro-block ul li:before {
+    content: "";
+    font-family: FontAwesome;
+    display: block;
+    float: left;
+    margin-left: -20px; /*same as padding-left set on li*/
+    width: 15px; /*same as padding-left set on li*/
+}
+
+.intro-block .plain-list li:before {
+    content: "";
+}
+
+.intro-block .plain-list {
+    list-style-type: disc;
+}
+
+/**
+ * Support
+ */
+#supportform #id_msg,
+#ticket-reply-form #id_msg {
+   font-family: "Courier New", Courier, monospace;
+}
+
+.support-message-row {
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+
+.support-message-content {
+    border: 0;
+    background: white;
+    white-space: pre-wrap;
+}
+
+.support-message-reply {
+    margin: 0 0 10px -15px;
+}
+
+/**
+ * Feedback fields
+ */
+
+
+/* Note: will put Feedback hidden under accordion when feedback has been responsed, so it takes less space */
+#feedback_form .radio_container {
+    display: block;
+    /*border: 1px dotted black;*/
+}
+
+#feedback_form label {
+    vertical-align: top;
+}
+
+#feedback_form .good_feedback label {
+    color: green;
+}
+
+#feedback_form .bad_feedback label {
+    color: red;
+}
+
+#feedback_form input[type="radio"] {
+    margin-right: 5px;
+}
+
+#feedback_message {
+    margin-top: 10px;
+}
+
+/* Trusted people */
+
+.confirm_column {
+    width: 200px;
+}
+
+
+/**
+ * Responsive design fixes
+ */
+
+.user-panel-ul {
+    list-style: none;
+    background-color: #DAE3EB;
+    min-height: 40px;
+    line-height: 40px;
+    padding: 0 20px;
+    text-align: center;
+}
+
+.user-panel-ul > li {
+    display: inline-block;
+    margin-right: 5px;
+    font-weight: bold;
+}
+
+.user-panel-ul > li > a {
+    color: black;
+}
+
+@media (min-width: 832px) {
+    .user-panel {
+        display: none;
+    }
+}
+
+@media (min-width: 832px) and (max-width: 991px) {
+    .navbar .container {
+        width: 100% !important;
+    }
+}
+
+
+@media (max-width: 1199px) {
+    .user-panel-elements {
+        display: none;
+    }
+}
+
+.trades-dropdown.trades-dropdown {
+    display: none;
+}
+
+@media (min-width: 832px) and (max-width: 1199px) {
+    .trades-elements.trades-elements {
+        display: none;
+    }
+    .trades-dropdown.trades-dropdown {
+        display: block;
+    }
+}
+
+.mobile-nav.mobile-nav {
+    display: none;
+}
+
+@media (max-width: 831px) {
+    .user-panel-dd.user-panel-dd {
+        display: none;
+    }
+
+    .mobile-nav.mobile-nav {
+        display: block;
+    }
+}
+
+@media (max-width: 979px) {
+
+    .navbar {
+        margin: 0 0 20px 0;
+    }
+
+    .navbar-inner {
+        padding: 0 20px;
+    }
+
+    .hero-unit h1 {
+        font-size: 30px;
+    }
+
+    .bitcoinlist {
+        overflow-x: auto;
+    }
+
+    #listing-call-for-action-button {
+        display: block;
+        float: none;
+    }
+}
+
+@media (max-width: 767px) {
+
+    body h1:first-of-type {
+        font-size: 26px;
+    }
+
+    /* Hide show map on mobile */
+    #map_toggle_btn {
+        display: none;
+    }
+
+    /* For touch devices, biffer Google Places autocomplete items */
+    .pac-item {
+        font-size: 200%;
+        line-height: 200%;
+    }
+
+    /* Reduce listing tables font size when shown on mobile */
+    .table-bitcoins {
+        font-size: 80%;
+    }
+
+    .megabutton,
+    .column-price {
+        font-size: 12px;
+    }
+
+    /* Reduce listing tables colum count when shown on mobile */
+    .header-limit,
+    .column-limit,
+    .header-distance,
+    .column-distance,
+    .header-payment-method,
+    .column-payment-method {
+        display: none;
+    }
+
+    .column-user {
+        white-space: normal;
+    }
+
+
+    /* Wide button fix for mobile */
+    .front-page-button {
+        overflow: auto;
+    }
+
+    #latest-ads {
+        display: none;
+    }
+
+    #as-seen-on-container {
+        display: none;
+    }
+
+    .intro-image,
+    .intro-image-left {
+        -webkit-transform: none;
+        transform: none;
+        max-width: 100%;
+        margin: 10px 0;
+    }
+
+    #translation-info {
+        display: none;
+    }
+
+    /* Disable floating ToCs */
+    .affix {
+        position: static;
+    }
+
+    /* Wallet page fixes */
+    #sendform input {
+        min-width: 200px;
+    }
+
+    .receive-address {
+        font-size: 80%;
+    }
+
+    #atm-mobile-quick-navigation {
+        display: block;
+    }
+}
+
+/*
+    New message AJAX POST animation.
+
+    Used wherever there's a message form (except for escrow).
+*/
+
+#message-spinner {
+    font-size: 16px;
+    display: inline-block;
+}
+
+.new-message {
+  -webkit-animation: fade-message 4s ease-in; /* Chrome, Safari, Opera */
+  -moz-animation: fade-message 4s ease-in; /* Chrome, Safari, Opera */
+  animation: fade-message 4s ease-in;
+
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+}
+
+/* Note: colours below are from Bootstrap's alert-success */
+
+/* Chrome, Safari, Opera */
+@-webkit-keyframes fade-message {
+  0% {
+    background-color: #dff0d8;
+    color: #468847;
+  }
+  50% {
+    background-color: #dff0d8;
+    color: #468847;
+  }
+  100% {
+    background-color: inherit;
+    color: inherit;
+  }
+}
+
+/* Mozilla */
+@-moz-keyframes fade-message {
+  0% {
+    background-color: #dff0d8;
+    color: #468847;
+  }
+  50% {
+    background-color: #dff0d8;
+    color: #468847;
+  }
+  100% {
+    background-color: inherit;
+    color: inherit;
+  }
+}
+
+/* Standard syntax */
+@keyframes fade-message {
+  0% {
+    background-color: #dff0d8;
+    color: #468847;
+  }
+  50% {
+    background-color: #dff0d8;
+    color: #468847;
+  }
+  100% {
+    background-color: inherit;
+    color: inherit;
+  }
+}
+
+.button-item-1 {
+    order: 1;
+    margin-right: 5px
+}
+
+.button-item-2 {
+    order: 2;
+}
+
+.autocomplete-suggestions {
+    border: 1px solid #999;
+    background: #FFF;
+    overflow: auto;
+}
+.autocomplete-suggestion {
+    padding: 2px 5px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+.autocomplete-selected {
+    background: #F0F0F0;
+}
+.autocomplete-suggestions strong {
+    font-weight: normal;
+    color: #3399FF;
+}
+.autocomplete-group {
+    padding: 2px 5px;
+}
+.autocomplete-group strong {
+    display: block;
+    border-bottom: 1px solid #000;
+}
+
+/* Dispute alert message hide */
+
+.dispute-alert-msg {
+    display: none;
+    margin-bottom: 0px;
+}
+
+.unread-msg.unread-msg a {
+    font-weight: 600;
+}
+
+.topic-options {
+    background-color: #FFFFFF;
+    height: 35px;
+    margin: 10px;
+    width: 100%;
+}
+
+/*
+* Random
+*/
+
+.just-centered {
+    text-align: center;
+}
+
+.margin-20px {
+    margin: 20px;
+}
+
+.toc-150-width {
+    max-width: 150px;
+}
+
+.atm-img {
+    float: right;
+    padding: 10px;
+}
+
+.display-none {
+    display: none;
+}
+
+.float-left {
+    float: left;
+}
+
+.float-right {
+    float: right;
+}
+
+.support-message-wrap {
+    white-space: pre-wrap;
+}
+
+.contact-table-overflow {
+    overflow: auto;
+}
+
+.escrow-info {
+    float: right;
+    padding-right: 10px;
+    padding-bottom: 10px;
+    width: 50px;
+}
+
+.escrow-print-receipt {
+    float: right;
+    margin: 5px;
+}
+
+.escrow-print-receipt a {
+    margin-top:1px;
+    margin-right:4px;
+}
+
+.contact-details-table {
+    width: 100%;
+}
+
+.map-items {
+    width: 800px;
+    height: 320px
+}
+
+.contact-print-receipt {
+    margin-top: 1px;
+    margin-right: 4px;
+}
+
+.container-480 {
+    min-height: 480px;
+}
+
+.irc-iframe {
+    border: 1px solid #666;
+    margin: 10px 0;
+}
+
+.2fa-snippet-img {
+    float: right;
+    margin-right: 100px;
+}
+
+.profile-verified-info {
+    margin-left: 40px;
+}
+
+.ad-edit-download {
+    margin-top: 1px;
+    margin-right: 4px;
+}
+
+.ad-edit-buttons {
+    margin-top: 1px;
+    margin-right: 4px;
+}
+
+.local-offices-csv-example {
+    overflow: auto;
+    word-wrap: normal;
+    white-space: pre;
+    background-color: #eee;
+}
+
+.negative-feedback-review {
+    display: inline-block;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.wrap-lines {
+    white-space: normal;
+}
+
+.login-form .form-group {
+    max-width: 70%;
+}
+
+.login-form .alert-danger {
+    color: #31708f;
+    background-color: #d9edf7;
+    border-color: #bce8f1;
+    width: 70%;
+}
+
+.login-form .alert-danger ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.login-form .form-actions {
+    display: inline-block;
+}
+
+.login-form .login-form-a {
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.login-heading {
+    margin-bottom: 20px;
+}
+
+.login-link {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.login-security-img {
+    border:5px solid black;
+}
+
+.phonenumberinput {
+    width: 5.3em;
+}
+
+.login-2fa-form .alert-danger {
+    width: 70%;
+}
+
+.login-2fa-form .alert-danger ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.login-2fa-form .btn-primary, .login-2fa-form .btn-default {
+    display: inline-block;
+}
+
+.login-3fa-input {
+    width: 10em;
+}
+
+.three-factor-form .alert-danger {
+    width: 70%;
+}
+
+.three-factor-form .alert-danger ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.three-factor-form .form-group {
+    width: 10em;
+}
+
+.sellguide-ads-column-width {
+    width: 25%;
+}
+
+.nowrap {
+    white-space: nowrap;
+}
+
+.giftcard-page-panel {
+    padding: 15px 5px;
+}
+
+.giftcard-page-form {
+    padding: 0;
+}
+
+.panel-inline-block {
+  display: inline-block;
+  width: 49%;
+}
+.giftcards-content {
+  width: 100%;
+}
+.align-right {
+  text-align: right;
+}
+.inline-block {
+  display: inline-block;
+}
+
+/**********************/
+/*    Search form     */
+/**********************/
+
+
+.search-form-wrap .tab-content {
+    border-width: 1px;
+    border-color: #337ab7;
+    border-style: none solid solid solid;
+    text-align: center;
+}
+
+.search-form-nav li {
+    width: 50%;
+}
+
+.search-form-nav li .tab-buy {
+    text-align: right;
+}
+
+.search-form-nav li .tab-sell {
+    margin-right: 0px;
+}
+
+.search-form {
+    padding: 10px;
+}
+
+.search-form .form-group {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 5px 0;
+}
+
+.search-form .form-group#div_id_amount {
+    width: 15em;
+}
+
+.search-form .form-group#div_id_currency {
+    width: 6em;
+}
+
+.search-form .form-group#div_id_place {
+    width: 30%;
+}
+
+.search-form .form-group#div_id_place_country {
+    width: 30%;
+}
+
+.search-form .form-group#div_id_online_provider {
+    width: 35%;
+}
+
+.search-form .form-group input,
+.search-form .form-group select {
+    border-color: #337ab7;
+}
+
+.search-form .form-actions {
+    display: inline-block;
+    margin-bottom: 0;
+}
+
+.form-group .controls .search-form-button {
+    font-weight: bold;
+    color: #f58220;
+    border-color: #f58220;
+    background-color: #ffffff;
+}
+
+.tab-buy,
+.tab-sell {
+    font-weight: bold;
+}
+
+.nav-tabs>li.active>.tab-buy,
+.nav-tabs>li.active>.tab-buy:hover,
+.nav-tabs>li.active>.tab-buy:focus {
+    border-color: #337ab7;
+    border-bottom-color: transparent;
+}
+
+.nav-tabs>li.active>.tab-sell,
+.nav-tabs>li.active>.tab-sell:hover,
+.nav-tabs>li.active>.tab-sell:focus {
+    border-color: #337ab7;
+    border-bottom-color: transparent;
+}
+
+.search-form-wrap>.nav-tabs {
+    border-bottom: 1px solid #337ab7;
+}
+
+.nav-tabs>li>.tab-sell:hover,
+.nav-tabs>li>.tab-buy:hover {
+    border-bottom: 1px solid #337ab7;
+}
+
+.search-form-checkboxes {
+  margin-bottom: -40px;
+}
+
+.search-form-checkboxes,
+#div_id_sms_not_required,
+#div_id_id_not_required {
+  display: block;
+}
+
+.search-form-sms-not-required,
+.search-form-id-not-required,
+#div_id_sms_not_required input,
+#div_id_sms_not_required p,
+#div_id_id_not_required input,
+#div_id_id_not_required p {
+  display: inline-block;
+}
+
+#div_id_sms_not_required p,
+#div_id_id_not_required p {
+  margin-top: 1px;
+}
+
+.search-form-button-advanced {
+  display: none;
+}
+
+/* Responsive */
+@media(max-width:991px) {
+    .search-form .form-group {
+        display: block;
+        width: 100% !important;
+        margin: 0 0 5px 0;
+    }
+
+    .search-form .form-actions,
+    .search-form-button {
+        width: 100%;
+    }
+
+    .search-form-checkboxes {
+      margin-bottom: 0;
+    }
+
+    .search-form-id-not-required {
+      margin-left: 0px !important;
+    }
+
+    .search-form-checkboxes,
+    #div_id_sms_not_required,
+    #div_id_id_not_required {
+      display: block;
+    }
+
+    .search-form-sms-not-required,
+    .search-form-id-not-required,
+    #div_id_sms_not_required input,
+    #div_id_sms_not_required p,
+    #div_id_id_not_required input,
+    #div_id_id_not_required p {
+      display: block;
+    }
+
+    .search-form-button {
+      display: none;
+    }
+
+    .search-form-button-advanced {
+      display: block;
+    }
+}
+
+@media(min-width: 992px) and (max-width: 1199px) {
+    .search-form .form-group#div_id_amount {
+        width: 10em;
+    }
+}
+
+/* Search form validation */
+.search-form .has-error span {
+    display: none;
+}
+
+.search-form .has-error input,
+.search-form .has-error select {
+    border: 1px solid #a94442;
+}
+
+/**********************/
+/* Advertisement page */
+/**********************/
+
+/* Misc */
+
+.report-ad-btn {
+    color: #d9534f;
+    border-color: #d9534f;
+}
+
+/* Calculator */
+
+.calculator-panel {
+    text-align: left;
+    min-height: 570px;
+}
+
+.calculator-panel>.panel-body {
+    padding: 25px;
+}
+
+.ad-calculator {
+    width: 100%;
+    margin-top: 25px;
+}
+
+.ad-calculator>form {
+    width: 100%;
+}
+
+.ad-calculator>form>.amountdiv-wrap {
+    width: 100%;
+    display: table;
+    margin-bottom: 5px;
+}
+
+.ad-calculator-form .input-group {
+    margin-bottom: 10px;
+}
+
+.ad-calculator-form #btcinput {
+    height: 45px;
+    font-size: 20px;
+    border-color: #337ab7;
+}
+
+.ad-calculator-form #amountinput {
+    height: 45px;
+    font-size: 20px;
+    border-color: #337ab7;
+}
+
+.calculator-label-wrap {
+    width: 24%;
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.calculator-label {
+    font-size: 20px;
+    line-height: 42px;
+}
+
+.calculator-input-wrap {
+    display: table-cell;
+    width: 75%;
+}
+
+.calculator-input-wrap>.calculator-input {
+    width: 100%;
+}
+
+.calculator-input-wrap>.calculator-input>input {
+    height: 45px;
+    padding: 0 0 0 15px;
+    font-size: 20px;
+    border-color: #337ab7;
+}
+
+.ad-calculator .input-group-addon {
+    width: 5em;
+    font-size: 1.1em;
+    background-color: #337ab7;
+    border-color: #337ab7;
+    color: white;
+}
+
+.total-hidden {
+    visibility: hidden;
+}
+
+.calculator-button,
+.calculator-button:disabled,
+.calculator-button:hover,
+.calculator-button:focus {
+    width: 100%;
+    border-radius: 0;
+    height: 50px;
+    line-height: 25px;
+    font-size: 20px;
+    background-color: #f4751b;
+    border-color: #f4751b;
+    font-weight: bold;
+}
+
+.button-payment-window {
+    padding-top: 2px;
+}
+
+.calculator-signup {
+    margin-top: 168px;
+}
+
+.calculator-button-signup {
+    display: block;
+    width: 100%;
+    border-radius: 0;
+    height: 50px;
+    line-height: 36px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Info tabs */
+
+.info-tabs-block {
+    height: 570px;
+    border: 1px solid #ddd;
+    border-radius: 0;
+}
+
+.info-tabs-block>.nav-tabs>li {
+    width: 50%;
+}
+
+.info-tabs-block>.tab-content {
+    overflow: auto;
+    height: calc(100% - 42px);
+}
+
+.info-tabs-block>.tab-content>.tab-pane {
+    padding: 15px;
+}
+
+.info-tabs-block>.tab-content>.tab-pane>.row,
+.calculator-panel>.panel-body>.row {
+    font-size: 1.2em;
+}
+
+.info-tabs-block>.tab-content>.tab-pane>.row>.col-md-7,
+.info-tabs-block>.tab-content>.tab-pane>.row>.col-xs-7,
+.ad-description {
+    word-wrap: break-word;
+}
+
+.nav-tabs>li.active>.tot-tab,
+.nav-tabs>li.active>.tot-tab:hover,
+.nav-tabs>li.active>.tot-tab:focus {
+    border-left-color: transparent;
+    border-top-color: transparent;
+    border-radius: 0;
+}
+
+.nav-tabs>li.active>.profile-tab,
+.nav-tabs>li.active>.profile-tab:hover,
+.nav-tabs>li.active>.profile-tab:focus {
+    border-right-color: transparent;
+    border-top-color: transparent;
+    border-radius: 0;
+}
+
+
+/**********************/
+/*       Random       */
+/**********************/
+
+.padding-0 {
+    padding: 0;
+}
+
+.padding-10 {
+    padding: 10px;
+}
+
+.padding-20 {
+    padding: 20px;
+}
+
+.pro-trader-badge {
+    color: #f4751b;
+    line-height: 14px;
+}
+
+.margintop-10 {
+    margin-top: 10px;
+}
+
+.marginbottom-10 {
+    margin-bottom: 10px;
+}
+
+.border-radius-0 {
+    border-radius: 0;
+}
+
+.vertical-align-middle {
+    vertical-align: middle;
+}
+
+.plain-link,
+.plain-link:hover,
+.plain-link:visited {
+    text-decoration: none;
+}
+
+.font-18 {
+    font-size: 18px ;
+}
+
+.h1-custom-icon {
+    font-size: 65px;
+    font-weight: bold;
+}
+.base-logo {
+    margin-top:15px;
+    padding-bottom: 15px;
+}
+
+/**********************/
+/*     API-guide      */
+/**********************/
+
+.api-reference .method {
+    width:2%;
+}
+.api-reference .auth {
+    width:2%;
+}
+.api-reference .permission {
+    width:4%;
+}
+.api-reference .endpoint {
+    width:40%;
+}
+.api-reference .function {
+    width:52%;
+}
+.api-content {
+    padding-left: 30px;
+}
+.api-table-container {
+    width:100%;
+}
+.api-check {
+    color:red;
+}
+.api-cross {
+    color:green;
+}
+.api-table .title {
+    width: 20%;
+}
+.api-table .argument {
+    width: 30%;
+}
+.api-table .type {
+    width: 2%;
+}
+.api-table .values {
+    width: 48%;
+}
+.api-call {
+    padding: 20px 20px 20px 20px;
+}
+.api-call:nth-child(odd) {
+    background-color: #f6f6f6;
+}
+.api-reference {
+    padding-bottom:60px;
+}
+
+/**********************/
+/*  New Support Page  */
+/**********************/
+
+form#user_actions > label {
+  font-weight: normal;
+}
