@@ -1,0 +1,307 @@
+    1  apt-install git
+    2  apt install git
+    3  sudo apt-get install git
+    4  apt-get install gcc
+    5  sudo apt-get install build-essentials
+    6  sudo apt-get install build-essential
+    7  mkdir workspace
+    8  cd workspace/
+    9  git clone https://github.com/biz2013/AXFunds.git
+   10  sudo apt-get install libssl-dev
+   11  sudo apt-get install libdb++-dev
+   12  sudo apt-get install libboost-all-dev
+   13  sudo apt-get install libqrencode-dev
+   14  cd AXFunds/src
+   15  make -f makefile.unix 
+   16  grep -r USE_UPNP .
+   17  vi makefile.unix
+   18  make -f makefile.unix 
+   19  ls -la
+   20  cd qt
+   21  ls -la
+   22  cd ..
+   23  vi makefile.unix
+   24  axfd
+   25  vi makefile.unix
+   26  make -f makefile.unix all
+   27  ls 
+   28  ./axfd 
+   29  exit
+   30  exit
+   31  make install
+   32  exit
+   33  vi /root/.axf/axf.conf 
+   34  export
+   35  cd /root
+   36  vi .axf/axf.conf 
+   37  cd /home/osboxes/workspace/AXFunds/
+   38  ls -la
+   39  ./axfunds-qt 
+   40  atom
+   41  cd workspace/AXFunds/
+   42  ./axfunds-qt &
+   43  cd ../xwjy/smwy/
+   44  cd src/qt/
+   45  grep -r -i "Address Book" .
+   46  vi bitcoingui.h
+   47  grep -r -i "Address Book" . | grep -v locale
+   48  cd ..
+   49  qmake "USE_QRCODE=1" "USE_UPNP=1" "USE_DBUS=1"
+   50  make
+   51  vi axf-qt.pro 
+   52  qmake "USE_QRCODE=1" "USE_UPNP=1" "USE_DBUS=1"
+   53  make
+   54  grep -r -i "UI::AddressBookPage" .
+   55  qmake "USE_QRCODE=1" "USE_UPNP=1" "USE_DBUS=1"
+   56  make
+   57  ls -la
+   58  ps aux | grep axfund
+   59  ls -la
+   60  ./axfunds-qt 
+   61  ps aux | grep axfund
+   62  ls -la /root/.axf/
+   63  vi /root/.axf/debug.log 
+   64  ps aux | grep axfund
+   65  kill 2660
+   66  ps aux | grep axfund
+   67  ./axfunds-qt 
+   68  vi Makefile 
+   69  make
+   70  git commit .
+   71  rm -r build/
+   72  git add .
+   73  git commit .
+   74  git remove axfunds-qt 
+   75  git reset axfunds-qt 
+   76  git reset .qmake.stash 
+   77  git commit .
+   78  git push
+   79  qmake "USE_QRCODE=1" "USE_UPNP=1" "USE_DBUS=1"
+   80  make
+   81  vi settings.py 
+   82  mkdir users
+   83  ls -la
+   84  vi __init__.py 
+   85  cp __init__.py users/
+   86  vi users/models.py
+   87  vi settings.py 
+   88  cd ..
+   89  ls -la
+   90  python manage.py migrate
+   91  apt-get django
+   92  apt-get install django
+   93  exit
+   94  history | more
+   95  exut
+   96  exit
+   97  mysql
+   98  mysql -h localhost -p 3306
+   99  mysql -h localhost 
+  100  mysql -h localhost -u root
+  101  mysql -h localhost -u root -p
+  102  history | more
+  103  exit
+  104  mkdir tutorial
+  105  cd tutorial/
+  106  virtualenv env
+  107  source env/bin/activate
+  108  pip install djangorestframework
+  109  django-admin.py startproject tutorial
+  110  pip install django
+  111  django-admin.py startproject tutorial
+  112  cd tutorial/
+  113  ls -la
+  114  django-admin.py startapp quickapp
+  115  cd ..
+  116  find .
+  117  cd tutorial/
+  118  ls -la
+  119  find tutorial/
+  120  cd ../quick
+  121  pwd
+  122  cd ..
+  123  pwd
+  124  cd ..
+  125  deactivate
+  126  ls -la
+  127  cd tutorial/
+  128  ls -la
+  129  rm env/
+  130  cd env/
+  131  ls -la
+  132  cd ..
+  133  rm -r env
+  134  ls -la
+  135  rm -r tutorial/
+  136  virtualenv env
+  137  ls -la
+  138  cd env/
+  139  cd ..
+  140  source env/bin/activate
+  141  pwd
+  142  pip instll django
+  143  pip install django
+  144  pip install djangorestframework
+  145  pwd
+  146  ls
+  147  django-admin.py startproject tutorial
+  148  ls -la
+  149  cd tutorial/
+  150  django-admin.py startapp quickapp
+  151  cd ..
+  152  find .
+  153  cd tutorial/
+  154  python manage.py migrate
+  155  python manage.py createsuperuser
+  156  ls
+  157  vi manage.py 
+  158  cd ..
+  159  ls -la
+  160  cd tutorial/
+  161  ls -la
+  162  vi settings.py
+  163  cd ../quickapp/serializer.py
+  164  vi ../quickapp/serializers.py
+  165  cd ..
+  166  vi quickapp/views.py 
+  167  ls
+  168  cd tutorial/
+  169  vi urls.py
+  170  vi settings.py
+  171  pcd ..
+  172  cd ..
+  173  pwd
+  174  cd tutorial/
+  175  ls -la
+  176  cd ..
+  177  ls
+  178  python manage.py runserver
+  179  vi tutorial/urls.py
+  180  python manage.py runserver
+  181  ls
+  182  mv quickapp tutorial/
+  183  python manage.py runserver
+  184  ls -al
+  185  find tutorial/
+  186  python manage.py runserver
+  187  vi tutorial/urls.py
+  188  ls -la
+  189  cd tutorial/
+  190  ls -la
+  191  mv quickapp/ ../quickstart 
+  192  cd ..
+  193  python manage.py runserver
+  194  ls -la
+  195  mvn quickstart/ tutorial/
+  196  python manage.py runserver
+  197  cd tutorial/
+  198  ls -la
+  199  cd ..
+  200  ls -la
+  201  mv quickstart/ tutorial/
+  202  python manage.py runserver
+  203  deactivate
+  204  cd ..
+  205  ls -la
+  206  cd ..
+  207  rm -rf tutorial/
+  208  ls -la
+  209  cd test1
+  210  ls -la
+  211  cd test1/
+  212  ls -la
+  213  vi settings.py 
+  214  mysql
+  215  sudo su
+  216  exit
+  217  cd workspace/AXFunds/
+  218  ./axfunds-qt --help
+  219  ./axfunds-qt 
+  220  ./axfunds-qt &
+  221  ps aux | grep axfund
+  222  ls -la
+  223  find . -name axf*
+  224  find ./ -name axf*
+  225  find --help
+  226  exut
+  227  exit
+  228  cd /root
+  229  cat .axf/axf.conf 
+  230  cd /home/osboxes/workspace/django/test1/
+  231  vi wallet.py 
+  232  python wallet.py 
+  233  vi wallet.py 
+  234  python wallet.py 
+  235  netstat
+  236  netstat -nlp
+  237  cd ../../
+  238  cd AXFunds/
+  239  ./axfunds-qt --help | more
+  240  ifconfig
+  241  vi /root/.axf/axf.conf 
+  242  python wallet.py 
+  243  cd ../django/test1/
+  244  python wallet.py 
+  245  cat wallet.py 
+  246  vi /root/.axf/axf.conf 
+  247  ps aux | grep axfund
+  248  kill -9 2637
+  249  netstat -nlp
+  250  netstat -nlp | grep axf
+  251  netstat -nlp | more
+  252  ps aux | grep axfund | awk "{ print $2 }" | kill 
+  253  ps aux |grep axfund
+  254  kill -9 2680
+  255  vi /root/.axf/axf.conf 
+  256  vi wallet.py 
+  257  python wallet.py 
+  258  cat wallet.py 
+  259  vi wallet.py 
+  260  python wallet.py 
+  261  ls -la
+  262  vi wallet.py 
+  263  python wallet.py 
+  264  vi wallet.py 
+  265  python wallet.py 
+  266  vi wallet.py 
+  267  python wallet.py 
+  268  vi wallet.py 
+  269  python wallet.py 
+  270  vi wallet.py 
+  271  python wallet.py 
+  272  vi wallet.py 
+  273  python wallet.py 
+  274  vi wallet.py 
+  275  python wallet.py 
+  276  vi wallet.py 
+  277  python wallet.py 
+  278  vi wallet.py 
+  279  python wallet.py 
+  280  vi wallet.py 
+  281  python wallet.py 
+  282  vi wallet.py 
+  283  python wallet.py 
+  284  vi wallet.py 
+  285  python wallet.py 
+  286  vi wallet.py 
+  287  python wallet.py
+  288  vi wallet.py 
+  289  python wallet.py
+  290  vi wallet.py 
+  291  python wallet.py
+  292  vi wallet.py 
+  293  python wallet.py 
+  294  vi wallet.py 
+  295  python wallet.py 
+  296  vi wallet.py 
+  297  python wallet.py 
+  298  ls -la
+  299  history
+  300  history | more
+  301  ls -la
+  302  cd test1
+  303  ls -la
+  304  cd ..
+  305  vi users/
+  306  ls -la
+  307  history > /home/osboxes/history.dat
