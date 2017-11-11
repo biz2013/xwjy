@@ -7,3 +7,14 @@ implementation of AXFunds.
 See doc/build-*.txt for instructions on building axfd,
 the intended-for-services, no-graphical-interface, reference
 implementation of AXFunds.
+-------------------------
+Build ubuntu 16.04 image on AWS
+sudo apt-get update
+sudo apt-get -y install mysql-server
+sudo apt-get -y install git build-essential libssl-dev libdb++-dev libboost-all-dev libqrencode-dev libminiupnpc-dev
+mkdir ~/workdir
+cd ~/workdir
+git clone https://github.com/biz2013/xwjy.git
+unzip the smwy/src/axfd.tar.gz
+
+need a startup systemd for wallet
