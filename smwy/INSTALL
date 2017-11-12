@@ -18,3 +18,14 @@ git clone https://github.com/biz2013/xwjy.git
 unzip the smwy/src/axfd.tar.gz
 
 need a startup systemd for wallet
+
+-----
+install JSON-RPC to talk to wallet
+
+sudo apt install bzr
+cd ~/workdir
+bzr checkout http://bzr.json-rpc.org/trunk
+cd trunk/python-jsonrpc/
+python setup.py install
+
+Then the wallet program should work
