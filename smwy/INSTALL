@@ -39,3 +39,14 @@ pip install Pillow //another thing let django migration works
 
 cd xwjy/test1/
 python manage.py migrate
+
+------------------------
+PHP
+
+sudo apt-get  install lamp-server^ phpmyadmin php-curl
+
+in /etc/php/7.0/apache2/php.ini 
+Uncomment ";extension=php_curl.dll"
+
+Add "Include /etc/phpmyadmin/apache.conf " into /etc/apache2/apache.conf
+
