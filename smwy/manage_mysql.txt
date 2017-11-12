@@ -1,0 +1,9 @@
+mysql -h localhost -u root -p  <- this will prompt password
+
+inside:
+show database;
+// but uses capital to select
+SELECT USER();
+
+create database mydb;
+GRANT ALL PRIVILEGES ON mydb.* TO 'mydbuser'@'localhost' IDENTIFIED BY 'aaaaaa';
