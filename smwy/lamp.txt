@@ -1,0 +1,181 @@
+    1  git commit .
+    2  git pull
+    3  git commit .
+    4  git push
+    5  ipconfig 
+    6  ifconfig  
+    7  sudo service iptables stop
+    8  iptables --help
+    9  sudo ufw status
+   10  sudo ufw stop
+   11  sudo ufw disable
+   12  sudo ufw reload
+   13  sudo ufw enable
+   14  sudo ufw reload
+   15  sudo ufw status
+   16  ifconfig -all
+   17  ifconfig /all
+   18  ifconfig --help
+   19  ifconfig 
+   20  ls -la
+   21  cd ..
+   22  sudo apt-get install apache2
+   23  sudo apt-get install php5 libapache2-mod-php5
+   24  sudo apt-get list installed | grep php
+   25  sudo apt list installed | grep php
+   26  sudo apt list | grep php
+   27  sudo apt-get install php libapache2-mod-php
+   28  sudo apt-get install libapache2-mod-auth-mysql php5-mysql phpmyadmin
+   29  sudo apt-get install libapache2-mod-auth-mysql php-mysql phpmyadmin
+   30  sudo apt-get install libapache-mod-auth-mysql php-mysql phpmyadmin
+   31  sudo apt-get install  php-mysql phpmyadmin
+   32  apt list | grep libapache | grep mysql
+   33  cd /var/www/
+   34  ls -la
+   35  cd html/
+   36  ls -la
+   37  cd ..
+   38  mkdir crap
+   39  cd crap/
+   40  vi index.html
+   41  service apache2 status
+   42  cd ..
+   43  mv crap/ html/
+   44  cd html/
+   45  ls -la
+   46  cd crap/
+   47  ls -la
+   48  service apache2 restart
+   49  sudo apt-get  install lamp-server^ phpmyadmin 
+   50  sudo gedit /etc/apache2/apache2.conf 
+   51  vi /etc/apache2/apache2.conf 
+   52  service apache2 restart
+   53  systemctl status apache2.server
+   54  systemctl status apache2.service
+   55  vi /etc/apache2/apache2.conf 
+   56  service apache2 restart
+   57  vi index.html 
+   58  mv index.php
+   59  mv index.html index.php
+   60  mv index.php test.php
+   61  unzip /home/osboxes/Downloads/new_crab.zip 
+   62  grep -r dd_config .
+   63  grep -r dd_config . | more
+   64  rm -rf Application/Runtime/Logs/
+   65* grep -r dd_config . | mor
+   66  find . -name *.sql
+   67  find ./ -name *.sql
+   68  ls *.sql
+   69  mysql -h localhost -u root -p
+   70  vi dd_user.sql 
+   71  grep -r dd_user | more
+   72  vi payurl/ldwl360_Notify.php
+   73  vi payurl/config.php 
+   74  cat payurl/config.php 
+   75  find . -name config.php
+   76  cat Application/Admin/Conf/config.php 
+   77  vi Application/Admin/Conf/config.php 
+   78  vi Application/Common/Conf/config.php 
+   79  vi weifutong/config/config.php 
+   80  vi shoukuanla/config.php 
+   81  vi Application/Common/Conf/db.php 
+   82  mysql -h localhost -u root -p
+   83  ls *.sql
+   84  mysql -h localhost -u root -p
+   85  vi Application/Common/Conf/db.php 
+   86  cd Application/
+   87  ls -la
+   88  ps aux | grep apache
+   89  service apache2 stop
+   90  ps aux | grep apache
+   91  service apache2 start
+   92  ps aux | grep apache
+   93  chown www-data:www-data Runtime/
+   94  vi Common/Util/ddhttp.class.php 
+   95  vi Common/Util/ddwechat.class.php 
+   96  vi Home/Controller/HomeController.class.php 
+   97  vi Common/Util/ddhttp.class.php 
+   98  grep curl Common/Util/ddhttp.class.php 
+   99  apt-get install php-curl
+  100  cd /usr/local/
+  101  find . -name php.ini
+  102  cd /
+  103  find . -name php.ini
+  104  vi /etc/php/7.0/apache2/php.ini 
+  105  service apache2 restart
+  106  cd /var/www/html/crap/
+  107  ls -la
+  108  cd Application/Runtime/
+  109  ls -la
+  110  rm Cache/*
+  111  cd Cache/
+  112  ls -la
+  113  rm -rf *
+  114  cd ..
+  115  ls -la
+  116  cd ..
+  117  chown www-data:www-data Runtime/
+  118  cd Runtime/
+  119  cd Cache/
+  120  rm -rf *
+  121  cd ../..
+  122  cd ..
+  123  vi #DFrame/Library/Think/Storage/Driver/File.class.php
+  124  vi \#DFrame/Library/Think/Storage/Driver/File.class.php
+  125  cd Application/Runtime/
+  126  rm -rf *
+  127  ls -la
+  128  cd ..
+  129  ls -la
+  130  cd ..
+  131  ls -la
+  132  cd html/crap/
+  133  chmod www-data:www-data .
+  134  chown www-data:www-data .
+  135  ls -la
+  136  chown www-data:www-data *
+  137  ls -la
+  138  chown www-data:www-data .htaccess 
+  139  service apache2 restart
+  140  chown root:root .htaccess *
+  141  ls -la
+  142  cd Application/Runtime/
+  143  ls -la
+  144  rm -rf *
+  145  service apache2 restart
+  146  ls -la
+  147  cd ..
+  148  ls -la
+  149  cd ..
+  150  ls -al
+  151  cd ..
+  152  tar cvzf crap.tar.gz crap/ --exclude=crap/Application/Runtime/
+  153  ls -la
+  154  cd crap
+  155  du .
+  156  ls -la
+  157  du \#DFrame/
+  158  ls
+  159  ls -la
+  160  du log
+  161  du Application/
+  162  ls
+  163  ls -la
+  164  cd shoukuanla/
+  165  ls -la
+  166  du images/
+  167  du images/ |more
+  168  cd images/tenqrcode/200
+  169  ls -la
+  170  cd ../../..
+  171  cd ..
+  172  ls -la
+  173  mv crap.tar.gz /home/osboxes/workspace/xwjy/smwy/
+  174  ls -la
+  175  cd /home/osboxes/workspace/xwjy/smwy/
+  176  ls -la
+  177  git add crap.tar.gz 
+  178  git commit .
+  179  git push
+  180  history
+  181  history > lamp.txt
