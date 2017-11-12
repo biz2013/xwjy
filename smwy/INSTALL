@@ -11,7 +11,8 @@ implementation of AXFunds.
 Build ubuntu 16.04 image on AWS
 sudo apt-get update
 sudo apt-get -y install mysql-server
-sudo apt-get -y install git build-essential libssl-dev libdb++-dev libboost-all-dev libqrencode-dev libminiupnpc-dev
+sudo apt-get -y install git build-essential libssl-dev libdb++-dev libboost-all-dev libqrencode-dev libminiupnpc-dev python-dev libmysqlclient-dev
+
 mkdir ~/workdir
 cd ~/workdir
 git clone https://github.com/biz2013/xwjy.git
@@ -29,3 +30,12 @@ cd trunk/python-jsonrpc/
 python setup.py install
 
 Then the wallet program should work, please don;t use pip install json-rpc or it will break the linkage
+------
+Install mysql
+sudo apt-get install mysql-server
+pip django
+pip install mysql-python
+pip install Pillow //another thing let django migration works
+
+cd xwjy/test1/
+python manage.py migrate
