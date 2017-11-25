@@ -7,3 +7,10 @@ SELECT USER();
 
 create database mydb character set utf8;
 GRANT ALL PRIVILEGES ON mydb.* TO 'mydbuser'@'localhost' IDENTIFIED BY 'aaaaaa';
+
+
+-----
+auto generate tables based on model
+----
+python manage.py makemigrations <model_name>
+python manage.py migrate
