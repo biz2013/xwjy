@@ -29,13 +29,19 @@ insert into users_user(login_id, firstname, middle, lastname, email, phone, conf
 
 insert into users_paymentprovider(name, config_json, created_by_id, created_at, lastupdated_by_id, lastupdated_at) values('weixin', '', 'sysop', now(),'sysop', now());
 
+insert into users_paymentprovider(name, config_json, created_by_id, created_at, lastupdated_by_id, lastupdated_at) values('alipay', '', 'sysop', now(),'sysop', now());
+
 insert into users_cryptocurrency (currency_code, name, created_by_id, created_at, lastupdated_by_id, lastupdated_at) values('AXFund','AXFund', 'sysop', now(), 'sysop',now());
 
-insert into users_userpaymentmethod (account_at_provider, userId_id, providerId_id, provider_qrcode_image, created_by_id, created_at, lastupdated_by_id, lastupdated_at) select '11111111', u.id, p.id, 'taozhang_weixi_pay_qrcode.jpg', 'sysop', now(), 'sysop',now() from users_user u, users_paymentprovider p where u.login_id='taozhang' and p.name='weixin';
+insert into users_userpaymentmethod (account_at_provider, userId_id, providerId_id, provider_qrcode_image, created_by_id, created_at, lastupdated_by_id, lastupdated_at) select '11111111', u.id, p.id, 'taozhang_weixin_qrcode.jpg', 'sysop', now(), 'sysop',now() from users_user u, users_paymentprovider p where u.login_id='taozhang' and p.name='weixin';
+
+insert into users_userpaymentmethod (account_at_provider, userId_id, providerId_id, provider_qrcode_image, created_by_id, created_at, lastupdated_by_id, lastupdated_at) select '22222222', u.id, p.id, 'yingzhou_alipay_qrcode.png', 'sysop', now(), 'sysop',now() from users_user u, users_paymentprovider p where u.login_id='yingzhou' and p.name='alipay';
 
 insert into users_wallet (name, cryptocurrency_code_id, config_json, created_by_id, created_at, lastupdated_by_id, lastupdated_at) values('First','AXFund','', 'sysop', now(), 'sysop',now());
 
 insert into users_userwallet (wallet_addr, user_id, wallet_id,created_by_id, created_at, lastupdated_by_id, lastupdated_at) select 'AHeeMMr4CqzxFTy3WGRgZnmE5ZoeyiA6vg', u.id, w.id, 'sysop', now(), 'sysop',now() from users_user u, users_wallet w where u.login_id='taozhang' and w.name='first';
+
+insert into users_userwallet (wallet_addr, user_id, wallet_id,created_by_id, created_at, lastupdated_by_id, lastupdated_at) select 'ANG53xNLvM4YkjHCeiaLMgobMZv3i6hT5m', u.id, w.id, 'sysop', now(), 'sysop',now() from users_user u, users_wallet w where u.login_id='yingzhou' and w.name='first'; 
 
 insert into users_order (user_id, reference_wallet_id, order_type, sub_type, units, unit_price, unit_price_currency, status, cryptocurrencyId_id, created_by_id, created_at, lastupdated_by_id, lastupdated_at) select u.id, w.id , 'SELL', '', 1000.0, 1.02, 'CYN', 'OPEN', 'AXFund', 'sysop', now(), 'sysop',now() from users_user u, users_wallet w where u.login_id='taozhang' and w.name='first';
  
