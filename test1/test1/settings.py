@@ -126,3 +126,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Where the files will be, this will be updated 
+# for real deployment
+#MEDIA_ROOT='/var/www/test1/'
