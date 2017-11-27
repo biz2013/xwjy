@@ -35,7 +35,7 @@ class UserPaymentMethod(models.Model):
    userId = models.ForeignKey('User', on_delete=models.CASCADE)
    providerId = models.ForeignKey('PaymentProvider', on_delete=models.CASCADE)
    account_at_provider= models.CharField(max_length=64)
-   provider_qrcode_image = models.ImageField()
+   provider_qrcode_image = models.ImageField(upload_to='uploads/')
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey('UserLogin', related_name='UserPaymentMethod_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
@@ -51,7 +51,8 @@ class Cryptocurrency(models.Model):
    lastupdated_by = models.ForeignKey('UserLogin', related_name='Cryptocurrency_lastupdated_by')
 
 class Wallet(models.Model):
-   cryptocurrent_code = models.ForeignKey('Cryptocurrency', on_delete=models.CASCADE)
+   name = models.CharField(max_length=32, unique=True, default='first')
+   cryptocurrency_code = models.ForeignKey('Cryptocurrency', on_delete=models.CASCADE)
    config_json = models.TextField()
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey('UserLogin', related_name='Wallet_created_by')
