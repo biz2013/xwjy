@@ -1144,6 +1144,7 @@ build/overviewpage.moc: src/qt/overviewpage.h \
 
 build/rpcconsole.moc: src/qt/rpcconsole.h \
 		build/ui_rpcconsole.h \
+		src/qt/trafficgraphwidget.h \
 		src/qt/clientmodel.h \
 		src/qt/guiutil.h \
 		src/rpcserver.h \
@@ -1440,6 +1441,9 @@ build/addresstablemodel.o: src/qt/addresstablemodel.cpp src/qt/addresstablemodel
 
 build/optionsdialog.o: src/qt/optionsdialog.cpp src/qt/optionsdialog.h \
 		build/ui_optionsdialog.h \
+		src/qt/bitcoinamountfield.h \
+		src/qt/qvalidatedlineedit.h \
+		src/qt/qvaluecombobox.h \
 		src/qt/bitcoinunits.h \
 		src/qt/monitoreddatamapper.h \
 		src/netbase.h \
@@ -1484,6 +1488,7 @@ build/sendcoinsdialog.o: src/qt/sendcoinsdialog.cpp src/qt/sendcoinsdialog.h \
 
 build/coincontroldialog.o: src/qt/coincontroldialog.cpp src/qt/coincontroldialog.h \
 		build/ui_coincontroldialog.h \
+		src/qt/coincontroltreewidget.h \
 		src/init.h \
 		src/wallet.h \
 		src/walletdb.h \
@@ -1552,6 +1557,7 @@ build/tradingpage.o: src/qt/tradingpage.cpp src/qt/tradingpage.h \
 
 build/signverifymessagedialog.o: src/qt/signverifymessagedialog.cpp src/qt/signverifymessagedialog.h \
 		build/ui_signverifymessagedialog.h \
+		src/qt/qvalidatedlineedit.h \
 		src/qt/addressbookpage.h \
 		src/base58.h \
 		src/chainparams.h \
@@ -2840,6 +2846,8 @@ build/crypter.o: src/crypter.cpp src/crypter.h \
 
 build/sendcoinsentry.o: src/qt/sendcoinsentry.cpp src/qt/sendcoinsentry.h \
 		build/ui_sendcoinsentry.h \
+		src/qt/bitcoinamountfield.h \
+		src/qt/qvalidatedlineedit.h \
 		src/qt/guiutil.h \
 		src/qt/bitcoinunits.h \
 		src/qt/addressbookpage.h \
@@ -2896,6 +2904,7 @@ build/paymentserver.o: src/qt/paymentserver.cpp src/qt/paymentserver.h \
 
 build/rpcconsole.o: src/qt/rpcconsole.cpp src/qt/rpcconsole.h \
 		build/ui_rpcconsole.h \
+		src/qt/trafficgraphwidget.h \
 		src/qt/clientmodel.h \
 		src/qt/guiutil.h \
 		src/rpcserver.h \
