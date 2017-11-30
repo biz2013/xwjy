@@ -18,5 +18,6 @@ from django.contrib import admin
 from . import app
 
 urlpatterns = [
-    url(r'^$', app.home),
+    url(r'^/$', app.home),
+    url(r'^mysellorder/$', app.mysellorder),
 ]
