@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'k(!4muq_6@4j5te(%^36zyw9m6b0kub^8fvi-$t18&v36hg3v)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False 
+DEBUG = True 
 
 ALLOWED_HOSTS = ['*']
 
@@ -125,7 +125,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
+#STATIC_ROOT = '/home/osboxes/workspace/xwjy/test1/static/'
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
+
+print 'base dir path', BASE_DIR
+#print 'static root', STATIC_ROOT
 
 # Where the files will be, this will be updated 
 # for real deployment

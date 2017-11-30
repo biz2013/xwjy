@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.short
+
 def home(request):
     """Show the home page."""
     return render(request, 'html/index.html')
