@@ -43,7 +43,15 @@ def create_sell_order(request):
 
     """
 
+def query_sell_orders(userlogin):
+    sellorders = Order.objects.filter(order_type='SELL')
+    if userlogin is not None:
+       user = User.objects.get(login_id= userlogin)
+       return sellorders.filter(user = user)
+    
 def mysellorder(request):
     if request.method == 'POST':
        return create_sell_order(request)
-    return render(request, 'html/mysellorder.html', {'username':'taozhang'})
+    sellorders = query_sell_orders('taozhang')
+    print "There is %d orders--- ".format(len(sellorders))
+    return render(request, 'html/mysellorder.html', {'sellorders': sellorders, 'username':'taozhang'})

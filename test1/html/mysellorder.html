@@ -72,12 +72,21 @@
             <th>余额</th>
             <th></th>
           </tr>
+          {% load mathfilters %}
+          {% if sellorders %}
+             {% for order in sellorders %}
           <tr>
-            <td>出售300美基金单价1.02CNY，总额306CNY</td>
+            <td>出售{{ order.units }}美基金单价{{ order.unit_price }}CNY，总额{{ order.units|mul:order.unit_price }}CNY</td>
             <td>还有90美基金，总额91.8CNY没有买家</td>
             <td></td>
           </tr>
+             {% endfor %}
+          {% else %}
           <tr>
+            <td>No sellerorder</td>
+            <td>
+          </tr>
+          {% endif %}
           <tr>
             <td>出售100美基金单价1.1CNY，总额110CNY</td>
             <td>没有买家</td>
