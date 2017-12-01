@@ -6,8 +6,9 @@ def home(request):
     return render(request, 'html/index.html')
 
 def create_sell_order(request):
-    userobj = User.objects.get(login_id = request.GET.get('username'))
-    user_login = UserLogin.objects.get(username = request.GET.get('username'))
+    login = request.POST['username']
+    userobj = User.objects.get(login_id = login)
+    user_login = UserLogin.objects.get(username = login)
     crypto = Cryptocurrency.objects.get(currency_code = 'AXFund')
     order = Order.objects.create(
         user= userobj,
@@ -17,8 +18,8 @@ def create_sell_order(request):
         cryptocurrencyId= crypto,
         order_type='SELL',
         sub_type = 'OPEN',
-        units = float(request.GET.get('quantity')),
-        unit_price = float(request.GET.get('unitprice')),
+        units = float(request.POST['quantity']),
+        unit_price = float(request.POST['unitprice']),
         unit_price_currency = 'CYN',
         status = 'OPEN')
     order.save()
@@ -43,7 +44,6 @@ def create_sell_order(request):
     """
 
 def mysellorder(request):
-    action = request.GET.get('action')
-    if action is not None and action == 'create_order':
+    if request.method == 'POST':
        return create_sell_order(request)
     return render(request, 'html/mysellorder.html', {'username':'taozhang'})
