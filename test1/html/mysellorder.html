@@ -1,4 +1,4 @@
-i<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en-us">
 
 <head>
@@ -89,7 +89,9 @@ i<!DOCTYPE html>
       </div>
     </div>
     <!-- popup window for purchase -->
-    <form id="buy-modal" tabindex="-1" class="modal fade" role="dialog" action="" aria-labelledby="lockfund-form-label" aria-hidden="true">
+    <form id="buy-modal" tabindex="-1" class="modal fade" role="dialog" action="/mysellorder/" aria-labelledby="lockfund-form-label" aria-hidden="true">
+      <input type="hidden" id="id_action" name="action" value="create_order" />
+      <input type="hidden" id="id_username" name="username" value = "{{ username }}"/>
       <div class="modal-dialog">
         <!-- Modal content-->
         <div class="modal-content">
@@ -108,7 +110,7 @@ i<!DOCTYPE html>
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="submit">锁定</button>
+            <button type="submit" class="btn btn-default" data-dismiss="submit">锁定</button>
             <button type="button" class="btn btn-default" data-dismiss="modal">撤销</button>
           </div>
         </div>
