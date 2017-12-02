@@ -36,7 +36,7 @@ sudo apt-get install mysql-server
 pip django
 pip install mysql-python
 pip install Pillow //another thing let django migration works
-
+pip install django-mathfilters
 cd xwjy/test1/
 python manage.py migrate
 
