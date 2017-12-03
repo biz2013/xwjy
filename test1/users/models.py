@@ -19,13 +19,13 @@ class PaymentProvider(models.Model):
    lastupdated_by = models.ForeignKey('UserLogin', related_name='PaymentProvider_lastupdated_by')
 
 class User(models.Model):
-   login = models.OneToOneField('UserLogin', on_delete = models.CASCADE,null=True)
+   login = models.OneToOneField('UserLogin', on_delete= models.CASCADE, null=True)
    firstname = models.CharField(max_length=32)
-   middle = models.CharField(max_length=32)
+   middle = models.CharField(max_length=32, default='')
    lastname = models.CharField(max_length=32)
    email = models.CharField(max_length=64)
-   phone = models.CharField(max_length=32)
-   config_json = models.TextField()
+   phone = models.CharField(max_length=32, default='')
+   config_json = models.TextField(default='')
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey('UserLogin', related_name='User_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
@@ -90,6 +90,14 @@ class UserStatue(models.Model):
 
 class Order(models.Model):
    ORDER_TYPE = (('BUY','Buy'),('SELL','Sell'))
+   """
+   buy_on_ask and sell_on_bid are for future automatic trading for the games
+   """
+   SUBORDER_TYPE = (('OPEN','Open'), ('BUY_ON_ASK', 'Buy_on_ask'), ('SELL_ON_BID', 'Sell_on_bid'))
+   """
+   These are not necessarily final, but I think so far we need these 
+   """
+   ORDER_STATUS = (('OPEN','Open'),('CANCELLED','Cancelled'), ('FILLED','Filled'), ('PARTIALFILLED','PartialFilled'),('LOCKED','Locked'))
    CURRENCY = (('CYN', 'Renminbi'), ('USD', 'US Dollar'))
    user = models.ForeignKey('User', on_delete=models.CASCADE)
    reference_order = models.ForeignKey('self', null=True)
@@ -97,11 +105,27 @@ class Order(models.Model):
    reference_wallet = models.ForeignKey('Wallet', null= True)
    reference_wallet_trxId = models.CharField(max_length=128, null = True)
    order_type = models.CharField(max_length=8, choices=ORDER_TYPE)
-   sub_type = models.CharField(max_length=16, default='')
+   sub_type = models.CharField(max_length=16, default='OPEN', choices=SUBORDER_TYPE)
    units = models.FloatField()
    unit_price = models.FloatField()
    unit_price_currency = models.CharField(max_length = 8, choices=CURRENCY, default='CYN')
-   status = models.CharField(max_length=32)
+   """
+   We use lock count to verify whether there's buy order lock on the 
+   sell order 
+   """
+   lock_count = models.IntegerField(default=0)
+   """
+   how many units left to be taken
+   """
+   units_balance = models.FloatField()
+   """
+   how many units is avaiable for buy, buyer may lock some units but
+   they have not paid, so those units are not available for buy. But
+   they are not counte as sold or bought since the transaction is not done
+   so units_balance may not reflect them
+   """
+   units_available_to_trade = models.FloatField()
+   status = models.CharField(max_length=32, choices=ORDER_STATUS)
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey('UserLogin', related_name='Order_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
