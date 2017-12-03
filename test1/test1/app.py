@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import render
 from users.models import Cryptocurrency, User, UserLogin, Order
 
@@ -43,15 +44,16 @@ def create_sell_order(request):
 
     """
 
-def query_sell_orders(userlogin):
-    sellorders = Order.objects.filter(order_type='SELL')
-    if userlogin is not None:
-       user = User.objects.get(login_id= userlogin)
-       return sellorders.filter(user = user)
+def query_user_open_sell_orders(userlogin):
+    return Order.objects.filter(user__login = userlogin).filter(order_type='SELL').filter(~Q(status='FILLED') | ~Q(status='CANCELLED'))
+
+def query_buy_orders(userlogin):
+    return Order.objects.select_related('reference_order','reference_order__user').filter(reference_order__user__login= userlogin)
     
 def mysellorder(request):
     if request.method == 'POST':
        return create_sell_order(request)
-    sellorders = query_sell_orders('taozhang')
+    sellorders = query_user_open_sell_orders('taozhang')
+    buyorders = query_buy_orders('taozhang')
     print "There is %d orders--- ".format(len(sellorders))
-    return render(request, 'html/mysellorder.html', {'sellorders': sellorders, 'username':'taozhang'})
+    return render(request, 'html/mysellorder.html', {'sellorders': sellorders, 'buyorders':buyorders,'username':'taozhang'})

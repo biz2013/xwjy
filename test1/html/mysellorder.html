@@ -42,6 +42,7 @@
       </div>
     </nav>
   </div>
+  {% load mathfilters %}
   <div class="container">
     <h6>美基金余额：2302.35 状态：锁定</h6>
     <div class="well">
@@ -53,11 +54,15 @@
               <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#buy-modal">卖单</button></td>
             <td></td>
             <td></td>
+      {% if buyorders %}
+          {% for order in buyorders %}
           <tr>
-            <td><a href="#">User2</a> 要购买105美基金，单价1.02CNY，总额107.1CYN. 付款通知时间2017/10/20 11:30:25 （北京）。等待释放</td>
+            <td><a href="/userreview/{{ order.user.id }}">{{ order.user.login }}</a> 要购买{{ order.units }}美基金，单价{{ order.unit_price }}CNY，总额{{ order.units|mul:order.unit_price }}CYN. 付款通知时间2017/10/20 11:30:25 （北京）。等待释放</td>
             <td><button class="btn btn-success" id="register-page-confirm-button">确认收款</button></td>
             <td><button class="btn btn-warning" id="register-page-confirm-button">争议</button></td>
           </tr>
+         {% endfor %}
+      {% endif %}
           <tr>
             <td><a href="#">User1</a> 要购买105美基金，单价1.02CNY，总额107.1CYN. 锁定时间2017/10/20 11:30:25 （北京）。</td>
             <td>等待付款通知或过期</td><td></td>
@@ -72,7 +77,6 @@
             <th>余额</th>
             <th></th>
           </tr>
-          {% load mathfilters %}
           {% if sellorders %}
              {% for order in sellorders %}
           <tr>
