@@ -58,7 +58,7 @@
              {% for order in sellorders %}
           <tr>
             <td>出售{{ order.units }}美基金单价{{ order.unit_price }}CNY，总额{{ order.units|mul:order.unit_price }}CNY</td>
-            <td>还有90美基金，总额91.8CNY没有买家</td>
+            <td>还有总额{{ order.unit_price|mul:order.unit_avaialble }}</td>
             {% if order.status == 'LOCKED' %}
             <td>LOCKED</td>
             {% else %}
