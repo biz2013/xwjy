@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'mathfilters',
+    'views',
     'users',
 ]
 
@@ -138,3 +139,4 @@ print 'base dir path', BASE_DIR
 # Where the files will be, this will be updated 
 # for real deployment
 #MEDIA_ROOT='/var/www/test1/'
+
