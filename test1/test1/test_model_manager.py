@@ -1,4 +1,6 @@
 from views.viewlistitems import *
+from views.sellorderview import *
+from views.userpaymentmethodview import *
 
 class ModelManager(object):
 
