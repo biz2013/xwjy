@@ -13,7 +13,7 @@ def home(request):
 def show_purchase_input(request):
     order_id = request.POST["reference_order_id"]
     login = request.POST['username']
-    manager = new ModelManager()
+    manager = ModelManager()
     purchase_order = manager.get_purchase_order_by_id(int(order_id))
     return render(request, 'html/input_purchase_order.html',
            {'username':'taozhang',
