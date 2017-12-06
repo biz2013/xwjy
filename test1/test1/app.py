@@ -5,6 +5,7 @@ from django.shortcuts import render
 # this is for test UI. A fake one
 from test_model_manager import ModelManager
 from users.models import Cryptocurrency, User, UserLogin, Order
+from views.sellorderview import SellOrderView
 
 def home(request):
     """Show the home page."""
