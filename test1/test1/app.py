@@ -1,6 +1,7 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 from django.db.models import Q
 from django.shortcuts import render
-from settings import PAYMENTPROVIDER_NAME_LOOKUP
 
 #from model_manager import ModelManager
 
@@ -21,6 +22,7 @@ def show_sell_orders_for_purchase(request):
             'sellorders': sellorders}
            )
 def show_purchase_input(request):
+    PAYMENTPROVIDER_NAME_LOOKUP = {"alipay": "支付宝", "weixin": "微信支付", "heepay": ""}
     manager = ModelManager()
     owner_user_id = request.POST["owner_user_id"]
     owner_payment_methods = manager.get_user_payment_methods(owner_user_id)
