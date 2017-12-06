@@ -22,7 +22,6 @@ def show_sell_orders_for_purchase(request):
             'sellorders': sellorders}
            )
 def show_purchase_input(request):
-    PAYMENTPROVIDER_NAME_LOOKUP = {"alipay": "支付宝", "weixin": "微信支付", "heepay": ""}
     manager = ModelManager()
     owner_user_id = request.POST["owner_user_id"]
     owner_payment_methods = manager.get_user_payment_methods(owner_user_id)
@@ -36,8 +35,7 @@ def show_purchase_input(request):
     login = request.POST['username']
     return render(request, 'html/input_purchase.html',
            {'username':'taozhang',
-            'sellorder': sellorder,
-            'payment_provider_name_display':PAYMENTPROVIDER_NAME_LOOKUP }
+            'sellorder': sellorder }
            )
 
 def create_sell_order(request):
