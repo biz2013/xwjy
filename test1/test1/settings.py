@@ -141,4 +141,3 @@ print 'base dir path', BASE_DIR
 # for real deployment
 #MEDIA_ROOT='/var/www/test1/'
 
-PAYMENTPROVIDER_NAME_LOOKUP = {'alipay': '支付宝', 'weixin':'微信支付'， 'heepay', '汇付宝'}
