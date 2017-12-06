@@ -2,7 +2,7 @@ from views.viewlistitems import *
 
 class ModelManager(object):
 
-   def query_active_sell_orders():
+   def query_active_sell_orders(self):
        orders= []
        opened_order = OrderViewListItem(
           owner_login = 'taozhang',
