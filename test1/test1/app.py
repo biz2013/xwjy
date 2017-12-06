@@ -28,7 +28,7 @@ def show_purchase_input(request):
        request.POST["locked_in_unit_price"],
        request.POST["available_units_for_purchase"],
        owner_payment_methods)
-    print 'sellorder id is here %s" % (sellorder.order_id)
+    print 'sellorder id is here %s' % (sellorder.order_id)
     login = request.POST['username']
     return render(request, 'html/input_purchase.html',
            {'username':'taozhang',
