@@ -4,7 +4,7 @@ class ModelManager(object):
 
    def query_active_sell_orders(self):
        orders= []
-       opened_order = OrderViewListItem(
+       orders.append(OrderViewListItem(
           #owner_login
           'taozhang',
           #onwer_user_id
@@ -22,8 +22,8 @@ class ModelManager(object):
           #available_units =
           50.0,
           #lastupdated_at =
-          '2017/12/1 10:22:33.000 CST')
-       locked_order =  OrderViewListItem(
+          '2017/12/1 10:22:33.000 CST'))
+       orders.append(OrderViewListItem(
           #owner_login =
           'taozhang',
           #owner_user_id =
@@ -41,4 +41,5 @@ class ModelManager(object):
           #available_units =
           30.0,
           #lastupdated_at =
-          '2017/11/30 10:22:33.000 CST')
+          '2017/11/30 10:22:33.000 CST'))
+       return orders;
