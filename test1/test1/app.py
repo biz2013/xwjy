@@ -10,7 +10,7 @@ def home(request):
     """Show the home page."""
     return render(request, 'html/index.html')
 
-def show_sell_order_list_for_purchase(request):
+def show_sell_orders_for_purchase(request):
     manager = ModelManager()
     sellorders = manager.query_active_sell_orders()
     return render(request, 'html/purchase.html',
