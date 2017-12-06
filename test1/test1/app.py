@@ -20,12 +20,13 @@ def show_sell_orders_for_purchase(request):
            )
 def show_purchase_input(request):
     manager = ModelManager()
+    owner_user_id = request.POST["owner_user_id"]
     sellorder = SellOrderView(
        request.POST["reference_order_id"],
-       request.POST["owner_user_id"],
+       owner_user_id,
        request.POST["locked_in_unit_price"],
        request.POST["available_units_for_purchase"],
-       manager.get_user_payment_methods(sellorder.owner_user_id))
+       manager.get_user_payment_methods(owner_user_id))
     login = request.POST['username']
     return render(request, 'html/input_purchase_order.html',
            {'username':'taozhang',
