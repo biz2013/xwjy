@@ -71,6 +71,7 @@
             <td>被锁定</td>
             {% else %}
             <td><button type="submit" class="btn btn-primary" onclick="create_purchase_order('{{ order.id }}', '{{ order.owner_user_id}}', '{{ order.unit_price }}', '{{ order.available_units }}')">购买</button></td>
+            {% endif %}
           </tr>
              {% endfor %}
           {% else %}
