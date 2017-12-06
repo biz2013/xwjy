@@ -18,13 +18,18 @@ def show_sell_orders_for_purchase(request):
             'sellorders': sellorders}
            )
 def show_purchase_input(request):
-    order_id = request.POST["reference_order_id"]
+    sellorder = SellOrderView()
+    sellorder.order_id = request.POST["reference_order_id"]
+    sellorder.owner_user_id = request.POST["owner_user_id"]
+    sellorder.locked_in_unit_price = request.POST["locked_in_unit_price"]
+    sellorder.available_units = request.POST["available_units_for_purchase"]
+
     login = request.POST['username']
     manager = ModelManager()
-    purchase_order = manager.get_purchase_order_by_id(int(order_id))
+    sellorder.owner_payment_methods = manager.get_user_payment_methods(sellorder.owner_user_id)
     return render(request, 'html/input_purchase_order.html',
            {'username':'taozhang',
-            'purchase_order': purchase_order}
+            'sellorder': sellorder}
            )
 
 def create_sell_order(request):
