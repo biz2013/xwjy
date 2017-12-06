@@ -8,7 +8,7 @@
 
   <!-- jQuery library -->
   <script src="/static/scripts/jquery.3.2.1.min.js"></script>
-
+  <script src="/static/scripts/purchase_ui.js"></script>
   <!-- Latest compiled JavaScript -->
   <script src="/static/scripts/bootstrap.3.3.7.min.js"></script>
   <meta charset="utf-8">
@@ -46,6 +46,14 @@
   <div class="container">
     <h6>美基金余额：2302.35 状态：锁定</h6>
     <div class="well">
+      <form id="form_create_purchase_order" action="/purchase/createorder1/" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="username" value="{{ username }}"/>
+        <input type="hidden" name="reference_order_id" value=""/>
+        <input type="hidden" name="owner_user_id" value=""/>
+        <input type="hidden" name="locked_in_unit_price" value=""/>
+        <input type="hidden" name="available_units_for_purchase" value=""/>
+      </form>
       <div class="row">
         <h3>卖单状况</h3>
         <table class="table table-striped table-condensed">
@@ -58,16 +66,16 @@
              {% for order in sellorders %}
           <tr>
             <td>出售{{ order.units }}美基金单价{{ order.unit_price }}CNY，总额{{ order.units|mul:order.unit_price }}CNY</td>
-            <td>还有总额{{ order.unit_price|mul:order.unit_avaialble }}</td>
+            <td>还有{{ order.unit_avaialble }}可以购买</td>
             {% if order.status == 'LOCKED' %}
-            <td>LOCKED</td>
+            <td>被锁定</td>
             {% else %}
-            <td><button type="submit" class="btn btn-primary" onclick="issue_purchase('{{ order.id }}')">确认</button></td>
+            <td><button type="submit" class="btn btn-primary" onclick="create_purchase_order('{{ order.id }}', '{{ order.owner_user_id}}', '{{ order.unit_price }}', '{{ order.available_units }}')">购买</button></td>
           </tr>
              {% endfor %}
           {% else %}
           <tr>
-            <td>No sellerorder</td>
+            <td>目前暂时没有卖单</td>
             <td>
           </tr>
           {% endif %}
@@ -94,7 +102,7 @@
                 </tr>
                 <tr>
                   <td><label class="control-label">单价</label></td>
-                  <td><label class="control-label" id="id_units_price_confirm">&nbsp;</label> 
+                  <td><label class="control-label" id="id_units_price_confirm">&nbsp;</label>
                 </tr>
                 <tr>
                   <td><label class="control-label">总额</label></td>

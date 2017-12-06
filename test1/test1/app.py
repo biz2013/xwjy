@@ -1,10 +1,24 @@
 from django.db.models import Q
 from django.shortcuts import render
+#from model_manager import ModelManager
+
+# this is for test UI. A fake one
+from test_model_manager import ModelManager
 from users.models import Cryptocurrency, User, UserLogin, Order
 
 def home(request):
     """Show the home page."""
     return render(request, 'html/index.html')
+
+def show_purchase_input(request):
+    order_id = request.POST["reference_order_id"]
+    login = request.POST['username']
+    manager = new ModelManager()
+    purchase_order = manager.get_purchase_order_by_id(int(order_id))
+    return render(request, 'html/input_purchase_order.html',
+           {'username':'taozhang',
+            'purchase_order': purchase_order}
+           )
 
 def create_sell_order(request):
     login = request.POST['username']
@@ -14,8 +28,8 @@ def create_sell_order(request):
     order = Order.objects.create(
         user= userobj,
         created_by = user_login,
-        lastupdated_by = user_login, 
-        reference_order=None, 
+        lastupdated_by = user_login,
+        reference_order=None,
         cryptocurrencyId= crypto,
         order_type='SELL',
         sub_type = 'OPEN',
@@ -26,7 +40,7 @@ def create_sell_order(request):
     order.save()
     return render(request, 'html/mysellorder.html', {'username':'taozhang'})
 
-    """    
+    """
    ORDER_TYPE = (('BUY','Buy'),('SELL','Sell'))
    CURRENCY = (('CYN', 'Renminbi'), ('USD', 'US Dollar'))
    STATUS = (('OPEN','OPEN'), ('CANCELLED','CANCELLED'), ('PARTIALFILLED', 'PARTIALFILLED'), ('FILLED','FILLED'))
@@ -49,7 +63,7 @@ def query_user_open_sell_orders(userlogin):
 
 def query_buy_orders(userlogin):
     return Order.objects.select_related('reference_order','reference_order__user').filter(reference_order__user__login= userlogin)
-    
+
 def mysellorder(request):
     if request.method == 'POST':
        return create_sell_order(request)
