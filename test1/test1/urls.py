@@ -22,5 +22,5 @@ from . import app
 urlpatterns = [
     url(r'^$', app.home),
     url(r'^mysellorder/$', app.mysellorder),
-    url(^'^purchase/createorder1/$', app.show_purchase_input),
+    url(r'^purchase/createorder1/$', app.show_purchase_input),
 ]
