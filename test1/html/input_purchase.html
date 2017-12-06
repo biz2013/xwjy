@@ -63,9 +63,8 @@
             <p>锁定价格：{{ purchase_order.unit_price }} CNY&nbsp;&nbps;&nbsp;&nbsp;锁定期限：2 分钟</p>
             <div id="div_id_payment_method" class="form-group"> <label for="id_payment_method" class="control-label">付款方式</label><span class="asteriskField">*</span> </label>
               <div class="controls "> <select class="textinput textInput form-control" id="id_payment_method" onselect="javascript: #img_payment_qrcode).src=this.value">
-                  {% payment_provider_name_display = {'alipay': '支付宝', 'weixin':'微信支付'， 'heepay', '汇付宝'}%}
                   {% for payment_method in sellorder.get_user_payment_methods %}
-                  <option value="/static/{{ paymemt_method.qrcode_image }}">{% displayname = payment_provider_name_display［payment_method.provider_name] %}{{ displayname }}</option>
+                  <option value="/static/{{ paymemt_method.qrcode_image }}">{{ payment_provider_name_display［payment_method.provider_name] }}</option>
                   {% endfor %}
                 </select>
               </div>

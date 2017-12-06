@@ -1,5 +1,7 @@
 from django.db.models import Q
 from django.shortcuts import render
+from settings import PAYMENTPROVIDER_NAME_LOOKUP
+
 #from model_manager import ModelManager
 
 # this is for test UI. A fake one
@@ -32,7 +34,8 @@ def show_purchase_input(request):
     login = request.POST['username']
     return render(request, 'html/input_purchase.html',
            {'username':'taozhang',
-            'sellorder': sellorder}
+            'sellorder': sellorder,
+            'payment_provider_name_display':PAYMENTPROVIDER_NAME_LOOKUP }
            )
 
 def create_sell_order(request):
