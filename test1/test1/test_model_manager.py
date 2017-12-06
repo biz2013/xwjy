@@ -33,7 +33,7 @@ class ModelManager(object):
           #units =
           100.0,
           #unit_price =
-          1.02,
+          1.01,
           #unit_price_currency=
           'CYN',
           #unit_balance =
