@@ -60,9 +60,9 @@
               <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" /> </div>
             </div>
             <p>卖方用户名：{{ username }}</p>
-            <p>锁定价格：{{ purchase_order.unit_price }} CNY&nbsp;&nbps;&nbsp;&nbsp;锁定期限：2 分钟</p>
+            <p>锁定价格：{{ sellorder.unit_price }} CNY&nbsp;&nbps;&nbsp;&nbsp;锁定期限：2 分钟</p>
             <div id="div_id_payment_method" class="form-group"> <label for="id_payment_method" class="control-label">付款方式</label><span class="asteriskField">*</span> </label>
-              <div class="controls "> <select class="textinput textInput form-control" id="id_payment_method" onselect="javascript: #img_payment_qrcode).src=this.value">
+              <div class="controls "> <select class="textinput textInput form-control" id="id_payment_method" onchange="javascript(0): $("#img_payment_qrcode").attr('src',this.value);">
                   {% for payment_method in sellorder.get_user_payment_methods %}
                   <option value="/static/{{ paymemt_method.qrcode_image }}">{{ payment_method.provider_name }} }}</option>
                   {% endfor %}
