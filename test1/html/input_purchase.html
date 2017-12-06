@@ -26,7 +26,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#" ><img src="/static/img/axfund_icon.png" width=96 height=36></a>
+          <a class="navbar-brand" href="#"><img src="/static/img/axfund_icon.png" width=96 height=36></a>
         </div>
         <div class="collapse navbar-collapse" id="myNavbar">
           <ul class="nav navbar-nav">
@@ -47,48 +47,39 @@
     <h6>美基金余额：2302.35 状态：锁定</h6>
     <div class="well">
       <div class="row">
-      <form id="buy-modal" tabindex="-1"  role="dialog" action="/purchase/createorder2/" method="post">
-          <!-- Modal content-->
-          <div class="modal-content">
-            <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal">&times;</button>
-              <h4 id="lockfund-form-label">购买美基金</h4>
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 id="lockfund-form-label">购买美基金</h4>
+          </div>
+          <form id="buy-modal" tabindex="-1" role="dialog" action="/purchase/createorder2/" method="post">
+            <input type="hidden" name="username" value="{{ username }}" />
+            <input type="hidden" name="unit_price" value="{{ purchase_order.unit_price }}" <div class="modal-body form_group">
+            <div id="div_id_quantity" class="form-group"> <label for="id_quantity" class="control-label">购买数量</label><span class="asteriskField">*</span> </label>
+              <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" /> </div>
             </div>
-            <div class="modal-body">
-              <div id="div_id_quantity" class="form-group"> <label for="id_quantity" class="control-label">购买数量</label><span class="asteriskField">*</span> </label>
-                <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" /> </div>
+            <p>卖方用户名：{{ username }}</p>
+            <p>锁定价格：{{ purchase_order.unit_price }} CNY&nbsp;&nbps;&nbsp;&nbsp;锁定期限：2 分钟</p>
+            <div id="div_id_payment_method" class="form-group"> <label for="id_payment_method" class="control-label">付款方式</label><span class="asteriskField">*</span> </label>
+              <div class="controls "> <select class="textinput textInput form-control" id="id_payment_method" onselect="javascript: #img_payment_qrcode).src=this.value">
+                  {% for payment_method in user_payment_methods %}
+                  <option value="{{ paymemt_method.provider_qrcode_image }}">{{ payment_method.providerId.name }}</option>
+                  {% endfor %}
+                </select>
               </div>
-              <p>卖方用户名：{{ username }}</p>
-              <p>锁定价格：{{ purchase_order.unit_price }} CNY&nbsp;&nbps;&nbsp;&nbsp;锁定期限：2 分钟</p>
-              <div id="div_id_payment_method" class="form-group"> <label for="id_payment_method" class="control-label">付款方式</label><span class="asteriskField">*</span> </label>
-                <div class="controls "> <input class="textinput textInput form-control" id="id_payment_method" maxlength="10" name="quantity" type="text" /> </div>
-              </div>              <table class="table table-striped table-hover">
-                <tr>
-                  <th>支付方式</th>
-                  <th>支付信息</th>
-                </tr>
-                <tr>
-                  <td>支付宝</td>
-                  <td>账号：111111111-111111111</td>
-                </tr>
-                <tr>
-                  <td>微信</td>
-                  <td><img src="img/weixinpaymentqr.jpeg"></td>
-                </tr>
-                <tr>
-                  <td>第三方</td>
-                  <td>账号：22222222222222-222</td>
-                </tr>
-              </table>
+            </div>
+            <div id="div_id_payment_qrcode">
+              <img id="img_payment_qrcode" src="" />
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-default" data-dismiss="submit">锁定</button>
               <button type="button" class="btn btn-default" data-dismiss="modal">撤销</button>
             </div>
-          </div>
-      </form>
+        </div>
+        </form>
+      </div>
     </div>
-  </div>
 
   </div>
   <footer class="container">
@@ -99,4 +90,5 @@
 </body>
 <script>
 </script>
+
 </html>
