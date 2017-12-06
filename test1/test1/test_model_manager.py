@@ -43,3 +43,10 @@ class ModelManager(object):
           #lastupdated_at =
           '2017/11/30 10:22:33.000 CST'))
        return orders;
+
+   def get_user_payment_methods(self, userId):
+       if (userId == 'taozhang'):
+           return [UserPaymentMethodView(1, 'weixin',
+                   'taozhang_weixin_qrcode.jpg')]
+       return [UserPaymentMethodView(2, 'alipay',
+                   'yingzhou_alipay_qrcode.png')]

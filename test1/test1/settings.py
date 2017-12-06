@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'k(!4muq_6@4j5te(%^36zyw9m6b0kub^8fvi-$t18&v36hg3v)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True 
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -131,12 +131,12 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
+    os.path.join(BASE_DIR, "uploads"),
 ]
 
 print 'base dir path', BASE_DIR
 #print 'static root', STATIC_ROOT
 
-# Where the files will be, this will be updated 
+# Where the files will be, this will be updated
 # for real deployment
 #MEDIA_ROOT='/var/www/test1/'
-

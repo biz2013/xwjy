@@ -55,7 +55,7 @@
           </div>
           <form id="buy-modal" tabindex="-1" role="dialog" action="/purchase/createorder2/" method="post">
             <input type="hidden" name="username" value="{{ username }}" />
-            <input type="hidden" name="unit_price" value="{{ purchase_order.unit_price }}" <div class="modal-body form_group">
+            <input type="hidden" name="unit_price" value="{{ sellorder.unit_price }}" <div class="modal-body form_group">
             <div id="div_id_quantity" class="form-group"> <label for="id_quantity" class="control-label">购买数量</label><span class="asteriskField">*</span> </label>
               <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" /> </div>
             </div>
@@ -63,8 +63,9 @@
             <p>锁定价格：{{ purchase_order.unit_price }} CNY&nbsp;&nbps;&nbsp;&nbsp;锁定期限：2 分钟</p>
             <div id="div_id_payment_method" class="form-group"> <label for="id_payment_method" class="control-label">付款方式</label><span class="asteriskField">*</span> </label>
               <div class="controls "> <select class="textinput textInput form-control" id="id_payment_method" onselect="javascript: #img_payment_qrcode).src=this.value">
-                  {% for payment_method in user_payment_methods %}
-                  <option value="{{ paymemt_method.provider_qrcode_image }}">{{ payment_method.providerId.name }}</option>
+                  {% payment_provider_name_display = {'alipay': '支付宝', 'weixin':'微信支付'， 'heepay', '汇付宝'}%}
+                  {% for payment_method in sellorder.get_user_payment_methods %}
+                  <option value="/static/{{ paymemt_method.qrcode_image }}">{% displayname = payment_provider_name_display［payment_method.provider_name] %}{{ displayname }}</option>
                   {% endfor %}
                 </select>
               </div>
