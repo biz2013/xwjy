@@ -48,7 +48,7 @@ class ModelManager(object):
 
    def get_user_payment_methods(self, userId):
        if (userId == 'taozhang'):
-           return [UserPaymentMethodView(1, 'weixin',
+           return [UserPaymentMethodView(1, '微信支付',
                    'taozhang_weixin_qrcode.jpg')]
-       return [UserPaymentMethodView(2, 'alipay',
+       return [UserPaymentMethodView(2, '支付宝',
                    'yingzhou_alipay_qrcode.png')]
