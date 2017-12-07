@@ -8,7 +8,7 @@
 
   <!-- jQuery library -->
   <script src="/static/scripts/jquery.3.2.1.min.js"></script>
-
+  <script src="/static/scripts/purchase_ui.js"></script>
   <!-- Latest compiled JavaScript -->
   <script src="/static/scripts/bootstrap.3.3.7.min.js"></script>
   <meta charset="utf-8">
@@ -46,33 +46,14 @@
   <div class="container">
     <h6>美基金余额：2302.35 状态：锁定</h6>
     <div class="well">
-      <div class="row">
-        <h3>进行中的购买状况</h3>
-        <table class="table">
-          <tr>
-            <td><!-- Button trigger purchase modal -->
-              <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#buy-modal">卖单</button></td>
-            <td></td>
-            <td></td>
-      {% if buyorders %}
-          {% for order in buyorders %}
-          <tr>
-            <td><a href="/userreview/{{ order.owner_user_id }}">{{ order.owner_login }}</a>购买{{ order.units }}美基金，单价{{ order.unit_price }}CNY，总额{{ order.units|mul:order.unit_price }}CYN.
-              {% if order.status == 'OPEN' %}购买时间{% else %}付款通知时间{% endif %}{{ order.lastmodified_at }}</td>
-            <td>{% if order.status == 'PAID' %}
-                <button class="btn btn-primary" data-toggle="model" data-target="#payment-confirm-modal">确认付款</button>
-                {% else %}等待付款
-                {% endif %}
-            </td>
-            <td>{% if order.status == 'PAID' %}<button class="btn btn-warning" id="register-page-confirm-button">争议</button>
-                {% else %} &nbps;
-                {% endif %}
-            </td>
-          </tr>
-         {% endfor %}
-      {% endif %}
-        </table>
-      </div>
+      <form id="form_create_purchase_order" action="/purchase/createorder1/" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="username" value="{{ username }}"/>
+        <input type="hidden" id="reference_order_id" name="reference_order_id" value=""/>
+        <input type="hidden" id="owner_user_id" name="owner_user_id" value=""/>
+        <input type="hidden" id="locked_in_unit_price" name="locked_in_unit_price" value=""/>
+        <input type="hidden" id="available_units_for_purchase" name="available_units_for_purchase" value=""/>
+      </form>
       <div class="row">
         <h3>卖单状况</h3>
         <table class="table table-striped table-condensed">
@@ -85,13 +66,17 @@
              {% for order in sellorders %}
           <tr>
             <td>出售{{ order.units }}美基金单价{{ order.unit_price }}CNY，总额{{ order.units|mul:order.unit_price }}CNY</td>
-            <td>还有90美基金，总额91.8CNY没有买家</td>
-            <td></td>
+            <td>还有{{ order.available_units }}可以购买</td>
+            {% if order.status == 'LOCKED' %}
+            <td>被锁定</td>
+            {% else %}
+            <td><button type="submit" class="btn btn-primary" onclick="create_purchase_order('{{ order.id }}', '{{ order.owner_user_id }}', '{{ order.unit_price }}', '{{ order.available_units }}')">购买</button></td>
+            {% endif %}
           </tr>
              {% endfor %}
           {% else %}
           <tr>
-            <td>No sellerorder</td>
+            <td>目前暂时没有卖单</td>
             <td>
           </tr>
           {% endif %}
