@@ -19,7 +19,7 @@ def show_sell_orders_for_purchase(request):
     sellorders = manager.query_active_sell_orders()
     print "--- there are %d ---" % (len(sellorders))
     for order in sellorders:
-       print "--- order id is %d --" % (order.order_id)
+       print "--- order id is %d --" % (order.id)
     return render(request, 'html/purchase.html',
            {'sellorders': sellorders, 'username':'taozhang'
             }
@@ -32,6 +32,7 @@ def show_purchase_input(request):
        request.POST["reference_order_id"],
        owner_user_id,
        request.POST["locked_in_unit_price"],
+       'CYN',
        request.POST["available_units_for_purchase"],
        owner_payment_methods)
     print 'sellorder id is here %s' % (sellorder.order_id)
