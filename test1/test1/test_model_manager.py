@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 from views.viewlistitems import *
 from views.sellorderview import *
 from views.userpaymentmethodview import *
