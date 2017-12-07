@@ -49,10 +49,10 @@
       <form id="form_create_purchase_order" action="/purchase/createorder1/" method="post">
         {% csrf_token %}
         <input type="hidden" name="username" value="{{ username }}"/>
-        <input type="hidden" name="reference_order_id" value=""/>
-        <input type="hidden" name="owner_user_id" value=""/>
-        <input type="hidden" name="locked_in_unit_price" value=""/>
-        <input type="hidden" name="available_units_for_purchase" value=""/>
+        <input type="hidden" id="reference_order_id" name="reference_order_id" value=""/>
+        <input type="hidden" id="owner_user_id" name="owner_user_id" value=""/>
+        <input type="hidden" id="locked_in_unit_price" name="locked_in_unit_price" value=""/>
+        <input type="hidden" id="available_units_for_purchase" name="available_units_for_purchase" value=""/>
       </form>
       <div class="row">
         <h3>卖单状况</h3>
