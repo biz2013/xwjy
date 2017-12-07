@@ -57,7 +57,7 @@
       {% if buyorders %}
           {% for order in buyorders %}
           <tr>
-            <td><a href="/userreview/{{ order.user.id }}">{{ order.user.login }}</a>购买{{ order.units }}美基金，单价{{ order.unit_price }}CNY，总额{{ order.units|mul:order.unit_price }}CYN.
+            <td><a href="/userreview/{{ order.owner_user_id }}">{{ order.owner_login }}</a>购买{{ order.units }}美基金，单价{{ order.unit_price }}CNY，总额{{ order.units|mul:order.unit_price }}CYN.
               {% if order.status == 'OPEN' %}购买时间{% else %}付款通知时间{% endif %}{{ order.lastmodified_at }}</td>
             <td>{% if order.status == 'PAID' %}
                 <button class="btn btn-primary" data-toggle="model" data-target="#payment-confirm-modal">确认付款</button>

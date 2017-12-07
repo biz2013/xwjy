@@ -65,12 +65,12 @@
           {% if sellorders %}
              {% for order in sellorders %}
           <tr>
-            <td>出售{{ order.units }}美基金单价{{ order.unit_price }}CNY，总额{{ order.units|mul:order.unit_price }}CNY</td>
-            <td>还有{{ order.available_units }}可以购买</td>
+            <td>{{ order.order_id }}出售{{ order.units }}美基金单价{{ order.unit_price }}CNY，总额{{ order.units|mul:order.unit_price }}CNY</td>
+            <td>还有{{ order.available_units }}可以购买{{ order.order_id }}</td>
             {% if order.status == 'LOCKED' %}
             <td>被锁定</td>
             {% else %}
-            <td><button type="submit" class="btn btn-primary" onclick="create_purchase_order('{{ order.order_id }}', '{{ order.owner_user_id}}', '{{ order.unit_price }}', '{{ order.available_units }}')">购买</button></td>
+            <td><button type="submit" class="btn btn-primary" onclick="create_purchase_order('{{ order.order_id }}', '{{ order.owner_user_id }}', '{{ order.unit_price }}', '{{ order.available_units }}')">购买</button></td>
             {% endif %}
           </tr>
              {% endfor %}
