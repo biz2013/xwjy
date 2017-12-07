@@ -66,6 +66,7 @@
               <p>锁定价格：{{ sellorder.unit_price }} CNY&nbsp;<div id="total_cost"></div>&nbsp;锁定期限：2 分钟</p>
               <div id="div_id_payment_method" class="form-group"> <label for="id_payment_method" class="control-label">付款方式</label><span class="asteriskField">*</span>
                 <div class="controls "> <select class="select select-input form-control" id="id_payment_method" onchange="javascript: $('#img_payment_qrcode').attr('src',this.value);">
+                    <option>请选择付款方式</option>
                     {% for payment_method in sellorder.owner_payment_methods %}
                     <option value="/static/{{ payment_method.qrcode_image }}">{{ payment_method.provider_name }}</option>
                     {% endfor %}
