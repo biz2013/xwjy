@@ -27,6 +27,8 @@ def show_sell_orders_for_purchase(request):
 def show_purchase_input(request):
     manager = ModelManager()
     owner_user_id = request.POST["owner_user_id"]
+    order_id = request.POST["reference_order_id"]
+    print "receive order id %d" & (order_id)
     owner_payment_methods = manager.get_user_payment_methods(owner_user_id)
     sellorder = SellOrderView(
        request.POST["reference_order_id"],
