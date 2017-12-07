@@ -17,6 +17,8 @@ def home(request):
 def show_sell_orders_for_purchase(request):
     manager = ModelManager()
     sellorders = manager.query_active_sell_orders()
+    print "--- there are %d ---" % (len(sellorders))
+    print "--- order id [0] is %s --" % (sellorders[0].order_id)
     return render(request, 'html/purchase.html',
            {'username':'taozhang',
             'sellorders': sellorders}
