@@ -53,7 +53,9 @@
             <button type="button" class="close" data-dismiss="modal">&times;</button>
             <h4 id="lockfund-form-label">购买美基金</h4>
           </div>
+         {% if sellorder %}
           <form id="buy-modal" tabindex="-1" role="dialog" action="/purchase/createorder2/" method="post">
+            {% csrf_token %}
             <input type="hidden" name="username" value="{{ username }}" />
             <input type="hidden" name="unit_price" value="{{ sellorder.unit_price }}" />
              <div class="modal-body form_group">
@@ -80,6 +82,7 @@
             </div>
         </div>
         </form>
+        {% endif %}
       </div>
     </div>
 
