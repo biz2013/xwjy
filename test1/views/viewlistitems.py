@@ -1,9 +1,9 @@
 
 class OrderViewListItem(object):
-   def __init__(self, order_id, order_owner_login, userid, status, units, unit_price,
+   def __init__(self, id, order_owner_login, userid, status, units, unit_price,
        unit_price_currency, unit_balance,
        available_units, lastupdated_at):
-       self.order_id = order_id,
+       self.order_id = id,
        self.owner_login = order_owner_login
        self.owner_user_id = userid
        self.status = status

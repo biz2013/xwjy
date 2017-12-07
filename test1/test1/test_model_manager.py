@@ -10,11 +10,11 @@ class ModelManager(object):
        orders= []
        orders.append(OrderViewListItem(
           #order_id
-          '1',
+          1,
           #owner_login
           'taozhang',
           #onwer_user_id
-          '1',
+          1,
           #status
           'OPEN',
           #units
