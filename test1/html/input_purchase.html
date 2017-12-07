@@ -60,10 +60,10 @@
             <input type="hidden" name="unit_price" value="{{ sellorder.unit_price }}" />
              <div class="modal-body form_group">
               <div id="div_id_quantity" class="form-group"> <label for="id_quantity" class="control-label">购买数量</label><span class="asteriskField">*</span> </label>
-                <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" /> </div>
+                <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" onchange="show_total_cost(this.value, {{ sellorder.unit_price }})" /> </div>
               </div>
               <p>卖方用户名：{{ username }}</p>
-              <p>锁定价格：{{ sellorder.unit_price }} CNY&nbsp;&nbps;&nbsp;&nbsp;锁定期限：2 分钟</p>
+              <p>锁定价格：{{ sellorder.unit_price }} CNY&nbsp;<div id="total_cost"></div>&nbsp;锁定期限：2 分钟</p>
               <div id="div_id_payment_method" class="form-group"> <label for="id_payment_method" class="control-label">付款方式</label><span class="asteriskField">*</span> </label>
                 <div class="controls "> <select class="select select-input form-control" id="id_payment_method" onchange="javascript: $('#img_payment_qrcode').attr('src',this.value);">
                     {% for payment_method in sellorder.owner_payment_methods %}
