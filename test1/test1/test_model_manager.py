@@ -7,6 +7,8 @@ class ModelManager(object):
    def query_active_sell_orders(self):
        orders= []
        orders.append(OrderViewListItem(
+          #order_id
+          1,
           #owner_login
           'taozhang',
           #onwer_user_id
@@ -26,6 +28,8 @@ class ModelManager(object):
           #lastupdated_at =
           '2017/12/1 10:22:33.000 CST'))
        orders.append(OrderViewListItem(
+          #order_id
+          2,
           #owner_login =
           'taozhang',
           #owner_user_id =
