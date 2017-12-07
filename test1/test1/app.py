@@ -30,6 +30,8 @@ def show_purchase_input(request):
     order_id = request.POST["reference_order_id"]
     print "receive order id %d" & (order_id)
     owner_payment_methods = manager.get_user_payment_methods(owner_user_id)
+    for method in owner_payment_methods:
+        print ("provider %s has image %s" % (method.provider_name, method.qrcode_image))
     sellorder = SellOrderView(
        request.POST["reference_order_id"],
        owner_user_id,
