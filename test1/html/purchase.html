@@ -42,12 +42,10 @@
       </div>
     </nav>
   </div>
-  {% load mathfilters %}
   <div class="container">
     <h6>美基金余额：2302.35 状态：锁定</h6>
     <div class="well">
       <form id="form_create_purchase_order" action="/purchase/createorder1/" method="post">
-        {% csrf_token %}
         <input type="hidden" name="username" value="{{ username }}"/>
         <input type="hidden" name="reference_order_id" value=""/>
         <input type="hidden" name="owner_user_id" value=""/>
@@ -65,7 +63,7 @@
           {% if sellorders %}
              {% for order in sellorders %}
           <tr>
-            <td>{{ order.order_id }}出售{{ order.units }}美基金单价{{ order.unit_price }}CNY，总额{{ order.units|mul:order.unit_price }}CNY</td>
+            <td>{{ order.order_id }}出售{{ order.units }}美基金单价{{ order.unit_price }}CNY，总额100CNY</td>
             <td>还有{{ order.available_units }}可以购买{{ order.order_id }}</td>
             {% if order.status == 'LOCKED' %}
             <td>被锁定</td>
