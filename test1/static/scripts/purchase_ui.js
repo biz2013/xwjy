@@ -9,7 +9,7 @@ function create_purchase_order(sell_order_id, sell_order_owner_userid,
 }
 
 function show_total_cost(units, price) {
-  if (isNaN(units)) {
-    $("#total_cost").text(units * price);
+  if (!isNaN(units)) {
+    $("#total_cost").text(String(units * price));
   }
 }
