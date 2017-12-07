@@ -4,6 +4,7 @@ class OrderViewListItem(object):
        unit_price_currency, unit_balance,
        available_units, lastupdated_at):
        self.order_id = id,
+       self.id = id
        self.owner_login = order_owner_login
        self.owner_user_id = userid
        self.status = status
