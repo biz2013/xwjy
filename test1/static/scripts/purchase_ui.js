@@ -11,6 +11,6 @@ function create_purchase_order(sell_order_id, sell_order_owner_userid,
 function show_total_cost(units, price) {
   alert("show_total_cost " + units + " " + price)
   if (!isNaN(units)) {
-    $("#total_cost").text(String(units * price));
+    $("#total_cost").text("总额: " + (units * price));
   }
 }
