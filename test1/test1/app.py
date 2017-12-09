@@ -14,6 +14,45 @@ def home(request):
     """Show the home page."""
     return render(request, 'html/index.html')
 
+def login(request):
+    login = UserLogin()
+    if request.method == 'POST':
+        login.username = request.POST['username']
+        login.password = request.POST['password']
+        manager = ModelManager()
+        rc, msg = manager.login(login)
+        if rc == 0:
+            forwardto = request.POST['forwardto']
+            if forwardto:
+                return redirect(forwardto)
+            else:
+                return redirect("sellorder")
+        else:
+            return render(request, "html/login.html",
+               {'message': msg, 'login':login})
+    else:
+        return render(request, "html/login.html",
+            { 'login' : login})
+def registration(request):
+    login = UserLogin()
+    user = User()
+    user.login = login
+    if request.method == 'POST':
+        login.username = request.POST['username']
+        login.password = request.POST['password']
+        user.email = request.POST['email']
+        manager = ModelManager()
+        rc, msg = manager.register(user)
+        if 0 == rc:
+            return render(request, 'html/login.html',
+              {'message':msg, 'message_type':'success',
+              'login': User()})
+        return render(request.'html/register.html',
+              {'message':msg, 'message_type':'fail', 'registration':user})
+    else:
+        return render(request.'html/register.html',
+              {'registration':user})
+
 def show_sell_orders_for_purchase(request):
     manager = ModelManager()
     sellorders = manager.query_active_sell_orders()
