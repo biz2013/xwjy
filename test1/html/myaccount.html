@@ -59,7 +59,7 @@
               <a href="/accounts/external_address/{{ useraccountInfo.userId }}/">{{ useraccountInfo.externaladdress.alias }}</a>
               {% else %}
               <a href="/accounts/external_address/{{ useraccountInfo.userId }}/" class="btn btn-primay">添加</a>
-              {% end if %}&nbsp;<button class="btn btn-primary">提币</button></td>
+              {% end if %}&nbsp;<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#extract-modal">提币</button></td>
           </tr>
         </table>
       </div>
@@ -86,6 +86,42 @@
         </table>
       </div>
     </div>
+    <!-- popup window for confirm payment of purchase -->
+    <form id="extract-modal" tabindex="-1" class="modal fade" role="dialog" action="/account/extract_axfund/" aria-labelledby="lockfund-form-label" aria-hidden="true" method='post'>
+      {% csrf_token %}
+      <input type="hidden" id="id_username" name="username" value = "{{ username }}"/>
+      <input type="hidden" id="id_fromaddress" name="fromaddress" value = "{{ useraccountInfo.address }}"/>
+      <input type="hidden" id="id_toaddress" name="username" value = "{{ useraccountInfo.externaladdreess.address }}"/>
+
+      <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 id="lockfund-form-label">确认付款</h4>
+          </div>
+          <div class="modal-body">
+            <div id="div_purchase_content" class="form-group">
+              <div id="div_id_quantity" class="form-group">
+                <label for="lbl_id_quantity" class="control-label">数量</label><span class="asteriskField">*</span> </label>
+                <div class="controls "> <input class="textinput textInput form-control" id="txt_id_quantity" maxlength="16" name="quantity" type="text" /> </div>
+              </div>
+              <div id="div_id_from" class="form-group">
+                <label for="lbl_id_from" class="control-label">从充币地址:</label>
+                <div class="controls "><label class="control-label">{{ useraccountInfo.address}} </label></div>
+              </div>
+              <div id="div_id_to" class="form-group">
+                <label for="lbl_id_to" class="control-label">到提币地址:</label>
+                <div class="controls "><label class="control-label">{{ useraccountInfo.externaladdreess.address }} </label></div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-default" data-dismiss="submit">确认</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">撤销</button>
+          </div>
+        </div>
+    </form>
   </div>
   <footer class="container">
     <div class="row" style="text-align: center;">
