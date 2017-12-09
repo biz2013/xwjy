@@ -23,6 +23,8 @@ urlpatterns = [
     url(r'^$', app.home),
     url(r'^/registration/', app.registration),
     url(r'^/accounts/login/', app.login, name="login")
+    url(r'^/accounts/accountinfo/', app.accountinfo, name='accountinfo')
+    url(r'^/axfund/transfer/', app.transfer)
     url(r'^mysellorder/$', app.mysellorder, name="sellorder"),
     url(r'^purchase/$', app.show_sell_orders_for_purchase),
     url(r'^purchase/createorder1/$', app.show_purchase_input),

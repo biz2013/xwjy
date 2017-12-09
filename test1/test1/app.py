@@ -7,6 +7,8 @@ from django.shortcuts import render
 
 # this is for test UI. A fake one
 from test_model_manager import ModelManager
+from test_wallet_manager import WalletManager
+
 from users.models import Cryptocurrency, User, UserLogin, Order
 from views.sellorderview import SellOrderView
 
@@ -20,20 +22,22 @@ def login(request):
         login.username = request.POST['username']
         login.password = request.POST['password']
         manager = ModelManager()
-        rc, msg = manager.login(login)
+        rc, msg, user = manager.login(login)
         if rc == 0:
             request.session['username'] = login.username
+            request.session['user'] = user
             forwardto = request.POST['forwardto']
             if forwardto:
                 return redirect(forwardto)
             else:
-                return redirect("myaccount")
+                return redirect("accountinfo")
         else:
             return render(request, "html/login.html",
                {'message': msg, 'login':login})
     else:
         return render(request, "html/login.html",
             { 'login' : login})
+
 def registration(request):
     login = UserLogin()
     user = User()
@@ -53,6 +57,8 @@ def registration(request):
     else:
         return render(request.'html/register.html',
               {'registration':user})
+
+def accountinfo(request):
 
 def show_sell_orders_for_purchase(request):
     manager = ModelManager()
