@@ -22,11 +22,12 @@ def login(request):
         manager = ModelManager()
         rc, msg = manager.login(login)
         if rc == 0:
+            request.session['username'] = login.username
             forwardto = request.POST['forwardto']
             if forwardto:
                 return redirect(forwardto)
             else:
-                return redirect("sellorder")
+                return redirect("myaccount")
         else:
             return render(request, "html/login.html",
                {'message': msg, 'login':login})
@@ -38,7 +39,7 @@ def registration(request):
     user = User()
     user.login = login
     if request.method == 'POST':
-        login.username = request.POST['username']
+        login.username = request.POST['email']
         login.password = request.POST['password']
         user.email = request.POST['email']
         manager = ModelManager()
