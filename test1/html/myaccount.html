@@ -44,18 +44,18 @@
   </div>
   {% load mathfilters %}
   <div class="container">
-    <h6>锁定余额: {{ axfund.locked_balance }} 可用余额: {{ axfund.available_balance  }} 总余额：{{ axfund.balance}} </h6>
+    <h6>锁定余额: {{ useraccountInfo.locked_balance }} 可用余额: {{ useraccountInfo.available_balance  }} 总余额：{{ useraccountInfo.balance}} </h6>
     <div class="well">
       <div class="row">
         <h3>美基金钱包地址</h3>
         <table class="table table-condensed">
           <tr>
             <td><lable class="control-label">充币地址</label>
-            <td>{{ userwallet.address }}</td>
+            <td>{{ useraccountInfo.address }}</td>
           </tr>
           <tr>
             <td><label class="control-label">提币地址</label></td>
-            <td>{{ user.externaladdress_alias }}&nbsp;<button class="btn btn-primary">提币</button></td>
+            <td>{{ useraccountInfo.externaladdress_alias }}&nbsp;<button class="btn btn-primary">提币</button></td>
           </tr>
         </table>
       </div>
@@ -69,7 +69,7 @@
             <td>支付公司</td>
             <td>账户信息</td>
           </th>
-          {% for paymentmethod in user.paymentmethods %}
+          {% for paymentmethod in useraccountInfo.paymentmethods %}
           <tr>
             <td>{{ paymentmethod.provider_name }}</td>
             <td>{{ paymentmethod.account }}</td>
