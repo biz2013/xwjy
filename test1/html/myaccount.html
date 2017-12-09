@@ -55,7 +55,11 @@
           </tr>
           <tr>
             <td><label class="control-label">提币地址</label></td>
-            <td>{{ useraccountInfo.externaladdress_alias }}&nbsp;<button class="btn btn-primary">提币</button></td>
+            <td>{% if useraccountInfo.externaladdress %}
+              <a href="/accounts/external_address/{{ useraccountInfo.userId }}/">{{ useraccountInfo.externaladdress.alias }}</a>
+              {% else %}
+              <a href="/accounts/external_address/{{ useraccountInfo.userId }}/" class="btn btn-primay">添加</a>
+              {% end if %}&nbsp;<button class="btn btn-primary">提币</button></td>
           </tr>
         </table>
       </div>
