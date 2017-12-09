@@ -61,3 +61,9 @@ class ModelManager(object):
            payment.append(UserPaymentMethodView(2, '支付宝',
                    'yingzhou_alipay_qrcode.png'))
        return payment
+
+   def register(self, user):
+       if user.username='failme':
+           return -1, "系统故障，注册失败，稍后再试"
+       else:
+           return 0, "注册成功"
