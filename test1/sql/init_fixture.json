@@ -1,9 +1,9 @@
 [
-   { "model": "users.userlogin", 
-     "pk": "sysop", 
+   { "model": "users.userlogin",
+     "pk": "sysop",
      "fields": {
-        "passwd_hash": "5d381d1c4e755e6784e036736a78e871613d7b58c2d1b8d66cc4fe3b162e8807", 
-        "created_by": "sysop", 
+        "passwd_hash": "5d381d1c4e755e6784e036736a78e871613d7b58c2d1b8d66cc4fe3b162e8807",
+        "created_by": "sysop",
         "lastupdated_by": "sysop"}
    },
    { "model": "users.userlogin",
@@ -45,11 +45,11 @@
        "lastupdated_by" : "sysops"
      }
    },
-   { 
+   {
      "model": "users.paymentprovider",
-     "pk": 1,
+     "pk": 'weixin',
      "fields" : {
-       "name" : "weixin",
+       "name" : "微信支付",
        "config" : "",
        "created_by": "sysops",
        "lastupdated_by" : "sysops"
@@ -57,9 +57,9 @@
    },
    {
      "model": "users.paymentprovider",
-     "pk": 2,
+     "pk": ‘alipay’,
      "fields" : {
-       "name" : "alipay",
+       "name" : "支付宝",
        "config" : "",
        "created_by": "sysops",
        "lastupdated_by" : "sysops"
@@ -67,9 +67,9 @@
    },
    {
      "model": "users.paymentprovider",
-     "pk": 3,
+     "pk": "heepay",
      "fields" : {
-       "name" : "heepay",
+       "name" : "汇钱包",
        "config" : "",
        "created_by": "sysops",
        "lastupdated_by" : "sysops"
@@ -98,4 +98,3 @@ i    {
    }
 
 ]
-
