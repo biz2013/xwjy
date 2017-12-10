@@ -11,6 +11,7 @@ class UserLogin(models.Model):
    lastupdated_by = models.ForeignKey('self', on_delete=models.CASCADE, related_name="login_lastupdated_by")
 
 class PaymentProvider(models.Model):
+   code = models.CharField(max_length=32, primary_key=True)
    name = models.CharField(max_length=32)
    config_json = models.TextField()
    created_at = models.DateTimeField(auto_now_add=True)
@@ -32,9 +33,9 @@ class User(models.Model):
    lastupdated_by = models.ForeignKey('UserLogin', related_name='User_lastupdated_by')
 
 class UserPaymentMethod(models.Model):
-   userId = models.ForeignKey('User', on_delete=models.CASCADE)
-   providerId = models.ForeignKey('PaymentProvider', on_delete=models.CASCADE)
-   account_at_provider= models.CharField(max_length=64)
+   user = models.ForeignKey('User', on_delete=models.CASCADE)
+   provider = models.ForeignKey('PaymentProvider', on_delete=models.CASCADE)
+   account_at_provider = models.CharField(max_length=64)
    provider_qrcode_image = models.ImageField(upload_to='uploads/')
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey('UserLogin', related_name='UserPaymentMethod_created_by')
@@ -95,7 +96,7 @@ class Order(models.Model):
    """
    SUBORDER_TYPE = (('OPEN','Open'), ('BUY_ON_ASK', 'Buy_on_ask'), ('SELL_ON_BID', 'Sell_on_bid'))
    """
-   These are not necessarily final, but I think so far we need these 
+   These are not necessarily final, but I think so far we need these
    """
    ORDER_STATUS = (('OPEN','Open'),('CANCELLED','Cancelled'), ('FILLED','Filled'), ('PARTIALFILLED','PartialFilled'),('LOCKED','Locked'))
    CURRENCY = (('CYN', 'Renminbi'), ('USD', 'US Dollar'))
@@ -110,8 +111,8 @@ class Order(models.Model):
    unit_price = models.FloatField()
    unit_price_currency = models.CharField(max_length = 8, choices=CURRENCY, default='CYN')
    """
-   We use lock count to verify whether there's buy order lock on the 
-   sell order 
+   We use lock count to verify whether there's buy order lock on the
+   sell order
    """
    lock_count = models.IntegerField(default=0)
    """
@@ -136,4 +137,3 @@ class OrderChangeLog(models.Model):
    action = models.CharField(max_length = 32)
    message = models.CharField(max_length = 255)
    timestamp = models.DateTimeField()
-
