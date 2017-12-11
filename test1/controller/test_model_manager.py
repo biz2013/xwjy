@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from views.viewlistitems import *
-from views.sellorderview import *
-from views.userpaymentmethodview import *
+from users.models import *
+from views.models.useraccountinfo import *
 
 class ModelManager(object):
 
@@ -69,5 +68,36 @@ class ModelManager(object):
            return 0, "注册成功"
 
    def login(self, username, password):
-       if (username == 'taozhang' and password == '12345') or (username == 'yingzhou' and password == '12345'):
-           return 0, '', User() 
+       if username == 'taozhang' and password == '12345':
+           user=User()
+           user.login = UserLogin()
+           user.id = 1
+           user.login.username = 'taozhang'
+           user.alias = 'Tao'
+           return 0, '', user
+       elif  username == 'yingzhou' and password == '12345':
+           user=User()
+           user.login = UserLogin()
+           user.login.username = 'yingzhou'
+           user.id = 2
+           user.alias = 'Ying'
+           return 0, '', user
+       else :
+           return -1, '密码或账号有错', None
+
+   def get_user_accountInfo(self, username):
+       payment_method = UserPaymentMethod()
+       payment_provider = PaymentProvider()
+       payment_provider.code = 'heepay'
+       payment_provider.name = '汇钱包'
+       payment_method.id = 1
+       payment_method.provider = payment_provider
+       payment_method.user = User()
+       payment_method.account_at_provider = '18600701961'
+
+       payment_method.provider_qrcode_image = ''
+       userInfo = UserAccountInfo(username, 1999, 0, 1999,
+              'AHeeMMr4CqzxFTy3WGRgZnmE5ZoeyiA6vg',
+              'AeALA1zBbzWCTsrbAzaEfLeLG6Q5ZEGfeD',
+              {payment_method})
+       return userInfo

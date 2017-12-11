@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from django.db.models import Q
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 #from model_manager import ModelManager
 
@@ -20,10 +20,11 @@ def login(request):
         login.username = request.POST['username']
         login.password = request.POST['password']
         manager = ModelManager()
-        rc, msg, user = manager.login(login)
+        rc, msg, user = manager.login(login.username, login.password)
         if rc == 0:
             request.session['username'] = login.username
-            request.session['user'] = user
+            request.session['userid'] = user.id
+
             forwardto = request.POST['forwardto']
             if forwardto:
                 return redirect(forwardto)
