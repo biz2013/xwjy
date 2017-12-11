@@ -6,7 +6,13 @@ from django.shortcuts import render
 #from model_manager import ModelManager
 
 # this is for test UI. A fake one
+<<<<<<< HEAD
 from controller.test_model_manager import ModelManager
+=======
+from test_model_manager import ModelManager
+from test_wallet_manager import WalletManager
+
+>>>>>>> 5f04eaeee7fdcd6803665c842e1384fc226bab5c
 from users.models import Cryptocurrency, User, UserLogin, Order
 from views.sellorderview import SellOrderView
 
@@ -14,6 +20,52 @@ def home(request):
     """Show the home page."""
     return render(request, 'html/index.html')
 
+def login(request):
+    login = UserLogin()
+    if request.method == 'POST':
+        login.username = request.POST['username']
+        login.password = request.POST['password']
+        manager = ModelManager()
+        rc, msg, user = manager.login(login)
+        if rc == 0:
+            request.session['username'] = login.username
+            request.session['user'] = user
+            forwardto = request.POST['forwardto']
+            if forwardto:
+                return redirect(forwardto)
+            else:
+                return redirect("accountinfo")
+        else:
+            return render(request, "html/login.html",
+               {'message': msg, 'login':login})
+    else:
+        return render(request, "html/login.html",
+            { 'login' : login})
+
+def registration(request):
+    login = UserLogin()
+    user = User()
+    user.login = login
+    if request.method == 'POST':
+        login.username = request.POST['email']
+        login.password = request.POST['password']
+        user.email = request.POST['email']
+        manager = ModelManager()
+        rc, msg = manager.register(user)
+        if 0 == rc:
+            return render(request, 'html/login.html',
+              {'message':msg, 'message_type':'success',
+              'login': User()})
+        return render(request.'html/register.html',
+              {'message':msg, 'message_type':'fail', 'registration':user})
+    else:
+        return render(request.'html/register.html',
+              {'registration':user})
+
+def accountinfo(request):
+    manager = ModelManager()
+    useraccountInfo = manager.get_user_accountInfo(request.session['username'])
+    return render(request, 'html/myaccount.html', {'useraccountInfo': useraccountInfo})
 def show_sell_orders_for_purchase(request):
     manager = ModelManager()
     sellorders = manager.query_active_sell_orders()

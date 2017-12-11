@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  <!-- Latest compiled and minified CSS -->
+  <!--<link rel="stylesheet" href="/static/css/bootstrap.3.3.7.min.css">-->
+  <link rel='stylesheet' href='/static/css/bootstrap.min.css'>
+
+  <!-- jQuery library -->
+  <script src="/static/scripts/jquery.3.2.1.min.js"></script>
+
+  <!-- Latest compiled JavaScript -->
+  <script src="/static/scripts/bootstrap.3.3.7.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>美基金朋友圈交易站</title>
+</head>
+
+<body>
+  <div class="container">
+    <nav class="navbar navbar-inverse">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#" ><img src="/static/img/axfund_icon.png" width=96 height=36></a>
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+          <ul class="nav navbar-nav">
+            <li><a href="#">卖美基金</a></li>
+            <li><a href="#">买美基金</a></li>
+            <li><a href="#">我的交易</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="account.html"><span class="glyphicon glyphicon-user"></span>我的账户</a></li>
+            <li><a href="logout.html"><span class="glyphicon glyphicon-log-in"></span>退出</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </div>
+  {% load mathfilters %}
+  <div class="container">
+    <h6>锁定余额: {{ useraccountInfo.locked_balance }} 可用余额: {{ useraccountInfo.available_balance  }} 总余额：{{ useraccountInfo.balance}} </h6>
+    <div class="well">
+      <div class="row">
+        <h3>美基金钱包地址</h3>
+        <table class="table table-condensed">
+          <tr>
+            <td><lable class="control-label">充币地址</label>
+            <td>{{ useraccountInfo.address }}</td>
+          </tr>
+          <tr>
+            <td><label class="control-label">提币地址</label></td>
+            <td>{% if useraccountInfo.externaladdress %}
+              <a href="/accounts/external_address/{{ useraccountInfo.userId }}/">{{ useraccountInfo.externaladdress.alias }}</a>
+              {% else %}
+              <a href="/accounts/external_address/{{ useraccountInfo.userId }}/" class="btn btn-primay">添加</a>
+              {% end if %}&nbsp;<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#extract-modal">提币</button></td>
+          </tr>
+        </table>
+      </div>
+      <div class="row">
+        <table class="table">
+          <tr>
+            <td><h3>付款方式</h3></td>
+            <td align="right"><a class="btn btn-primary" href="/accounts/paymentmethods/{{ user.id }}/">更新</a></td>
+          </tr>
+          <th>
+            <td>支付公司</td>
+            <td>账户信息</td>
+          </th>
+          {% for paymentmethod in useraccountInfo.paymentmethods %}
+          <tr>
+            <td>{{ paymentmethod.provider_name }}</td>
+            <td>{{ paymentmethod.account }}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td><img src="/static/{{ paymentmethod.qrcode_image }}"/></td>
+          </td>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+    <!-- popup window for confirm payment of purchase -->
+    <form id="extract-modal" tabindex="-1" class="modal fade" role="dialog" action="/account/extract_axfund/" aria-labelledby="lockfund-form-label" aria-hidden="true" method='post'>
+      {% csrf_token %}
+      <input type="hidden" id="id_username" name="username" value = "{{ username }}"/>
+      <input type="hidden" id="id_fromaddress" name="fromaddress" value = "{{ useraccountInfo.address }}"/>
+      <input type="hidden" id="id_toaddress" name="username" value = "{{ useraccountInfo.externaladdreess.address }}"/>
+
+      <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 id="lockfund-form-label">确认付款</h4>
+          </div>
+          <div class="modal-body">
+            <div id="div_purchase_content" class="form-group">
+              <div id="div_id_quantity" class="form-group">
+                <label for="lbl_id_quantity" class="control-label">数量</label><span class="asteriskField">*</span> </label>
+                <div class="controls "> <input class="textinput textInput form-control" id="txt_id_quantity" maxlength="16" name="quantity" type="text" /> </div>
+              </div>
+              <div id="div_id_from" class="form-group">
+                <label for="lbl_id_from" class="control-label">从充币地址:</label>
+                <div class="controls "><label class="control-label">{{ useraccountInfo.address}} </label></div>
+              </div>
+              <div id="div_id_to" class="form-group">
+                <label for="lbl_id_to" class="control-label">到提币地址:</label>
+                <div class="controls "><label class="control-label">{{ useraccountInfo.externaladdreess.address }} </label></div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-default" data-dismiss="submit">确认</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">撤销</button>
+          </div>
+        </div>
+    </form>
+  </div>
+  <footer class="container">
+    <div class="row" style="text-align: center;">
+      美基金团队版权所有2017&copy
+    </div>
+  </footer>
+</body>
+<script>
+</script>
+</html>
