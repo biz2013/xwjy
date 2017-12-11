@@ -3,11 +3,8 @@
      "pk": "sysop",
      "fields": {
         "passwd_hash": "5d381d1c4e755e6784e036736a78e871613d7b58c2d1b8d66cc4fe3b162e8807",
-<<<<<<< HEAD
         "created_at": "2017-12-01 00:00:00",
         "lastupdated_at": "2017-12-01 00:00:00",
-=======
->>>>>>> 5f04eaeee7fdcd6803665c842e1384fc226bab5c
         "created_by": "sysop",
         "lastupdated_by": "sysop"}
    },
@@ -40,8 +37,8 @@
        "email": "tttzhang2000@yahoo.com",
        "created_at": "2017-12-01 00:00:00",
        "lastupdated_at": "2017-12-01 00:00:00",
-       "created_by": "sysops",
-       "lastupdated_by" : "sysops"
+       "created_by": "sysop",
+       "lastupdated_by" : "sysop"
      }
    },
    {
@@ -54,8 +51,8 @@
        "email": "yingzhou61@yahoo.com",
        "created_at": "2017-12-01 00:00:00",
        "lastupdated_at": "2017-12-01 00:00:00",
-       "created_by": "sysops",
-       "lastupdated_by" : "sysops"
+       "created_by": "sysop",
+       "lastupdated_by" : "sysop"
      }
    },
    {
@@ -63,11 +60,11 @@
      "pk": "weixin",
      "fields" : {
        "name" : "微信支付",
-       "config" : "",
+       "config_json" : "",
        "created_at": "2017-12-01 00:00:00",
        "lastupdated_at": "2017-12-01 00:00:00",
-       "created_by": "sysops",
-       "lastupdated_by" : "sysops"
+       "created_by": "sysop",
+       "lastupdated_by" : "sysop"
      }
    },
    {
@@ -75,11 +72,11 @@
      "pk": "alipay",
      "fields" : {
        "name" : "支付宝",
-       "config" : "",
+       "config_json" : "",
        "created_at": "2017-12-01 00:00:00",
        "lastupdated_at": "2017-12-01 00:00:00",
-       "created_by": "sysops",
-       "lastupdated_by" : "sysops"
+       "created_by": "sysop",
+       "lastupdated_by" : "sysop"
      }
    },
    {
@@ -87,11 +84,11 @@
      "pk": "heepay",
      "fields" : {
        "name" : "汇钱包",
-       "config" : "",
+       "config_json" : "",
        "created_at": "2017-12-01 00:00:00",
        "lastupdated_at": "2017-12-01 00:00:00",
-       "created_by": "sysops",
-       "lastupdated_by" : "sysops"
+       "created_by": "sysop",
+       "lastupdated_by" : "sysop"
      }
    },
    {
@@ -101,11 +98,11 @@
        "user": 1,
        "provider": "weixin",
        "account_at_provider": "28348572934",
-       "proviuder_qrcode_image": "",
+       "provider_qrcode_image": "",
        "created_at": "2017-12-01 00:00:00",
        "lastupdated_at": "2017-12-01 00:00:00",
-       "created_by": "sysops",
-       "lastupdated_by" : "sysops"
+       "created_by": "sysop",
+       "lastupdated_by" : "sysop"
      }
    }
 ]
