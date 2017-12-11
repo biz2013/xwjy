@@ -4,7 +4,7 @@
 <head>
   <!-- Latest compiled and minified CSS -->
   <!--<link rel="stylesheet" href="/static/css/bootstrap.3.3.7.min.css">-->
-  <link rel='stylesheet' href='/static/css/bootstrap.min.css'>
+  <link rel='stylesheet' href='/static/css/bootstrap.3.3.7.min.css'>
 
   <!-- jQuery library -->
   <script src="/static/scripts/jquery.3.2.1.min.js"></script>
@@ -78,26 +78,53 @@ $(function() {
     <h6>美基金余额：2302.35 状态：锁定</h6>
     <div class="well">
       <div class="row">
+        <div class="col-md-4 col-md-offset-4">
           <h4>添加,修改付款方式</h4>
-          <form method="POST" action="#" enctype="multipart/form-data">
-          <input type='hidden' name='csrfmiddlewaretoken' value='cuyRJ1AJO9ZFz7Kr4JOenRslxTnE9x3T' />
-          <div id="div_id_username" class="form-group"> <label for="id_username" class="control-label  requiredField">支付方式<span class="asteriskField">*</span> </label>
+          <form method="POST" action="/acounts/paymentmethod/" enctype="multipart/form-data" method="post">
+           <input type="hidden" name="userid" value="{{ userid }}"/>
+            {% csrf_token %}
+            <div id="div_id_username" class="form-group"> <label for="id_username" class="control-label  requiredField">支付方式<span class="asteriskField">*</span> </label>
             <div class="controls ">
-              <select class="form-control" id="sel_id_payment_provider">
+              <script language='JavaScript'>
+              class PaymentMethods {
+                constructor(userid, provider_code, address, qrcode_image) {
+                this.userid = userid;
+                this.provider_code = provider_code;
+                this.address = address;
+                this.qrcode_image = qrcode_image;
+               }
+              }
+              var payment_methods = {}
+              {% if user_payment_methods %}
+                 {% for payment_method in user_payment_methods %}
+                   var item = new PaymentMethod({{ payment_method.user.id}},
+                       {{ payment_method.provider.code }},
+                       {{ payment_method.account_at_provider}},
+                       '{{ payment_method.provider_qrcode_image }}');
+                    payment_methods.add('{{ payment_method.provider.code }}', item);
+                 {% endfor %}
+              {% endif %}
+              function select_user_payment_method(provider_code) {
+                 if (provider_code in payment_methods) {
+                    $("#txt_id_account_at_provider").val(payment_methods['{{ provider_code}}'].address);
+                 }
+              }
+              </script>
+              <select class="form-control" id="sel_id_payment_provider" name="payment_provider" onchange="select_user_payment_method(this.value)">
                 {% if payment_providers %}
                    {% for provider in payment_providers %}
-                   <option value="{{ payment_provider.name }}">{{ payment_provider.alias }}</option>
+                   <option value="{{ provider.code }}">{{ provider.name }}</option>
                    {% endfor %}
                 {% endif %}
               </select>
             </div>
           </div>
-          <div id="div_id_password1" class="form-group"> <label for="id_password1" class="control-label  requiredField">账号<span class="asteriskField">*</span> </label>
-            <div class="controls "> <input class="textinput textInput form-control" id="id_password1" name="password1" type="password" /> </div>
+          <div id="div_id_account_at_provider" class="form-group"> <label for="id_payment_account" class="control-label  requiredField">账号<span class="asteriskField">*</span> </label>
+            <div class="controls "> <input class="textinput textInput form-control" id="txt_id_account_at_provider" name="account" type="text"/> </div>
           </div>
-          <div id="div_id_password2" class="form-group"> <label for="id_password2" class="control-label  requiredField">支付账户二维码<span class="asteriskField">*</span> </label></div>
+          <!--<div id="div_id_qrcode_image" class="form-group"> <label for="id_" class="control-label  requiredField">支付账户二维码<span class="asteriskField">*</span> </label></div>-->
             <!-- COMPONENT START -->
-            <div class="form-group">
+            <!--<div class="form-group">
               <div class="input-group input-file" name="Fichier1">
                 <input type="text" class="form-control" placeholder='选择二维码图像文件...' />
                 <span class="input-group-btn">
@@ -105,14 +132,15 @@ $(function() {
                     <button type="reset" class="btn btn-danger">清除</button>
             	</span>
               </div>
-            </div>
+            </div>-->
             <!-- COMPONENT END -->
             <div class="form-group">
-              <button type="submit" class="btn btn-success pull-right" disabled>确认</button>
-              <button type="submit" class="btn btn-default pull-left" disabled>取消</button>
+              <button type="submit" class="btn btn-primary pull-left">确认</button>
+              <button type="button" class="btn btn-default pull-right">取消</button>
             </div>
         </form>
       </div>
+    </div>
     </div>
   </div>
 

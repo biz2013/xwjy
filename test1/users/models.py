@@ -70,6 +70,16 @@ class UserWallet(models.Model):
    lastupdated_at = models.DateTimeField(auto_now=True)
    lastupdated_by = models.ForeignKey('UserLogin', related_name='UserWallet_lastupdated_by')
 
+class UserExternalWalletAddress(models.Model):
+   user = models.ForeignKey('User', on_delete=models.CASCADE)
+   cryptocurrency_code = models.ForeignKey('Cryptocurrency', on_delete=models.CASCADE)
+   address = models.CharField(max_length=128)
+   alias = models.CharField(max_length=32, null=True)
+   created_at = models.DateTimeField(auto_now_add=True)
+   created_by = models.ForeignKey('UserLogin', related_name='UserExternalWalletAddress_created_by')
+   lastupdated_at = models.DateTimeField(auto_now=True)
+   lastupdated_by = models.ForeignKey('UserLogin', related_name='UserExternalWalletAddress_lastupdated_by')
+
 class UserReview(models.Model):
    target_userId = models.ForeignKey('User', on_delete=models.CASCADE, related_name='target_user')
    review_userId = models.ForeignKey('User', on_delete=models.CASCADE, related_name='review_user')

@@ -24,6 +24,8 @@ urlpatterns = [
     url(r'^registration/$', app.registration),
     url(r'^accounts/login/$', app.login, name='login'),
     url(r'^accounts/accountinfo/$', app.accountinfo, name='accountinfo'),
+    url(r'^accounts/external_address/$', app.external_address),
+    url(r'^accounts/paymentmethods/$', app.payment_method),
     url(r'^axfund/transfer/$', app.transfer),
     url(r'^mysellorder/$', app.mysellorder, name="sellorder"),
     url(r'^purchase/$', app.show_sell_orders_for_purchase),

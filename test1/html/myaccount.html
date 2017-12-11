@@ -56,9 +56,9 @@
           <tr>
             <td><label class="control-label">提币地址</label></td>
             <td>{% if useraccountInfo.externaladdress and useracountInfo.externalress|length > 0 %}
-              <a href="/accounts/external_address/{{ useraccountInfo.userId }}/">{{ useraccountInfo.externaladdress.alias }}</a>
+              <a href="/accounts/external_address/?id={{ useraccountInfo.user.id }}">{{ useraccountInfo.externaladdress.alias }}</a>
               {% else %}
-              <a href="/accounts/external_address/{{ useraccountInfo.userId }}/" class="btn btn-primay">添加</a>
+              <a href="/accounts/external_address/?id={{ useraccountInfo.user.id }}" class="btn btn-primary">添加</a>
               {% endif %}&nbsp;<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#extract-modal">提币</button></td>
           </tr>
         </table>
@@ -67,7 +67,7 @@
         <table class="table">
           <tr>
             <td><h4>付款方式</h4></td>
-            <td><a class="btn btn-primary pull-right" href="/accounts/paymentmethods/{{ user.id }}/">更新</a></td>
+            <td><a class="btn btn-primary" href="/accounts/paymentmethods/?id={{ useraccountInfo.user.id }}">更新</a></td>
           </tr>
         </table>
         <table class="table">
@@ -121,8 +121,8 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-default" data-dismiss="submit">确认</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">撤销</button>
+            <button type="submit" class="btn btn-primary pull-left" data-dismiss="submit">确认</button>
+            <button type="button" class="btn btn-default pull-right" data-dismiss="modal">撤销</button>
           </div>
         </div>
     </form>

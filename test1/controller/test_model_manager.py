@@ -52,14 +52,30 @@ class ModelManager(object):
        return orders;
 
    def get_user_payment_methods(self, userId):
-       payment = []
+       payment_methods = []
        if (userId == 'taozhang'):
-           payment.append(UserPaymentMethodView(1, '微信支付',
-                   'taozhang_weixin_qrcode.jpg'))
+           payment_method = UserPaymentMethod()
+           user = User()
+           user.id = 1
+           provider = PaymentProvider()
+           provider.code = 'heepay'
+           provider.name = '汇钱包'
+           payment_method.user = user
+           payment_method.provider = provider
+           payment_method.account_at_provider = '18600701961'
+           payment_methods.append(payment_method)
        else:
-           payment.append(UserPaymentMethodView(2, '支付宝',
-                   'yingzhou_alipay_qrcode.png'))
-       return payment
+           payment_method = UserPaymentMethod()
+           user = User()
+           user.id = 2
+           provider = PaymentProvider()
+           provider.code = 'heepay'
+           provider.name = '汇钱包'
+           payment_method.user = user
+           payment_method.provider = provider
+           payment_method.account_at_provider = '15811302702'
+           payment_methods.append(payment_method)
+       return payment_methods
 
    def register(self, user):
        if user.username=='failme':
@@ -86,18 +102,37 @@ class ModelManager(object):
            return -1, '密码或账号有错', None
 
    def get_user_accountInfo(self, username):
+       user = User()
+       user.login = UserLogin()
+       user.id =1
+       user.login.username = username
        payment_method = UserPaymentMethod()
        payment_provider = PaymentProvider()
        payment_provider.code = 'heepay'
        payment_provider.name = '汇钱包'
        payment_method.id = 1
        payment_method.provider = payment_provider
-       payment_method.user = User()
+       payment_method.user = user
        payment_method.account_at_provider = '18600701961'
 
        payment_method.provider_qrcode_image = ''
-       userInfo = UserAccountInfo(username, 1999, 0, 1999,
+       userInfo = UserAccountInfo(user, 1999, 0, 1999,
               'AHeeMMr4CqzxFTy3WGRgZnmE5ZoeyiA6vg',
               'AeALA1zBbzWCTsrbAzaEfLeLG6Q5ZEGfeD',
               {payment_method})
        return userInfo
+
+   def get_user_address(self, userid):
+       user_address = UserExternalWalletAddress()
+       user = User()
+       user.id = userid
+       user_address.user = user
+       user_address.address = 'AcQwZEx36Ru3gqkkgQiSJt6TngSnTQYFF8'
+       user_address.alias = 'first'
+       return user_address
+
+   def upsert_user_external_address(self, userid, address, alias):
+       return 0, ''
+
+   def upsert_user_payment_method(self, userid, payment_provider, account):
+       return 0, ''
