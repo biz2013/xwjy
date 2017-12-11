@@ -137,27 +137,29 @@ class Transaction(models.Model) :
    TRANS_TYPES= (('BUY_ON_ASK','BUY_ON_ASK'), ('SELL_ON_BID', 'SELL_ON_BID'),
          ('SELLER_TRANSFER_AXFUND','SELLER_TRANSFER_AXFUND'),
          ('USER_WITHDRAW_AXFUND', 'USER_WITHDRAW_AXFUND'),
-         ('DEPOSIT_AXFUND'), 'DEPOSIT_AXFUND'),
+         ('DEPOSIT_AXFUND', 'DEPOSIT_AXFUND'),
          ('UPDATE_OTHER_TRANS', 'UPDATE_OTHER_TRANS'))
+   TRANS_STATUS = (('SUCCEED','SUCCESS'),
+         ('FAILED','FAILED'))
    transactionId = models.CharField(primary_key=True, max_length=64)
    transactionType = models.CharField(max_length=64, choices=TRANS_TYPES)
-   buy_order = models.ForeignKey('Order', null = True)
-   sell_order = models.ForeignKey('Order', null = True)
+   buy_order = models.ForeignKey('Order', null = True, related_name='trans_buy_order')
+   sell_order = models.ForeignKey('Order', null = True, related_name='trans_sell_order')
    axf_txId = models.CharField(max_length=128, null = True)
-   fromUser = models.ForeignKey('User', null = True)
-   fromUser_paymentmethod = models.ForeignKey('UserPaymentMethod', null = True)
-   toUser = models.ForeignKey('User', null = True)
-   toUser_paymentmethod = models.ForeignKey('UserPaymentMethod', null = True)
+   fromUser = models.ForeignKey('User', null = True, related_name='trans_fromuser')
+   fromUser_paymentmethod = models.ForeignKey('UserPaymentMethod', null = True, related_name='trans_fromuser_paymentmethod')
+   toUser = models.ForeignKey('User', null = True, related_name='trans_touser')
+   toUser_paymentmethod = models.ForeignKey('UserPaymentMethod', null = True, related_name='trans_touser_paymentmethod')
    reference_trans = models.ForeignKey('Transaction', null = True)
    units = models.FloatField(default=0)
    unit_price = models.FloatField(default=0)
    total = models.FloatField(default=0)
    fees = models.FloatField(default=0)
-   status = models.CharField(max_length=32, choices=ORDER_STATUS)
+   status = models.CharField(max_length=32, choices=TRANS_STATUS)
    created_at = models.DateTimeField(auto_now_add=True)
-   created_by = models.ForeignKey('UserLogin', related_name='Order_created_by')
+   created_by = models.ForeignKey('UserLogin', related_name='trans_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
-   lastupdated_by = models.ForeignKey('UserLogin', related_name='Order_lastupdated_by')
+   lastupdated_by = models.ForeignKey('UserLogin', related_name='trans_lastupdated_by')
 
 
 class OrderChangeLog(models.Model):
