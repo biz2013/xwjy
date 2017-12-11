@@ -11,6 +11,7 @@ class UserLogin(models.Model):
    lastupdated_by = models.ForeignKey('self', on_delete=models.CASCADE, related_name="login_lastupdated_by", null = True)
 
 class PaymentProvider(models.Model):
+   code = models.CharField(max_length=32, primary_key=True)
    name = models.CharField(max_length=32)
    config_json = models.TextField()
    created_at = models.DateTimeField(auto_now_add=True)
@@ -32,9 +33,9 @@ class User(models.Model):
    lastupdated_by = models.ForeignKey('UserLogin', related_name='User_lastupdated_by')
 
 class UserPaymentMethod(models.Model):
-   userId = models.ForeignKey('User', on_delete=models.CASCADE)
-   providerId = models.ForeignKey('PaymentProvider', on_delete=models.CASCADE)
-   account_at_provider= models.CharField(max_length=64)
+   user = models.ForeignKey('User', on_delete=models.CASCADE)
+   provider = models.ForeignKey('PaymentProvider', on_delete=models.CASCADE)
+   account_at_provider = models.CharField(max_length=64)
    provider_qrcode_image = models.ImageField(upload_to='uploads/')
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey('UserLogin', related_name='UserPaymentMethod_created_by')
@@ -100,6 +101,7 @@ class Order(models.Model):
    ORDER_STATUS = (('OPEN','Open'),('CANCELLED','Cancelled'), ('FILLED','Filled'), ('PARTIALFILLED','PartialFilled'),('LOCKED','Locked'))
    CURRENCY = (('CYN', 'Renminbi'), ('USD', 'US Dollar'))
    user = models.ForeignKey('User', on_delete=models.CASCADE)
+
    reference_order = models.ForeignKey('self', null=True)
    cryptocurrencyId = models.ForeignKey('Cryptocurrency')
    reference_wallet = models.ForeignKey('Wallet', null= True)
@@ -130,6 +132,33 @@ class Order(models.Model):
    created_by = models.ForeignKey('UserLogin', related_name='Order_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
    lastupdated_by = models.ForeignKey('UserLogin', related_name='Order_lastupdated_by')
+
+class Transaction(models.Model) :
+   TRANS_TYPES= (('BUY_ON_ASK','BUY_ON_ASK'), ('SELL_ON_BID', 'SELL_ON_BID'),
+         ('SELLER_TRANSFER_AXFUND','SELLER_TRANSFER_AXFUND'),
+         ('USER_WITHDRAW_AXFUND', 'USER_WITHDRAW_AXFUND'),
+         ('DEPOSIT_AXFUND'), 'DEPOSIT_AXFUND'),
+         ('UPDATE_OTHER_TRANS', 'UPDATE_OTHER_TRANS'))
+   transactionId = models.CharField(primary_key=True, max_length=64)
+   transactionType = models.CharField(max_length=64, choices=TRANS_TYPES)
+   buy_order = models.ForeignKey('Order', null = True)
+   sell_order = models.ForeignKey('Order', null = True)
+   axf_txId = models.CharField(max_length=128, null = True)
+   fromUser = models.ForeignKey('User', null = True)
+   fromUser_paymentmethod = models.ForeignKey('UserPaymentMethod', null = True)
+   toUser = models.ForeignKey('User', null = True)
+   toUser_paymentmethod = models.ForeignKey('UserPaymentMethod', null = True)
+   reference_trans = models.ForeignKey('Transaction', null = True)
+   units = models.FloatField(default=0)
+   unit_price = models.FloatField(default=0)
+   total = models.FloatField(default=0)
+   fees = models.FloatField(default=0)
+   status = models.CharField(max_length=32, choices=ORDER_STATUS)
+   created_at = models.DateTimeField(auto_now_add=True)
+   created_by = models.ForeignKey('UserLogin', related_name='Order_created_by')
+   lastupdated_at = models.DateTimeField(auto_now=True)
+   lastupdated_by = models.ForeignKey('UserLogin', related_name='Order_lastupdated_by')
+
 
 class OrderChangeLog(models.Model):
    order = models.ForeignKey('Order', on_delete=models.CASCADE)
