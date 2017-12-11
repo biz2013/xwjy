@@ -6,13 +6,7 @@ from django.shortcuts import render
 #from model_manager import ModelManager
 
 # this is for test UI. A fake one
-<<<<<<< HEAD
 from controller.test_model_manager import ModelManager
-=======
-from test_model_manager import ModelManager
-from test_wallet_manager import WalletManager
-
->>>>>>> 5f04eaeee7fdcd6803665c842e1384fc226bab5c
 from users.models import Cryptocurrency, User, UserLogin, Order
 from views.sellorderview import SellOrderView
 
@@ -56,10 +50,10 @@ def registration(request):
             return render(request, 'html/login.html',
               {'message':msg, 'message_type':'success',
               'login': User()})
-        return render(request.'html/register.html',
+        return render(request,'html/register.html',
               {'message':msg, 'message_type':'fail', 'registration':user})
     else:
-        return render(request.'html/register.html',
+        return render(request,'html/register.html',
               {'registration':user})
 
 def accountinfo(request):
@@ -141,6 +135,9 @@ def query_user_open_sell_orders(userlogin):
 
 def query_buy_orders(userlogin):
     return Order.objects.select_related('reference_order','reference_order__user').filter(reference_order__user__login= userlogin)
+
+def transfer(request):
+    return render(request, 'html/myaccount.html')
 
 def mysellorder(request):
     if request.method == 'POST':
