@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'mathfilters',
     'views',
     'users',
+    'controller',
 ]
 
 MIDDLEWARE = [
@@ -140,4 +141,3 @@ print 'base dir path', BASE_DIR
 # Where the files will be, this will be updated
 # for real deployment
 #MEDIA_ROOT='/var/www/test1/'
-

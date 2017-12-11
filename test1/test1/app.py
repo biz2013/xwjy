@@ -6,7 +6,7 @@ from django.shortcuts import render
 #from model_manager import ModelManager
 
 # this is for test UI. A fake one
-from test_model_manager import ModelManager
+from controller.test_model_manager import ModelManager
 from users.models import Cryptocurrency, User, UserLogin, Order
 from views.sellorderview import SellOrderView
 
