@@ -3,12 +3,12 @@ from django.db import models
 class UserLogin(models.Model):
    username = models.CharField(max_length=32, primary_key=True)
    passwd_hash = models.CharField(max_length=64)
-   alias = models.CharField(max_length=64)
+   alias = models.CharField(max_length=64, default='')
    config_json = models.CharField(max_length=4096)
    created_at = models.DateTimeField(auto_now_add=True)
-   created_by = models.ForeignKey('self', on_delete = models.CASCADE, related_name="login_created_by")
-   lastupdated_at = models.DateTimeField(auto_now=True)
-   lastupdated_by = models.ForeignKey('self', on_delete=models.CASCADE, related_name="login_lastupdated_by")
+   created_by = models.ForeignKey('self', on_delete = models.CASCADE, related_name="login_created_by", null = True)
+   lastupdated_at = models.DateTimeField(auto_now=True, null=True)
+   lastupdated_by = models.ForeignKey('self', on_delete=models.CASCADE, related_name="login_lastupdated_by", null = True)
 
 class PaymentProvider(models.Model):
    name = models.CharField(max_length=32)
@@ -95,7 +95,7 @@ class Order(models.Model):
    """
    SUBORDER_TYPE = (('OPEN','Open'), ('BUY_ON_ASK', 'Buy_on_ask'), ('SELL_ON_BID', 'Sell_on_bid'))
    """
-   These are not necessarily final, but I think so far we need these 
+   These are not necessarily final, but I think so far we need these
    """
    ORDER_STATUS = (('OPEN','Open'),('CANCELLED','Cancelled'), ('FILLED','Filled'), ('PARTIALFILLED','PartialFilled'),('LOCKED','Locked'))
    CURRENCY = (('CYN', 'Renminbi'), ('USD', 'US Dollar'))
@@ -110,8 +110,8 @@ class Order(models.Model):
    unit_price = models.FloatField()
    unit_price_currency = models.CharField(max_length = 8, choices=CURRENCY, default='CYN')
    """
-   We use lock count to verify whether there's buy order lock on the 
-   sell order 
+   We use lock count to verify whether there's buy order lock on the
+   sell order
    """
    lock_count = models.IntegerField(default=0)
    """
@@ -136,4 +136,3 @@ class OrderChangeLog(models.Model):
    action = models.CharField(max_length = 32)
    message = models.CharField(max_length = 255)
    timestamp = models.DateTimeField()
-

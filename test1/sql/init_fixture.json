@@ -1,15 +1,19 @@
 [
-   { "model": "users.userlogin", 
-     "pk": "sysop", 
+   { "model": "users.userlogin",
+     "pk": "sysop",
      "fields": {
-        "passwd_hash": "5d381d1c4e755e6784e036736a78e871613d7b58c2d1b8d66cc4fe3b162e8807", 
-        "created_by": "sysop", 
+        "passwd_hash": "5d381d1c4e755e6784e036736a78e871613d7b58c2d1b8d66cc4fe3b162e8807",
+        "created_at": "2017-12-01 00:00:00",
+        "lastupdated_at": "2017-12-01 00:00:00",
+        "created_by": "sysop",
         "lastupdated_by": "sysop"}
    },
    { "model": "users.userlogin",
      "pk": "taozhang",
      "fields": {
         "passwd_hash": "8e1e3e91a4c2c09402a0fa18090e0d3970ff40cf25cae28e9879baf83675c391",
+        "created_at": "2017-12-01 00:00:00",
+        "lastupdated_at": "2017-12-01 00:00:00",
         "created_by": "sysop",
         "lastupdated_by": "sysop"}
    },
@@ -17,6 +21,8 @@
      "pk": "yingzhou",
      "fields": {
         "passwd_hash": "58d8432c2385d6873fc3f84295286b7be3c84dc0e3fbfe4900fdd62fd1794ba5",
+        "created_at": "2017-12-01 00:00:00",
+        "lastupdated_at": "2017-12-01 00:00:00",
         "created_by": "sysop",
         "lastupdated_by": "sysop"}
    },
@@ -26,9 +32,11 @@
      "pk": 1,
      "fields": {
        "login" : "taozhang",
-       "firtname":"tao",
+       "firstname":"tao",
        "lastname":"zhang",
        "email": "tttzhang2000@yahoo.com",
+       "created_at": "2017-12-01 00:00:00",
+       "lastupdated_at": "2017-12-01 00:00:00",
        "created_by": "sysops",
        "lastupdated_by" : "sysops"
      }
@@ -38,39 +46,47 @@
      "pk": 2,
      "fields": {
        "login" : "yingzhou",
-       "firtname":"ying",
+       "firstname":"ying",
        "lastname":"zhou",
        "email": "yingzhou61@yahoo.com",
-       "created_by": "sysops",
-       "lastupdated_by" : "sysops"
-     }
-   },
-   { 
-     "model": "users.paymentprovider",
-     "pk": 1,
-     "fields" : {
-       "name" : "weixin",
-       "config" : "",
+       "created_at": "2017-12-01 00:00:00",
+       "lastupdated_at": "2017-12-01 00:00:00",
        "created_by": "sysops",
        "lastupdated_by" : "sysops"
      }
    },
    {
      "model": "users.paymentprovider",
-     "pk": 2,
+     "pk": "weixin",
      "fields" : {
-       "name" : "alipay",
+       "name" : "微信支付",
        "config" : "",
+       "created_at": "2017-12-01 00:00:00",
+       "lastupdated_at": "2017-12-01 00:00:00",
        "created_by": "sysops",
        "lastupdated_by" : "sysops"
      }
    },
    {
      "model": "users.paymentprovider",
-     "pk": 3,
+     "pk": "alipay",
      "fields" : {
-       "name" : "heepay",
+       "name" : "支付宝",
        "config" : "",
+       "created_at": "2017-12-01 00:00:00",
+       "lastupdated_at": "2017-12-01 00:00:00",
+       "created_by": "sysops",
+       "lastupdated_by" : "sysops"
+     }
+   },
+   {
+     "model": "users.paymentprovider",
+     "pk": "heepay",
+     "fields" : {
+       "name" : "汇钱包",
+       "config" : "",
+       "created_at": "2017-12-01 00:00:00",
+       "lastupdated_at": "2017-12-01 00:00:00",
        "created_by": "sysops",
        "lastupdated_by" : "sysops"
      }
@@ -79,23 +95,14 @@
      "model": "users.userpaymentmethod",
      "pk": 1,
      "fields" : {
-       "userId": 1,
-       "providerId": 1,
+       "user": 1,
+       "provider": "weixin",
+       "account_at_provider": "28348572934",
        "proviuder_qrcode_image": "",
+       "created_at": "2017-12-01 00:00:00",
+       "lastupdated_at": "2017-12-01 00:00:00",
        "created_by": "sysops",
        "lastupdated_by" : "sysops"
-     },
-i    {
-     "model": "users.userpaymentmethod",
-     "pk": 2,
-     "fields" : {
-       "userId": 2,
-       "providerId": 3,
-       "proviuder_qrcode_image": "",
-       "created_by": "sysops",
-       "lastupdated_by" : "sysops"
-     },
+     }
    }
-
 ]
-
