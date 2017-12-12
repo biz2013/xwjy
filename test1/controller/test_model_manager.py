@@ -78,7 +78,7 @@ class ModelManager(object):
        return payment_methods
 
    def register(self, user):
-       if user.username=='failme':
+       if user.login.username=='failme':
            return -1, "系统故障，注册失败，稍后再试"
        else:
            return 0, "注册成功"
