@@ -4,13 +4,27 @@
 <head>
   <!-- Latest compiled and minified CSS -->
   <!--<link rel="stylesheet" href="/static/css/bootstrap.3.3.7.min.css">-->
-  <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>
+  <link rel='stylesheet' href='/static/css/bootstrap.3.3.7.min.css'>
 
   <!-- jQuery library -->
   <script src="/static/scripts/jquery.3.2.1.min.js"></script>
 
   <!-- Latest compiled JavaScript -->
   <script src="/static/scripts/bootstrap.3.3.7.min.js"></script>
+  <script language="JavaScript">
+   function registration() {
+
+     if ($("#txt_id_password2").val() != $("#txt_id_password").val()) {
+       $("#div_id_error_message").text('两个输入的密码不匹配，请重新输入');
+       $("#txt_id_password").val("");
+       $("#txt_id_password2").val("");
+     } else {
+       $("#txt_id_username").val($("#txt_id_email").val());
+       $("#div_id_error_message").text("");
+       $("#id_registration_form").submit();
+     }
+   }
+  </script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>美基金朋友圈交易站</title>
@@ -48,29 +62,31 @@
         <div id="register-body">
           <h2>注册美基金场外交易账号</h2>
           <p>开设账号，开始买卖美基金。</p>
-          <form method="post" class="paper-form" action="/regiteration/" method="post">
-            {% csrfmiddlewaretoken %}
-            {% if message and len(message)>0 %}
+          <form method="post" class="paper-form" action="/registration/" id="id_registration_form">
+            {% csrf_token %}
+            <input type="hidden" id="txt_id_username" name="username" value=""/>
+            {% if message and message|length > 0 %}
                {% if message_type == 'success' %}
             <p class="text-success">{{ message }}</p>
                {% else %}
             <p class="text-danger">{{ message }}</p>
                {% endif %}
             {% endif %}
+            <div id="div_id_error_message" class="text-danger"></div>
             <div id="div_id_email" class="form-group"> <label for="id_password2" class="control-label  requiredField">
 				邮箱<span class="asteriskField">*</span> </label>
-              <div class="controls "> <input class="textinput textInput form-control" id="id_email" name="email" type="text" value="{{ registration.email }}"/> </div>
+              <div class="controls "> <input class="textinput textInput form-control" id="txt_id_email" name="email" type="text" value="{{ registration.email }}"/> </div>
             </div>
             <div id="div_id_password1" class="form-group"> <label for="id_password1" class="control-label  requiredField">
 				密码<span class="asteriskField">*</span> </label>
-              <div class="controls "> <input class="textinput textInput form-control" id="id_password1" name="password1" type="password" /> </div>
+              <div class="controls "> <input class="textinput textInput form-control" id="txt_id_password" name="password" type="password" /> </div>
             </div>
             <div id="div_id_password2" class="form-group"> <label for="id_password2" class="control-label  requiredField">
 				密码（重复）<span class="asteriskField">*</span> </label>
-              <div class="controls "> <input class="textinput textInput form-control" id="id_password2" name="password2" type="password" /> </div>
+              <div class="controls "> <input class="textinput textInput form-control" id="txt_id_password2" name="password2" type="password" /> </div>
             </div>
             <p>
-              <button class="btn btn-success" id="register-page-confirm-button">注册</button>
+              <button type="button" class="btn btn-success" id="register-page-confirm-button" onclick="registration()">注册</button>
             </p>
           </form>
         </div>

@@ -43,9 +43,10 @@ def registration(request):
     user = User()
     user.login = login
     if request.method == 'POST':
-        login.username = request.POST['email']
+        login.username = request.POST['username']
         login.password = request.POST['password']
         user.email = request.POST['email']
+        print "registration: username %s password %s email %s" % (login.username, login.password, user.email)
         manager = ModelManager()
         rc, msg = manager.register(user)
         if 0 == rc:
