@@ -2,14 +2,13 @@
 # -*- coding: utf-8 -*-
 from django.db.models import Q
 from django.shortcuts import render, redirect
-from users.models import PaymentProvider
 
 #from model_manager import ModelManager
 
 # this is for test UI. A fake one
 from controller.test_model_manager import ModelManager
-from users.models import Cryptocurrency, User, UserLogin, Order
-from views.sellorderview import SellOrderView
+from users.models import *
+from views.models.orderitem import OrderItem
 
 def home(request):
     """Show the home page."""
@@ -200,9 +199,18 @@ def transfer(request):
     return render(request, 'html/myaccount.html')
 
 def mysellorder(request):
+    username = request.session['username']
+    manager = ModelManager()
+    status = None
     if request.method == 'POST':
-       return create_sell_order(request)
-    sellorders = query_user_open_sell_orders('taozhang')
-    buyorders = query_buy_orders('taozhang')
-    print "There is %d orders--- ".format(len(sellorders))
-    return render(request, 'html/mysellorder.html', {'sellorders': sellorders, 'buyorders':buyorders,'username':'taozhang'})
+        units = float(request.POST['quantity']),
+        unit_price = float(request.POST['unit_price']),
+        unit_price_currency = request.POST['unit_price_currency'],
+        cryto_currency = request.POST['crypto']
+        status = manager.create_sell_order(username, units, unit_price,
+                    unit_price_currency, crypto)
+    sellorders = manager.get_open_sell_orders_by_user(username)
+    buyorders = manager.get_pending_incoming_buy_orders_by_user(username)
+    return render(request, 'html/mysellorder.html', {'sellorders': sellorders,
+            'buyorders':buyorders,'username': username,
+            'previous_call_status' : status})

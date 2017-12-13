@@ -1,7 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from users.models import *
-from views.models.useraccountinfo import *
+from views.models.orderitem import OrderItem
+from views.models.useraccountinfo import UserAccountInfo
 
 class ModelManager(object):
 
@@ -136,3 +137,26 @@ class ModelManager(object):
 
    def upsert_user_payment_method(self, userid, payment_provider, account):
        return 0, ''
+
+   def create_sell_order(self, username, units, unit_price_currency, crypto):
+       return 0, ''
+
+   def get_open_sell_orders_by_user(self, username):
+       orders = []
+       orders.append(OrderItem(1,1, 1.011, 'CYN', 200.0,90.0,
+              '2017-12-10 00:00:00 UTC', 'OPEN'))
+       orders.append(OrderItem(2,1, 1.05, 'CYN', 110.0, 100.0,
+              '2017-12-10 00:00:00 UTC', 'OPEN'))
+       orders.append(OrderItem(3,1, 1.06, 'CYN', 120.0, 105.0,
+              '2017-12-10 00:00:00 UTC', 'LOCKED'))
+       orders.append(OrderItem(4,1, 1.07, 'CYN', 130.0, 108.0,
+              '2017-12-10 00:00:00 UTC', 'LOCKED'))
+       return orders;
+
+   def get_pending_incoming_buy_orders_by_user(self, username):
+       orders = []
+       orders.append(OrderItem(1,1, 1.011, 'CYN', 10.0, 0,
+              '2017-12-10 00:00:00 UTC', 'OPEN'))
+       orders.append(OrderItem(2,1, 1.05, 'CYN', 5.0, 0,
+              '2017-12-10 00:00:00 UTC', 'PAID'))
+       return orders;
