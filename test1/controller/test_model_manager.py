@@ -138,7 +138,8 @@ class ModelManager(object):
    def upsert_user_payment_method(self, userid, payment_provider, account):
        return 0, ''
 
-   def create_sell_order(self, username, units, unit_price_currency, crypto):
+   def create_sell_order(self, username, units, unit_price,
+                  unit_price_currency, crypto):
        return 0, ''
 
    def get_open_sell_orders_by_user(self, username):
