@@ -43,6 +43,14 @@
     </nav>
   </div>
   {% load mathfilters %}
+  <script language="JavaScript">
+    function show_order_info(orderid, units, unit_price, unit_price_currency) {
+      $("#id_units_confirm").text(units);
+      $("#id_units_price_confirm").text(unit_price + ' ' + unit_price_currency);
+      $("#id_total_amount_confirm").text(parseFloat(units * unit_price).toFixed(2) + ' ' + unit_price_currency);
+      $("#id_order_id_confirm").val(orderid);
+    }
+  </script>
   <div class="container">
     <h6>锁定余额: {{ axfund.locked_balance }} 可用余额: {{ axfund.available_balance }} 总余额：{{ axfund.balance}} </h6>
     <div class="well">
@@ -59,11 +67,11 @@
           {% for order in buyorders %}
           <tr>
             <td>{{ order.total_units }}</td>
-            <td>{{ order.unit_price }}&nbsp;{{ order.unit_price_currenty }}</td>
-            <td>{{ order.units|mul:order.unit_price }}&nbsp;{{ order.unit_price_currenty }}</td>
+            <td>{{ order.unit_price }}&nbsp;{{ order.unit_price_currency }}</td>
+            <td>{{ order.total_units|mul:order.unit_price }}&nbsp;{{ order.unit_price_currency }}</td>
             <td>{{ order.lastmodified_at }}</td>
             <td>{% if order.status == 'PAID' %}
-              <button class="btn btn-primary" data-toggle="model" data-target="#payment-confirm-modal">确认付款</button> {% else %}等待付款 {% endif %}
+              <button class="btn btn-primary" data-toggle="modal" data-target="#payment-confirm-modal" onclick="show_order_info({{ order.order_id}}, {{ order.unit_price }}, '{{ order.unit_price_currency}}')">确认付款</button> {% else %}等待付款 {% endif %}
             </td>
             <td>{% if order.status == 'PAID' %}<button class="btn btn-warning" id="id_arbitrage">争议</button> {% else %} &nbsp; {% endif %}
             </td>
@@ -107,15 +115,16 @@
       </div>
     </div>
     <!-- popup window for confirm payment of purchase -->
-    <form id="buy-modal" tabindex="-1" class="modal fade" role="dialog" action="/mysellorder/confirm_payment/" aria-labelledby="lockfund-form-label" aria-hidden="true" method='post'>
+    <form id="payment-confirm-modal" tabindex="-1" class="modal fade" role="dialog" action="/mysellorder/confirm_payment/" aria-labelledby="confirm-form-label" aria-hidden="true" method='post'>
       {% csrf_token %}
-      <input type="hidden" id="id_username" name="username" value="{{ username }}" />
+      <input type="hidden" id="id_username_confirm" name="username" value="{{ username }}" />
+      <input type="hidden" id="id_order_id_confirm" name="order_id" value=""/>
       <div class="modal-dialog">
         <!-- Modal content-->
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 id="lockfund-form-label">确认付款</h4>
+            <h4 id="confirm-form-label">确认付款</h4>
           </div>
           <div class="modal-body">
             <div id="div_purchase_content" class="form-group">
@@ -157,8 +166,8 @@
         return;
       }
 
-      units_val = parseFloat(units).tofix(2);
-      price_val = parseFloat(price).tofix(2);
+      units_val = parseFloat(units).toFixed(2);
+      price_val = parseFloat(price).toFixed(2);
       if (units_val < 0.01) {
         $("#error-message-sell-modal").val("请输入出售数量");
         return;
@@ -176,16 +185,17 @@
       }
     }
     </script>
-    <form id="sell-modal" tabindex="-1" class="modal fade" role="dialog" action="/mysellorder/" aria-labelledby="lockfund-form-label" aria-hidden="true" method='post'>
+    <form id="sell-modal" tabindex="-1" class="modal fade" role="dialog" action="/mysellorder/" aria-labelledby="purchase-form-label" aria-hidden="true" method='post'>
       {% csrf_token %}
       <input type="hidden" id="id_username" name="username" value="{{ username }}" />
       <input type="hidden" id="id_unit_price_currency" name="unit_price_currency" value="CYN"/>
+      <input type="hidden" id="id_crypto" name="crypto" value="axfund" />
       <div class="modal-dialog">
         <!-- Modal content-->
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 id="lockfund-form-label">出售美基金</h4>
+            <h4 id="purchase-form-label">出售美基金</h4>
           </div>
           <div class="text-danger" "error-message-sell-modal"></div>
           <div class="modal-body">

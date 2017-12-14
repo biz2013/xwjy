@@ -206,9 +206,9 @@ def mysellorder(request):
         units = float(request.POST['quantity']),
         unit_price = float(request.POST['unit_price']),
         unit_price_currency = request.POST['unit_price_currency'],
-        cryto_currency = request.POST['crypto']
+        crypto_currency = request.POST['crypto']
         status = manager.create_sell_order(username, units, unit_price,
-                    unit_price_currency, crypto)
+                    unit_price_currency, crypto_currency)
     sellorders = manager.get_open_sell_orders_by_user(username)
     buyorders = manager.get_pending_incoming_buy_orders_by_user(username)
     return render(request, 'html/mysellorder.html', {'sellorders': sellorders,
