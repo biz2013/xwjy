@@ -30,8 +30,6 @@ class HeePayManager(object):
         logger.error("create_purchase_order:Unexpected error:", sys.exc_info()[0])
         raise
 
-          result_json = '{}'
-          return result_json
 """
 {"sign":"19D4E6B0418D4F47CDE76BF3AA1B50AD"}
 """
