@@ -71,7 +71,7 @@
             <td>{{ order.total_units|mul:order.unit_price }}&nbsp;{{ order.unit_price_currency }}</td>
             <td>{{ order.lastmodified_at }}</td>
             <td>{% if order.status == 'PAID' %}
-              <button class="btn btn-primary" data-toggle="modal" data-target="#payment-confirm-modal" onclick="show_order_info({{ order.order_id}}, {{ order.unit_price }}, '{{ order.unit_price_currency}}')">确认付款</button> {% else %}等待付款 {% endif %}
+              <button class="btn btn-primary" data-toggle="modal" data-target="#payment-confirm-modal" onclick="show_order_info({{ order.order_id}}, {{ order.total_units}},{{ order.unit_price }}, '{{ order.unit_price_currency}}')">确认付款</button> {% else %}等待付款 {% endif %}
             </td>
             <td>{% if order.status == 'PAID' %}<button class="btn btn-warning" id="id_arbitrage">争议</button> {% else %} &nbsp; {% endif %}
             </td>

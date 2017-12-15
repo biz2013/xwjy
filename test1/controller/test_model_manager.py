@@ -5,56 +5,32 @@ from views.models.orderitem import OrderItem
 from views.models.useraccountinfo import UserAccountInfo
 
 class ModelManager(object):
-
+   def create_purchase_order(self, username, reference_order_id,
+         units, unit_price, total_amount):
+       order = Order()
+       order.user = User()
+       order.user.login = UserLogin()
+       order.user.login.username = id_username
+       order.reference_order = Order()
+       order.reference_order.id = reference_order_id
+       order.units = units
+       order.unit_price = unit_price
+       order.unit_price_currency = 'CNY'
+       order.order_type ='BUY'
+       return order
+   
    def query_active_sell_orders(self):
        orders= []
-       orders.append(OrderViewListItem(
-          #order_id
-          1,
-          #owner_login
-          'taozhang',
-          #onwer_user_id
-          1,
-          #status
-          'OPEN',
-          #units
-          100.0,
-          #unit_price =
-          1.02,
-          #unit_price_currency=
-          'CYN',
-          #unit_balance =
-          50.0,
-          #available_units =
-          50.0,
-          #lastupdated_at =
-          '2017/12/1 10:22:33.000 CST'))
-       orders.append(OrderViewListItem(
-          #order_id
-          2,
-          #owner_login =
-          'taozhang',
-          #owner_user_id =
-          1,
-          #status =
-          'LOCKED',
-          #units =
-          100.0,
-          #unit_price =
-          1.01,
-          #unit_price_currency=
-          'CYN',
-          #unit_balance =
-          50.0,
-          #available_units =
-          30.0,
-          #lastupdated_at =
-          '2017/11/30 10:22:33.000 CST'))
+       orders = []
+       orders.append(OrderItem(1,1, 'taozhang', 1.011, 'CYN', 200.0,90.0,
+              '2017-12-10 00:00:00 UTC', 'OPEN'))
+       orders.append(OrderItem(2,1, 'taozhang', 1.05, 'CYN', 110.0, 100.0,
+              '2017-12-10 00:00:00 UTC', 'OPEN'))
        return orders;
 
    def get_user_payment_methods(self, userId):
        payment_methods = []
-       if (userId == 'taozhang'):
+       if (userId == '1'):
            payment_method = UserPaymentMethod()
            user = User()
            user.id = 1
@@ -144,20 +120,22 @@ class ModelManager(object):
 
    def get_open_sell_orders_by_user(self, username):
        orders = []
-       orders.append(OrderItem(1,1, 1.011, 'CYN', 200.0,90.0,
+       orders.append(OrderItem(1,1, '', 1.011, 'CYN', 200.0,90.0,
               '2017-12-10 00:00:00 UTC', 'OPEN'))
-       orders.append(OrderItem(2,1, 1.05, 'CYN', 110.0, 100.0,
+       orders.append(OrderItem(2,1, '', 1.05, 'CYN', 110.0, 100.0,
               '2017-12-10 00:00:00 UTC', 'OPEN'))
-       orders.append(OrderItem(3,1, 1.06, 'CYN', 120.0, 105.0,
+       orders.append(OrderItem(3,1, '', 1.06, 'CYN', 120.0, 105.0,
               '2017-12-10 00:00:00 UTC', 'LOCKED'))
-       orders.append(OrderItem(4,1, 1.07, 'CYN', 130.0, 108.0,
+       orders.append(OrderItem(4,1, '', 1.07, 'CYN', 130.0, 108.0,
               '2017-12-10 00:00:00 UTC', 'LOCKED'))
        return orders;
 
    def get_pending_incoming_buy_orders_by_user(self, username):
        orders = []
-       orders.append(OrderItem(1,1, 1.011, 'CYN', 10.0, 0,
+       orders.append(OrderItem(1,1,'',1.011, 'CYN', 10.0, 0,
               '2017-12-10 00:00:00 UTC', 'OPEN'))
-       orders.append(OrderItem(2,1, 1.05, 'CYN', 5.0, 0,
+       orders.append(OrderItem(2,1,'', 1.05, 'CYN', 5.0, 0,
               '2017-12-10 00:00:00 UTC', 'PAID'))
        return orders;
+   def confirm_payment(self, username, orderid):
+       return 0
