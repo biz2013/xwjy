@@ -4,13 +4,21 @@
 <head>
   <!-- Latest compiled and minified CSS -->
   <!--<link rel="stylesheet" href="/static/css/bootstrap.3.3.7.min.css">-->
-  <link rel='stylesheet' href='/static/css/bootstrap.min.css'>
+  <link rel='stylesheet' href='/static/css/bootstrap.3.3.7.min.css'>
 
   <!-- jQuery library -->
   <script src="/static/scripts/jquery.3.2.1.min.js"></script>
-  <script src="/static/scripts/purchase_ui.js"></script>
   <!-- Latest compiled JavaScript -->
   <script src="/static/scripts/bootstrap.3.3.7.min.js"></script>
+  <script language="JavaScript">
+  function show_total_cost(units, price) {
+    if (!isNaN(units) && !isNaN(price)) {
+      var amount = parseFloat(units * price).toFixed(2));
+      $("#total_cost").text("总额: " + amount;
+      $("#total_amount").val("" + amount);
+    }
+  }
+  </script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>美基金朋友圈交易站</title>
@@ -47,46 +55,54 @@
     <h6>美基金余额：2302.35 状态：锁定</h6>
     <div class="well">
       <div class="row">
-        <!-- Modal content-->
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 id="lockfund-form-label">购买美基金</h4>
-          </div>
-         {% if sellorder %}
-          <form id="buy-modal" tabindex="-1" role="dialog" action="/purchase/createorder2/" method="post">
-            {% csrf_token %}
-            <input type="hidden" name="username" value="{{ username }}" />
-            <input type="hidden" name="unit_price" value="{{ sellorder.unit_price }}" />
-             <div class="modal-body form_group">
-              <div id="div_id_quantity" class="form-group"> <label for="id_quantity" class="control-label">购买数量</label><span class="asteriskField">*</span>
-                <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" onkeyup="show_total_cost(this.value, {{ sellorder.unit_price }})" /> </div>
-              </div>
-              <p>卖方用户名：{{ username }}</p>
-              <p>锁定价格：{{ sellorder.unit_price }} CNY&nbsp;<div id="total_cost"></div>&nbsp;锁定期限：2 分钟</p>
-              <div id="div_id_payment_method" class="form-group"> <label for="id_payment_method" class="control-label">付款方式</label><span class="asteriskField">*</span>
-                <div class="controls "> <select class="select select-input form-control" id="id_payment_method" onchange="javascript: $('#img_payment_qrcode').attr('src',this.value);">
-                    <option>请选择付款方式</option>
-                    {% for payment_method in sellorder.owner_payment_methods %}
-                    <option value="/static/{{ payment_method.qrcode_image }}">{{ payment_method.provider_name }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-              </div>
-              <div id="div_id_payment_qrcode">
-                <img id="img_payment_qrcode" width=320 height=500 src="" />
-              </div>
-              <div class="modal-footer">
-                <button type="submit" class="btn btn-primary" >锁定</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal">撤销</button>
-              </div>
-            </div>
-        </div>
-        </form>
+        <div class="offset2 col-md-6">
+            <h3>购买美基金</h3>
+          <div id="input_purchase">
+            {% if sellorder %}
+             <form id="create_purchase" tabindex="-1" role="dialog" action="/purchase/createorder2/" method="post">
+               {% csrf_token %}
+               <input type="hidden" name="username" value="{{ username }}" />
+               <input type="hidden" name="reference_order_id" value="{{ sellorder.order_id }}"/>
+               <input type="hidden" name="unit_price" value="{{ sellorder.unit_price }}" />
+               <input type="hidden" name="total_maount" value=""/>
+               <input type="hidden" name="payment_account" value="18600701961" />
+               <div id="div_id_quantity" class="form-group"> <label for="id_quantity" class="control-label">购买数量</label><span class="asteriskField">*</span>
+                 <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" onkeyup="show_total_cost(this.value, {{ sellorder.unit_price }})" /> </div>
+               </div>
+               <div class="modal-body form_group">
+                 <table class="table">
+                   <tr>
+                     <th>卖方用户名</th>
+                     <th>锁定价格</th>
+                     <th>总额</th>
+                   </tr>
+                   <tr>
+                     <td>{{ username }}</td>
+                     <td>{{ sellorder.unit_price }}&nbsp;{{ sellorder.unit_price_currency }}</td>
+                     <td><div id="total_cost"></div></td>
+                   </tr>
+                 </table>
+               </div>
+                 <div id="div_id_payment_method" class="form-group"> <label for="id_payment_method" class="control-label">付款方式</label><span class="asteriskField">*</span>
+                   <!--<div class="controls "> <select class="select select-input form-control" id="id_payment_method" onchange="javascript: $('#img_payment_qrcode').attr('src',this.value);">-->
+                   <div class="controls "> <select class="select select-input form-control" id="id_payment_method" name="payment_provider">
+                       <option>请选择付款方式</option>
+                       {% for payment_method in sowner_payment_methods %}
+                       <option value="{{ payment_method.code}}">{{ payment_method.provider_name }}</option>
+                       {% endfor %}
+                     </select>
+                   </div>
+                 </div>
+                 <div class="form-group">
+                   <button type="submit" class="btn btn-primary" >锁定</button>
+                   <button type="button" class="btn btn-default" onclick="goback()">撤销</button>
+                 </div>
+           </form>
         {% endif %}
+          </div>
+        </div>
       </div>
     </div>
-
   </div>
   <footer class="container">
     <div class="row" style="text-align: center;">
