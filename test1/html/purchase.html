@@ -3,12 +3,10 @@
 
 <head>
   <!-- Latest compiled and minified CSS -->
-  <!--<link rel="stylesheet" href="/static/css/bootstrap.3.3.7.min.css">-->
-  <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>
+  <link rel="stylesheet" href="/static/css/bootstrap.3.3.7.min.css">
 
   <!-- jQuery library -->
   <script src="/static/scripts/jquery.3.2.1.min.js"></script>
-  <script src="/static/scripts/purchase_ui.js"></script>
   <!-- Latest compiled JavaScript -->
   <script src="/static/scripts/bootstrap.3.3.7.min.js"></script>
   <meta charset="utf-8">
@@ -46,11 +44,26 @@
   <div class="container">
     <h6>美基金余额：2302.35 状态：锁定</h6>
     <div class="well">
+      <script language="JavaScript">
+      function create_purchase_order(sell_order_id, sell_order_owner_userid,
+          owner_login,
+         locked_in_unit_price, available_units_for_purchase) {
+           alert("unit price is " + locked_in_unit_price);
+          $("#reference_order_id").val(sell_order_id);
+          $("#owner_user_id").val(sell_order_owner_userid);
+          $("#owner_login").val(owner_login);
+          $("#locked_in_unit_price").val(locked_in_unit_price);
+          $("#available_units_for_purchase").val(available_units_for_purchase);
+
+          $("#form_create_purchase_order").submit();
+      }
+      </script>
       <form id="form_create_purchase_order" action="/purchase/createorder1/" method="post">
         {% csrf_token %}
         <input type="hidden" name="username" value="{{ username }}"/>
         <input type="hidden" id="reference_order_id" name="reference_order_id" value=""/>
         <input type="hidden" id="owner_user_id" name="owner_user_id" value=""/>
+        <input type="hidden" id="owner_login" name="owner_login" value=""/>
         <input type="hidden" id="locked_in_unit_price" name="locked_in_unit_price" value=""/>
         <input type="hidden" id="available_units_for_purchase" name="available_units_for_purchase" value=""/>
       </form>
@@ -58,19 +71,19 @@
         <h3>卖单状况</h3>
         <table class="table table-striped table-condensed">
           <tr>
-            <th>原始卖单</th>
+            <th>原始出售总数</th>
             <th>余额</th>
             <th></th>
           </tr>
           {% if sellorders %}
              {% for order in sellorders %}
           <tr>
-            <td>出售{{ order.units }}美基金单价{{ order.unit_price }}CNY，总额{{ order.units|mul:order.unit_price }}CNY</td>
+            <td>{{ order.total_units }}美基金单价{{ order.unit_price }}CNY，总额{{ order.total_units|mul:order.unit_price }}CNY</td>
             <td>还有{{ order.available_units }}可以购买</td>
             {% if order.status == 'LOCKED' %}
             <td>被锁定</td>
             {% else %}
-            <td><button type="submit" class="btn btn-primary" onclick="create_purchase_order('{{ order.id }}', '{{ order.owner_user_id }}', '{{ order.unit_price }}', '{{ order.available_units }}')">购买</button></td>
+            <td><button type="button" class="btn btn-primary" onclick="create_purchase_order('{{ order.order_id }}', '{{ order.owner_user_id }}', '{{ order.owner_login }}','{{ order.unit_price }}', '{{ order.available_units }}')">购买</button></td>
             {% endif %}
           </tr>
              {% endfor %}

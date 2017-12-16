@@ -21,7 +21,16 @@ from . import app
 
 urlpatterns = [
     url(r'^$', app.home),
-    url(r'^mysellorder/$', app.mysellorder),
-    url(r'^purchase/$', app.show_sell_orders_for_purchase),
+    url(r'^registration/$', app.registration),
+    url(r'^accounts/login/$', app.login, name='login'),
+    url(r'^accounts/accountinfo/$', app.accountinfo, name='accountinfo'),
+    url(r'^accounts/external_address/$', app.external_address),
+    url(r'^accounts/paymentmethods/$', app.payment_method),
+    url(r'^axfund/transfer/$', app.transfer),
+    url(r'^mysellorder/$', app.mysellorder, name="sellorder"),
+    url(r'^mysellorder/confirm_payment/$', app.confirm_payment),
+    url(r'^mysellorder/heepay/confirm_payment/$', app.heepay_confirm_payment),
+    url(r'^purchase/$', app.show_sell_orders_for_purchase, name='purchase'),
     url(r'^purchase/createorder1/$', app.show_purchase_input),
+    url(r'^purchase/createorder2/$', app.create_purchase_order),
 ]
