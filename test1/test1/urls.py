@@ -29,7 +29,8 @@ urlpatterns = [
     url(r'^axfund/transfer/$', app.transfer),
     url(r'^mysellorder/$', app.mysellorder, name="sellorder"),
     url(r'^mysellorder/confirm_payment/$', app.confirm_payment),
-    url(r'^purchase/$', app.show_sell_orders_for_purchase),
+    url(r'^mysellorder/heepay/confirm_payment/$', app.heepay_confirm_payment),
+    url(r'^purchase/$', app.show_sell_orders_for_purchase, name='purchase'),
     url(r'^purchase/createorder1/$', app.show_purchase_input),
-    url(r'^purchase/createorder2/$', app.show_payment_qrcode),
+    url(r'^purchase/createorder2/$', app.create_purchase_order),
 ]
