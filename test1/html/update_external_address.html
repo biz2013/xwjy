@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  <!-- Latest compiled and minified CSS -->
+  <!--<link rel="stylesheet" href="/static/css/bootstrap.3.3.7.min.css">-->
+  <link rel='stylesheet' href='/static/css/bootstrap.3.3.7.min.css'>
+
+  <!-- jQuery library -->
+  <script src="/static/scripts/jquery.3.2.1.min.js"></script>
+
+  <!-- Latest compiled JavaScript -->
+  <script src="/static/scripts/bootstrap.3.3.7.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>美基金朋友圈交易站</title>
+</head>
+
+<body>
+  <div class="container">
+    <nav class="navbar navbar-inverse">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+          <a class="navbar-brand" href="#">交易站商标图案</a>
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+          <ul class="nav navbar-nav">
+            <li><a href="#">卖美基金</a></li>
+            <li><a href="#">买美基金</a></li>
+            <li><a href="#">公布交易</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="/register.html"><span class="glyphicon glyphicon-user"></span> 免费注册</a></li>
+            <li><a href="#"><span class="glyphicon glyphicon-log-in"></span> 登录</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </div>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6 col-md-offset-3">
+        <div id="update-external_address-body">
+          <h2>添加／更改提币地址</h2>
+          <form method="post" class="paper-form" action="/accounts/external_address/" method="post">
+            {% csrf_token %}
+            <input type="hidden" id="txt_id_userid" name="userId" value="{{ user_external_address.user.id }}"/>
+            {% if message and message|length > 0 %}
+               {% if message_type == 'success' %}
+            <p class="text-success">{{ message }}</p>
+               {% else %}
+            <p class="text-danger">{{ message }}</p>
+               {% endif %}
+            {% endif %}
+            <div id="div_id_address" class="form-group"> <label for="lbl_id_address" class="control-label  requiredField">
+				提币地址<span class="asteriskField">*</span> </label>
+              <div class="controls "> <input class="textinput textInput form-control" id="txt_id_address" name="address" type="text" value="{{ user_external_address.address }}"/> </div>
+            </div>
+            <div id="div_id_alias" class="form-group"> <label for="lbl_id_alias" class="control-label requiredField">
+			    备注名<span class="asteriskField">*</span> </label>
+              <div class="controls "> <input class="textinput textInput form-control" id="txt_id_alias" name="alias" type="text" value="{{ user_external_address.alias}}"/> </div>
+            </div>
+            <p>
+              <button class="btn btn-success pull-left" id="btn_id_update" type="submit">更新</button>&nbsp;<button class="btn btn-default pull-right" id="btn_id_cancel" type="button">撤销</button>
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer class="container">
+    <div class="row" style="text-align: center;">
+      美基金团队版权所有2017&copy
+    </div>
+  </footer>
+</body>
+
+</html>
