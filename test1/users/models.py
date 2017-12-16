@@ -1,5 +1,10 @@
 from django.db import models
 
+class GlobalCounter(models.Model):
+    counter = models.IntegerField(default=0)
+    lastupdated_at = models.DateTimeField(auto_now=True, null=True)
+    lastupdated_by = models.CharField(max_length=32)
+
 class UserLogin(models.Model):
    username = models.CharField(max_length=32, primary_key=True)
    passwd_hash = models.CharField(max_length=64)
@@ -65,6 +70,8 @@ class UserWallet(models.Model):
    user = models.ForeignKey('User', on_delete=models.CASCADE)
    wallet = models.ForeignKey('Wallet', on_delete=models.CASCADE)
    wallet_addr = models.CharField(max_length=128)
+   balance = models.FloatField(default=0.0)
+   available_balance = models.FloatField(default=0.0)
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey('UserLogin', related_name='UserWallet_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
@@ -110,10 +117,11 @@ class Order(models.Model):
    """
    ORDER_STATUS = (('OPEN','Open'),('CANCELLED','Cancelled'), ('FILLED','Filled'), ('PARTIALFILLED','PartialFilled'),('LOCKED','Locked'))
    CURRENCY = (('CYN', 'Renminbi'), ('USD', 'US Dollar'))
-   user = models.ForeignKey('User', on_delete=models.CASCADE)
 
+   order_id = models.CharField(max_length=64, primary_key=True)
+   user = models.ForeignKey('User', on_delete=models.CASCADE)
    reference_order = models.ForeignKey('self', null=True)
-   cryptocurrencyId = models.ForeignKey('Cryptocurrency')
+   cryptocurrency = models.ForeignKey('Cryptocurrency')
    reference_wallet = models.ForeignKey('Wallet', null= True)
    reference_wallet_trxId = models.CharField(max_length=128, null = True)
    order_type = models.CharField(max_length=8, choices=ORDER_TYPE)
@@ -127,16 +135,20 @@ class Order(models.Model):
    """
    lock_count = models.IntegerField(default=0)
    """
-   how many units left to be taken
+   how many units left to be taken, for open purchase only
    """
-   units_balance = models.FloatField()
+   units_balance = models.FloatField(default=0.0)
    """
    how many units is avaiable for buy, buyer may lock some units but
    they have not paid, so those units are not available for buy. But
    they are not counte as sold or bought since the transaction is not done
    so units_balance may not reflect them
    """
-   units_available_to_trade = models.FloatField()
+   units_available_to_trade = models.FloatField(default=0.0)
+
+   # the total amount of original units x unit price, used by
+   # purchase order.
+   total_amount = models.FloatField(default = 0.0)
    status = models.CharField(max_length=32, choices=ORDER_STATUS)
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey('UserLogin', related_name='Order_created_by')

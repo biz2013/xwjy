@@ -17,16 +17,6 @@
         "lastupdated_at": "2017-12-14 13:12:00"
       }
    },
-   { "model": "users.cryptocurrency",
-     "pk": "taozhang",
-     "fields": {
-       "name": "美基金",
-       "created_at": "2017-12-15 13:45:00",
-       "lastupdated_at": "2017-12-15 13:45:00",
-       "created_by": "sysop",
-       "lastupdated_by": "sysop"
-     }
-   },
    { "model": "users.userlogin",
      "pk": "taozhang",
      "fields": {
@@ -115,28 +105,13 @@
      "pk": 1,
      "fields" : {
        "user": 1,
-       "provider": "heepay",
-       "account_at_provider": "15811302702",
+       "provider": "weixin",
+       "account_at_provider": "28348572934",
        "provider_qrcode_image": "",
-       "created_at": "2017-12-15 13:17:00",
-       "lastupdated_at": "2017-12-15 13:17:00",
-       "created_by": "sysop",
-       "lastupdated_by" : "sysop"
-     }
-   },
-   {
-     "model": "users.userpaymentmethod",
-     "pk": 2,
-     "fields" : {
-       "user": 2,
-       "provider": "heepay",
-       "account_at_provider": "18600701961",
-       "provider_qrcode_image": "",
-       "created_at": "2017-12-15 13:17:00",
-       "lastupdated_at": "2017-12-15 13:17:00",
+       "created_at": "2017-12-01 00:00:00",
+       "lastupdated_at": "2017-12-01 00:00:00",
        "created_by": "sysop",
        "lastupdated_by" : "sysop"
      }
    }
-
 ]

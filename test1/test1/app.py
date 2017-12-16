@@ -9,6 +9,7 @@ from django.shortcuts import render, redirect
 from controller.test_model_manager import ModelManager
 from users.models import *
 from views.models.orderitem import OrderItem
+from controller.global_utils import *
 
 def home(request):
     """Show the home page."""
@@ -216,6 +217,51 @@ def mysellorder(request):
             'buyorders':buyorders,'username': username,
             'previous_call_status' : status})
 
+def create_purchase_order(request):
+    LOGGER.info('create_purchase_order()...')
+    username = request.POST['username']
+    reference_order_id = request.POST['reference_order_id']
+    owner_user_id = request.POST['owner_user_id']
+    owner_login = request.POST['onwer_login']
+    quantity = request.POST['quantity']
+    unit_price = request.POST['unit_price']
+    payment_provider = request.POST['payment_provider']
+    payment_account = request.POST['payment_account']
+    total_amount = float(request.POST['total_amount'])
+    manager = ModelManager()
+    order = manager.create_purchase_order(username, reference_order_id,
+           quantity, unit_price, 'CNY', total_amount, 'AXFund')
+
+    returnstatus = None
+    if (payment_provider == 'heepay'):
+        heepay = HeePayManager()
+        json_payload = heepay.create_heepay_payload('wallet.pay.apply',
+             order.order_id,
+             'hyq171018100000000000028EFC2F9B0',
+             'F761F624FC1F4D33B95CEDC1',
+             '127.0.0.1', order.total_amount,
+             payment_account,
+             '15811302702',
+             None, # for notify_url
+             None, # for return url
+             )
+        status, reason, message = heepay.send_buy_apply_request(json_payload)
+        returnstatus = ReturnStatus(status, reason, message)
+        sellorder = OrderItem()
+        sellorder.order_id = reference_order_id
+        order.units = quantity
+        order.unit_price = unit_price
+        order.unit_price_currency = 'CNY'
+        order.owner_user_id = owner_user_id
+        owner_payment_methods = manager.get_user_payment_methods(owner_user_id)
+
+    return render(request, 'html/input_purchase.html',
+           {'username': username,
+            'sellorder': sellorder,
+            'owner_payment_methods':owner_payment_methods,
+            'returnstatus': returnstatus }
+           )
+
 def confirm_payment(request):
     username = request.session['username']
     orderid = request.POST['order_id']
@@ -223,50 +269,5 @@ def confirm_payment(request):
     manager.confirm_payment(username, orderid)
     return redirect('accountinfo')
 
-def show_payment_qrcode(request):
-    username = request.POST['username']
-    reference_order_id = request.POST['reference_order_id']
-    quantity = request.POST['quantity']
-    unit_price = request.POST['unit_price']
-    payment_provider = request.POST['payment_provider']
-    payment_account = request.POST['payment_account']
-    total_amount = float(request.POST['total_amount'])
-    manager = ModelManager()
-    order = manager.create_purchase_order()
-    generated_file = generate_qrcode(username, reference_order_id,
-         total_amount, payment_account)
-    return render(request, 'html/payment_qrcode.html',
-         { 'buyorder':order, 'username':username, 'total_amount':total_amount,
-            'qrcode_image':generated_file})
-
-
-def create_heepay_payload(self, wallet_action,order_id_str, app_id, app_key, client_ip, amount, seller_account, buyer_account, notify_url, return_url):
-    jsonobj = {}
-    jsonobj['method'] = wallet_action
-    jsonobj['version'] = '1.0'
-    jsonobj['app_id']= app_id
-    jsonobj['charset'] = 'utf-8'
-    jsonobj['sign_type'] = 'MD5',
-    epoch_now = time.time()
-    frmt_date = dt.datetime.utcfromtimestamp(epoch_now).strftime("%Y/%m/%d%H:%M%s")
-    jsonobj['timestamp'] = frmt_date,
-    biz_content = '{\"out_trade_no\":\"%s\",' % (order_id_str)
-    biz_content = biz_content + ('\"subject\":\"购买付款%f\",' % (amount))
-    biz_content = biz_content + ('\"total_fee\":\"1\",')
-    biz_content = biz_content + ('\"api_account_mode\":\"Account\",')
-    biz_content = biz_content + ('\"to_account\":\"%s\",' % (seller_account))
-    biz_content = biz_content + ('\"client_ip\":\"%s\",' % (client_ip))
-    biz_content = biz_content + '\"notify_url\":\"https://demowallet.heepay.com/Test/Api/RecNotifyUrl.aspx\",'
-    biz_content = biz_content + '\"return_url\":\"https://demowallet.heepay.com/Test/Api/RecReturnUrl.aspx\"}",'
-    jsonobj['biz_content'] = biz_content
-    if notify_url is not None and len(notify_url) > 0:
-        jsonobj['notify_url'] = notify_url
-    else:
-        jsonobj['return_url'] = return_url
-
-    m = hashlib.md5()
-    sign_content = 'app_id=%s&biz_content=%s&charset=UTF-8&method=%s&sign_type=MD5&timestamp=%s&version=1.0&key=%s' % (app_id, biz_content, wallet_action, frmt_dat, app_key)
-    m.update(signed_content)
-    signed_str = m.hexidigest()
-    jsonobj['sign'] =  signed_str
-    return json.dump(jsonobj)
+def heepay_confirm_payment(request):
+    return redirect('purchase')

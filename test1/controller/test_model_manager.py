@@ -18,7 +18,7 @@ class ModelManager(object):
        order.unit_price_currency = 'CNY'
        order.order_type ='BUY'
        return order
-   
+
    def query_active_sell_orders(self):
        orders= []
        orders = []
@@ -139,3 +139,24 @@ class ModelManager(object):
        return orders;
    def confirm_payment(self, username, orderid):
        return 0
+
+   def create_purchase_order(self, username, reference_order_id,
+          quantity, unit_price, unit_price_currency, total_amount, cryptocurrency):
+       userlogin = UserLogin()
+       userlogin.username = username
+       order = Order()
+       order.order_type ='BUY'
+       order.user = User()
+       order.user.login= userlogin
+       order.referenence_order = Order()
+       order.reference_order.order_id = reference_order_id
+       epoch_now = time.time()
+       frmt_date = dt.datetime.utcfromtimestamp(epoch_now).strftime("%Y/%m/%d%H:%M%s.%f")
+       order.order_id = frmt_date
+       order.cryptocurrency = Cryptocurrency()
+       order.cryptocurrency.code = cryptocurrency
+       order.units = id_quantity
+       order.unit_price = unit_price
+       order.unit_price_currency = unit_price_currency
+       order.total_amount = total_amount
+       return order
