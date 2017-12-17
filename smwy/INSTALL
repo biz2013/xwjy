@@ -33,7 +33,8 @@ Then the wallet program should work, please don;t use pip install json-rpc or it
 ------
 Install mysql
 sudo apt-get install mysql-server
-pip django
+pip django==1.11.8
+pip install mathfilters
 pip install mysql-python
 pip install Pillow //another thing let django migration works
 pip install django-mathfilters
