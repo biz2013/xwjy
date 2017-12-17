@@ -1,8 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import time
+import datetime as dt
+import pytz
+
 from users.models import *
 from views.models.orderitem import OrderItem
 from views.models.useraccountinfo import UserAccountInfo
+from controller.heepaymanager import HeePayManager
 
 class ModelManager(object):
    def create_purchase_order(self, username, reference_order_id,
@@ -30,7 +35,7 @@ class ModelManager(object):
 
    def get_user_payment_methods(self, userId):
        payment_methods = []
-       if (userId == '1'):
+       if (userId == 1):
            payment_method = UserPaymentMethod()
            user = User()
            user.id = 1
@@ -148,14 +153,13 @@ class ModelManager(object):
        order.order_type ='BUY'
        order.user = User()
        order.user.login= userlogin
-       order.referenence_order = Order()
+       order.reference_order = Order()
        order.reference_order.order_id = reference_order_id
-       epoch_now = time.time()
-       frmt_date = dt.datetime.utcfromtimestamp(epoch_now).strftime("%Y/%m/%d%H:%M%s.%f")
+       frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
        order.order_id = frmt_date
        order.cryptocurrency = Cryptocurrency()
        order.cryptocurrency.code = cryptocurrency
-       order.units = id_quantity
+       order.units = quantity
        order.unit_price = unit_price
        order.unit_price_currency = unit_price_currency
        order.total_amount = total_amount

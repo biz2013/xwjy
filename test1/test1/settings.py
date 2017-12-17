@@ -110,6 +110,32 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s %(module)s %(name)s %(process)d %(thread)d %(levelname)s %(message)s'
+        }
+    },
+    'handlers': {
+        'rotatingfile': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': './debug1.log',
+            'maxBytes': 40000000,
+            'backupCount': 5,
+            'formatter' : 'verbose'
+        },
+    },
+    'loggers': {
+        'app': {
+            'handlers': ['rotatingfile'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
