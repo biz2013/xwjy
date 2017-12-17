@@ -6,4 +6,5 @@ class XWJYAppConfig(AppConfig):
     def ready(self):
         print "-------------start the site ---------------"
         LOGGER = setup_logger('xwjy.log', 'xwjy')
+        LOGGER.debug("setup the logger")
         pass
