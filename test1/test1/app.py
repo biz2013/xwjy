@@ -2,14 +2,18 @@
 # -*- coding: utf-8 -*-
 from django.db.models import Q
 from django.shortcuts import render, redirect
-
-#from model_manager import ModelManager
+from controller.heepaymanager import HeePayManager
+from controller.global_utils import *
 
 # this is for test UI. A fake one
 from controller.test_model_manager import ModelManager
 from users.models import *
 from views.models.orderitem import OrderItem
-from controller.global_utils import *
+from views.models.returnstatus import ReturnStatus
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 def home(request):
     """Show the home page."""
@@ -134,7 +138,9 @@ def show_purchase_input(request):
     owner_login = request.POST["owner_login"]
     available_units = request.POST["available_units_for_purchase"]
     print "receive order id %s" % (order_id)
-    owner_payment_methods = manager.get_user_payment_methods(owner_user_id)
+    print "receive owner_user_id is %s" % (owner_user_id)
+    print "available units for purchase is %s" % (available_units)
+    owner_payment_methods = manager.get_user_payment_methods(int(owner_user_id))
     for method in owner_payment_methods:
         print ("provider %s has image %s" % (method.provider.name, method.provider_qrcode_image))
     sellorder = OrderItem(
@@ -143,8 +149,8 @@ def show_purchase_input(request):
        owner_login,
        request.POST["locked_in_unit_price"],
        'CYN',
-       available_units,
-       0,'','')
+       0, available_units,
+       '','')
     print 'sellorder id is here %s' % (sellorder.order_id)
     login = request.POST['username']
     return render(request, 'html/input_purchase.html',
@@ -218,12 +224,12 @@ def mysellorder(request):
             'previous_call_status' : status})
 
 def create_purchase_order(request):
-    LOGGER.info('create_purchase_order()...')
+    logger.debug('create_purchase_order()...')
     username = request.POST['username']
     reference_order_id = request.POST['reference_order_id']
     owner_user_id = request.POST['owner_user_id']
-    owner_login = request.POST['onwer_login']
     quantity = request.POST['quantity']
+    available_units = request.POST['available_units']
     unit_price = request.POST['unit_price']
     payment_provider = request.POST['payment_provider']
     payment_account = request.POST['payment_account']
@@ -232,28 +238,34 @@ def create_purchase_order(request):
     order = manager.create_purchase_order(username, reference_order_id,
            quantity, unit_price, 'CNY', total_amount, 'AXFund')
 
+    print "payment acount is %s" % payment_account
     returnstatus = None
     if (payment_provider == 'heepay'):
         heepay = HeePayManager()
         json_payload = heepay.create_heepay_payload('wallet.pay.apply',
              order.order_id,
-             'hyq171018100000000000028EFC2F9B0',
-             'F761F624FC1F4D33B95CEDC1',
+             'hyq17121610000800000911220E16AB0',
+             '4AE4583FD4D240559F80ED39',
              '127.0.0.1', order.total_amount,
              payment_account,
-             '15811302702',
-             None, # for notify_url
-             None, # for return url
+             '13641388306',
+             'http://localhost:8000/mysellorder/heepay/confirm_payment/', # for notify_url
+             'http://localhost:8000/purchase/createorder2/heepay/confirmed/' # for return url
              )
         status, reason, message = heepay.send_buy_apply_request(json_payload)
+        print "call heepay response: status %s reason %s message %s" % (status, reason, message)
         returnstatus = ReturnStatus(status, reason, message)
-        sellorder = OrderItem()
-        sellorder.order_id = reference_order_id
-        order.units = quantity
-        order.unit_price = unit_price
-        order.unit_price_currency = 'CNY'
-        order.owner_user_id = owner_user_id
-        owner_payment_methods = manager.get_user_payment_methods(owner_user_id)
+    sellorder = OrderItem(
+         reference_order_id,
+         owner_user_id,
+         '', #owner_login
+         float(unit_price),
+         'CNY',
+         quantity,
+         available_units,
+         dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime('%Y-%m-%d %H:%M:%S'),
+         'ACTIVE')
+    owner_payment_methods = manager.get_user_payment_methods(owner_user_id)
 
     return render(request, 'html/input_purchase.html',
            {'username': username,
@@ -270,4 +282,9 @@ def confirm_payment(request):
     return redirect('accountinfo')
 
 def heepay_confirm_payment(request):
+    if request.method == 'POST':
+       json_data = json.loads(request.body) # request.raw_post_data w/ Django < 1.4
+       print "we recevied from heepay %s" % json.dumps(json_data)
+    else:
+       print "surprise we get GET notification from heepay"
     return redirect('purchase')

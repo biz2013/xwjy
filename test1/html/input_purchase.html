@@ -11,11 +11,35 @@
   <!-- Latest compiled JavaScript -->
   <script src="/static/scripts/bootstrap.3.3.7.min.js"></script>
   <script language="JavaScript">
+  function submit_order() {
+    units = $("#id_quantity").val();
+    if (isNaN(units)) {
+        $("#div_id_error").text("您输入的购买数量不正确");
+        return;
+    }
+
+    units_val = parseFloat(units);
+    if (units_val < 0.001) {
+      $("#div_id_error").text("请输入购买数量");
+      return;
+    }
+
+    available_units = parseFloat($("#id_available_units").val())
+    if (available_units < units_val) {
+      $("#div_id_error").text("您的购买数量不可以超过" + available_units.toFixed(2));
+      return;
+    }
+
+    unit_price = parseFloat($("#id_unit_price").val());
+    $("#id_total_amount").val((units_val * unit_price).toFixed(2));
+
+    $("#create_purchase").submit();
+  }
   function show_total_cost(units, price) {
     if (!isNaN(units) && !isNaN(price)) {
       var amount = parseFloat(units * price).toFixed(2);
       $("#total_cost").text("总额: " + amount);
-      $("#total_amount").val("" + amount);
+      $("#id_total_amount").val(amount);
     }
   }
 
@@ -63,20 +87,20 @@
             <h3>购买美基金</h3>
           <div id="input_purchase">
             {% if returnstatus and returnstatus.reason != 'OK' %}
-               <div id="div_returnstatus" class="text-danger">{{ returnstatus.reason }}. {{ returnstatus.message }}</div>
+               <div id="div_id_returnstatus" class="text-danger">{{ returnstatus.reason }}. {{ returnstatus.message }}</div>
             {% endif %}
+               <div id="div_id_error" class="text-danger" ></div>
             {% if sellorder %}
              <form id="create_purchase" tabindex="-1" role="dialog" action="/purchase/createorder2/" method="post">
                {% csrf_token %}
                <input type="hidden" name="username" value="{{ username }}" />
+               <input type="hidden" id="id_available_units" name="available_units" value = "{{ sellorder.available_units }}"/>
+               <input type="hidden" name="owner_user_id" value = "{{ sellorder.owner_user_id }}"/>
                <input type="hidden" name="reference_order_id" value="{{ sellorder.order_id }}"/>
-               <input type="hidden" name="unit_price" value="{{ sellorder.unit_price }}" />
-               <input type="hidden" name="total_maount" value=""/>
+               <input type="hidden" id="id_unit_price" name="unit_price" value="{{ sellorder.unit_price }}" />
+               <input type="hidden" id="id_total_amount" name="total_amount" value="0.0"/>
                <input type="hidden" name="payment_account" value="18600701961" />
-               <div id="div_id_quantity" class="form-group"> <label for="id_quantity" class="control-label">购买数量</label><span class="asteriskField">*</span>
-                 <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" onkeyup="show_total_cost(this.value, {{ sellorder.unit_price }})" /> </div>
-               </div>
-               <div class="modal-body form_group">
+               <div class="form_group">
                  <table class="table">
                    <tr>
                      <th>卖方用户名</th>
@@ -90,18 +114,21 @@
                    </tr>
                  </table>
                </div>
+               <div id="div_id_quantity" class="form-group"> <label for="id_quantity" class="control-label">购买数量</label><span class="asteriskField">*</span>
+                 <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" onkeyup="show_total_cost(this.value, {{ sellorder.unit_price }})" /> </div>
+               </div>
                  <div id="div_id_payment_method" class="form-group"> <label for="id_payment_method" class="control-label">付款方式</label><span class="asteriskField">*</span>
                    <!--<div class="controls "> <select class="select select-input form-control" id="id_payment_method" onchange="javascript: $('#img_payment_qrcode').attr('src',this.value);">-->
                    <div class="controls "> <select class="select select-input form-control" id="id_payment_method" name="payment_provider">
                        <option>请选择付款方式</option>
-                       {% for payment_method in sowner_payment_methods %}
-                       <option value="{{ payment_method.code}}">{{ payment_method.provider_name }}</option>
+                       {% for payment_method in owner_payment_methods %}
+                       <option value="{{ payment_method.provider.code}}">{{ payment_method.provider.name }}</option>
                        {% endfor %}
                      </select>
                    </div>
                  </div>
                  <div class="form-group">
-                   <button type="submit" class="btn btn-primary" >锁定</button>
+                   <button type="button" class="btn btn-primary" onclick="submit_order()">锁定</button>
                    <button type="button" class="btn btn-default" onclick="goback()">撤销</button>
                  </div>
            </form>
