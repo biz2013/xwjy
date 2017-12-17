@@ -16,68 +16,54 @@ class HeePayManager(object):
          client_ip, amount, seller_account, buyer_account, notify_url,
          return_url):
        jsonobj = {}
-       #jsonobj['method'] = wallet_action
-       jsonobj['method'] = 'wallet.pay.apply'
+       jsonobj['method'] = wallet_action
+       #jsonobj['method'] = 'wallet.pay.apply'
        jsonobj['version'] = '1.0'
-       #jsonobj['app_id']= app_id
-       jsonobj['app_id']= 'hyq17121610000800000911220E16AB0'
+       jsonobj['app_id']= app_id
+       #jsonobj['app_id']= 'hyq17121610000800000911220E16AB0'
        jsonobj['charset'] = 'utf-8'
        jsonobj['sign_type'] = 'MD5'
        epoch_now = time.time()
        frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S")
-       #jsonobj['timestamp'] = frmt_date
-       jsonobj['timestamp']='20171218025432'
-       #biz_content = '{\"out_trade_no\":\"%s\",' % (order_id_str)
-       biz_content = '{\"out_trade_no\":\"20171218025432656\",'
+       jsonobj['timestamp'] = frmt_date
+       #jsonobj['timestamp']='20171218025432'
+       biz_content = '{\"out_trade_no\":\"%s\",' % (order_id_str)
+       #biz_content = '{\"out_trade_no\":\"20171218025432656\",'
        #biz_content = biz_content + ('\"subject\":\"buy%f\",' % (amount))
        biz_content = biz_content + ('\"subject\":\"test1\",')
        biz_content = biz_content + ('\"total_fee\":\"1\",')
        biz_content = biz_content + ('\"api_account_mode\":\"Account\",')
        #biz_content = biz_content + ('\"from_account\":\"{0}\",'.format(buyer_account))
-       #biz_content = biz_content + ('\"to_account\":\"{0}\",'.format(seller_account))
-       biz_content = biz_content + ('\"to_account\":\"18611318942\",')
+       biz_content = biz_content + ('\"to_account\":\"{0}\",'.format(seller_account))
+       #biz_content = biz_content + ('\"to_account\":\"18611318942\",')
        #biz_content = biz_content + ('\"attach\":\"buy%f\",' % (amount))
-       #biz_content = biz_content + ('\"client_ip\":\"%s\",' % (client_ip))
-       biz_content = biz_content + ('\"client_ip\":\"124.204.049.133\"')
-       biz_content = biz_content + ',\"notify_url\":\"https://demowallet.heepay.com/Test/Api/RecNotifyUrl.aspx\"'
-       biz_content = biz_content + ',\"return_url\":\"https://demowallet.heepay.com/Test/Api/RecReturnUrl.aspx\"'
-       """
+       biz_content = biz_content + ('\"client_ip\":\"%s\"' % (client_ip))
+       #biz_content = biz_content + ('\"client_ip\":\"124.204.049.133\"')
+       #biz_content = biz_content + ',\"notify_url\":\"https://demowallet.heepay.com/Test/Api/RecNotifyUrl.aspx\"'
+       #biz_content = biz_content + ',\"return_url\":\"https://demowallet.heepay.com/Test/Api/RecReturnUrl.aspx\"'
        if notify_url is not None and len(notify_url) > 0:
-          biz_content = biz_content + ',\"notify_url\":\"https://demowallet.heepay.com/Test/Api/RecNotifyUrl.aspx\"' % notify_url
+          biz_content = biz_content + ',\"notify_url\":\"%s\"' % notify_url
        if return_url is not None and len(return_url) > 0:
           biz_content = biz_content + ',\"return_url\":\"%s\"' % return_url
-       """
        biz_content = biz_content  + '}'
        jsonobj['biz_content'] = biz_content
-       jsonobj['notify_url'] = 'https://demowallet.heepay.com/Test/Api/RecNotifyUrl.aspx'
-       jsonobj['return_url'] = 'https://demowallet.heepay.com/Test/Api/RecReturnUrl.aspx'
-       """
+       #jsonobj['notify_url'] = 'https://demowallet.heepay.com/Test/Api/RecNotifyUrl.aspx'
+       #jsonobj['return_url'] = 'https://demowallet.heepay.com/Test/Api/RecReturnUrl.aspx'
        if notify_url is not None and len(notify_url) > 0:
           jsonobj['notify_url'] = notify_url
        if return_url is not None and len(return_url) > 0:
           jsonobj['return_url'] = return_url
-       """
 
        m = hashlib.md5()
        content_to_signed = 'app_id=%s&biz_content=%s&charset=utf-8&method=%s&sign_type=MD5&timestamp=%s&version=1.0&key=%s' % (
-                      'hyq17121610000800000911220E16AB0',
+                      app_id,
                       biz_content,
-                      'wallet.pay.apply', '20171218025432',
-                      '4AE4583FD4D240559F80ED39')
-       print 'content_to_sign {0}'.format(content_to_signed)
-       test='app_id=hyq17121610000800000911220E16AB0&biz_content={"out_trade_no":"20171218022404872","subject":"test1","total_fee":"1","api_account_mode":"Account","to_account":"18611318942","client_ip":"067.182.137.099","notify_url":"https://demowallet.heepay.com/Test/Api/RecNotifyUrl.aspx","return_url":"https://demowallet.heepay.com/Test/Api/RecReturnUrl.aspx"}&charset=utf-8&method=wallet.pay.apply&sign_type=MD5&timestamp=20171218022404&version=1.0&key=4AE4583FD4D240559F80ED39'
-       copy='app_id=hyq17121610000800000911220E16AB0&biz_content={"out_trade_no":"20171218022404872","subject":"test1","total_fee":"1","api_account_mode":"Account","to_account":"18611318942","client_ip":"067.182.137.099","notify_url":"https://demowallet.heepay.com/Test/Api/RecNotifyUrl.aspx","notify_url":"https://demowallet.heepay.com/Test/Api/RecReturnUrl.aspx"}&charset=utf-8&method=wallet.pay.apply&sign_type=MD5&timestamp=20171218022404&version=1.0&key=4AE4583FD4D240559F80ED39'
-       if content_to_signed == copy:
-           print 'should generated correctly'
-       if content_to_signed == test:
-           print 'same as the one generated by testapi'
+                      wallet_action, frmt_date,
+                      key)
        m.update(content_to_signed)
        signed_str = m.hexdigest()
        jsonobj['sign'] =  signed_str.upper()
 
-       m1=hashlib.md5()
-       m1.update('123456')
-       print '123456 hash is {0}'.format(m1.hexdigest())
        return json.dumps(jsonobj,ensure_ascii=False)
 
    def send_buy_apply_request(self, payload):
