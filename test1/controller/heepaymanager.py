@@ -17,38 +17,26 @@ class HeePayManager(object):
          return_url):
        jsonobj = {}
        jsonobj['method'] = wallet_action
-       #jsonobj['method'] = 'wallet.pay.apply'
        jsonobj['version'] = '1.0'
        jsonobj['app_id']= app_id
-       #jsonobj['app_id']= 'hyq17121610000800000911220E16AB0'
        jsonobj['charset'] = 'utf-8'
        jsonobj['sign_type'] = 'MD5'
        epoch_now = time.time()
        frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S")
        jsonobj['timestamp'] = frmt_date
-       #jsonobj['timestamp']='20171218025432'
        biz_content = '{\"out_trade_no\":\"%s\",' % (order_id_str)
-       #biz_content = '{\"out_trade_no\":\"20171218025432656\",'
-       #biz_content = biz_content + ('\"subject\":\"buy%f\",' % (amount))
-       biz_content = biz_content + ('\"subject\":\"test1\",')
+       biz_content = biz_content + ('\"subject\":\"购买%f单元",' % (amount))
        biz_content = biz_content + ('\"total_fee\":\"1\",')
        biz_content = biz_content + ('\"api_account_mode\":\"Account\",')
-       #biz_content = biz_content + ('\"from_account\":\"{0}\",'.format(buyer_account))
+       biz_content = biz_content + ('\"from_account\":\"{0}\",'.format(buyer_account))
        biz_content = biz_content + ('\"to_account\":\"{0}\",'.format(seller_account))
-       #biz_content = biz_content + ('\"to_account\":\"18611318942\",')
-       #biz_content = biz_content + ('\"attach\":\"buy%f\",' % (amount))
        biz_content = biz_content + ('\"client_ip\":\"%s\"' % (client_ip))
-       #biz_content = biz_content + ('\"client_ip\":\"124.204.049.133\"')
-       #biz_content = biz_content + ',\"notify_url\":\"https://demowallet.heepay.com/Test/Api/RecNotifyUrl.aspx\"'
-       #biz_content = biz_content + ',\"return_url\":\"https://demowallet.heepay.com/Test/Api/RecReturnUrl.aspx\"'
        if notify_url is not None and len(notify_url) > 0:
           biz_content = biz_content + ',\"notify_url\":\"%s\"' % notify_url
        if return_url is not None and len(return_url) > 0:
           biz_content = biz_content + ',\"return_url\":\"%s\"' % return_url
        biz_content = biz_content  + '}'
        jsonobj['biz_content'] = biz_content
-       #jsonobj['notify_url'] = 'https://demowallet.heepay.com/Test/Api/RecNotifyUrl.aspx'
-       #jsonobj['return_url'] = 'https://demowallet.heepay.com/Test/Api/RecReturnUrl.aspx'
        if notify_url is not None and len(notify_url) > 0:
           jsonobj['notify_url'] = notify_url
        if return_url is not None and len(return_url) > 0:
@@ -59,7 +47,7 @@ class HeePayManager(object):
                       app_id,
                       biz_content,
                       wallet_action, frmt_date,
-                      key)
+                      app_key)
        m.update(content_to_signed)
        signed_str = m.hexdigest()
        jsonobj['sign'] =  signed_str.upper()
