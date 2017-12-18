@@ -239,12 +239,10 @@ def create_purchase_order(request):
            quantity, unit_price, 'CNY', total_amount, 'AXFund')
 
     print "payment acount is %s" % payment_account
-    payment_account = '18611318942'
     returnstatus = None
     if (payment_provider == 'heepay'):
         heepay = HeePayManager()
         json_payload = heepay.create_heepay_payload('wallet.pay.apply',
-             #'20171218094803104',
              order.order_id,
              'hyq17121610000800000911220E16AB0',
              '4AE4583FD4D240559F80ED39',
@@ -256,11 +254,15 @@ def create_purchase_order(request):
              )
         status, reason, message = heepay.send_buy_apply_request(json_payload)
         print "call heepay response: status %s reason %s message %s" % (status, reason, message)
-        json_response = json.loads(message)
-        if json_response['return_code'] == 'SUCCESS':
+        go_to_pay = False
+        if status == 200:
+           json_response = json.loads(message)
+           if json_response['return_code'] == 'SUCCESS':
+              return render(request. 'html/json_response['hy_url']
+        if go_to_pay:
+           returnstatus = ReturnStatus('SUCCEED','','下单成功')
         else:
-
-        returnstatus = ReturnStatus(status, reason, message)
+           returnstatus = ReturnStatus('FAILED', 'FAILED', '下单申请失败')
     sellorder = OrderItem(
          reference_order_id,
          owner_user_id,
