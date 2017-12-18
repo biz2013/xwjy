@@ -117,6 +117,8 @@ cd trunk/python-jsonrpc/
 python setup.py install
 
 
+Then the wallet program should work, please don;t use pip install json-rpc or it will break the linkage
+
 ------------------------
 PHP
 
