@@ -58,7 +58,7 @@ class Cryptocurrency(models.Model):
 
 class Wallet(models.Model):
    name = models.CharField(max_length=32, unique=True, default='first')
-   cryptocurrency_code = models.ForeignKey('Cryptocurrency', on_delete=models.CASCADE)
+   cryptocurrency = models.ForeignKey('Cryptocurrency', on_delete=models.CASCADE)
    config_json = models.TextField()
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey('UserLogin', related_name='Wallet_created_by')
