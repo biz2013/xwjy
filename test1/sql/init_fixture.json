@@ -14,7 +14,7 @@
       "fields" : {
         "counter" : 0,
         "lastupdated_by": "sysop",
-        "lastupdated_at": "2017-12-14 13:12:00"
+        "lastupdated_at": "2017-12-14T13:12:00+08:00"
       }
    },
    { "model": "users.userlogin",
