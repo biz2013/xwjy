@@ -11,7 +11,7 @@ from users.models import *
 from views.models.orderitem import OrderItem
 from views.models.returnstatus import ReturnStatus
 
-import logging
+import logging,json
 
 logger = logging.getLogger(__name__)
 
@@ -239,24 +239,34 @@ def create_purchase_order(request):
            quantity, unit_price, 'CNY', total_amount, 'AXFund')
 
     print "payment acount is %s" % payment_account
-    payment_account = '18611318942'
     returnstatus = None
     if (payment_provider == 'heepay'):
         heepay = HeePayManager()
         json_payload = heepay.create_heepay_payload('wallet.pay.apply',
-             #'20171218094803104',
              order.order_id,
              'hyq17121610000800000911220E16AB0',
              '4AE4583FD4D240559F80ED39',
+             'hyq17121610001000000915254EDBFA0',
+             'E14D52065B604E96B2452397',
              '127.0.0.1', order.total_amount,
              payment_account,
              '13641388306',
+             '15811302702',
              'http://localhost:8000/mysellorder/heepay/confirm_payment/', # for notify_url
              'http://localhost:8000/purchase/createorder2/heepay/confirmed/' # for return url
              )
         status, reason, message = heepay.send_buy_apply_request(json_payload)
         print "call heepay response: status %s reason %s message %s" % (status, reason, message)
-        returnstatus = ReturnStatus(status, reason, message)
+        go_to_pay = False
+        if status == 200:
+           json_response = json.loads(message)
+           if json_response['return_code'] == 'SUCCESS':
+              return render(request, 'html/jumptopayment.html',
+                     { 'payment_redirect_url' : json_response['hy_url'] })
+        if go_to_pay:
+           returnstatus = ReturnStatus('SUCCEED','','下单成功')
+        else:
+           returnstatus = ReturnStatus('FAILED', 'FAILED', '下单申请失败')
     sellorder = OrderItem(
          reference_order_id,
          owner_user_id,
@@ -272,6 +282,7 @@ def create_purchase_order(request):
     return render(request, 'html/input_purchase.html',
            {'username': username,
             'sellorder': sellorder,
+            'buyorder' : order,
             'owner_payment_methods':owner_payment_methods,
             'returnstatus': returnstatus }
            )
