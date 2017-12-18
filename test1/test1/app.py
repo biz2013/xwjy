@@ -11,7 +11,7 @@ from users.models import *
 from views.models.orderitem import OrderItem
 from views.models.returnstatus import ReturnStatus
 
-import logging
+import logging,json
 
 logger = logging.getLogger(__name__)
 
@@ -246,9 +246,12 @@ def create_purchase_order(request):
              order.order_id,
              'hyq17121610000800000911220E16AB0',
              '4AE4583FD4D240559F80ED39',
+             'hyq17121610001000000915254EDBFA0',
+             'E14D52065B604E96B2452397',
              '127.0.0.1', order.total_amount,
              payment_account,
              '13641388306',
+             '15811302702',
              'http://localhost:8000/mysellorder/heepay/confirm_payment/', # for notify_url
              'http://localhost:8000/purchase/createorder2/heepay/confirmed/' # for return url
              )
@@ -258,7 +261,8 @@ def create_purchase_order(request):
         if status == 200:
            json_response = json.loads(message)
            if json_response['return_code'] == 'SUCCESS':
-              return render(request. 'html/json_response['hy_url']
+              return render(request, 'html/jumptopayment.html',
+                     { 'payment_redirect_url' : json_response['hy_url'] })
         if go_to_pay:
            returnstatus = ReturnStatus('SUCCEED','','下单成功')
         else:
