@@ -23,9 +23,10 @@ class HeePayManager(object):
        jsonobj['sign_type'] = 'MD5'
        epoch_now = time.time()
        frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S")
+       #frmt_date = '20171218094803'
        jsonobj['timestamp'] = frmt_date
        biz_content = '{\"out_trade_no\":\"%s\",' % (order_id_str)
-       biz_content = biz_content + ('\"subject\":\"购买%f单元",' % (amount))
+       biz_content = biz_content + ('\"subject\":\"购买%fCNY\",' %(amount))
        biz_content = biz_content + ('\"total_fee\":\"1\",')
        biz_content = biz_content + ('\"api_account_mode\":\"Account\",')
        biz_content = biz_content + ('\"from_account\":\"{0}\",'.format(buyer_account))
@@ -37,10 +38,6 @@ class HeePayManager(object):
           biz_content = biz_content + ',\"return_url\":\"%s\"' % return_url
        biz_content = biz_content  + '}'
        jsonobj['biz_content'] = biz_content
-       if notify_url is not None and len(notify_url) > 0:
-          jsonobj['notify_url'] = notify_url
-       if return_url is not None and len(return_url) > 0:
-          jsonobj['return_url'] = return_url
 
        m = hashlib.md5()
        content_to_signed = 'app_id=%s&biz_content=%s&charset=utf-8&method=%s&sign_type=MD5&timestamp=%s&version=1.0&key=%s' % (
@@ -48,6 +45,7 @@ class HeePayManager(object):
                       biz_content,
                       wallet_action, frmt_date,
                       app_key)
+       print 'content to be signed: {0}'.format(content_to_signed)
        m.update(content_to_signed)
        signed_str = m.hexdigest()
        jsonobj['sign'] =  signed_str.upper()
@@ -59,8 +57,8 @@ class HeePayManager(object):
          """
          https://wallet.heepay.com/Api/v1/PayApply
          """
-         conn = httplib.HTTPSConnection('local.heepay.com')
-         pay_url = '/Wallet/Api/v1/PayApply'
+         conn = httplib.HTTPSConnection('wallet.heepay.com')
+         pay_url = '/Api/v1/PayApply'
          print 'the payload is ' + payload
          headers = {"Content-Type": "application/json",
                    "charset": "UTF-8"}
