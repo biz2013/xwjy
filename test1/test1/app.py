@@ -256,6 +256,10 @@ def create_purchase_order(request):
              )
         status, reason, message = heepay.send_buy_apply_request(json_payload)
         print "call heepay response: status %s reason %s message %s" % (status, reason, message)
+        json_response = json.loads(message)
+        if json_response['return_code'] == 'SUCCESS':
+        else:
+
         returnstatus = ReturnStatus(status, reason, message)
     sellorder = OrderItem(
          reference_order_id,
@@ -272,6 +276,7 @@ def create_purchase_order(request):
     return render(request, 'html/input_purchase.html',
            {'username': username,
             'sellorder': sellorder,
+            'buyorder' : order,
             'owner_payment_methods':owner_payment_methods,
             'returnstatus': returnstatus }
            )
