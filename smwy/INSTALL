@@ -132,4 +132,4 @@ Add "Include /etc/phpmyadmin/apache.conf " into /etc/apache2/apache.conf
 ----------------
  Login to Aliyun
 ----------------
-ssh -i ~/.ssh/tao-web-hk.pem root@47.52.220.225
+ssh -i ~/.ssh/tao-web-hk.pem root@47.52.33.113
