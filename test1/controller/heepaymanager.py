@@ -26,7 +26,7 @@ class HeePayManager(object):
        #frmt_date = '20171218094803'
        jsonobj['timestamp'] = frmt_date
        biz_content = '{\"out_trade_no\":\"%s\",' % (order_id_str)
-       biz_content = biz_content + ('\"subject\":\"测试1分\",')
+       biz_content = biz_content + ('\"subject\":\"购买%fCNY\",' %(amount))
        biz_content = biz_content + ('\"total_fee\":\"1\",')
        biz_content = biz_content + ('\"api_account_mode\":\"Account\",')
        biz_content = biz_content + ('\"from_account\":\"{0}\",'.format(buyer_account))
