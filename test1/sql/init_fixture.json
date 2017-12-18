@@ -30,7 +30,7 @@
    { "model": "users.userlogin",
      "pk": "taozhang",
      "fields": {
-        "passwd_hash": "8e1e3e91a4c2c09402a0fa18090e0d3970ff40cf25cae28e9879baf83675c391",
+        "passwd_hash": "82ce039d20cef07bfad68b66bbb2c55f",
         "created_at": "2017-12-17T21:14:00＋08:00",
         "lastupdated_at": "2017-12-17T21:14:00＋08:00",
         "created_by": "sysop",
@@ -39,13 +39,12 @@
    { "model": "users.userlogin",
      "pk": "yingzhou",
      "fields": {
-        "passwd_hash": "58d8432c2385d6873fc3f84295286b7be3c84dc0e3fbfe4900fdd62fd1794ba5",
+        "passwd_hash": "0b183bf55969e636b3162a308720a8be",
         "created_at": "2017-12-17T21:14:00＋08:00",
         "lastupdated_at": "2017-12-17T21:14:00＋08:00",
         "created_by": "sysop",
         "lastupdated_by": "sysop"}
    },
-
    {
      "model": "users.cryptocurrency",
      "pk": "AXFund",

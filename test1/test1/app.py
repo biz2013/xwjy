@@ -239,10 +239,12 @@ def create_purchase_order(request):
            quantity, unit_price, 'CNY', total_amount, 'AXFund')
 
     print "payment acount is %s" % payment_account
+    payment_account = '18611318942'
     returnstatus = None
     if (payment_provider == 'heepay'):
         heepay = HeePayManager()
         json_payload = heepay.create_heepay_payload('wallet.pay.apply',
+             #'20171218094803104',
              order.order_id,
              'hyq17121610000800000911220E16AB0',
              '4AE4583FD4D240559F80ED39',
