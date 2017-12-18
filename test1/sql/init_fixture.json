@@ -58,7 +58,7 @@
    },
    {
      "model": "users.wallet",
-     "pk": "AXFund",
+     "pk": 1,
      "fields":{
        "name":"AXFundWallet",
        "cryptocurrency": "AXFund",
@@ -165,6 +165,7 @@
      "pk": 1,
      "fields" : {
        "user": 2,
+       "wallet": 1,
        "provider": "heepay",
        "account_at_provider": "18600701961",
        "provider_qrcode_image": "",
