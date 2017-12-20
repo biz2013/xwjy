@@ -18,10 +18,10 @@
         <ul class="nav navbar-nav navbar-right">
         {% if not username %}
           <li><a href="/registration/"><span class="glyphicon glyphicon-user"></span>免费注册</a></li>
-          <li><a href="/logout/"><span class="glyphicon glyphicon-log-in"></span>登录</a></li>
+          <li><a href="/accounts/login/"><span class="glyphicon glyphicon-log-in"></span>登录</a></li>
         {% else %}
         <li><a href="/accounts/accountinfo/"><span class="glyphicon glyphicon-user"></span>我的账户</a></li>
-        <li><a href="/accounts/login/"><span class="glyphicon glyphicon-log-in"></span>退出</a></li>
+        <li><a href="/logout/"><span class="glyphicon glyphicon-log-in"></span>退出</a></li>
         {% endif %}
         </ul>
       </div>

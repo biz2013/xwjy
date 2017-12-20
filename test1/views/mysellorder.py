@@ -20,9 +20,9 @@ logger = logging.getLogger(__name__)
 
 def sell_axfund(request):
     #try:
-       username = request.session[REQ_KEY_USERNAME]
-       if username is None:
+       if REQ_KEY_USERNAME not in request.session:
           return render(request, 'html/login.html', { 'next_action' : '/mysellorder/'})
+       username = request.session[REQ_KEY_USERNAME]
        userId = int(request.session[REQ_KEY_USERID])
        #userId = int(request.session['nothing'])
        manager = ModelManager()
