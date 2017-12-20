@@ -21,6 +21,7 @@ def sell_axfund(request):
        if username is None:
           return render(request, 'html/login.html', { 'next_action' : '/mysellorder/'})
        userId = int(request.session[REQ_KEY_USERID])
+       #userId = int(request.session['nothing'])
        manager = ModelManager()
        status = None
        if request.method == 'POST':
