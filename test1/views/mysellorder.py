@@ -35,7 +35,7 @@ def sell_axfund(request):
           status = ordermanager.create_sell_order(userId, units, unit_price,
                         unit_price_currency, crypto_currency, username)
        accountinfo = manager.get_user_accountInfo(username)
-       sellorders = manager.get_open_sell_orders_by_user(username)
+       sellorders = ordermanager.get_user_open_sell_orders(userId)
        buyorders = manager.get_pending_incoming_buy_orders_by_user(username)
        return render(request, 'html/mysellorder.html', {'sellorders': sellorders,
                 'buyorders':buyorders,'username': username,
