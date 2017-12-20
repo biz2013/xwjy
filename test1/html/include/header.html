@@ -1,0 +1,21 @@
+<head>
+  <!-- Latest compiled and minified CSS -->
+  <link rel='stylesheet' href='/static/css/bootstrap.3.3.7.min.css'>
+
+  <!-- jQuery library -->
+  <script src="/static/scripts/jquery.3.2.1.min.js"></script>
+
+  <!-- Latest compiled JavaScript -->
+  <script src="/static/scripts/bootstrap.3.3.7.min.js"></script>
+
+  <!-- if there are list of scripts that the page want
+       to load, load here -->
+  {% if pagescripts %}
+       {% for script_path in pagescripts %}
+  <script language="JavaScript" src="{{ script_path }}">
+       {% endfor %}
+  {% endif %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>美基金朋友圈交易站</title>
+</head>
