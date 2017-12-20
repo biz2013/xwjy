@@ -20,7 +20,7 @@ from django.conf.urls.static import static
 import logging
 from controller.global_utils import *
 from . import app
-from views import *
+from views import mysellorder, homeview
 
 urlpatterns = [
     url(r'^$', homeview.home, name='home'),
