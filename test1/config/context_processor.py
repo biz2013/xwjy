@@ -1,4 +1,4 @@
-from users.sitesettings import SiteSettings
+from users.models import SiteSettings
 
 def settings(request):
     return {'settings': SiteSettings.load()}

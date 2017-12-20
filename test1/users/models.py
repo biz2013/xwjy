@@ -1,4 +1,34 @@
+from django.core.cache import cache
 from django.db import models
+
+class SingletonModel(models.Model):
+
+    class Meta:
+        abstract = True
+
+    def set_cache(self):
+        cache.set(self.__class__.__name__, self)
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super(SingletonModel, self).save(*args, **kwargs)
+        self.set_cache()
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    @classmethod
+    def load(cls):
+        if cache.get(cls.__name__) is None:
+            obj, created = cls.objects.get_or_create(pk=1)
+            if not created:
+                obj.set_cache()
+        return cache.get(cls.__name__)
+
+class SiteSettings(SingletonModel):
+    support = models.EmailField(default='support@example.com')
+    heepay_notify_url_host = models.CharField(max_length=128,default='localhost')
+    heepapy_notify_url_port = models.IntegerField(default=8000)
 
 class GlobalCounter(models.Model):
     counter = models.IntegerField(default=0)
@@ -67,7 +97,7 @@ class Wallet(models.Model):
 
 
 class UserWallet(models.Model):
-   user = models.ForeignKey('User', on_delete=models.CASCADE)
+   user = models.ForeignKey('User', on_delete=models.CASCADE, null=True)
    wallet = models.ForeignKey('Wallet', on_delete=models.CASCADE)
    wallet_addr = models.CharField(max_length=128)
    balance = models.FloatField(default=0.0)

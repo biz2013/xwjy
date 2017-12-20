@@ -20,6 +20,7 @@ from django.conf.urls.static import static
 import logging
 from controller.global_utils import *
 from . import app
+from views import mysellorder
 
 urlpatterns = [
     url(r'^$', app.home),
@@ -29,7 +30,7 @@ urlpatterns = [
     url(r'^accounts/external_address/$', app.external_address),
     url(r'^accounts/paymentmethods/$', app.payment_method),
     url(r'^axfund/transfer/$', app.transfer),
-    url(r'^mysellorder/$', app.mysellorder, name="sellorder"),
+    url(r'^mysellorder/$', mysellorder.sell_axfund, name="sellorder"),
     url(r'^mysellorder/confirm_payment/$', app.confirm_payment),
     url(r'^mysellorder/heepay/confirm_payment/$', app.heepay_confirm_payment),
     url(r'^purchase/$', app.show_sell_orders_for_purchase, name='purchase'),
