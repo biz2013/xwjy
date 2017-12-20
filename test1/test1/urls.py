@@ -20,10 +20,10 @@ from django.conf.urls.static import static
 import logging
 from controller.global_utils import *
 from . import app
-from views import mysellorder
+from views import *
 
 urlpatterns = [
-    url(r'^$', app.home),
+    url(r'^$', homeview.home, name='home'),
     url(r'^registration/$', app.registration),
     url(r'^accounts/login/$', app.login, name='login'),
     url(r'^accounts/accountinfo/$', app.accountinfo, name='accountinfo'),
