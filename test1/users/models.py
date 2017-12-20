@@ -97,7 +97,7 @@ class Wallet(models.Model):
 
 
 class UserWallet(models.Model):
-   user = models.ForeignKey('User', on_delete=models.CASCADE)
+   user = models.ForeignKey('User', on_delete=models.CASCADE, null=True)
    wallet = models.ForeignKey('Wallet', on_delete=models.CASCADE)
    wallet_addr = models.CharField(max_length=128)
    balance = models.FloatField(default=0.0)
