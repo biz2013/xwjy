@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 
 def home(request):
     """Show the home page."""
+    if request.session['username']:
+        return redirect('accountinfo')
     return render(request, 'html/index.html')
 
 def login(request):
