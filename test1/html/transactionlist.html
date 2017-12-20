@@ -2,46 +2,12 @@
 <html lang="en-us">
 
 <head>
-  <!-- Latest compiled and minified CSS -->
-  <!--<link rel="stylesheet" href="/static/css/bootstrap.3.3.7.min.css">-->
-  <link rel='stylesheet' href='/static/css/bootstrap.3.3.7.min.css'>
-
-  <!-- jQuery library -->
-  <script src="/static/scripts/jquery.3.2.1.min.js"></script>
-
-  <!-- Latest compiled JavaScript -->
-  <script src="/static/scripts/bootstrap.3.3.7.min.js"></script>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>美基金朋友圈交易站</title>
+  {% include 'html/include/common_header.html' %}
 </head>
-
 <body>
-  <div class="container">
-    <nav class="navbar navbar-inverse">
-      <div class="container-fluid">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="#"><img src="/static/img/axfund_icon.png" width=96 height=36></a>
-        </div>
-        <div class="collapse navbar-collapse" id="myNavbar">
-          <ul class="nav navbar-nav">
-            <li><a href="#">卖美基金</a></li>
-            <li><a href="#">买美基金</a></li>
-            <li><a href="#">我的交易</a></li>
-          </ul>
-          <ul class="nav navbar-nav navbar-right">
-            <li><a href="account.html"><span class="glyphicon glyphicon-user"></span>我的账户</a></li>
-            <li><a href="logout.html"><span class="glyphicon glyphicon-log-in"></span>退出</a></li>
-          </ul>
-        </div>
-      </div>
-    </nav>
-  </div>
+  <!-- menu section -->
+  {% include "html/include/topmenu.html" %}
+  <!-- body section -->
   {% load mathfilters %}
   <script language="JavaScript">
     function show_order_info(orderid, units, unit_price, unit_price_currency) {
