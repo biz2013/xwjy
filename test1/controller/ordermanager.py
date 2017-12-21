@@ -30,6 +30,8 @@ def create_sell_order(user_id, units, unit_price,
         units = units,
         unit_price = unit_price,
         unit_price_currency = unit_price_currency,
+        units_available_to_trade = units,
+        units_balance = units,
         status = 'OPEN')
     order.save()
 
