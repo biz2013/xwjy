@@ -39,15 +39,19 @@
         <h3>卖单状况</h3>
         <table class="table table-striped table-condensed">
           <tr>
-            <th>原始出售总数</th>
-            <th>余额</th>
+            <th>卖出时间</th>
+            <th>数量</th>
+            <th>单价</th>
+            <th>总额</th>
             <th></th>
           </tr>
           {% if sellorders %}
              {% for order in sellorders %}
           <tr>
-            <td>{{ order.total_units }}美基金单价{{ order.unit_price }}CNY，总额{{ order.total_units|mul:order.unit_price }}CNY</td>
-            <td>还有{{ order.available_units }}可以购买</td>
+            <td>{{ order.lastmodified_at }}</td>
+            <td>{{ order.available_units }}</td>
+            <td>{{ order.unit_price}}</td>
+            <td>{{ order.available_units|mul:order.unit_price }}</td>
             {% if order.status == 'LOCKED' %}
             <td>被锁定</td>
             {% else %}
