@@ -19,7 +19,7 @@ from views import errorpage
 logger = logging.getLogger(__name__)
 
 def sell_axfund(request):
-    #try:
+    try:
        if REQ_KEY_USERNAME not in request.session:
           return render(request, 'html/login.html', { 'next_action' : '/mysellorder/'})
        username = request.session[REQ_KEY_USERNAME]
@@ -41,7 +41,7 @@ def sell_axfund(request):
                 'buyorders':buyorders,'username': username,
                 'previous_call_status' : status})
 
-    #except:
+    except:
        error_msg = 'sell_axfund hit exception: {0}'.format(sys.exc_info()[0])
        logger.error(error_msg)
        return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
