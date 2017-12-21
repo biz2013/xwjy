@@ -20,13 +20,13 @@ from django.conf.urls.static import static
 import logging
 from controller.global_utils import *
 from . import app
-from views import mysellorder, homeview
+from views import mysellorder, homeview, accountinfoview
 
 urlpatterns = [
     url(r'^$', homeview.home, name='home'),
     url(r'^registration/$', app.registration),
     url(r'^accounts/login/$', app.login, name='login'),
-    url(r'^accounts/accountinfo/$', app.accountinfo, name='accountinfo'),
+    url(r'^accounts/accountinfo/$', accountinfoview.accountinfo, name='accountinfo'),
     url(r'^accounts/external_address/$', app.external_address),
     url(r'^accounts/paymentmethods/$', app.payment_method),
     url(r'^axfund/transfer/$', app.transfer),
