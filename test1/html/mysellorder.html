@@ -22,6 +22,13 @@
     <h6>锁定余额: {{ axfund.locked_balance }} 可用余额: {{ axfund.available_balance }} 总余额：{{ axfund.balance}} </h6>
     <div class="well">
       <div class="row">
+        {% if previous_call_status %}
+        {% if previous_call_status.status == 'OK' %}
+        <div id="div_previous_call_status" class="text-success">{{ previous_call_status.message }}</div>
+        {% else %}
+        <div id="div_previous_call_status" class="text-danger">{{ previous_call_status.message }}</div>
+        {% endif %}
+        {% endif %}
         {% if buyorders %}
         <h4>给我的买单</h4>
         <table class="table ">
@@ -164,7 +171,7 @@
             <button type="button" class="close" data-dismiss="modal">&times;</button>
             <h4 id="purchase-form-label">出售美基金</h4>
           </div>
-          <div class="text-danger" "error-message-sell-modal"></div>
+          <div class="text-danger" id="error-message-sell-modal"></div>
           <div class="modal-body">
             <div id="div_id_quantity" class="form-group">
               <label for="id_quantitiy" class="control-label">数量</label><span class="asteriskField">*</span> </label>

@@ -7,6 +7,7 @@ from controller.global_utils import *
 
 # this is for test UI. A fake one
 from controller.test_model_manager import ModelManager
+from controller.global_constants import *
 from users.models import *
 from views.models.orderitem import OrderItem
 from views.models.returnstatus import ReturnStatus
@@ -19,6 +20,10 @@ def home(request):
     """Show the home page."""
     if request.session['username']:
         return redirect('accountinfo')
+    return render(request, 'html/index.html')
+
+def logout(request):
+    request.session.flush()
     return render(request, 'html/index.html')
 
 def login(request):
@@ -121,13 +126,7 @@ def payment_method(request):
                 'userid': userid,
                 'payment_providers': payment_providers})
 
-def show_sell_orders_for_purchase(request):
-    manager = ModelManager()
-    sellorders = manager.query_active_sell_orders()
-    return render(request, 'html/purchase.html',
-           {'sellorders': sellorders, 'username':'taozhang'
-            }
-           )
+
 def show_purchase_input(request):
     manager = ModelManager()
     owner_user_id = request.POST["owner_user_id"]
