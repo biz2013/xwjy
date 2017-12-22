@@ -121,11 +121,6 @@ def payment_method(request):
                 'userid': userid,
                 'payment_providers': payment_providers})
 
-def accountinfo(request):
-    manager = ModelManager()
-    useraccountInfo = manager.get_user_accountInfo(request.session['username'])
-    return render(request, 'html/myaccount.html', {'useraccountInfo': useraccountInfo})
-
 def show_sell_orders_for_purchase(request):
     manager = ModelManager()
     sellorders = manager.query_active_sell_orders()
