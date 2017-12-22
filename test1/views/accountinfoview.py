@@ -16,12 +16,13 @@ logger = logging.getLogger(__name__)
 
 def accountinfo(request):
     try:
-       if REQ_KEY_USERNAME not in request.session:
+       if (REQ_KEY_USERNAME not in request.session) or (REQ_KEY_USERID not in request.session):
           return render(request, 'html/login.html', { 'next_action' : '/accounts/accountinfo/'})
        username = request.session[REQ_KEY_USERNAME]
        manager = ModelManager()
        useraccountInfo = manager.get_user_accountInfo(username)
-       return render(request, 'html/myaccount.html', {'useraccountInfo': useraccountInfo})
+       return render(request, 'html/myaccount.html', {'useraccountInfo': useraccountInfo,
+                     REQ_KEY_USERNAME: username})
     except:
        error_msg = 'account info hit exception: {0}'.format(sys.exc_info()[0])
        logger.error(error_msg)
