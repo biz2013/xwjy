@@ -7,6 +7,7 @@ import pytz
 from users.models import *
 from views.models.orderitem import OrderItem
 from views.models.useraccountinfo import UserAccountInfo
+from views.models.userpaymentmethodview import UserPaymentMethodView
 from controller.heepaymanager import HeePayManager
 
 class ModelManager(object):
@@ -97,11 +98,15 @@ class ModelManager(object):
        payment_method.user = user
        payment_method.account_at_provider = '18600701961'
 
+       payment_methods= []
+       payment_methods.append(UserPaymentMethodView(payment_method.id, payment_provider.code,
+            payment_provider.name,payment_method.account_at_provider,
+            payment_method.provider_qrcode_image))
        payment_method.provider_qrcode_image = ''
-       userInfo = UserAccountInfo(user, 1999, 0, 1999,
+       userInfo = UserAccountInfo(user.login, user.id, 1999, 0, 1999,
               'AHeeMMr4CqzxFTy3WGRgZnmE5ZoeyiA6vg',
               'AeALA1zBbzWCTsrbAzaEfLeLG6Q5ZEGfeD',
-              {payment_method})
+              payment_methods)
        return userInfo
 
    def get_user_address(self, userid):
