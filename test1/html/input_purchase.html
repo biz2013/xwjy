@@ -90,7 +90,7 @@
                    <div class="controls "> <select class="select select-input form-control" id="id_payment_method" name="payment_provider">
                        <option>请选择付款方式</option>
                        {% for payment_method in owner_payment_methods %}
-                       <option value="{{ payment_method.provider.code}}">{{ payment_method.provider.name }}</option>
+                       <option value="{{ payment_method.user_payment_method_id }}">{{ payment_method.provider.name }}</option>
                        {% endfor %}
                      </select>
                    </div>
