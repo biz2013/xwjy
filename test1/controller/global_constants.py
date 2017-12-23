@@ -6,6 +6,7 @@
 #
 REQ_KEY_USERNAME = 'username'
 REQ_KEY_USERID = 'userid'
+REQ_KEY_USERACCOUNTINFO = 'useraccountinfo'
 
 
 #
