@@ -4,10 +4,6 @@ import time
 import datetime as dt
 import pytz
 
-import time
-import datetime as dt
-import pytz
-
 from users.models import *
 from views.models.orderitem import OrderItem
 

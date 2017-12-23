@@ -28,7 +28,12 @@ class SingletonModel(models.Model):
 class SiteSettings(SingletonModel):
     support = models.EmailField(default='support@example.com')
     heepay_notify_url_host = models.CharField(max_length=128,default='localhost')
-    heepapy_notify_url_port = models.IntegerField(default=8000)
+    heepay_notify_url_port = models.IntegerField(default=8000)
+    heepay_return_url_host = models.CharField(max_length=128,default='localhost')
+    heepay_return_url_port = models.IntegerField(default=8000)
+    heepay_app_id= models.CharField(max_length=128)
+    heepay_app_key= models.CharField(max_length=128)
+
 
 class GlobalCounter(models.Model):
     counter = models.IntegerField(default=0)
@@ -101,6 +106,7 @@ class UserWallet(models.Model):
    wallet = models.ForeignKey('Wallet', on_delete=models.CASCADE)
    wallet_addr = models.CharField(max_length=128)
    balance = models.FloatField(default=0.0)
+   locked_balance = models.FloatField(default=0.0)
    available_balance = models.FloatField(default=0.0)
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey('UserLogin', related_name='UserWallet_created_by')
@@ -109,7 +115,7 @@ class UserWallet(models.Model):
 
 class UserExternalWalletAddress(models.Model):
    user = models.ForeignKey('User', on_delete=models.CASCADE)
-   cryptocurrency_code = models.ForeignKey('Cryptocurrency', on_delete=models.CASCADE)
+   cryptocurrency = models.ForeignKey('Cryptocurrency', on_delete=models.CASCADE)
    address = models.CharField(max_length=128)
    alias = models.CharField(max_length=32, null=True)
    created_at = models.DateTimeField(auto_now_add=True)
