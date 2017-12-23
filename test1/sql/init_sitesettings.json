@@ -1,0 +1,15 @@
+[
+  {
+    "model": "users.sitesettings",
+    "pk": "1",
+    "fields":{
+      "support": "",
+      "heepay_notify_url_host": "localhost",
+      "heepay_notify_url_port": 8000,
+      "heepay_return_url_host":"localhost",
+      "heepay_return_url_port": 8000,
+      "heepay_app_id" : "hyq17121610000800000911220E16AB0",
+      "heepay_app_key" : "4AE4583FD4D240559F80ED39"
+    }
+  }
+]
