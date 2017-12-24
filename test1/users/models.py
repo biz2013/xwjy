@@ -33,7 +33,7 @@ class SiteSettings(SingletonModel):
     heepay_return_url_port = models.IntegerField(default=8000)
     heepay_app_id= models.CharField(max_length=128)
     heepay_app_key= models.CharField(max_length=128)
-
+    heepay_expire_in_sec = models.IntegerField(default=300)
 
 class GlobalCounter(models.Model):
     counter = models.IntegerField(default=0)

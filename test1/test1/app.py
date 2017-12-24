@@ -126,36 +126,6 @@ def payment_method(request):
                 'userid': userid,
                 'payment_providers': payment_providers})
 
-
-def show_purchase_input(request):
-    manager = ModelManager()
-    owner_user_id = request.POST["owner_user_id"]
-    order_id = request.POST["reference_order_id"]
-    owner_login = request.POST["owner_login"]
-    available_units = request.POST["available_units_for_purchase"]
-    print "receive order id %s" % (order_id)
-    print "receive owner_user_id is %s" % (owner_user_id)
-    print "available units for purchase is %s" % (available_units)
-    owner_payment_methods = manager.get_user_payment_methods(int(owner_user_id))
-    for method in owner_payment_methods:
-        print ("provider %s has image %s" % (method.provider.name, method.provider_qrcode_image))
-    sellorder = OrderItem(
-       request.POST["reference_order_id"],
-       owner_user_id,
-       owner_login,
-       request.POST["locked_in_unit_price"],
-       'CYN',
-       0, available_units,
-       '','')
-    print 'sellorder id is here %s' % (sellorder.order_id)
-    login = request.POST['username']
-    return render(request, 'html/input_purchase.html',
-           {'username':'taozhang',
-            'sellorder': sellorder,
-            'owner_payment_methods':owner_payment_methods }
-           )
-
-
 def query_user_open_sell_orders(userlogin):
     return Order.objects.filter(user__login = userlogin).filter(order_type='SELL').filter(~Q(status='FILLED') | ~Q(status='CANCELLED'))
 
@@ -181,70 +151,6 @@ def mysellorder(request):
     return render(request, 'html/mysellorder.html', {'sellorders': sellorders,
             'buyorders':buyorders,'username': username,
             'previous_call_status' : status})
-
-def create_purchase_order(request):
-    logger.debug('create_purchase_order()...')
-    username = request.POST['username']
-    reference_order_id = request.POST['reference_order_id']
-    owner_user_id = request.POST['owner_user_id']
-    quantity = request.POST['quantity']
-    available_units = request.POST['available_units']
-    unit_price = request.POST['unit_price']
-    payment_provider = request.POST['payment_provider']
-    payment_account = request.POST['payment_account']
-    total_amount = float(request.POST['total_amount'])
-    manager = ModelManager()
-    order = manager.create_purchase_order(username, reference_order_id,
-           quantity, unit_price, 'CNY', total_amount, 'AXFund')
-
-    print "payment acount is %s" % payment_account
-    returnstatus = None
-    if (payment_provider == 'heepay'):
-        heepay = HeePayManager()
-        json_payload = heepay.create_heepay_payload('wallet.pay.apply',
-             order.order_id,
-             'hyq17121610000800000911220E16AB0',
-             '4AE4583FD4D240559F80ED39',
-             #'hyq17121610001000000915254EDBFA0',
-             #'E14D52065B604E96B2452397',
-             '127.0.0.1', order.total_amount,
-             payment_account,
-             #'13641388306',
-             '15811302702',
-             'http://localhost:8000/mysellorder/heepay/confirm_payment/', # for notify_url
-             'http://localhost:8000/purchase/createorder2/heepay/confirmed/' # for return url
-             )
-        status, reason, message = heepay.send_buy_apply_request(json_payload)
-        print "call heepay response: status %s reason %s message %s" % (status, reason, message)
-        go_to_pay = False
-        if status == 200:
-           json_response = json.loads(message)
-           if json_response['return_code'] == 'SUCCESS':
-              return render(request, 'html/jumptopayment.html',
-                     { 'payment_redirect_url' : json_response['hy_url'] })
-        if go_to_pay:
-           returnstatus = ReturnStatus('SUCCEED','','下单成功')
-        else:
-           returnstatus = ReturnStatus('FAILED', 'FAILED', '下单申请失败')
-    sellorder = OrderItem(
-         reference_order_id,
-         owner_user_id,
-         '', #owner_login
-         float(unit_price),
-         'CNY',
-         quantity,
-         available_units,
-         dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime('%Y-%m-%d %H:%M:%S'),
-         'ACTIVE')
-    owner_payment_methods = manager.get_user_payment_methods(owner_user_id)
-
-    return render(request, 'html/input_purchase.html',
-           {'username': username,
-            'sellorder': sellorder,
-            'buyorder' : order,
-            'owner_payment_methods':owner_payment_methods,
-            'returnstatus': returnstatus }
-           )
 
 def confirm_payment(request):
     username = request.session['username']
