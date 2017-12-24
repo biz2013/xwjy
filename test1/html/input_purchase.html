@@ -26,10 +26,12 @@
     unit_price = parseFloat($("#id_unit_price").val());
     $("#id_total_amount").val((units_val * unit_price).toFixed(2));
 
-    if ($("#id_payment_method").val().length==0){
+    var provider = $("#id_seller_payment_method").val();
+    if (provider.length==0){
       $("#div_id_error").text("请选择付款方式");
       return;
     }
+
     $("#create_purchase").submit();
   }
   function show_total_cost(units, price) {
@@ -71,8 +73,6 @@
                <input type="hidden" name="reference_order_id" value="{{ sellorder.order_id }}"/>
                <input type="hidden" id="id_unit_price" name="unit_price" value="{{ sellorder.unit_price }}" />
                <input type="hidden" id="id_total_amount" name="total_amount" value="0.0"/>
-               <input type="hidden" id="id_buyer_heepay_account" name="buyer_heepay_account" value=""/>
-               <input type="hidden" name="payment_account" value="18600701961" />
                <div class="form_group">
                  <table class="table">
                    <tr>
@@ -90,9 +90,9 @@
                <div id="div_id_quantity" class="form-group"> <label for="id_quantity" class="control-label">购买数量</label><span class="asteriskField">*</span>
                  <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" onkeyup="show_total_cost(this.value, {{ sellorder.unit_price }})" /> </div>
                </div>
-                 <div id="div_id_payment_method" class="form-group"> <label for="id_payment_method" class="control-label">付款方式</label><span class="asteriskField">*</span>
+                 <div id="div_id_payment_method" class="form-group"> <label for="lbl_id_payment_method" class="control-label">付款方式</label><span class="asteriskField">*</span>
                    <!--<div class="controls "> <select class="select select-input form-control" id="id_payment_method" onchange="javascript: $('#img_payment_qrcode').attr('src',this.value);">-->
-                   <div class="controls "> <select class="select select-input form-control" id="id_payment_method" name="payment_provider">
+                   <div class="controls "> <select class="select select-input form-control" id="id_seller_payment_method" name="seller_payment_provider">
                        <option value="">请选择付款方式</option>
                        {% for payment_method in owner_payment_methods %}
                        <option value="{{ payment_method.provider_code }}">{{ payment_method.provider_name }}</option>
