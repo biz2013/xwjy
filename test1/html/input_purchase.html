@@ -37,7 +37,7 @@
   function show_total_cost(units, price) {
     if (!isNaN(units) && !isNaN(price)) {
       var amount = parseFloat(units * price).toFixed(2);
-      $("#total_cost").text("总额: " + amount);
+      $("#total_cost").text(amount);
       $("#id_total_amount").val(amount);
     }
   }
@@ -87,7 +87,7 @@
                  </table>
                </div>
                <div id="div_id_quantity" class="form-group"> <label for="id_quantity" class="control-label">购买数量</label><span class="asteriskField">*</span>
-                 <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" onkeyup="show_total_cost(this.value, {{ sellorder.unit_price }})" /> </div>
+                 <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" onkeyup="show_total_cost(this.value, {{ buyorder.unit_price }})" /> </div>
                </div>
                  <div id="div_id_payment_method" class="form-group"> <label for="lbl_id_payment_method" class="control-label">付款方式</label><span class="asteriskField">*</span>
                    <!--<div class="controls "> <select class="select select-input form-control" id="id_payment_method" onchange="javascript: $('#img_payment_qrcode').attr('src',this.value);">-->
