@@ -6,6 +6,7 @@ from controller.heepaymanager import HeePayManager
 from controller.global_utils import *
 
 # this is for test UI. A fake one
+from config import context_processor
 from controller.test_model_manager import ModelManager
 from controller.global_constants import *
 from users.models import *
@@ -126,36 +127,6 @@ def payment_method(request):
                 'userid': userid,
                 'payment_providers': payment_providers})
 
-
-def show_purchase_input(request):
-    manager = ModelManager()
-    owner_user_id = request.POST["owner_user_id"]
-    order_id = request.POST["reference_order_id"]
-    owner_login = request.POST["owner_login"]
-    available_units = request.POST["available_units_for_purchase"]
-    print "receive order id %s" % (order_id)
-    print "receive owner_user_id is %s" % (owner_user_id)
-    print "available units for purchase is %s" % (available_units)
-    owner_payment_methods = manager.get_user_payment_methods(int(owner_user_id))
-    for method in owner_payment_methods:
-        print ("provider %s has image %s" % (method.provider.name, method.provider_qrcode_image))
-    sellorder = OrderItem(
-       request.POST["reference_order_id"],
-       owner_user_id,
-       owner_login,
-       request.POST["locked_in_unit_price"],
-       'CYN',
-       0, available_units,
-       '','')
-    print 'sellorder id is here %s' % (sellorder.order_id)
-    login = request.POST['username']
-    return render(request, 'html/input_purchase.html',
-           {'username':'taozhang',
-            'sellorder': sellorder,
-            'owner_payment_methods':owner_payment_methods }
-           )
-
-
 def query_user_open_sell_orders(userlogin):
     return Order.objects.filter(user__login = userlogin).filter(order_type='SELL').filter(~Q(status='FILLED') | ~Q(status='CANCELLED'))
 
@@ -199,21 +170,31 @@ def create_purchase_order(request):
 
     print "payment acount is %s" % payment_account
     returnstatus = None
+    # if buyer has payment method that match seller's payment payment_method
+    # set buyer account
+    buyer_account = ''
+    accountinfo = request.session[REQ_KEY_USERACCOUNTINFO]
+    if accountinfo is not None and accountinfo.paymentmethods is not None:
+       for method in accountinfo.paymentmethods:
+           if method.provider_code == payment_provider:
+              buyer_account = method.account_at_provider
+              break
+
+    # read the sitsettings
+    sitesettings = context_processor.settings(request)['settings']
+    notify_url = 'http://{0}:{1}/mysellorder/heepay/confirm_payment/'.format(sitesettings.heepay_notify_url_host, sitesettings.heepay_notify_url_port)
+    return_url = 'http://{0}:{1}/purchase/createorder2/heepay/confirmed/'.format(sitesettings.heepay_return_url_host, sitesettings.heepay_return_url_port)
     if (payment_provider == 'heepay'):
         heepay = HeePayManager()
         json_payload = heepay.create_heepay_payload('wallet.pay.apply',
              order.order_id,
-             'hyq17121610000800000911220E16AB0',
-             '4AE4583FD4D240559F80ED39',
-             #'hyq17121610001000000915254EDBFA0',
-             #'E14D52065B604E96B2452397',
+             sitesettings.heepay_app_id.encode('ascii'),
+             sitesettings.heepay_app_key.encode('ascii'),
              '127.0.0.1', order.total_amount,
              payment_account,
-             #'13641388306',
-             '15811302702',
-             'http://localhost:8000/mysellorder/heepay/confirm_payment/', # for notify_url
-             'http://localhost:8000/purchase/createorder2/heepay/confirmed/' # for return url
-             )
+             buyer_account,
+             notify_url,
+             return_url)
         status, reason, message = heepay.send_buy_apply_request(json_payload)
         print "call heepay response: status %s reason %s message %s" % (status, reason, message)
         go_to_pay = False

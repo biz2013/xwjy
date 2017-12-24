@@ -6,6 +6,7 @@ import pytz
 
 from users.models import *
 from views.models.orderitem import OrderItem
+from views.models.userpaymentmethodview import *
 
 def create_sell_order(user_id, units, unit_price,
               unit_price_currency, crypto_currency,
@@ -52,3 +53,13 @@ def get_all_open_seller_order_exclude_user(user_id):
                                 order.units, order.units_available_to_trade,
                                 order.lastupdated_at, order.status))
     return orders
+
+def get_user_payment_methods(user_id):
+    userpayments = UserPaymentMethod.objects.filter(user__id=user_id)
+    payment_methods= []
+    if userpayments is not None:
+       for method in userpayments:
+          payment_methods.append(UserPaymentMethodView(method.id, method.provider.code,
+                method.provider.name,method.account_at_provider,
+                method.provider_qrcode_image))
+    return payment_methods

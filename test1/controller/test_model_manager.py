@@ -106,6 +106,7 @@ class ModelManager(object):
        userInfo = UserAccountInfo(user.login, user.id, 1999, 0, 1999,
               'AHeeMMr4CqzxFTy3WGRgZnmE5ZoeyiA6vg',
               'AeALA1zBbzWCTsrbAzaEfLeLG6Q5ZEGfeD',
+              '',
               payment_methods)
        return userInfo
 
