@@ -8,6 +8,9 @@ from users.models import *
 from views.models.orderitem import OrderItem
 from views.models.userpaymentmethodview import *
 
+def get_user_payment_account(user_id, payment_provider_code):
+    return UserPaymentMethod.objects.filter(user__id=user_id).filter(provider__code=payment_provider_code)
+
 def create_sell_order(user_id, units, unit_price,
               unit_price_currency, crypto_currency,
               created_by):
