@@ -64,25 +64,24 @@
                <div id="div_id_returnstatus" class="text-danger">{{ returnstatus.reason }}. {{ returnstatus.message }}</div>
             {% endif %}
                <div id="div_id_error" class="text-danger" ></div>
-            {% if sellorder %}
              <form id="create_purchase" tabindex="-1" role="dialog" action="/purchase/createorder2/" method="post">
                {% csrf_token %}
                <input type="hidden" name="username" value="{{ username }}" />
-               <input type="hidden" id="id_available_units" name="available_units" value = "{{ sellorder.available_units }}"/>
-               <input type="hidden" name="owner_user_id" value = "{{ sellorder.owner_user_id }}"/>
-               <input type="hidden" name="reference_order_id" value="{{ sellorder.order_id }}"/>
-               <input type="hidden" id="id_unit_price" name="unit_price" value="{{ sellorder.unit_price }}" />
-               <input type="hidden" id="id_total_amount" name="total_amount" value="0.0"/>
+               <input type="hidden" id="id_available_units" name="available_units" value = "{{ available_units_for_purchase }}"/>
+               <input type="hidden" name="owner_user_id" value="{{ owner_user_id }}"/>
+               <input type="hidden" name="reference_order_id" value="{{ reference_order_id }}"/>
+               <input type="hidden" id="id_unit_price" name="unit_price" value="{{ buyorder.unit_price }}" />
+               <input type="hidden" id="id_total_amount" name="total_amount" value="{% if buyorder.total_units > 0 %}{{ buyorder.total_units }}{% endif %}"/>
                <div class="form_group">
                  <table class="table">
                    <tr>
-                     <th>卖方用户名</th>
-                     <th>锁定价格</th>
+                     <th>购买上限</th>
+                     <th>锁定价格(CNY)</th>
                      <th>总额</th>
                    </tr>
                    <tr>
-                     <td>{{ username }}</td>
-                     <td>{{ sellorder.unit_price }}&nbsp;{{ sellorder.unit_price_currency }}</td>
+                     <td>{{ available_units_for_purchase }}</td>
+                     <td>{{ buyorder.unit_price }}</td>
                      <td><div id="total_cost"></div></td>
                    </tr>
                  </table>
@@ -105,7 +104,6 @@
                    <button type="button" class="btn btn-default" onclick="goback()">撤销</button>
                  </div>
            </form>
-        {% endif %}
           </div>
         </div>
       </div>

@@ -66,3 +66,49 @@ def get_user_payment_methods(user_id):
                 method.provider.name,method.account_at_provider,
                 method.provider_qrcode_image))
     return payment_methods
+
+def get_sellorder_seller_payment_methods(sell_order_id):
+    order = Order.objects.get(pk=sell_order_id)
+    userpayments = UserPaymentMethod.objects.filter(user__id=order.user.id)
+    payment_methods= []
+    if userpayments is not None:
+       for method in userpayments:
+          payment_methods.append(UserPaymentMethodView(method.id, method.provider.code,
+                method.provider.name,method.account_at_provider,
+                method.provider_qrcode_image))
+    return payment_methods
+
+def create_purchase_order(buyorder, reference_order_id, crypto):
+    reference_order = Order.objects.get(pk=reference_order_id)
+    if reference_order.status != 'PARTIALFILLED' and reference_order.status != 'OPEN':
+        return 'SELLORDER_NOT_OPEN', buyorder
+    if buyorder.total_units > reference_order.units_available_to_trade:
+        print 'sell order %s has %f to trade, buyer buy %f units' % (
+                  reference_order.order_id,
+                  reference_order.units_available_to_trade,
+                  buyorder.total_units)
+        return 'BUY_EXCEED_AVAILABLE_UNITS', buyorder
+    frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
+    buyorder.order_id = frmt_date
+    userobj = User.objects.get(pk=buyorder.owner_user_id)
+    created_by_user = UserLogin.objects.get(pk=buyorder.owner_login)
+    crypto_currency = Cryptocurrency.objects.get(pk=crypto)
+    reference_order.status = 'LOCKED'
+    reference_order.units_available_to_trade = reference_order.units_available_to_trade - buyorder.total_units
+    reference_order.save()
+    order = Order.objects.create(
+        order_id = buyorder.order_id,
+        user= userobj,
+        created_by = created_by_user,
+        lastupdated_by = created_by_user,
+        reference_order= reference_order,
+        cryptocurrency= crypto_currency,
+        order_type='BUY',
+        sub_type='BUY_ON_ASK',
+        units = buyorder.total_units,
+        unit_price = buyorder.unit_price,
+        unit_price_currency = buyorder.unit_price_currency,
+        status = 'OPEN')
+    order.save()
+    buyorder.status = 'OPEN'
+    return '', buyorder
