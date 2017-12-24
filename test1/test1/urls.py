@@ -34,7 +34,7 @@ urlpatterns = [
     url(r'^mysellorder/confirm_payment/$', app.confirm_payment),
     url(r'^mysellorder/heepay/confirm_payment/$', app.heepay_confirm_payment),
     url(r'^purchase/$', mypurchaseview.show_active_sell_orders, name='purchase'),
-    url(r'^purchase/createorder1/$', app.show_purchase_input),
-    url(r'^purchase/createorder2/$', app.create_purchase_order),
+    url(r'^purchase/createorder1/$', mypurchaseview.show_purchase_input),
+    url(r'^purchase/createorder2/$', mypurchaseview.create_purchase_order),
     url(r'^logout/$', app.logout)
 ]
