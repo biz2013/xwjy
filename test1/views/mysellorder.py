@@ -10,6 +10,7 @@ from django.shortcuts import render, redirect
 from controller.test_model_manager import ModelManager
 from controller.global_constants import *
 from controller import ordermanager
+from controller import useraccountinfomanager
 
 from users.models import *
 from views.models.returnstatus import ReturnStatus
@@ -34,9 +35,9 @@ def sell_axfund(request):
           crypto_currency = request.POST['crypto']
           status = ordermanager.create_sell_order(userId, units, unit_price,
                         unit_price_currency, crypto_currency, username)
-       accountinfo = manager.get_user_accountInfo(username)
+       accountinfo = useraccountinfomanager.get_user_accountInfo(userId, 'AXFund')
        sellorders = ordermanager.get_user_open_sell_orders(userId)
-       buyorders = manager.get_pending_incoming_buy_orders_by_user(username)
+       buyorders = ordermanager.get_pending_incoming_buy_orders_by_user(userId)
        return render(request, 'html/mysellorder.html', {'sellorders': sellorders,
                 'buyorders':buyorders, REQ_KEY_USERNAME: username,
                 'previous_call_status' : status})

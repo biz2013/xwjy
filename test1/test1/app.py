@@ -153,10 +153,11 @@ def mysellorder(request):
             'previous_call_status' : status})
 
 def confirm_payment(request):
-    username = request.session['username']
-    orderid = request.POST['order_id']
-    manager = ModelManager()
-    manager.confirm_payment(username, orderid)
+    if request.method == 'POST':
+       json_data = json.loads(request.body) # request.raw_post_data w/ Django < 1.4
+       print "Return url:we recevied from heepay %s" % json.dumps(json_data)
+    else:
+       print "Return url:surprise we get GET notification from heepay"
     return redirect('accountinfo')
 
 def heepay_confirm_payment(request):
