@@ -31,7 +31,7 @@ urlpatterns = [
     url(r'^accounts/paymentmethods/$', app.payment_method),
     url(r'^axfund/transfer/$', app.transfer),
     url(r'^mysellorder/$', mysellorder.sell_axfund, name="sellorder"),
-    url(r'^mysellorder/confirm_payment/$', app.confirm_payment),
+    url(r'^purchase/createorder2/heepay/confirmed/$', app.confirm_payment),
     url(r'^mysellorder/heepay/confirm_payment/$', app.heepay_confirm_payment),
     url(r'^purchase/$', mypurchaseview.show_active_sell_orders, name='purchase'),
     url(r'^purchase/createorder1/$', mypurchaseview.show_purchase_input, name="input_purchase"),

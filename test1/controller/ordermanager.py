@@ -57,6 +57,16 @@ def get_all_open_seller_order_exclude_user(user_id):
                                 order.lastupdated_at, order.status))
     return orders
 
+def get_pending_incoming_buy_orders_by_user(userid):
+    buyorders = Order.objects.filter(order_type='BUY', reference_order__user__id=userid).exclude(status='CANCELLED').exclude(status='DELIVERED')
+    orders = []
+    for order in buyorders:
+        orders.append(OrderItem(order.order_id, order.user.id, order.user.login.username,
+                                order.unit_price, order.unit_price_currency,
+                                order.units, order.units_available_to_trade,
+                                order.lastupdated_at, order.status))
+    return orders
+
 def get_user_payment_methods(user_id):
     userpayments = UserPaymentMethod.objects.filter(user__id=user_id)
     payment_methods= []
