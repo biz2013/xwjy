@@ -49,28 +49,30 @@ def show_purchase_input(request):
     userid = int(request.session[REQ_KEY_USERID])
     useraccountInfo = useraccountinfomanager.get_user_accountInfo(userid,'AXFund')
     owner_user_id = request.POST["owner_user_id"]
-    order_id = request.POST["reference_order_id"]
+    reference_order_id = request.POST["reference_order_id"]
     owner_login = request.POST["owner_login"]
+    unit_price = request.POST["locked_in_unit_price"]
+    total_units = 0
+    if 'quantity' in request.POST:
+       total_units = int(request.POST['quantity'])
     available_units = request.POST["available_units_for_purchase"]
-    print "receive order id %s" % (order_id)
-    print "receive owner_user_id is %s" % (owner_user_id)
-    print "available units for purchase is %s" % (available_units)
-    owner_payment_methods = ordermanager.get_user_payment_methods(int(owner_user_id))
+    owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
     #for method in owner_payment_methods:
     #    print ("provider %s has image %s" % (method.provider.name, method.provider_qrcode_image))
-    sellorder = OrderItem(
-       request.POST["reference_order_id"],
-       owner_user_id,
-       owner_login,
-       request.POST["locked_in_unit_price"],
-       'CYN',
-       0, available_units,
+    buyorder = OrderItem(
+       '',
+       userid,
+       username,
+       unit_price,'CYN',
+       total_units, 0,
        '','')
-    print 'sellorder id is here %s' % (sellorder.order_id)
     return render(request, 'html/input_purchase.html',
            {'username': username,
-            'sellorder': sellorder,
-            'owner_payment_methods':owner_payment_methods,
+            'buyorder': buyorder,
+            'owner_user_id': owner_user_id,
+            'reference_order_id': reference_order_id,
+            'available_units_for_purchase': available_units,
+            'owner_payment_methods': owner_payment_methods,
             'buyer_payment_methods': useraccountInfo.paymentmethods }
            )
 
@@ -82,15 +84,28 @@ def create_purchase_order(request):
         username = request.POST[REQ_KEY_USERNAME]
         userid = int(request.session[REQ_KEY_USERID])
         reference_order_id = request.POST['reference_order_id']
-        owner_user_id = request.POST['owner_user_id']
-        quantity = request.POST['quantity']
-        available_units = request.POST['available_units']
-        unit_price = request.POST['unit_price']
+        owner_user_id = int(request.POST["owner_user_id"])
+        quantity = float(request.POST['quantity'])
+        available_units = float(request.POST['available_units'])
+        unit_price = float(request.POST['unit_price'])
         seller_payment_provider = request.POST['seller_payment_provider']
         total_amount = float(request.POST['total_amount'])
-        manager = ModelManager()
-        order = manager.create_purchase_order(username, reference_order_id,
-               quantity, unit_price, 'CNY', total_amount, 'AXFund')
+        buyorder = OrderItem('', userid, username, unit_price, 'CNY', quantity, 0, '', '')
+        rs, buyorder = ordermanager.create_purchase_order(buyorder, reference_order_id, 'AXFund')
+        if len(rs) > 0:
+           logger.error('Failed to create purchase order %s' % rs)
+           owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
+           useraccountInfo = useraccountinfomanager.get_user_accountInfo(userid,'AXFund')
+           return render(request, 'html/input_purchase.html',
+              {'username': username,
+               'buyorder': buyorder,
+               'owner_user_id': owner_user_id,
+               'reference_order_id': reference_order_id,
+               'available_units_for_purchase': available_units,
+               'owner_payment_methods': owner_payment_methods,
+               'buyer_payment_methods': useraccountInfo.paymentmethods,
+               'returnstatus' : ReturnStatus(-1, rs, '') }
+           )
 
         returnstatus = None
         seller_accounts = ordermanager.get_user_payment_account(owner_user_id, seller_payment_provider)
@@ -116,10 +131,10 @@ def create_purchase_order(request):
         if (seller_payment_provider == 'heepay'):
             heepay = HeePayManager()
             json_payload = heepay.create_heepay_payload('wallet.pay.apply',
-                 order.order_id,
+                 buyorder.order_id,
                  sitesettings.heepay_app_id.encode('ascii'),
                  sitesettings.heepay_app_key.encode('ascii'),
-                 '127.0.0.1', order.total_amount,
+                 '127.0.0.1', total_amount,
                  seller_account,
                  buyer_account,
                  notify_url,
@@ -136,25 +151,18 @@ def create_purchase_order(request):
                returnstatus = ReturnStatus('SUCCEED','','下单成功')
             else:
                returnstatus = ReturnStatus('FAILED', 'FAILED', '下单申请失败')
-        sellorder = OrderItem(
-             reference_order_id,
-             owner_user_id,
-             '', #owner_login
-             float(unit_price),
-             'CNY',
-             quantity,
-             available_units,
-             dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime('%Y-%m-%d %H:%M:%S'),
-             'ACTIVE')
-        owner_payment_methods = manager.get_user_payment_methods(owner_user_id)
-
+        owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
+        useraccountInfo = useraccountinfomanager.get_user_accountInfo(userid,'AXFund')
         return render(request, 'html/input_purchase.html',
-               {'username': username,
-                'sellorder': sellorder,
-                'buyorder' : order,
-                'owner_payment_methods':owner_payment_methods,
-                'returnstatus': returnstatus }
-               )
+          {'username': username,
+           'buyorder': buyorder,
+           'owner_user_id': owner_user_id,
+           'reference_order_id': reference_order_id,
+           'available_units_for_purchase': available_units,
+           'owner_payment_methods': owner_payment_methods,
+           'buyer_payment_methods': useraccountInfo.paymentmethods,
+           'returnstatus' : ReturnStatus(-1, rs, '') }
+        )
     #except:
         error_msg = 'create_purchase order hit exception: {0}'.format(sys.exc_info()[0])
         logger.error(error_msg)
