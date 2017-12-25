@@ -151,25 +151,18 @@ def create_purchase_order(request):
                returnstatus = ReturnStatus('SUCCEED','','下单成功')
             else:
                returnstatus = ReturnStatus('FAILED', 'FAILED', '下单申请失败')
-        sellorder = OrderItem(
-             reference_order_id,
-             owner_user_id,
-             '', #owner_login
-             float(unit_price),
-             'CNY',
-             quantity,
-             available_units,
-             dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime('%Y-%m-%d %H:%M:%S'),
-             'ACTIVE')
-        owner_payment_methods = manager.get_user_payment_methods(owner_user_id)
-
+        owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
+        useraccountInfo = useraccountinfomanager.get_user_accountInfo(userid,'AXFund')
         return render(request, 'html/input_purchase.html',
-               {'username': username,
-                'sellorder': sellorder,
-                'buyorder' : order,
-                'owner_payment_methods':owner_payment_methods,
-                'returnstatus': returnstatus }
-               )
+          {'username': username,
+           'buyorder': buyorder,
+           'owner_user_id': owner_user_id,
+           'reference_order_id': reference_order_id,
+           'available_units_for_purchase': available_units,
+           'owner_payment_methods': owner_payment_methods,
+           'buyer_payment_methods': useraccountInfo.paymentmethods,
+           'returnstatus' : ReturnStatus(-1, rs, '') }
+        )
     #except:
         error_msg = 'create_purchase order hit exception: {0}'.format(sys.exc_info()[0])
         logger.error(error_msg)
