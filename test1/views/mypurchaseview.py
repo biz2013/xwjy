@@ -84,7 +84,7 @@ def create_purchase_order(request):
         username = request.POST[REQ_KEY_USERNAME]
         userid = int(request.session[REQ_KEY_USERID])
         reference_order_id = request.POST['reference_order_id']
-        owner_user_id = request.POST["owner_user_id"]
+        owner_user_id = int(request.POST["owner_user_id"])
         quantity = float(request.POST['quantity'])
         available_units = float(request.POST['available_units'])
         unit_price = float(request.POST['unit_price'])
