@@ -36,5 +36,6 @@ urlpatterns = [
     url(r'^purchase/$', mypurchaseview.show_active_sell_orders, name='purchase'),
     url(r'^purchase/createorder1/$', mypurchaseview.show_purchase_input, name="input_purchase"),
     url(r'^purchase/createorder2/$', mypurchaseview.create_purchase_order),
+    url(r'^account/cron/update_receive/$', account_cronjob.update_account_with_receiving_fund),
     url(r'^logout/$', app.logout)
 ]

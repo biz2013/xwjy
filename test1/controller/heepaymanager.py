@@ -7,6 +7,8 @@ import time
 import pytz
 import datetime as dt
 import hashlib
+import shutil
+import qrtools
 
 class HeePayManager(object):
    def __init__(self):
@@ -72,6 +74,18 @@ class HeePayManager(object):
        except:
          print 'create_purchase_order:Unexpected error: {0}'.format(sys.exc_info()[0])
          raise
+
+   def generate_heepay_qrcode(heepay_response_json, media_root):
+       dst = os.path.join(media_root,'qrcode',
+            heepay_response_json['out_trade_no'],'hy_bill_no',
+            '{0}.png'.format(heepay_response_json['hy_bill_no']))
+       myQR = qrtools.QR(data=heepay_response_json['ht_url'])
+       myQR.encode()
+       shutil.move(myQR.filename, dst)
+       img_path = os.path.join('/qrcode',
+            heepay_response_json['out_trade_no'],'hy_bill_no',
+            '{0}.png'.format(heepay_response_json['hy_bill_no']))
+       return img_path
 
 """
 {"sign":"19D4E6B0418D4F47CDE76BF3AA1B50AD"}
