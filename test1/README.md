@@ -7,3 +7,9 @@ test1 sub directory. It contains the all the setting of django web project. So f
 users/models.py:  This is the data model that is built based on ...   In addition, it says that qrcode image of each user's paymentmethod will be saved in MEDIA_ROOT/uploads
 
 sql/init_test.sql:  The initialization script to create basic data for the test.
+
+
+TODO:
+(1) Try use django-mysql to improve database query and test capability. (http://django-mysql.readthedocs.io/en/latest/installation.html)
+
+

@@ -17,7 +17,7 @@ from views.models.returnstatus import ReturnStatus
 from views import errorpage
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("site.sellorder")
 
 def sell_axfund(request):
     #try:
