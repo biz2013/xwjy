@@ -6,7 +6,7 @@ from controller.global_constants import *
 
 import logging,json
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("site.homepage")
 
 def home(request):
     """Show the home page."""
