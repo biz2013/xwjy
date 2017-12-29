@@ -14,7 +14,7 @@ from controller.global_utils import *
 from controller import ordermanager
 from controller import useraccountinfomanager
 from controller.heepaymanager import HeePayManager
-
+from settings import *
 
 from users.models import *
 from views.models.orderitem import OrderItem
@@ -145,10 +145,11 @@ def create_purchase_order(request):
             if status == 200:
                json_response = json.loads(message)
                if json_response['return_code'] == 'SUCCESS':
-                  return render(request, 'html/jumptopayment.html',
-                         { 'payment_redirect_url' : json_response['hy_url'] })
-            if go_to_pay:
-               returnstatus = ReturnStatus('SUCCEED','','下单成功')
+                  qrcode_file = heepay.generate_heepay_qrcode(json_response, settings.MEDIA_ROOT)
+                  return render(request, 'html/purchase_heepay_qrcode.html',
+                         { 'total_units' : quantity, 'unit_price': unit_price,
+                           'total_amount': total_amount,
+                           'heepay_qrcode_file' : qrcode_file })
             else:
                returnstatus = ReturnStatus('FAILED', 'FAILED', '下单申请失败')
         owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)

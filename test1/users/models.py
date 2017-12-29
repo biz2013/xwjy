@@ -34,6 +34,10 @@ class SiteSettings(SingletonModel):
     heepay_app_id= models.CharField(max_length=128)
     heepay_app_key= models.CharField(max_length=128)
     heepay_expire_in_sec = models.IntegerField(default=300)
+    axfd_path= models.CharField(max_length=255, default='')
+    axfd_datadir = models.CharField(max_length=255, default='')
+    axfd_account_name = models.CharField(max_length=64, default='')
+    axfd_list_trans_count = models.IntegerField(default=1000)
 
 class GlobalCounter(models.Model):
     counter = models.IntegerField(default=0)
@@ -108,10 +112,42 @@ class UserWallet(models.Model):
    balance = models.FloatField(default=0.0)
    locked_balance = models.FloatField(default=0.0)
    available_balance = models.FloatField(default=0.0)
+   last_closed_sellorder_id = models.CharField(max_length=128, null=True)
+   last_closed_buyorder_id = models.CharField(max_length=128, null=True)
+   last_wallet_trxId = models.CharField(max_length=128, default='')
+   last_wallet_timestamp = models.IntegerField(default=0)
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey('UserLogin', related_name='UserWallet_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
    lastupdated_by = models.ForeignKey('UserLogin', related_name='UserWallet_lastupdated_by')
+
+class UserWalletTransaction(models.Model):
+   BALANCE_UPDATE_TYPES = (('CREDIT','Credit'),('DEBT','Debt'))
+   TRANS_TYPES =(('OPEN BUY ORDER', 'Open Buy Order'),
+        ('CANCEL BUY ORDER', 'Cancel Buy Order'),
+        ('DELIVER ON PURCHASE', 'Deliver on purhcase'),
+        ('REDEEM','Redeem'), ('DEPOSIT','Deposit'))
+   TRANS_STATUS = (('PENDING','Pending', 'PROCESSED','Processed'))
+   user_wallet = models.ForeignKey('UserWallet', on_delete=models.CASCADE)
+   balance_begin = models.FloatField(default=0.0)
+   balance_end = models.FloatField(default=0.0)
+   locked_balance_begin = models.FloatField(default=0.0)
+   locked_balance_end = models.FloatField(default=0.0)
+   available_to_trade_begin = models.FloatField(default=0.0)
+   available_to_trade_end = models.FloatField(default=0.0)
+   reference_order = models.ForeignKey('Order', on_delete=models.CASCADE, null=True)
+   reference_wallet_trxId = models.CharField(max_length=128, default='')
+   amount = models.FloatField(default=0.0)
+   balance_update_type= models.CharField(max_length=32, choices=BALANCE_UPDATE_TYPES)
+   transaction_type = models.CharField(max_length=32, choices=TRANS_TYPES)
+   comment = models.CharField(max_length=2048, null = True)
+   reported_timestamp = models.IntegerField(default =0)
+   status = models.CharField(max_length=32, choices = TRANS_STATUS)
+   created_at = models.DateTimeField(auto_now_add=True)
+   created_by = models.ForeignKey('UserLogin', related_name='UserWallet_created_by')
+   lastupdated_at = models.DateTimeField(auto_now=True)
+   lastupdated_by = models.ForeignKey('UserLogin', related_name='UserWallet_lastupdated_by')
+
 
 class UserExternalWalletAddress(models.Model):
    user = models.ForeignKey('User', on_delete=models.CASCADE)
@@ -143,7 +179,7 @@ class UserStatue(models.Model):
    lastupdated_by = models.ForeignKey('UserLogin', related_name='UserStatue_lastupdated_by')
 
 class Order(models.Model):
-   ORDER_TYPE = (('BUY','Buy'),('SELL','Sell'))
+   ORDER_TYPE = (('BUY','Buy'),('SELL','Sell'),('REDEEM','Redeem'))
    """
    buy_on_ask and sell_on_bid are for future automatic trading for the games
    """
@@ -161,8 +197,8 @@ class Order(models.Model):
    cryptocurrency = models.ForeignKey('Cryptocurrency')
    reference_wallet = models.ForeignKey('Wallet', null= True)
    reference_wallet_trxId = models.CharField(max_length=128, null = True)
-   order_type = models.CharField(max_length=8, choices=ORDER_TYPE)
-   sub_type = models.CharField(max_length=16, default='OPEN', choices=SUBORDER_TYPE)
+   order_type = models.CharField(max_length=32, choices=ORDER_TYPE)
+   sub_type = models.CharField(max_length=32, default='OPEN', choices=SUBORDER_TYPE)
    units = models.FloatField()
    unit_price = models.FloatField()
    unit_price_currency = models.CharField(max_length = 8, choices=CURRENCY, default='CYN')
@@ -187,6 +223,7 @@ class Order(models.Model):
    # purchase order.
    total_amount = models.FloatField(default = 0.0)
    status = models.CharField(max_length=32, choices=ORDER_STATUS)
+
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey('UserLogin', related_name='Order_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
@@ -224,7 +261,22 @@ class Transaction(models.Model) :
 
 
 class OrderChangeLog(models.Model):
+   order_action = (('OPEN_PAYMENT_CONFIRM', 'Open_Payment_Confirmation'),
+      ('OPEN_PAYMENT_FAILURE','Open_Payment_Failure'),
+      ('PAYMENT_CONFIRM','Payment_Confirm'))
    order = models.ForeignKey('Order', on_delete=models.CASCADE)
-   action = models.CharField(max_length = 32)
+   action = models.CharField(max_length = 32, choices=order_action)
+   amount = models.FloatField(default=0.0)
    message = models.CharField(max_length = 255)
    timestamp = models.DateTimeField()
+
+# This is to save json data that relate to cronjob,
+#
+class CronJobData(models.Model):
+   jobname =  models.CharField(max_length=64, primary_key=True)
+   last_run_at_timestamp = models.IntegerField(default=0)
+   data = models.CharField(max_length=1024, default='{}')
+   created_at = models.DateTimeField(auto_now_add=True)
+   created_by = models.ForeignKey('UserLogin', related_name='trans_created_by')
+   lastupdated_at = models.DateTimeField(auto_now=True)
+   lastupdated_by = models.ForeignKey('UserLogin', related_name='trans_lastupdated_by')
