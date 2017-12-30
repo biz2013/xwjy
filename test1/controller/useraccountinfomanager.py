@@ -45,7 +45,7 @@ def update_account_balance_with_wallet_trx(crypto, wallet_account_name, lookback
            if trx['category'] == 'receive':
               if trx['address'] in wallet_lookup.keys:
                  entry = wallet_lookup[trx.address]
-                 user_trans_count = UserWalletTransaction.objects.(
+                 user_trans_count = UserWalletTransaction.objects.filter(
                      user_wallet__user__id=entry.user.id,
                      user_wallet__wallet_addr=entry.wallet_addr,
                      reference_wallet_trxId=trx['txid']).count()

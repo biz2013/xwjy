@@ -14,7 +14,7 @@ from controller.global_utils import *
 from controller import ordermanager
 from controller import useraccountinfomanager
 from controller.heepaymanager import HeePayManager
-from settings import *
+
 
 from users.models import *
 from views.models.orderitem import OrderItem

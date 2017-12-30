@@ -11,8 +11,10 @@
       "heepay_app_id" : "hyq17121610000800000911220E16AB0",
       "heepay_app_key" : "4AE4583FD4D240559F80ED39",
       "heepay_expire_in_sec" : 90,
-      "axfd_path": '/home/osboxes/workspace/xwjy/smwy/src/axfd.old',
-      "axfd_datadir": '/home/osboxes/workspace/xwjy/qb'
+      "axfd_path": "/home/osboxes/workspace/xwjy/smwy/src/axfd",
+      "axfd_datadir": "/home/osboxes/workspace/xwjy/qb",
+      "axfd_account_name": "",
+      "axfd_list_trans_count": 1000
     }
   }
 ]

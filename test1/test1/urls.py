@@ -21,6 +21,7 @@ import logging
 from controller.global_utils import *
 from . import app
 from views import mysellorder, homeview, accountinfoview, mypurchaseview
+from views import account_cronjob
 
 urlpatterns = [
     url(r'^$', homeview.home, name='home'),

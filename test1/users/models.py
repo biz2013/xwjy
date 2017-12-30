@@ -127,7 +127,7 @@ class UserWalletTransaction(models.Model):
         ('CANCEL BUY ORDER', 'Cancel Buy Order'),
         ('DELIVER ON PURCHASE', 'Deliver on purhcase'),
         ('REDEEM','Redeem'), ('DEPOSIT','Deposit'))
-   TRANS_STATUS = (('PENDING','Pending', 'PROCESSED','Processed'))
+   TRANS_STATUS = (('PENDING','Pending'), ('PROCESSED','Processed'))
    user_wallet = models.ForeignKey('UserWallet', on_delete=models.CASCADE)
    balance_begin = models.FloatField(default=0.0)
    balance_end = models.FloatField(default=0.0)
@@ -144,9 +144,9 @@ class UserWalletTransaction(models.Model):
    reported_timestamp = models.IntegerField(default =0)
    status = models.CharField(max_length=32, choices = TRANS_STATUS)
    created_at = models.DateTimeField(auto_now_add=True)
-   created_by = models.ForeignKey('UserLogin', related_name='UserWallet_created_by')
+   created_by = models.ForeignKey('UserLogin', related_name='UserWallet_trans_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
-   lastupdated_by = models.ForeignKey('UserLogin', related_name='UserWallet_lastupdated_by')
+   lastupdated_by = models.ForeignKey('UserLogin', related_name='UserWallet_trans_lastupdated_by')
 
 
 class UserExternalWalletAddress(models.Model):
@@ -277,6 +277,6 @@ class CronJobData(models.Model):
    last_run_at_timestamp = models.IntegerField(default=0)
    data = models.CharField(max_length=1024, default='{}')
    created_at = models.DateTimeField(auto_now_add=True)
-   created_by = models.ForeignKey('UserLogin', related_name='trans_created_by')
+   created_by = models.ForeignKey('UserLogin', related_name='cron_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
-   lastupdated_by = models.ForeignKey('UserLogin', related_name='trans_lastupdated_by')
+   lastupdated_by = models.ForeignKey('UserLogin', related_name='cron_lastupdated_by')
