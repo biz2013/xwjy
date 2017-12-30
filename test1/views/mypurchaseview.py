@@ -22,10 +22,12 @@ from views.models.userpaymentmethodview import *
 from views.models.returnstatus import ReturnStatus
 from views import errorpage
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("site.purchaseview")
 
 def show_active_sell_orders(request):
     try:
+       logger.debug("get show show_active_sell_orders request")
+
        if not user_session_is_valid(request):
           return render(request, 'html/login.html', { 'next_action' : '/purchase/'})
        username = request.session[REQ_KEY_USERNAME]
