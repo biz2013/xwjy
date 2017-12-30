@@ -116,7 +116,7 @@ def get_user_accountInfo(userid, crypto):
     if external_addresses:
        record = external_addresses[0]
        externaladdr = UserExternalWalletAddressInfo(record.id, record.user.id,
-           record.address, record.alias)
+           record.address, record.alias, record.cryptocurrency__currency_code)
     payment_methods= []
     if userpayments is not None:
        for method in userpayments:
@@ -131,3 +131,14 @@ def get_user_accountInfo(userid, crypto):
           externaladdr,
           payment_methods)
     return userInfo
+
+def get_user_externaladdr_by_id(id):
+    record = UserExternalWalletAddress.objects.get(pk=id)
+    return UserExternalWalletAddressInfo(record.id, record.user.id,
+        record.address, record.alias,record.cryptocurrency__currency_code)
+
+def create_update_externaladdr(externaladdress, operator):
+    if externaladdress.id == 0:
+        UserExternalWalletAddress.objects.create(
+          address
+        )

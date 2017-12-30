@@ -21,14 +21,14 @@ import logging
 from controller.global_utils import *
 from . import app
 from views import mysellorder, homeview, accountinfoview, mypurchaseview
-from views import account_cronjob
+from views import account_cronjob, externaladdrview
 
 urlpatterns = [
     url(r'^$', homeview.home, name='home'),
     url(r'^registration/$', app.registration),
     url(r'^accounts/login/$', app.login, name='login'),
     url(r'^accounts/accountinfo/$', accountinfoview.accountinfo, name='accountinfo'),
-    url(r'^accounts/external_address/$', app.external_address),
+    url(r'^accounts/external_address/$', externaladdrview.external_address),
     url(r'^accounts/paymentmethods/$', app.payment_method),
     url(r'^axfund/transfer/$', app.transfer),
     url(r'^mysellorder/$', mysellorder.sell_axfund, name="sellorder"),
