@@ -26,34 +26,24 @@
               <a href="/accounts/external_address/?id={{ useraccountInfo.externaladdress.id }}">{{ useraccountInfo.externaladdress.alias }}</a>
               {% else %}
               <a href="/accounts/external_address/" class="btn btn-primary">添加</a>
-            </form>
               {% endif %}&nbsp;&nbsp;&nbsp;<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#extract-modal">提币</button></td>
           </tr>
         </table>
       </div>
       <div class="row">
-        <table class="table">
-          <tr>
-            <td><h4>付款方式</h4></td>
-            <td><a class="btn btn-primary" href="/accounts/paymentmethods/?id={{ useraccountInfo.user.id }}">更新</a></td>
-          </tr>
-        </table>
-        <table class="table">
+        <h3>付款方式</h3>
+        <table class="table table-condensed">
           <tr>
             <th>支付公司</th>
             <th>账户信息</th>
+            <th><a class="btn btn-primary" href="/accounts/paymentmethods/">更新</a></th>
           </tr>
           {% for paymentmethod in useraccountInfo.paymentmethods %}
           <tr>
-            <td>{{ paymentmethod.provider.name }}</td>
+            <td>{{ paymentmethod.provider_name }}</td>
             <td>{{ paymentmethod.account_at_provider }}</td>
-          </tr>
-          {% if paymentmethod.provider_qrcode_image and paymentmethod.provider_qrcode_image|length > 0 %}
-          <tr>
             <td></td>
-            <td><img src="/static/{{ paymentmethod.provider_qrcode_image }}"/></td>
           </tr>
-          {% endif %}
           {% endfor %}
         </table>
       </div>
