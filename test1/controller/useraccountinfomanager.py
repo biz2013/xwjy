@@ -105,19 +105,18 @@ def get_user_accountInfo(userid, crypto):
         locked_balance = wallet_obj.locked_balance
         receiving_addr = wallet_obj.wallet_addr
     elif len(userwallets) == 0:
-        raise ValueError('There not userwallet for userid {0} crypto {1}'.format(userid, crypto))
+        raise ValueError('There is no userwallet for userid {0} crypto {1}'.format(userid, crypto))
     else:
         raise ValueError('There should just be one userwallet for userid {0} crypto {1} but there are {2}'.format(
          userid, crypto, len(userwallets)
         ))
     userpayments = UserPaymentMethod.objects.filter(user__id=userid)
     external_addresses = UserExternalWalletAddress.objects.filter(user__id= userid).filter(cryptocurrency__currency_code=crypto)
-    external_address_str = None
-    external_address_alias = None
-    if len(external_addresses) > 0:
-       entrternal_address_object = external_addresses[0]
-       external_address_str =  external_address_object.address
-       external_address_alias = external_address_object.alias
+    externaladdr = None
+    if external_addresses:
+       record = external_addresses[0]
+       externaladdr = UserExternalWalletAddressInfo(record.id, record.user.id,
+           record.address, record.alias)
     payment_methods= []
     if userpayments is not None:
        for method in userpayments:
@@ -129,7 +128,6 @@ def get_user_accountInfo(userid, crypto):
           locked_balance,
           available_balance,
           receiving_addr,
-          external_address_str,
-          external_address_alias,
+          externaladdr,
           payment_methods)
     return userInfo
