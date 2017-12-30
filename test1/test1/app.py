@@ -74,25 +74,6 @@ def registration(request):
         return render(request,'html/register.html',
               {'registration':user})
 
-def external_address(request):
-    manager = ModelManager()
-    if request.method == 'GET':
-       user_id = int(request.GET.get('id'))
-       user_addr = manager.get_user_address(user_id)
-       return render(request, 'html/update_external_address.html',
-            { 'user_external_address': user_addr })
-    else:
-        user_id = int(request.POST['userId'])
-        address = request.POST['address']
-        alias = request.POST['alias']
-        rc, message = manager.upsert_user_external_address(user_id, address, alias)
-        if rc == 0:
-            useraccountInfo = manager.get_user_accountInfo(request.session['username'])
-            return render(request, 'html/myaccount.html', {'useraccountInfo': useraccountInfo})
-        else:
-            user_addr = manager.get_user_address(user_id)
-            return render(request, 'html/update_external_adress.html',
-               { 'user_external_address': user_addr })
 def payment_method(request):
     manager = ModelManager()
     payment_providers = []

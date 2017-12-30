@@ -16,7 +16,9 @@
           <h2>添加／更改提币地址</h2>
           <form method="post" class="paper-form" action="/accounts/external_address/" method="post">
             {% csrf_token %}
-            <input type="hidden" id="txt_id_userid" name="userId" value="{{ user_external_address.user.id }}"/>
+            <input type="hidden" name="id" value="{{ user_external_address.id }}"/>
+            <input type="hidden" name="crypto" value="{{ user_external_address.crypto }}"/>
+            <input type="hidden" id="txt_id_userid" name="userId" value="{{ user_external_address.userid }}"/>
             {% if message and message|length > 0 %}
                {% if message_type == 'success' %}
             <p class="text-success">{{ message }}</p>
@@ -33,7 +35,7 @@
               <div class="controls "> <input class="textinput textInput form-control" id="txt_id_alias" name="alias" type="text" value="{{ user_external_address.alias}}"/> </div>
             </div>
             <p>
-              <button class="btn btn-success pull-left" id="btn_id_update" type="submit">更新</button>&nbsp;<button class="btn btn-default pull-right" id="btn_id_cancel" type="button">撤销</button>
+              <button class="btn btn-success pull-left" id="btn_id_update" type="submit">更新</button>&nbsp;<a href="/accounts/accountinfo/" class="btn btn-default pull-right" id="btn_id_cancel">撤销</a>
             </p>
           </form>
         </div>

@@ -16,25 +16,6 @@
         "lastupdated_at": "2017-12-14T13:12:00+08:00"
       }
    },
-   { "model": "users.userlogin",
-     "pk": "taozhang",
-     "fields": {
-        "passwd_hash": "8e1e3e91a4c2c09402a0fa18090e0d3970ff40cf25cae28e9879baf83675c391",
-        "created_at": "2017-12-17T21:14:00+08:00",
-        "lastupdated_at": "2017-12-17T21:14:00+08:00",
-        "created_by": "sysop",
-        "lastupdated_by": "sysop"}
-   },
-   { "model": "users.userlogin",
-     "pk": "yingzhou",
-     "fields": {
-        "passwd_hash": "58d8432c2385d6873fc3f84295286b7be3c84dc0e3fbfe4900fdd62fd1794ba5",
-        "created_at": "2017-12-17T21:14:00+08:00",
-        "lastupdated_at": "2017-12-17T21:14:00+08:00",
-        "created_by": "sysop",
-        "lastupdated_by": "sysop"}
-   },
-
    {
      "model": "users.cryptocurrency",
      "pk": "AXFund",
@@ -56,34 +37,6 @@
        "lastupdated_at": "2017-12-17T21:14:00+08:00",
        "created_by": "sysop",
        "lastupdated_by": "sysop"
-     }
-   },
-   {
-     "model": "users.user",
-     "pk": 1,
-     "fields": {
-       "login" : "taozhang",
-       "firstname":"tao",
-       "lastname":"zhang",
-       "email": "tttzhang2000@yahoo.com",
-       "created_at": "2017-12-17T21:14:00+08:00",
-       "lastupdated_at": "2017-12-17T21:14:00+08:00",
-       "created_by": "sysop",
-       "lastupdated_by" : "sysop"
-     }
-   },
-   {
-     "model": "users.user",
-     "pk": 2,
-     "fields": {
-       "login" : "yingzhou",
-       "firstname":"ying",
-       "lastname":"zhou",
-       "email": "yingzhou61@yahoo.com",
-       "created_at": "2017-12-17T21:14:00+08:00",
-       "lastupdated_at": "2017-12-17T21:14:00+08:00",
-       "created_by": "sysop",
-       "lastupdated_by" : "sysop"
      }
    },
    {
@@ -123,29 +76,11 @@
      }
    },
    {
-     "model": "users.userpaymentmethod",
-     "pk": 1,
-     "fields" : {
-       "user": 1,
-       "provider": "heepay",
-       "account_at_provider": "15811302702",
-       "provider_qrcode_image": "",
-       "created_at": "2017-12-17T21:14:00+08:00",
-       "lastupdated_at": "2017-12-17T21:14:00+08:00",
-       "created_by": "sysop",
-       "lastupdated_by" : "sysop"
-     }
-   },
-   {
-     "model": "users.userpaymentmethod",
-     "pk": 2,
-     "fields" : {
-       "user": 2,
-       "provider": "heepay",
-       "account_at_provider": "18600701961",
-       "provider_qrcode_image": "",
-       "created_at": "2017-12-17T21:14:00+08:00",
-       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+     "model" : "users.cronjobdata",
+     "pk": "useraccountinfo_updater",
+     "fields": {
+       "created_at": "2017-12-27T00:00:00+08:00",
+       "lastupdated_at": "2017-12-27T00:00:00+08:00",
        "created_by": "sysop",
        "lastupdated_by" : "sysop"
      }

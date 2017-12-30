@@ -22,11 +22,12 @@
           </tr>
           <tr>
             <td><label class="control-label">提币地址</label></td>
-            <td>{% if useraccountInfo.externaladdress and useracountInfo.externalress|length > 0 %}
-              <a href="/accounts/external_address/?id={{ useraccountInfo.user.id }}">{{ useraccountInfo.externaladdress.alias }}</a>
+            <td>{% if useraccountInfo.externaladdress %}
+              <a href="/accounts/external_address/?id={{ useraccountInfo.externaladdress.id }}">{{ useraccountInfo.externaladdress.alias }}</a>
               {% else %}
-              <a href="/accounts/external_address/?id={{ useraccountInfo.user.id }}" class="btn btn-primary">添加</a>
-              {% endif %}&nbsp;<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#extract-modal">提币</button></td>
+              <a href="/accounts/external_address/" class="btn btn-primary">添加</a>
+            </form>
+              {% endif %}&nbsp;&nbsp;&nbsp;<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#extract-modal">提币</button></td>
           </tr>
         </table>
       </div>
