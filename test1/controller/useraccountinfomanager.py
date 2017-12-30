@@ -14,7 +14,7 @@ from views.models.useraccountinfo import *
 from views.models.userpaymentmethodview import *
 from views.models.userexternalwalletaddrinfo import *
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("site.useraccountinfomanager")
 
 def update_account_balance_with_wallet_trx(crypto, wallet_account_name, lookback_count, min_trx_confirmation):
     # prepare the data for sysop, which will be the created_by and last
@@ -93,33 +93,26 @@ def update_account_balance_with_wallet_trx(crypto, wallet_account_name, lookback
                  logger.error('Wallet redeem txid {0} has not had {1} confirmation after more than a day'.format(trx['txid'], min_trx_confirmation))
 
 def get_user_accountInfo(userid, crypto):
+    logger.info("get account info for user {0} in {1}".format(userid, crypto))
     user = User.objects.get(pk=userid)
-    userwallets = UserWallet.objects.filter(user__id= userid).filter(wallet__cryptocurrency__currency_code=crypto)
-    available_balance = 0.0
-    locked_balance = 0.0
-    balance = 0.0
-    receiving_addr = ''
-    if (len(userwallets) == 1):
-        wallet_obj = userwallets[0]
-        balance = wallet_obj.balance
-        available_balance = wallet_obj.available_balance
-        locked_balance = wallet_obj.locked_balance
-        receiving_addr = wallet_obj.wallet_addr
-    elif len(userwallets) == 0:
-        raise ValueError('There is no userwallet for userid {0} crypto {1}'.format(userid, crypto))
-    else:
-        raise ValueError('There should just be one userwallet for userid {0} crypto {1} but there are {2}'.format(
-         userid, crypto, len(userwallets)
-        ))
+    userwallet = UserWallet.objects.get(user__id= userid, wallet__cryptocurrency__currency_code=crypto)
+    balance = userwallet.balance
+    available_balance = userwallet.available_balance
+    locked_balance = userwallet.locked_balance
+    receiving_addr = userwallet.wallet_addr
     userpayments = UserPaymentMethod.objects.filter(user__id=userid)
     external_addresses = UserExternalWalletAddress.objects.filter(user__id= userid).filter(cryptocurrency__currency_code=crypto)
     externaladdr = None
     if external_addresses:
+       logger.info('Found the external address record for user {0} with {1}'.format(userid, crypto))
        record = external_addresses[0]
        externaladdr = UserExternalWalletAddressInfo(record.id, record.user.id,
            record.address, record.alias, record.cryptocurrency.currency_code)
+    else:
+       logger.info('There is no external address for user {0} with {1}'.format(userid, crypto))
     payment_methods= []
-    if userpayments is not None:
+    if userpayments:
+       logger.info('User {0} has setup payment methods'.format(userid))
        for method in userpayments:
           payment_methods.append(UserPaymentMethodView(method.id, method.provider.code,
                 method.provider.name,method.account_at_provider,
@@ -136,7 +129,7 @@ def get_user_accountInfo(userid, crypto):
 def get_user_externaladdr_by_id(id):
     record = UserExternalWalletAddress.objects.get(pk=id)
     return UserExternalWalletAddressInfo(record.id, record.user.id,
-        record.address, record.alias,record.cryptocurrency__currency_code)
+        record.address, record.alias,record.cryptocurrency.currency_code)
 
 def create_update_externaladdr(externaladdress, operator):
     operatorObj = UserLogin.objects.get(pk=operator)
@@ -150,9 +143,10 @@ def create_update_externaladdr(externaladdress, operator):
           lastupdated_by = operatorObj
         )
     else:
-        addr = UserExternalWalletAddress.objects.select_for_update().get(pk=externaladdress.id)
-        addr.address = externaladdress.address
-        addr.alias = externaladdresss.alias
-        addr.lastupdated_by = operatorObj
-        addr.save()
+        with transaction.atomic():
+            addr = UserExternalWalletAddress.objects.select_for_update().get(pk=externaladdress.id)
+            addr.address = externaladdress.address
+            addr.alias = externaladdress.alias
+            addr.lastupdated_by = operatorObj
+            addr.save()
     return True
