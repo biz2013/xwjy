@@ -2,7 +2,6 @@ import json
 class UserAccountInfo(object):
     def __init__(self, login, userid, balance, locked_balance, available_balance,
             receiving_address, external_axfund_address,
-            external_address_alias,
             paymentmethods):
         self.username = login
         self.userid = userid
