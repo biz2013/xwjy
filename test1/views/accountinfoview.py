@@ -15,7 +15,7 @@ from views import errorpage
 
 import logging,json
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("site.accountinfo")
 
 def accountinfo(request):
     #try:

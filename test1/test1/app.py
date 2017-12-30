@@ -14,10 +14,12 @@ from views.models.returnstatus import ReturnStatus
 
 import logging,json
 
-logger = logging.getLogger(__name__)
+# root logging.
+slogger = logging.getLogger("site")
+# logger for user registration
+rlogger = logging.getLogger("site.registration")
 
 def home(request):
-    """Show the home page."""
     if request.session['username']:
         return redirect('accountinfo')
     return render(request, 'html/index.html')
@@ -56,6 +58,8 @@ def registration(request):
     if request.method == 'POST':
         login.username = request.POST['username']
         login.password = request.POST['password']
+
+        rlogger.debug("Get registration request : username %s password %s email %s", login.username, login.password, user.email)
         user.email = request.POST['email']
         print "registration: username %s password %s email %s" % (login.username, login.password, user.email)
         manager = ModelManager()

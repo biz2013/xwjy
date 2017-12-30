@@ -11,7 +11,7 @@ implementation of AXFunds.
 Build ubuntu 16.04 image on AWS or 14.04 on AliCloud
 
 please following this sequence
-sudo apt-get update
+sudo apt-get upgrade
 sudo apt-get -y install mysql-server
 sudo apt-get -y install git build-essential libssl-dev libdb++-dev libboost-all-dev libqrencode-dev libminiupnpc-dev python-dev libmysqlclient-dev
 
@@ -129,3 +129,16 @@ Uncomment ";extension=php_curl.dll"
 
 Add "Include /etc/phpmyadmin/apache.conf " into /etc/apache2/apache.conf
 
+----------------
+ Login to Aliyun
+----------------
+ssh -i ~/.ssh/tao-web-hk.pem root@47.52.33.113
+
+--------------
+Test address in aliyun
+--------------
+[
+    "AboGeCuvs8U8nGGuoe9awZzhUDHTkuiG4Y",
+    "AGqfmz49fVFpdoKRfaw2zN7CikWAhUsYdE",
+    "Abvtw2KaFSUdr934YA5dCGuanHugyDT3ov"
+]

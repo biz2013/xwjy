@@ -1,0 +1,39 @@
+[{
+  "model": "users.userwallet",
+  "pk": "1",
+  "fields":{
+    "user": 1,
+    "wallet": 1,
+    "wallet_addr":"AboGeCuvs8U8nGGuoe9awZzhUDHTkuiG4Y",
+    "created_at": "2017-12-17T21:14:00+08:00",
+    "lastupdated_at": "2017-12-17T21:14:00+08:00",
+    "created_by": "sysop",
+    "lastupdated_by": "sysop"
+  }
+},
+{
+  "model": "users.userwallet",
+  "pk": "2",
+  "fields":{
+    "user": 2,
+    "wallet": 1,
+    "wallet_addr":"AGqfmz49fVFpdoKRfaw2zN7CikWAhUsYdE",
+    "created_at": "2017-12-17T21:14:00+08:00",
+    "lastupdated_at": "2017-12-17T21:14:00+08:00",
+    "created_by": "sysop",
+    "lastupdated_by": "sysop"
+  }
+},
+{
+  "model": "users.userwallet",
+  "pk": "3",
+  "fields":{
+    "user": null,
+    "wallet": 1,
+    "wallet_addr":"Abvtw2KaFSUdr934YA5dCGuanHugyDT3ov",
+    "created_at": "2017-12-17T21:14:00+08:00",
+    "lastupdated_at": "2017-12-17T21:14:00+08:00",
+    "created_by": "sysop",
+    "lastupdated_by": "sysop"
+  }
+}]
