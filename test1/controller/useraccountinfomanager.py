@@ -12,6 +12,7 @@ from config import context_processor
 from controller import axfd_utils
 from views.models.useraccountinfo import *
 from views.models.userpaymentmethodview import *
+from views.models.userexternalwalletaddrinfo import *
 
 logger = logging.getLogger(__name__)
 
@@ -116,7 +117,7 @@ def get_user_accountInfo(userid, crypto):
     if external_addresses:
        record = external_addresses[0]
        externaladdr = UserExternalWalletAddressInfo(record.id, record.user.id,
-           record.address, record.alias, record.cryptocurrency__currency_code)
+           record.address, record.alias, record.cryptocurrency.currency_code)
     payment_methods= []
     if userpayments is not None:
        for method in userpayments:
@@ -138,7 +139,20 @@ def get_user_externaladdr_by_id(id):
         record.address, record.alias,record.cryptocurrency__currency_code)
 
 def create_update_externaladdr(externaladdress, operator):
+    operatorObj = UserLogin.objects.get(pk=operator)
     if externaladdress.id == 0:
         UserExternalWalletAddress.objects.create(
-          address
+          user = User.objects.get(pk=externaladdress.userid),
+          cryptocurrency = Cryptocurrency.objects.get(pk=externaladdress.crypto),
+          address = externaladdress.address,
+          alias = externaladdress.alias,
+          created_by = operatorObj,
+          lastupdated_by = operatorObj
         )
+    else:
+        addr = UserExternalWalletAddress.objects.select_for_update().get(pk=externaladdress.id)
+        addr.address = externaladdress.address
+        addr.alias = externaladdresss.alias
+        addr.lastupdated_by = operatorObj
+        addr.save()
+    return True

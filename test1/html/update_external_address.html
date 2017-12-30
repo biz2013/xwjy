@@ -16,6 +16,8 @@
           <h2>添加／更改提币地址</h2>
           <form method="post" class="paper-form" action="/accounts/external_address/" method="post">
             {% csrf_token %}
+            <input type="hidden" name="id" value="{{ user_external_address.id }}"/>
+            <input type="hidden" name="crypto" value="{{ user_external_address.crypto }}"/>
             <input type="hidden" id="txt_id_userid" name="userId" value="{{ user_external_address.user.id }}"/>
             {% if message and message|length > 0 %}
                {% if message_type == 'success' %}
