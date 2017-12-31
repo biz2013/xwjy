@@ -71,6 +71,7 @@
                <input type="hidden" name="owner_user_id" value="{{ owner_user_id }}"/>
                <input type="hidden" name="reference_order_id" value="{{ reference_order_id }}"/>
                <input type="hidden" id="id_unit_price" name="unit_price" value="{{ buyorder.unit_price }}" />
+               <input type="hidden" name="crypto" value="AXFund"/>
                <input type="hidden" id="id_total_amount" name="total_amount" value="{% if buyorder.total_units > 0 %}{{ buyorder.total_units }}{% endif %}"/>
                <div class="form_group">
                  <table class="table">

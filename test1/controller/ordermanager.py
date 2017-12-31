@@ -60,7 +60,7 @@ def create_sell_order(order, operator):
           reference_wallet_trxId = '',
           amount = order.total_amount,
           balance_update_type= 'DEBT',
-          transaction_type = 'OPEN BUY ORDER',
+          transaction_type = 'OPEN SELL ORDER',
           comment = operation_comment,
           #TODO: need to get the transaction and its timestamp
           reported_timestamp = 0,
@@ -127,7 +127,8 @@ def get_user_payment_methods(user_id):
     payment_methods= []
     if userpayments is not None:
        for method in userpayments:
-          payment_methods.append(UserPaymentMethodView(method.id, method.provider.code,
+          payment_methods.append(UserPaymentMethodView(method.id,
+                method.user.id, method.provider.code,
                 method.provider.name,method.account_at_provider,
                 method.provider_qrcode_image))
     return payment_methods
@@ -143,37 +144,81 @@ def get_sellorder_seller_payment_methods(sell_order_id):
                 method.provider_qrcode_image))
     return payment_methods
 
-def create_purchase_order(buyorder, reference_order_id, crypto):
-    reference_order = Order.objects.get(pk=reference_order_id)
-    if reference_order.status != 'PARTIALFILLED' and reference_order.status != 'OPEN':
-        return 'SELLORDER_NOT_OPEN', buyorder
-    if buyorder.total_units > reference_order.units_available_to_trade:
-        print 'sell order %s has %f to trade, buyer buy %f units' % (
-                  reference_order.order_id,
-                  reference_order.units_available_to_trade,
-                  buyorder.total_units)
-        return 'BUY_EXCEED_AVAILABLE_UNITS', buyorder
+def create_purchase_order(buyorder, reference_order_id, operator):
+    operatorObj = UserLogin.objects.get(pk=operator)
     frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
     buyorder.order_id = frmt_date
     userobj = User.objects.get(pk=buyorder.owner_user_id)
-    created_by_user = UserLogin.objects.get(pk=buyorder.owner_login)
-    crypto_currency = Cryptocurrency.objects.get(pk=crypto)
-    reference_order.status = 'LOCKED'
-    reference_order.units_available_to_trade = reference_order.units_available_to_trade - buyorder.total_units
-    reference_order.save()
-    order = Order.objects.create(
-        order_id = buyorder.order_id,
-        user= userobj,
-        created_by = created_by_user,
-        lastupdated_by = created_by_user,
-        reference_order= reference_order,
-        cryptocurrency= crypto_currency,
-        order_type='BUY',
-        sub_type='BUY_ON_ASK',
-        units = buyorder.total_units,
-        unit_price = buyorder.unit_price,
-        unit_price_currency = buyorder.unit_price_currency,
-        status = 'OPEN')
-    order.save()
+    crypto_currency = Cryptocurrency.objects.get(pk=buyorder.crypto)
+    operation_comment = 'User {0} open buy order {1} with total {2}{3}({4}x@{5})'.format(
+        buyorder.owner_user_id, buyorder.order_id, buyorder.total_amount,
+        buyorder.unit_price_currency, buyorder.total_units,
+        buyorder.unit_price)
+    with transaction.atomic():
+        reference_order = Order.objects.select_for_update().get(pk=reference_order_id)
+        if reference_order.status != 'PARTIALFILLED' and reference_order.status != 'OPEN':
+            return 'SELLORDER_NOT_OPEN', buyorder
+        if buyorder.total_units > reference_order.units_available_to_trade:
+            logger.error('sell order %s has %f to trade, buyer buy %f units' % (
+                      reference_order.order_id,
+                      reference_order.units_available_to_trade,
+                      buyorder.total_units))
+            return 'BUY_EXCEED_AVAILABLE_UNITS', buyorder
+        userwallet = UserWallet.objects.select_for_update().get(user__id=buyorder.owner_user_id)
+        logger.info('before creating order {0}, userwallet {1} has balance:{2} available_balance:{3} locked_balance: {4}'.format(
+           frmt_date, userwallet.id, userwallet.balance, userwallet.available_balance, userwallet.locked_balance
+        ))
+        order = Order.objects.create(
+            order_id = buyorder.order_id,
+            user= userobj,
+            created_by = operatorObj,
+            lastupdated_by = operatorObj,
+            reference_order= reference_order,
+            cryptocurrency= crypto_currency,
+            order_type='BUY',
+            sub_type='BUY_ON_ASK',
+            units = buyorder.total_units,
+            unit_price = buyorder.unit_price,
+            unit_price_currency = buyorder.unit_price_currency,
+            total_amount = buyorder.total_amount,
+            status = 'OPEN')
+        order.save()
+        logger.info("order {0} created".format(order.order_id))
+        userwallet_trans = UserWalletTransaction.objects.create(
+          user_wallet = userwallet,
+          balance_begin = userwallet.balance,
+          balance_end = userwallet.balance + buyorder.total_units,
+          locked_balance_begin = userwallet.locked_balance,
+          locked_balance_end = userwallet.locked_balance,
+          available_to_trade_begin = userwallet.available_balance,
+          available_to_trade_end = userwallet.available_balance + buyorder.total_units,
+          reference_order = order,
+          reference_wallet_trxId = '',
+          amount = buyorder.total_amount,
+          balance_update_type= 'CREDIT',
+          transaction_type = 'OPEN BUY ORDER',
+          comment = operation_comment,
+          #TODO: need to get the transaction and its timestamp
+          reported_timestamp = 0,
+          #TODO: need to make it PENDING, if the transaction's confirmation
+          # has not reached the threshold
+          status = 'PENDING',
+          created_by = operatorObj,
+          lastupdated_by = operatorObj
+        )
+        userwallet_trans.save()
+        logger.info('userwallet transaction {0} for order {1} userwallet{2} created'.format(
+            userwallet_trans.id, order.order_id, userwallet.id
+        ))
+        reference_order.status = 'LOCKED'
+        reference_order.units_available_to_trade = reference_order.units_available_to_trade - buyorder.total_units
+        reference_order.save()
+        logger.info('After creating buy order {0}, sell order {1} has available_units:{2} locked_units: {3} original units: {4}'.format(
+           order.order_id, reference_order.order_id,
+           reference_order.units_available_to_trade,
+           reference_order.units - reference_order.units_available_to_trade,
+           reference_order.units
+        ))
+
     buyorder.status = 'OPEN'
     return '', buyorder
