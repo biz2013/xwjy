@@ -22,12 +22,14 @@ from controller.global_utils import *
 from . import app
 from views import mysellorder, homeview, accountinfoview, mypurchaseview
 from views import account_cronjob, externaladdrview, paymentmethods
+from views import redeemview
 
 urlpatterns = [
     url(r'^$', homeview.home, name='home'),
     url(r'^registration/$', app.registration),
     url(r'^accounts/login/$', app.login, name='login'),
     url(r'^accounts/accountinfo/$', accountinfoview.accountinfo, name='accountinfo'),
+    url(r'^accounts/redeem/$', redeemview.redeem),
     url(r'^accounts/external_address/$', externaladdrview.external_address),
     url(r'^accounts/paymentmethods/$', paymentmethods.payment_method),
     url(r'^axfund/transfer/$', app.transfer),
