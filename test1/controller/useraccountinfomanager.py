@@ -114,7 +114,8 @@ def get_user_accountInfo(userid, crypto):
     if userpayments:
        logger.info('User {0} has setup payment methods'.format(userid))
        for method in userpayments:
-          payment_methods.append(UserPaymentMethodView(method.id, method.provider.code,
+          payment_methods.append(UserPaymentMethodView(method.id,
+                user.id, method.provider.code,
                 method.provider.name,method.account_at_provider,
                 method.provider_qrcode_image))
     userInfo = UserAccountInfo(user.login, user.id,

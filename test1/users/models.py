@@ -104,7 +104,6 @@ class Wallet(models.Model):
    lastupdated_at = models.DateTimeField(auto_now=True)
    lastupdated_by = models.ForeignKey('UserLogin', related_name='Wallet_lastupdated_by')
 
-
 class UserWallet(models.Model):
    user = models.ForeignKey('User', on_delete=models.CASCADE, null=True)
    wallet = models.ForeignKey('Wallet', on_delete=models.CASCADE)

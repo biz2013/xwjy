@@ -74,42 +74,6 @@ def registration(request):
         return render(request,'html/register.html',
               {'registration':user})
 
-def payment_method(request):
-    manager = ModelManager()
-    payment_providers = []
-    provider = PaymentProvider()
-    provider.code = 'weixin'
-    provider.name = '微信支付'
-    payment_providers.append(provider)
-    provider = PaymentProvider()
-    provider.code = 'alipay'
-    provider.name = '支付宝'
-    payment_providers.append(provider)
-    provider = PaymentProvider()
-    provider.code = 'heepay'
-    provider.name = '汇钱包'
-    payment_providers.append(provider)
-
-    if request.method == 'GET':
-        userid = int(request.GET.get('id'))
-        user_payment_methods = manager.get_user_payment_methods(userid)
-        return render(request, 'html/update_payment_method.html',
-            {'user_payment_methods':user_payment_methods,
-             'userid': userid,
-             'payment_providers': payment_providers})
-    else:
-        userid = int(request.POST['id'])
-        payment_provider = request.POST['payment_provider']
-        account = request.POST['account']
-        rc, msg = manager.upsert_user_payment_method(userid, payment_provider, account)
-        if rc == 0:
-            return redirect(request, 'accountinfo', { 'rc': rc, 'message': msg})
-        else:
-            user_payment_methods = manager.get_user_payment_methods(userid)
-            return render(request, 'html/update_payment_method.html',
-               {'user_payment_methods':user_payment_methods,
-                'userid': userid,
-                'payment_providers': payment_providers})
 
 def query_user_open_sell_orders(userlogin):
     return Order.objects.filter(user__login = userlogin).filter(order_type='SELL').filter(~Q(status='FILLED') | ~Q(status='CANCELLED'))
