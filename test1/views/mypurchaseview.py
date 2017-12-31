@@ -53,11 +53,11 @@ def show_purchase_input(request):
     owner_user_id = request.POST["owner_user_id"]
     reference_order_id = request.POST["reference_order_id"]
     owner_login = request.POST["owner_login"]
-    unit_price = request.POST["locked_in_unit_price"]
+    unit_price = float(request.POST["locked_in_unit_price"])
     total_units = 0
     if 'quantity' in request.POST:
-       total_units = int(request.POST['quantity'])
-    available_units = request.POST["available_units_for_purchase"]
+       total_units = float(request.POST['quantity'])
+    available_units = float(request.POST["available_units_for_purchase"])
     owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
     #for method in owner_payment_methods:
     #    print ("provider %s has image %s" % (method.provider.name, method.provider_qrcode_image))
@@ -67,6 +67,7 @@ def show_purchase_input(request):
        username,
        unit_price,'CYN',
        total_units, 0,
+       0.0, 'AXFund',
        '','')
     return render(request, 'html/input_purchase.html',
            {'username': username,
@@ -91,9 +92,11 @@ def create_purchase_order(request):
         available_units = float(request.POST['available_units'])
         unit_price = float(request.POST['unit_price'])
         seller_payment_provider = request.POST['seller_payment_provider']
+        crypto= request.POST['crypto']
         total_amount = float(request.POST['total_amount'])
-        buyorder = OrderItem('', userid, username, unit_price, 'CNY', quantity, 0, '', '')
-        rs, buyorder = ordermanager.create_purchase_order(buyorder, reference_order_id, 'AXFund')
+        buyorder = OrderItem('', userid, username, unit_price, 'CNY', quantity,
+            0, total_amount, crypto, '', '')
+        rs, buyorder = ordermanager.create_purchase_order(buyorder, reference_order_id, username)
         if len(rs) > 0:
            logger.error('Failed to create purchase order %s' % rs)
            owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
