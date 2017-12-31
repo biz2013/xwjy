@@ -104,7 +104,6 @@ class Wallet(models.Model):
    lastupdated_at = models.DateTimeField(auto_now=True)
    lastupdated_by = models.ForeignKey('UserLogin', related_name='Wallet_lastupdated_by')
 
-
 class UserWallet(models.Model):
    user = models.ForeignKey('User', on_delete=models.CASCADE, null=True)
    wallet = models.ForeignKey('Wallet', on_delete=models.CASCADE)
@@ -112,10 +111,10 @@ class UserWallet(models.Model):
    balance = models.FloatField(default=0.0)
    locked_balance = models.FloatField(default=0.0)
    available_balance = models.FloatField(default=0.0)
-   last_closed_sellorder_id = models.CharField(max_length=128, null=True)
-   last_closed_buyorder_id = models.CharField(max_length=128, null=True)
-   last_wallet_trxId = models.CharField(max_length=128, default='')
-   last_wallet_timestamp = models.IntegerField(default=0)
+   #last_closed_sellorder_id = models.CharField(max_length=128, null=True)
+   #last_closed_buyorder_id = models.CharField(max_length=128, null=True)
+   #last_wallet_trxId = models.CharField(max_length=128, default='')
+   #last_wallet_timestamp = models.IntegerField(default=0)
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey('UserLogin', related_name='UserWallet_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
