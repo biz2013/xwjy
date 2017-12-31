@@ -25,7 +25,7 @@ def redeem(command, operator):
     with transaction.atomic():
         userwallet = UserWallet.objects.select_for_update().get(user__id=userid,
              wallet__cryptocurrency__currency_code=command.crypto)
-        UserWalletTransaction.objects.create(
+        userwallet_trans = UserWalletTransaction.objects.create(
           user_wallet = userwallet,
           balance_begin = userwallet.balance,
           balance_end = userwallet.balance - command.amount,
@@ -47,6 +47,8 @@ def redeem(command, operator):
           created_by = operatorObj,
           lastupdated_by = operatorObj
         )
+        userwallet_trans.save()
+        userwallet.user_wallet_trans_id = userwallet_trans.id
         userwallet.balance = userwallet.balance - command.amount
         userwallet.available_balance = userwallet.available_balance - command.amount
         userwallet.save()

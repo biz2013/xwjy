@@ -107,6 +107,10 @@ class Wallet(models.Model):
 class UserWallet(models.Model):
    user = models.ForeignKey('User', on_delete=models.CASCADE, null=True)
    wallet = models.ForeignKey('Wallet', on_delete=models.CASCADE)
+   # refer the to last user wallet transaction record's id, which is the
+   # transaction that gives the latest update. Not make it foreign key to
+   # avoid circular dependencys
+   user_wallet_trans_id = models.IntegerField(null=True)
    wallet_addr = models.CharField(max_length=128)
    balance = models.FloatField(default=0.0)
    locked_balance = models.FloatField(default=0.0)
@@ -134,7 +138,12 @@ class UserWalletTransaction(models.Model):
    locked_balance_end = models.FloatField(default=0.0)
    available_to_trade_begin = models.FloatField(default=0.0)
    available_to_trade_end = models.FloatField(default=0.0)
+
+   # if the transaction is related to an order, put order # here
    reference_order = models.ForeignKey('Order', on_delete=models.CASCADE, null=True)
+
+   # if the transaction is related to deposite or redeem, put wallet
+   # txid here
    reference_wallet_trxId = models.CharField(max_length=128, default='')
    amount = models.FloatField(default=0.0)
    balance_update_type= models.CharField(max_length=32, choices=BALANCE_UPDATE_TYPES)
@@ -179,47 +188,61 @@ class UserStatue(models.Model):
 
 class Order(models.Model):
    ORDER_TYPE = (('BUY','Buy'),('SELL','Sell'),('REDEEM','Redeem'))
-   """
-   buy_on_ask and sell_on_bid are for future automatic trading for the games
-   """
+
+   #buy_on_ask and sell_on_bid are for future automatic trading for the games
    SUBORDER_TYPE = (('OPEN','Open'), ('BUY_ON_ASK', 'Buy_on_ask'), ('SELL_ON_BID', 'Sell_on_bid'))
-   """
-   These are not necessarily final, but I think so far we need these
-   """
+
+   # These are not necessarily final, but I think so far we need these
    ORDER_STATUS = (('OPEN','Open'),('CANCELLED','Cancelled'), ('FILLED','Filled'), ('PAID','Paid'),
             ('DELIVERED','Delivered'),('PARTIALFILLED','PartialFilled'),('LOCKED','Locked'))
    CURRENCY = (('CYN', 'Renminbi'), ('USD', 'US Dollar'))
 
+   # status for automatic payment
+   PAYMENT_STATUS = (('NOTSTATRTED', 'Not Started'),
+     ('PAYSUCCESS', 'PaySuccess'),
+     ('SUCCESS','Success'),
+     ('EXPIREDINVALID', 'ExpiredInvalid'),
+     ('DEVCLOSE', 'DevClose'),
+     ('USERABANDON', 'UserAbandon'),
+     ('UNKONW','UnKnow'),
+     ('FAILURE','Failure'),
+     ('STARTING', 'Starting'))
    order_id = models.CharField(max_length=64, primary_key=True)
    user = models.ForeignKey('User', on_delete=models.CASCADE)
+
+   # purchase order only, this is the order # of the sell order it
+   # buy from
    reference_order = models.ForeignKey('self', null=True)
    cryptocurrency = models.ForeignKey('Cryptocurrency')
-   reference_wallet = models.ForeignKey('Wallet', null= True)
-   reference_wallet_trxId = models.CharField(max_length=128, null = True)
+
+   # bill no of the payment. purchase order only,
+   payment_bill_no = models.CharField(max_length=128, null=True)
+
+   # status of the payment, this provides refined status info
+   # purchase order only,
+   payment_status = models.CharField(max_length=64, choices=PAYMENT_STATUS)
+
+   #reference_wallet = models.ForeignKey('Wallet', null= True)
+   # For purchase order only, once unit is delivered, this is the
+   # transaction id of
+   #reference_wallet_trxId = models.CharField(max_length=128, null = True)
    order_type = models.CharField(max_length=32, choices=ORDER_TYPE)
    sub_type = models.CharField(max_length=32, default='OPEN', choices=SUBORDER_TYPE)
    units = models.FloatField()
    unit_price = models.FloatField()
    unit_price_currency = models.CharField(max_length = 8, choices=CURRENCY, default='CYN')
-   """
-   We use lock count to verify whether there's buy order lock on the
-   sell order
-   """
+   #We use lock count to verify whether there's buy order lock on the
+   #sell order
    lock_count = models.IntegerField(default=0)
-   """
-   how many units left to be taken, for open purchase only
-   """
+
+   #how many units left to be taken, for sale order only, it is
+   #units - paid units
    units_balance = models.FloatField(default=0.0)
-   """
-   how many units is avaiable for buy, buyer may lock some units but
-   they have not paid, so those units are not available for buy. But
-   they are not counte as sold or bought since the transaction is not done
-   so units_balance may not reflect them
-   """
+   # units - paid units - units being bought but not paid (locked)
    units_available_to_trade = models.FloatField(default=0.0)
 
    # the total amount of original units x unit price, used by
-   # purchase order.
+   # purchase order. To the two decimal places
    total_amount = models.FloatField(default = 0.0)
    status = models.CharField(max_length=32, choices=ORDER_STATUS)
 
