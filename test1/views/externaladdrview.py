@@ -19,7 +19,7 @@ import logging,json
 logger = logging.getLogger("site.externaladdresss")
 
 def external_address(request):
-    #try:
+    try:
        if not user_session_is_valid(request):
           return render(request, 'html/login.html', { 'next_action' : '/accounts/accountinfo/'})
        externaladdress = None
@@ -53,8 +53,8 @@ def external_address(request):
           useraccountinfomanager.create_update_externaladdr(
              externaladdress, request.session[REQ_KEY_USERNAME])
           return redirect('accountinfo')
-    #except:
-       error_msg = 'external_address hit exception: {0}'.format(sys.exc_info()[0])
-       logger.error(error_msg)
+    except Exception as e:
+       error_msg = '添加／修改提币抵制遇到错误: {0}'.format(sys.exc_info()[0])
+       logger.exception(error_msg)
        return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))

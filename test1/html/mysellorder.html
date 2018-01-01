@@ -74,7 +74,7 @@
           <tr>
             <td>{{ order.available_units }}</td>
             <td>{{ order.unit_price }}</td>
-            <td>{{ order.available_units|mul:order.unit_price }};</td>
+            <td>{{ order.available_units|mul:order.unit_price }}</td>
             <td>{% if order.status == 'LOCKED' %}锁定{% else %}<button class="btn btn-primary" type="button">取消</button>{% endif %}</td>
               <!--<td>{{ order.lastmodified_at }}</td>-->
           </tr>
@@ -154,7 +154,9 @@
     }
     function show_total_amount(units, price) {
       if (!isNaN(units) && !isNaN(price)) {
-        $("#total_amount").text(" " + (parseFloat(units) * parseFloat(price)).toFixed(2));
+        var total_amount = (parseFloat(units) * parseFloat(price)).toFixed(2);
+        $("#total_amount").text(total_amount);
+        $("#txt_id_total_amount").val(""+total_amount);
       }
     }
     </script>
@@ -162,7 +164,8 @@
       {% csrf_token %}
       <input type="hidden" id="id_username" name="username" value="{{ username }}" />
       <input type="hidden" id="id_unit_price_currency" name="unit_price_currency" value="CYN"/>
-      <input type="hidden" id="id_crypto" name="crypto" value="axfund" />
+      <input type="hidden" id="id_crypto" name="crypto" value="AXFund" />
+      <input type="hidden" id="txt_id_total_amount" name="total_amount" value=""/>
       <div class="modal-dialog">
         <!-- Modal content-->
         <div class="modal-content">

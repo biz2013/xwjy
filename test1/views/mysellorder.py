@@ -7,12 +7,12 @@ from django.db.models import Q
 from django.shortcuts import render, redirect
 
 # this is for test UI. A fake one
-from controller.test_model_manager import ModelManager
 from controller.global_constants import *
+from controller.global_utils import *
 from controller import ordermanager
 from controller import useraccountinfomanager
 
-from users.models import *
+from views.models.orderitem import OrderItem
 from views.models.returnstatus import ReturnStatus
 from views import errorpage
 
@@ -25,16 +25,17 @@ def sell_axfund(request):
           return render(request, 'html/login.html', { 'next_action' : '/mysellorder/'})
        username = request.session[REQ_KEY_USERNAME]
        userId = int(request.session[REQ_KEY_USERID])
-       #userId = int(request.session['nothing'])
-       manager = ModelManager()
        status = None
        if request.method == 'POST':
           units = float(request.POST['quantity'])
           unit_price = float(request.POST['unit_price'])
           unit_price_currency = request.POST['unit_price_currency']
-          crypto_currency = request.POST['crypto']
-          status = ordermanager.create_sell_order(userId, units, unit_price,
-                        unit_price_currency, crypto_currency, username)
+          total_amount = float(request.POST['total_amount'])
+          crypto = request.POST['crypto']
+          order = OrderItem('', userId, username, unit_price,
+              unit_price_currency, units, units, total_amount,
+              crypto, None, None)
+          status = ordermanager.create_sell_order(order, username)
        accountinfo = useraccountinfomanager.get_user_accountInfo(userId, 'AXFund')
        sellorders = ordermanager.get_user_open_sell_orders(userId)
        buyorders = ordermanager.get_pending_incoming_buy_orders_by_user(userId)
@@ -42,8 +43,8 @@ def sell_axfund(request):
                 'buyorders':buyorders, REQ_KEY_USERNAME: username,
                 'previous_call_status' : status})
 
-    except:
-       error_msg = 'sell_axfund hit exception: {0}'.format(sys.exc_info()[0])
-       logger.error(error_msg)
+    except Exception as e:
+       error_msg = '出售美基金遇到错误: {0}'.format(sys.exc_info()[0])
+       logger.exception(error_msg)
        return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
