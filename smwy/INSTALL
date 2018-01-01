@@ -50,6 +50,20 @@ at ~/workspace/django/xwjy/qb/ should be the datadir for starting axfd. Use the 
 please use different wallet instead of use the backup_wallet.dat
 
 
+# Install qrcode tools
+# This need zbar lib.
+
+# On MAC, we need to do this to install zbar lib, the pip install will install
+# a fix that prevent it to crash
+brew install zbar
+pip install git+https://github.com/npinchot/zbar.git
+pip install qrtools
+
+# on Linux
+pip install zbar
+pip install qrtools
+
+
 #TODO: need a startup systemd for wallet
 ---------------------
 Prepare database
