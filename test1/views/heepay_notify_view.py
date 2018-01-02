@@ -11,24 +11,6 @@ logger = logging.getLogger("site.heepay_confirm")
 
 @csrf_exempt
 def heepay_confirm_payment(request):
-    """
-    {
-	"version": "1.0",
-	"app_id": "hyq17121610000800000911220E16AB0",
-	"subject": "购买1.020000CNY",
-	"out_trade_no": "20180102122319_293146",
-	"hy_bill_no": "180102122300364021000081666",
-	"payment_type": "Alipay",
-	"total_fee": "1",
-	"trade_status": "Success",
-	"real_fee": "1",
-	"payment_time": "20180102122507",
-	"api_account_mode": "Account",
-	"to_account": "15811302702",
-	"from_account": "18600701961",
-	"sign": "EEB980CD2663C9E27C7A38094410CB60"
-}
-    """
     try:
         if request.method == 'POST':
             logger.info("Receive async payment notification ")
@@ -49,11 +31,14 @@ def heepay_confirm_payment(request):
             error_msg = 'Receive notification with unsupported trade_status %s' % trade_status
             logger.error(error_msg)
             return HttpResponseBadRequest(content = error_msg)
-        ordermanager.update_order_with_heepay_notification(json_data)
+        operator = 'sysop'
+        userid, username = ordermanager.get_order_owner_info(json_data['out_trade_no'])
+        ordermanager.update_order_with_heepay_notification(json_data,
+                 userid,
+                 operator if request.method=='POST' else username)
         if request.method == 'GET':
-            userid, username = ordermanager.get_order_owner_info(json_data['out_trade_no'])
             request.session[REQ_KEY_USERID] = userid
-            request.session[REQ_KEY_USERNAME] = username
+            request.session[REQ_KEY_USERNAME] = operator
             return redirect('accountinfo')
         else:
             return HttpResponse(content='OK')
