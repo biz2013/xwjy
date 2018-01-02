@@ -222,3 +222,6 @@ def create_purchase_order(buyorder, reference_order_id, operator):
 
     buyorder.status = 'OPEN'
     return '', buyorder
+
+def update_order_with_heepay_notification(notify_json):
+    pass
