@@ -225,3 +225,6 @@ def create_purchase_order(buyorder, reference_order_id, operator):
 
 def update_order_with_heepay_notification(notify_json):
     pass
+
+def get_order_owner_info(order_id):
+    pass
