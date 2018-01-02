@@ -209,4 +209,7 @@ print 'base dir path', BASE_DIR
 
 # Where the files will be, this will be updated
 # for real deployment
-#MEDIA_ROOT='/var/www/test1/'
+MEDIA_URL='/media/'
+MEDIA_ROOT= os.path.join(BASE_DIR,'')
+
+print 'media root is %s' % (MEDIA_ROOT)

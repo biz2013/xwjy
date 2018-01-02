@@ -19,6 +19,8 @@ slogger = logging.getLogger("site")
 # logger for user registration
 rlogger = logging.getLogger("site.registration")
 
+def testpage(request):
+    return render(request, 'html/testpage.html')
 def home(request):
     if request.session['username']:
         return redirect('accountinfo')
