@@ -21,6 +21,7 @@ from views.models.orderitem import OrderItem
 from views.models.userpaymentmethodview import *
 from views.models.returnstatus import ReturnStatus
 from views import errorpage
+from test1 import settings
 
 logger = logging.getLogger("site.purchaseview")
 
