@@ -83,6 +83,8 @@ class HeePayManager(object):
        img_path = os.path.join('qrcode', qrcode_filename)
        return img_path
 
+   def get_payment_confirmation_json(request):
+       pass
 """
 {"sign":"19D4E6B0418D4F47CDE76BF3AA1B50AD"}
 """

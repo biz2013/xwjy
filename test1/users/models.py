@@ -194,7 +194,8 @@ class Order(models.Model):
    SUBORDER_TYPE = (('OPEN','Open'), ('BUY_ON_ASK', 'Buy_on_ask'), ('SELL_ON_BID', 'Sell_on_bid'))
 
    # These are not necessarily final, but I think so far we need these
-   ORDER_STATUS = (('OPEN','Open'),('CANCELLED','Cancelled'), ('FILLED','Filled'), ('PAID','Paid'),
+   ORDER_STATUS = (('OPEN','Open'),('CANCELLED','Cancelled'), ('FILLED','Filled'),
+            ('PAYING','Paying'), ('PAID','Paid'),
             ('DELIVERED','Delivered'),('PARTIALFILLED','PartialFilled'),('LOCKED','Locked'))
    CURRENCY = (('CYN', 'Renminbi'), ('USD', 'US Dollar'))
 
@@ -284,13 +285,16 @@ class Transaction(models.Model) :
 
 
 class OrderChangeLog(models.Model):
-   order_action = (('OPEN_PAYMENT_CONFIRM', 'Open_Payment_Confirmation'),
+   order_action = (('OPEN_PAYMENT', 'Open_Payment'),
       ('OPEN_PAYMENT_FAILURE','Open_Payment_Failure'),
-      ('PAYMENT_CONFIRM','Payment_Confirm'))
+      ('PAYMENT_PROCESSING','Payment_Processing'),
+      ('PAYMENT_SUCCESS', 'Payment_Success'),
+      ('FUND_DELIVERED','Fund_Delivered')
+      )
    order = models.ForeignKey('Order', on_delete=models.CASCADE)
    action = models.CharField(max_length = 32, choices=order_action)
    amount = models.FloatField(default=0.0)
-   message = models.CharField(max_length = 255)
+   message = models.CharField(max_length = 1024)
    timestamp = models.DateTimeField()
 
 # This is to save json data that relate to cronjob,
