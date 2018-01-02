@@ -26,6 +26,7 @@ from views import redeemview
 
 urlpatterns = [
     url(r'^$', homeview.home, name='home'),
+    url(r'^testpage/$', app.testpage),
     url(r'^registration/$', app.registration),
     url(r'^accounts/login/$', app.login, name='login'),
     url(r'^accounts/accountinfo/$', accountinfoview.accountinfo, name='accountinfo'),
@@ -41,4 +42,4 @@ urlpatterns = [
     url(r'^purchase/createorder2/$', mypurchaseview.create_purchase_order),
     url(r'^account/cron/update_receive/$', account_cronjob.update_account_with_receiving_fund),
     url(r'^logout/$', app.logout)
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

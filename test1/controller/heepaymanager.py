@@ -1,14 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import json
-import sys
+import sys, os
 import httplib
 import time
 import pytz
 import datetime as dt
 import hashlib
 import shutil
-#import qrtools
+import qrtools
 
 class HeePayManager(object):
    def __init__(self):
@@ -31,7 +31,7 @@ class HeePayManager(object):
        biz_content = biz_content + ('\"subject\":\"购买%fCNY\",' %(amount))
        biz_content = biz_content + ('\"total_fee\":\"1\",')
        biz_content = biz_content + ('\"api_account_mode\":\"Account\",')
-       biz_content = biz_content + ('\"from_account\":\"{0}\",'.format(buyer_account))
+       #biz_content = biz_content + ('\"from_account\":\"{0}\",'.format(buyer_account))
        biz_content = biz_content + ('\"to_account\":\"{0}\",'.format(seller_account))
        biz_content = biz_content + ('\"client_ip\":\"%s\"' % (client_ip))
        if notify_url is not None and len(notify_url) > 0:
@@ -75,17 +75,16 @@ class HeePayManager(object):
          print 'create_purchase_order:Unexpected error: {0}'.format(sys.exc_info()[0])
          raise
 
-   def generate_heepay_qrcode(heepay_response_json, media_root):
-       dst = os.path.join(media_root,'qrcode',
-            heepay_response_json['out_trade_no'],'hy_bill_no',
-            '{0}.png'.format(heepay_response_json['hy_bill_no']))
-       """myQR = qrtools.QR(data=heepay_response_json['ht_url'])
+   def generate_heepay_qrcode(self, heepay_response_json, media_root):
+       qrcode_filename = '{0}_{1}.png'.format(
+          heepay_response_json['out_trade_no'],
+          heepay_response_json['hy_bill_no']
+       )
+       dst = os.path.join(media_root, 'qrcode', qrcode_filename)
+       myQR = qrtools.QR(data=heepay_response_json['hy_url'], pixel_size=6)
        myQR.encode()
        shutil.move(myQR.filename, dst)
-       """
-       img_path = os.path.join('/qrcode',
-            heepay_response_json['out_trade_no'],'hy_bill_no',
-            '{0}.png'.format(heepay_response_json['hy_bill_no']))
+       img_path = os.path.join('qrcode', qrcode_filename)
        return img_path
 
 """
