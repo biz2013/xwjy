@@ -104,17 +104,19 @@ def mysellorder(request):
             'previous_call_status' : status})
 
 def confirm_payment(request):
+    slogger.info("get into return_url")
     if request.method == 'POST':
        json_data = json.loads(request.body) # request.raw_post_data w/ Django < 1.4
-       print "Return url:we recevied from heepay %s" % json.dumps(json_data)
+       slogger.info("Return url:we recevied from heepay %s" % json.dumps(json_data))
     else:
-       print "Return url:surprise we get GET notification from heepay"
+       slogger.info("Return url:surprise we get GET notification from heepay")
     return redirect('accountinfo')
 
 def heepay_confirm_payment(request):
+    slogger.info("enter heepay_confirm_payment")
     if request.method == 'POST':
        json_data = json.loads(request.body) # request.raw_post_data w/ Django < 1.4
-       print "we recevied from heepay %s" % json.dumps(json_data)
+       slogger.info("we recevied from heepay %s" % json.dumps(json_data))
     else:
-       print "surprise we get GET notification from heepay"
+       slogger.info("surprise we get GET notification from heepay")
     return redirect('purchase')

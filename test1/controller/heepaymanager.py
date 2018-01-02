@@ -9,6 +9,9 @@ import datetime as dt
 import hashlib
 import shutil
 import qrtools
+import logging
+
+logger = logging.getLogger("site.heepaymanager")
 
 class HeePayManager(object):
    def __init__(self):
@@ -47,7 +50,7 @@ class HeePayManager(object):
                       biz_content,
                       wallet_action, frmt_date,
                       app_key)
-       print 'content to be signed: {0}'.format(content_to_signed)
+       logger.info('content to be signed: {0}'.format(content_to_signed))
        m.update(content_to_signed)
        signed_str = m.hexdigest()
        jsonobj['sign'] =  signed_str.upper()
@@ -55,25 +58,15 @@ class HeePayManager(object):
        return json.dumps(jsonobj,ensure_ascii=False)
 
    def send_buy_apply_request(self, payload):
-       try:
-         """
-         https://wallet.heepay.com/Api/v1/PayApply
-         """
-         conn = httplib.HTTPSConnection('wallet.heepay.com')
-         pay_url = '/Api/v1/PayApply'
-         print 'the payload is ' + payload
-         headers = {"Content-Type": "application/json",
-                   "charset": "UTF-8"}
-         conn.request('POST', pay_url, payload, headers)
-         response = conn.getresponse()
-         return response.status, response.reason, response.read()
+       conn = httplib.HTTPSConnection('wallet.heepay.com')
+       pay_url = '/Api/v1/PayApply'
+       logger.info('the payload is {0}'.format(payload))
+       headers = {"Content-Type": "application/json",
+               "charset": "UTF-8"}
+       conn.request('POST', pay_url, payload, headers)
+       response = conn.getresponse()
+       return response.status, response.reason, response.read()
 
-       except httplib.HTTPException as ex:
-         print 'Error {0}'.format(ex)
-         raise ValueError('Exception found during sending alert.[{0}]'.format(ex))
-       except:
-         print 'create_purchase_order:Unexpected error: {0}'.format(sys.exc_info()[0])
-         raise
 
    def generate_heepay_qrcode(self, heepay_response_json, media_root):
        qrcode_filename = '{0}_{1}.png'.format(
@@ -81,7 +74,10 @@ class HeePayManager(object):
           heepay_response_json['hy_bill_no']
        )
        dst = os.path.join(media_root, 'qrcode', qrcode_filename)
-       myQR = qrtools.QR(data=heepay_response_json['hy_url'], pixel_size=6)
+       content = heepay_response_json['hy_url'].encode('utf8')
+       logger.info('generate qrcode for {0} refers to hy_bill_no {1}'.format(
+           content, heepay_response_json['hy_bill_no']))
+       myQR = qrtools.QR(data=content, pixel_size=6)
        myQR.encode()
        shutil.move(myQR.filename, dst)
        img_path = os.path.join('qrcode', qrcode_filename)
