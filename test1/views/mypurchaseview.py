@@ -39,9 +39,9 @@ def show_active_sell_orders(request):
                 REQ_KEY_USERNAME: username,
                 'previous_call_status' : status})
 
-    except:
-       error_msg = 'sell_axfund hit exception: {0}'.format(sys.exc_info()[0])
-       logger.error(error_msg)
+    except Exception as e:
+       error_msg = '显示现有卖单出现错误: {0}'.format(sys.exc_info()[0])
+       logger.exception(e)
        return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
 
@@ -81,7 +81,7 @@ def show_purchase_input(request):
            )
 
 def create_purchase_order(request):
-    #try:
+    try:
         logger.debug('create_purchase_order()...')
         if not user_session_is_valid(request):
            return render(request, 'html/login.html', { 'next_action' : '/purchase/'})
@@ -128,7 +128,7 @@ def create_purchase_order(request):
                raise ValueError('Find more than one accounts for buyer %d\'s account with payment provider %s', owner_user_id, seller_payment_provider)
             buyer_account = buyer_accounts[0].account_at_provider.encode('ascii')
 
-        print 'find seller account %s and buyer account %s with provider %s' % (seller_account, buyer_account, seller_payment_provider)
+        logger.info('find seller account %s and buyer account %s with provider %s' % (seller_account, buyer_account, seller_payment_provider))
 
         # read the sitsettings
         sitesettings = context_processor.settings(request)['settings']
@@ -146,7 +146,7 @@ def create_purchase_order(request):
                  notify_url,
                  return_url)
             status, reason, message = heepay.send_buy_apply_request(json_payload)
-            print "call heepay response: status %s reason %s message %s" % (status, reason, message)
+            logger.info("call heepay response: status %s reason %s message %s" % (status, reason, message))
             go_to_pay = False
             if status == 200:
                json_response = json.loads(message)
@@ -170,8 +170,8 @@ def create_purchase_order(request):
            'buyer_payment_methods': useraccountInfo.paymentmethods,
            'returnstatus' : ReturnStatus(-1, rs, '') }
         )
-    #except:
-        error_msg = 'create_purchase order hit exception: {0}'.format(sys.exc_info()[0])
-        logger.error(error_msg)
+    except Exception as e:
+        error_msg = '创建买单遇到错误: {0}'.format(sys.exc_info()[0])
+        logger.exception(e)
         return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
