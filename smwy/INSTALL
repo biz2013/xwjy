@@ -60,6 +60,8 @@ pip install git+https://github.com/npinchot/zbar.git
 pip install qrtools
 
 # on Linux
+# To install zbar, for debian derivative (like ubuntu), you need to install zbar's developement package, which contains the header file zbar.h
+sudo apt-get install libzbar-dev
 pip install zbar
 pip install qrtools
 
