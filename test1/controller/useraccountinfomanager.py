@@ -16,6 +16,88 @@ from views.models.userexternalwalletaddrinfo import *
 
 logger = logging.getLogger("site.useraccountinfomanager")
 
+def update_user_wallet_based_on_deposit(trx, user_wallet, min_trx_confirmation,
+                                        operator):
+    try:
+        user_wallet_trans = UserWalletTransaction.objects.filter(
+            user_wallet__user__id=entry.user.id,
+            user_wallet__wallet_addr=entry.wallet_addr,
+            reference_wallet_trxId=trx['txid'])
+        if user_wallet_trans.status == 'PENDING' and trx['confirmation'] >= min_trx_confirmation:
+            logger.info('txid {0} is confirmed, need to change status for user_wallet_trans {1}'.format(
+                 trx['txid'], user_wallet_trans.id
+            ))
+            with transactin.atomic():
+                user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet.id)
+                balance_end = user_wallet.balance + float(trx['amount'])
+                available_to_trade_end = user_wallet.available_balance + float(trx['amount'])
+                user_wallet_trans.balance_begin = user_wallet.balance
+                user_wallet_trans.balance_end = balance_end
+                user_wallet_trans.available_to_trade_begin = user_wallet.available_balance
+                user_wallet_trans.available_to_trade_end = available_to_trade_end
+                user_wallet_trans.lastupdated_by = operator
+                user_wallet_trans.save()
+
+                user_wallet.balance = balance_end
+                user_wallet.available_balance = available_to_trade_end
+                user_wallet.user_wallet_trans_id = wallet_trans.id
+                user_wallet.lastupdated_by = operator
+                user_wallet.save()
+            logger.error('Update user wallet balance for user id {0} address {1} related to newly confirmed txid {2}'.format(
+                 user_wallet.user.id, user_wallet.address, trx['txid']))
+        elif user_wallet_trans.status == 'PENDING' and trx['confirmation'] < min_trx_confirmation:
+            if int(dt.datetime.utcnow().timestamp()) - trx['timereceived'] >= 24 * 3600:
+                logger.warn('Wallet deposite txid {0} has not had {1} confirmation after more than a day'.format(trx['txid'], min_trx_confirmation))
+        elif user_wallet_trans.status == 'PROCESSED' and trx['confirmation'] < min_trx_confirmation:
+            logger.error("How come txid {0} only has {1} confirmation but wallet_trans {2} is PROCESSED".format(
+                trx['txid'], trx['confirmation'], user_wallet_trans.id
+            ))
+        else:
+            logger.info('txid {0} has been reflected in transaction, nothing to do'.format(trx['txid']))
+
+    except UserWalletTransaction.DoesNotExist:
+        with transactin.atomic():
+            trans_status = 'PENDING'
+            if trx['confirmation'] >= min_trx_confirmation:
+                user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet.id)
+                trans_status = 'PROCESSED'
+            balance_end = user_wallet.balance + float(trx['amount'])
+            available_to_trade_end = user_wallet.available_balance + float(trx['amount'])
+            wallet_trans = UserWalletTransaction.objects.create(
+                user_wallet = user_wallet,
+                balance_begin= user_wallet.balance,
+                balance_end = balance_end,
+                locked_balance_begin = user_wallet.locked_balance,
+                locked_balance_end = user_wallet.locked_balance,
+                available_to_trade_begin = user_wallet.available_balance,
+                available_to_trade_end = available_to_trade_end,
+                reference_order = null,
+                reference_wallet_trxId = trx['txid'],
+                amount = trx['amount'],
+                balance_update_type = 'CREDIT',
+                transaction_type = 'DEPOSIT',
+                comment = 'User deposit',
+                reported_timestamp = trx['timereceived'],
+                status = status,
+                created_by = operator,
+                lastupdated_by = operator
+            )
+            wallet_trans.save()
+            logger.info('Create deposit transaction {0} related to txid {1}'.format(
+                  wallet_trans.id,trx['txid']))
+            if trx['confirmation'] >= min_trx_confirmation:
+                user_wallet.balance = balance_end
+                user_wallet.available_balance = available_to_trade_end
+                user_wallet.user_wallet_trans_id = wallet_trans.id
+                user_wallet.lastupdated_by = operator
+                user_wallet.save()
+                logger.error('Update user wallet balance for user id {0} address {1} related to txid {2}'.format(
+                    user_wallet.user.id, user_wallet.address, trx['txid']))
+
+    except UserWalletTransaction.MultipleObjectsReturned:
+         logger.error('There are more than one transaction related to txid {0} for user id {1} on receiving address {2}'.format(
+             trx['txid'], user_wallet.user.id, user_wallet.address))
+
 def update_account_balance_with_wallet_trx(crypto, wallet_account_name, lookback_count, min_trx_confirmation):
     # prepare the data for sysop, which will be the created_by and last
     # updated by
@@ -42,55 +124,20 @@ def update_account_balance_with_wallet_trx(crypto, wallet_account_name, lookback
     trans = axfd_utils.axfd_listtransactions(wallet_account_name, lookback_count)
     for trx in trans:
         # only process confirmed wallet transactions
-        if trx['confirmations'] >= min_trx_confirmations:
-           if trx['category'] == 'receive':
-              if trx['address'] in wallet_lookup.keys:
-                 entry = wallet_lookup[trx.address]
-                 user_trans_count = UserWalletTransaction.objects.filter(
-                     user_wallet__user__id=entry.user.id,
-                     user_wallet__wallet_addr=entry.wallet_addr,
-                     reference_wallet_trxId=trx['txid']).count()
-                 # if this is new transactin id, then create an credit trans
-                 # to UserWalletTransaction
-                 if user_trans_count == 0:
-                     with transactin.atomic():
-                         user_wallet = UserWallet.objects.select_for_update().get(pk=entry.id)
-                         balance_end = user_wallet.balance + trx['amount']
-                         available_to_trade_end = user_wallet.available_balance + trx['amount']
-                         UserWalletTransaction.objects.create(
-                            user_wallet = user_wallet,
-                            balance_begin= user_wallet.balance,
-                            balance_end = balance_end,
-                            locked_balance_begin = user_wallet.locked_balance,
-                            locked_balance_end = user_wallet.locked_balance,
-                            available_to_trade_begin = user_wallet.available_balance,
-                            available_to_trade_end = available_to_trade_end,
-                            reference_order = null,
-                            reference_wallet_trxId = trx['txid'],
-                            amount = trx['amount'],
-                            balance_update_type = 'CREDIT',
-                            transaction_type = 'DEPOSIT',
-                            comment = 'User deposit',
-                            reported_timestamp = trx['timereceived'],
-                            status = 'PROCESSED',
-                            created_by = operator,
-                            lastupdated_by = operator
-                         )
-                         user_wallet.balance = balance_end
-                         user_wallet.available_balance = available_to_trade_end
-                         user_wallet.save()
-                 elif user_trans_count > 1:
-                     logger.error('There are more than one transaction related to txid {0} for user id {1} on receiving address {2}'.format(
-                         trx['txid'], entry.userid, entry.address))
-                 else:
-                     pass
-
-              else:
-                 logger.error('Encounter transaction related to address {0} which does not belong to any user'.format(trx['address']))
-        else:
-           if trx['category'] == 'send':
-              if int(dt.datetime.utcnow().timestamp()) - trx['timereceived'] >= 24 * 3600:
-                 logger.error('Wallet redeem txid {0} has not had {1} confirmation after more than a day'.format(trx['txid'], min_trx_confirmation))
+        if trx['category'] == 'receive':
+            if trx['address'] in wallet_lookup.keys:
+                entry = wallet_lookup[trx.address]
+                update_user_wallet_based_on_deposit(
+                      trx, entry, min_trx_confirmation, operator)
+            else:
+                logger.error('Encounter transaction related to address {0} which does not belong to any user'.format(trx['address']))
+        elif trx['category'] == 'send':
+            if trx['address'] in wallet_lookup.keys:
+                entry = wallet_lookup[trx.address]
+                update_user_wallet_based_on_deposit(
+                      trx, entry, min_trx_confirmation, operator)
+            else:
+                logger.error('Encounter transaction related to address {0} which does not belong to any user'.format(trx['address']))
 
 def get_user_accountInfo(userid, crypto):
     logger.info("get account info for user {0} in {1}".format(userid, crypto))
