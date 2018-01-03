@@ -83,8 +83,27 @@ class HeePayManager(object):
        img_path = os.path.join('qrcode', qrcode_filename)
        return img_path
 
-   def get_payment_confirmation_json(request):
-       pass
+   def confirmation_is_valid(self, json_data, app_key):
+       keys = sorted(['version','app_id', 'subject','out_trade_no',
+            'hy_bill_no', 'payment_type', 'total_fee',
+            'trade_status', 'real_fee', 'attach',
+            'api_account_mode','to_account','from_account'])
+       content = ''
+       count=0
+       for key in keys:
+           if key in json_data:
+               content = content + ('' if count == 0 else '&') + key + '=' + json_data[key]
+       content = content + 'key=' + app_key
+       m = hashlib.md5()
+       logger.info('the content to be verified with signature: {0}'.format(content))
+       m.update(content)
+       signed_str = m.hexdigest()
+       logger.info('the signed of content is {0} and the original sign is {1}'.format(
+             signed_str, json_data['sign']
+       ))
+       return signed_str == json_data['sign']
+
+
 """
 {"sign":"19D4E6B0418D4F47CDE76BF3AA1B50AD"}
 """

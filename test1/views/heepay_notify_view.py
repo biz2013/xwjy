@@ -9,6 +9,45 @@ from controller import ordermanager
 
 logger = logging.getLogger("site.heepay_confirm")
 
+def get_payment_confirmation_json(request, app_key):
+   logger.info('get_payment_confirmation_json()')
+   json_data = {}
+   if request.method == 'POST':
+       json_data = json.loads(request.body)
+   else:
+       json_data['version'] = request.GET['version']
+       json_data['app_id'] = request.GET['app_id']
+       json_data['subject'] = request.GET['subject']
+       json_data['out_trade_no'] = request.GET['out_trade_no']
+       json_data['hy_bill_no'] = request.GET['hy_bill_no']
+       json_data['payment_type'] = request.GET['payment_type']
+       json_data['total_fee'] = request.GET['total_fee']
+       json_data['trade_status'] = request.GET['trade_status']
+       json_data['real_fee'] = request.GET['real_fee']
+       json_data['payment_time'] = request.GET['payment_time']
+       if 'attach' in request.GET:
+           json_data['attach']
+       if 'api_account_mode' in request.GET:
+           json_data['api_account_mode'] = request.GET['api_account_mode']
+       if 'to_open_id' in request.GET:
+           json_data['to_open_id'] = request.GET['to_open_id']
+       if 'from_open_id' in request.GET:
+           json_data['from_open_id'] = request.GET['from_open_id']
+       if 'to_account' in request.GET:
+           json_data['to_account'] = request.GET['to_account']
+       if 'from_account' in request.GET:
+           json_data['from_account'] = request.GET['from_account']
+       json_data['sign'] = request.GET['sign']
+
+   logger.info('Receive payment confirmation {0}'.format(json.dumps(json_data)))
+   manager = HeePayManager()
+   if not manager.confirmation_is_valid(json_data, app_key):
+       return None
+   return json_data
+
+# This is the handler of notification from heepay
+# If it is POST, it can only return 'ok' or 'error'
+#
 @csrf_exempt
 def heepay_confirm_payment(request):
     try:
@@ -17,20 +56,20 @@ def heepay_confirm_payment(request):
         elif request.method == 'GET':
             logger.info("Receive sync payment notification")
         else:
-            #TODO error
-            pass
-        manager = HeePayManager()
-        json_data = manager.get_payment_confirmation_json(request)
+            return HttpResponse(content='error')
+        sitesettings = context_processor.settings(request)['settings']
+        json_data = get_payment_confirmation_json(request,
+                          sitesetting.sitesettings.heepay_app_key)
+        validated = False
         if json_data is None:
             error_msg = 'Receive invalid notification from confirmation request, nothing to do'
             logger.error(error_msg)
-            return HttpResponseBadRequest(content = error_msg)
-        logger.info("notification: {0}".format(json_data))
+            return HttpResponse(content='error')
         trade_status = json_data.get('trade_status', 'Unknown')
         if trade_status not in ['Success', 'Starting', 'PaySuccess']:
             error_msg = 'Receive notification with unsupported trade_status %s' % trade_status
             logger.error(error_msg)
-            return HttpResponseBadRequest(content = error_msg)
+            return HttpResponse(content='error')
         operator = 'sysop'
         userid, username = ordermanager.get_order_owner_info(json_data['out_trade_no'])
         ordermanager.update_order_with_heepay_notification(json_data,
@@ -43,15 +82,10 @@ def heepay_confirm_payment(request):
         else:
             return HttpResponse(content='OK')
     except Exception as e:
-        error_msg = ''
-        if request.method =='GET':
-           error_msg = '付款确认遇到错误: {0}'.format(sys.exc_info()[0])
-        else:
-           error_msg = 'Confirmation processing hit exception: {0}'.format(sys.exc_info()[0])
+        error_msg = 'Confirmation processing hit exception: {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
-        #TODO return 503 for post method
         if request.method == 'GET':
             return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
                '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
         else:
-            return HttpResponseServerError(error_msg)
+            return HttpResponse(content='error')
