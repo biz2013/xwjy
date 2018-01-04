@@ -82,7 +82,6 @@ def update_user_wallet_based_on_deposit(trx, user_wallet, min_trx_confirmation,
                 created_by = operator,
                 lastupdated_by = operator
             )
-            wallet_trans.save()
             logger.info('Create deposit transaction {0} related to txid {1}'.format(
                   wallet_trans.id,trx['txid']))
             if trx['confirmation'] >= min_trx_confirmation:
@@ -164,7 +163,6 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
                 created_by = operator,
                 lastupdated_by = operator
             )
-            wallet_trans.save()
             logger.info('Create redeem transaction {0} related to txid {1}'.format(
                   wallet_trans.id,trx['txid']))
             if trx['confirmation'] >= min_trx_confirmation:

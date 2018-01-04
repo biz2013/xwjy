@@ -128,6 +128,7 @@ class UserWalletTransaction(models.Model):
    BALANCE_UPDATE_TYPES = (('CREDIT','Credit'),('DEBT','Debt'))
    TRANS_TYPES =(('OPEN BUY ORDER', 'Open Buy Order'),
         ('OPEN SELL ORDER', 'Open Sell Order'),
+        ('CANCEL SELL ORDER', 'Cancel Sell Order'),
         ('CANCEL BUY ORDER', 'Cancel Buy Order'),
         ('DELIVER ON PURCHASE', 'Deliver on purhcase'),
         ('REDEEM','Redeem'), ('DEPOSIT','Deposit'))
