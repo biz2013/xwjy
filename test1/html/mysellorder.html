@@ -17,6 +17,15 @@
       $("#id_total_amount_confirm").text(parseFloat(units * unit_price).toFixed(2) + ' ' + unit_price_currency);
       $("#id_order_id_confirm").val(orderid);
     }
+
+    function popup_cancel_confirm_window(orderid, units, unit_price, amount) {
+      $("#tb_id_order_id").text(orderid);
+      $("#tb_id_available_units").text(units)
+      $("#tb_id_unit_price").text(unit_price)
+      $("#tb_id_available_amount").text(amount)
+      $("#cancel-modal").modal({backdrop: "static"});
+
+    }
   </script>
   <div class="container">
     <h6>锁定余额: {{ axfund.locked_balance }} 可用余额: {{ axfund.available_balance }} 总余额：{{ axfund.balance}} </h6>
@@ -75,7 +84,7 @@
             <td>{{ order.available_units }}</td>
             <td>{{ order.unit_price }}</td>
             <td>{{ order.available_units|mul:order.unit_price }}</td>
-            <td>{% if order.status == 'LOCKED' %}锁定{% else %}<button class="btn btn-primary" type="button">取消</button>{% endif %}</td>
+            <td>{% if order.status == 'LOCKED' %}锁定{% else %}<button class="btn btn-primary" type="button" onclick='popup_cancel_confirm_window({{ order.order_id }}, {{ order.total_available_units }}, {{ order.unit_price }}, {{ order.available_units|mul:order.unit_price }})'>取消</button>{% endif %}</td>
               <!--<td>{{ order.lastmodified_at }}</td>-->
           </tr>
           {% endfor %} {% else %}
@@ -190,6 +199,43 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-primary" data-dismiss="submit" onclick="create_sell_order()">确认</button>
             <button type="button" class="btn btn-default" data-dismiss="modal">撤销</button>
+          </div>
+        </div>
+      </div>
+    </form>
+    <!-- popup window to confirm cancel the order -->
+    <form id="cancel-modal" tabindex="-1" class="modal fade" role="dialog" action="/mysellorder/cancel" aria-labelledby="purchase-form-label" aria-hidden="true" method='post'>
+      {% csrf_token %}
+      <input type="hidden" id="txt_id_order_id" name="order_id" value=""/>
+      <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 id="purchase-form-label">取消美基金买单</h4>
+          </div>
+          <div class="text-danger" id="error-message-sell-modal"></div>
+          <div class="modal-body">
+            <div id="div_id_quantity" class="form-group">
+              <table class="table">
+                <tr>
+                  <th>卖单号</th>
+                  <th>余量</th>
+                  <th>单价(CNY)</th>
+                  <th>余额(CNY)</th>
+                </tr>
+                  <tb><div id="tb_id_order_id"></div></tb>
+                  <tb><div id="tb_id_available_units"></div></tb>
+                  <tb><div id="tb_id_unit_price"></div></tb>
+                  <tb><div id="tb_id_available_amount"></div></tb>
+                <tr>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary" data-dismiss="submit">确认</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">返回</button>
           </div>
         </div>
       </div>
