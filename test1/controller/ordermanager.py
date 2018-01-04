@@ -50,7 +50,7 @@ def create_sell_order(order, operator):
         userwallet_trans = UserWalletTransaction.objects.create(
           user_wallet = userwallet,
           balance_begin = userwallet.balance,
-          balance_end = userwallet.balance - order.total_units,
+          balance_end = userwallet.balance,
           locked_balance_begin = userwallet.locked_balance,
           locked_balance_end = userwallet.locked_balance + order.total_units,
           available_to_trade_begin = userwallet.available_balance,
@@ -73,12 +73,13 @@ def create_sell_order(order, operator):
             userwallet_trans.id, orderRecord.order_id, userwallet.id
         ))
         userwallet.user_wallet_trans_id = userwallet_trans.id
-        userwallet.balance = userwallet.balance - order.total_units
+        userwallet.locked_balance = userwallet.locked_balance + order.total_units
         userwallet.available_balance = userwallet.available_balance - order.total_units
         userwallet.save()
         logger.info('After creating order {0}, userwallet {1} has balance:{2} available_balance:{3} locked_balance: {4}'.format(
            orderRecord.order_id, userwallet.id, userwallet.balance, userwallet.available_balance, userwallet.locked_balance
         ))
+        return orderRecord.order_id
 
 def get_user_open_sell_orders(user_id):
     # only query seller order that is still opened, not
