@@ -38,6 +38,7 @@ class SiteSettings(SingletonModel):
     axfd_datadir = models.CharField(max_length=255, default='')
     axfd_account_name = models.CharField(max_length=64, default='')
     axfd_list_trans_count = models.IntegerField(default=1000)
+    min_trx_confirmation = models.IntegerField(default=8)
 
 class GlobalCounter(models.Model):
     counter = models.IntegerField(default=0)

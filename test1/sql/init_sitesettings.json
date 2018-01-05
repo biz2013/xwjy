@@ -14,7 +14,8 @@
       "axfd_path": "/home/osboxes/workspace/xwjy/smwy/src/axfd",
       "axfd_datadir": "/home/osboxes/workspace/xwjy/qb",
       "axfd_account_name": "",
-      "axfd_list_trans_count": 1000
+      "axfd_list_trans_count": 1000,
+      "min_trx_confirmation": 8
     }
   }
 ]
