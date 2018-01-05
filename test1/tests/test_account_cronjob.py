@@ -18,11 +18,11 @@ class AccountCronJobTestCase(TransactionTestCase):
         #with patch('controller.axfd_utils.axfd_listtransactions') as mock:
         #    instance = mock.return_value
         #    instance.method.return_value = test_data
-        #c = Client()
-        #response = c.get('/account/cron/update_receive/')
-        #self.assertEqual(200, response.status_code)
-        useraccountinfomanager.update_account_balance_with_wallet_trx(
-           'AXFund', '', 1000, 8)
+        c = Client()
+        response = c.get('/account/cron/update_receive/')
+        self.assertEqual(200, response.status_code)
+        #useraccountinfomanager.update_account_balance_with_wallet_trx(
+        #   'AXFund', '', 1000, 8)
 
         user1_wallet = UserWallet.objects.get(user__id=1,
                   wallet__cryptocurrency__currency_code = 'AXFund')
