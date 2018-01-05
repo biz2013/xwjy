@@ -153,6 +153,7 @@ def create_purchase_order(buyorder, reference_order_id, operator):
         buyorder.owner_user_id, buyorder.order_id, buyorder.total_amount,
         buyorder.unit_price_currency, buyorder.total_units,
         buyorder.unit_price)
+    order = None
     with transaction.atomic():
         reference_order = Order.objects.select_for_update().get(pk=reference_order_id)
         if reference_order.status != 'PARTIALFILLED' and reference_order.status != 'OPEN':
@@ -184,12 +185,6 @@ def create_purchase_order(buyorder, reference_order_id, operator):
         logger.info("order {0} created".format(order.order_id))
         userwallet_trans = UserWalletTransaction.objects.create(
           user_wallet = userwallet,
-          balance_begin = userwallet.balance,
-          balance_end = userwallet.balance + buyorder.total_units,
-          locked_balance_begin = userwallet.locked_balance,
-          locked_balance_end = userwallet.locked_balance,
-          available_to_trade_begin = userwallet.available_balance,
-          available_to_trade_end = userwallet.available_balance + buyorder.total_units,
           reference_order = order,
           reference_wallet_trxId = '',
           amount = buyorder.total_amount,
@@ -217,8 +212,7 @@ def create_purchase_order(buyorder, reference_order_id, operator):
            reference_order.units
         ))
 
-    buyorder.status = 'OPEN'
-    return '', buyorder
+    return order.order_id if order is not None else None
 
 def update_order_with_heepay_notification(notify_json, order_owner_id, operator):
     """ a) the payment provider will call a specific url of us, and post a standard notification http://dev.heepay.com/index.php?s=/55&page_id=540
