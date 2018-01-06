@@ -72,11 +72,7 @@ def heepay_confirm_payment(request):
             error_msg = 'Receive notification with unsupported trade_status %s' % trade_status
             logger.error(error_msg)
             return HttpResponse(content='error')
-        operator = 'sysop'
-        userid, username = ordermanager.get_order_owner_info(json_data['out_trade_no'])
-        ordermanager.update_order_with_heepay_notification(json_data,
-                 userid,
-                 operator if request.method=='POST' else username)
+        ordermanager.update_order_with_heepay_notification(json_data, 'sysop')
         if request.method == 'GET':
             request.session[REQ_KEY_USERID] = userid
             request.session[REQ_KEY_USERNAME] = operator

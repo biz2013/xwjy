@@ -43,7 +43,7 @@ def create_sell_order(order, operator):
            unit_price = order.unit_price,
            unit_price_currency = order.unit_price_currency,
            units_available_to_trade = order.total_units,
-           units_balance = order.total_units,
+           units_locked = 0,
            total_amount = order.total_amount,
            status = 'OPEN')
         logger.info("order {0} created".format(orderRecord.order_id))
@@ -147,7 +147,6 @@ def create_purchase_order(buyorder, reference_order_id, operator):
     operatorObj = UserLogin.objects.get(pk=operator)
     frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
     buyorder.order_id = frmt_date
-    userobj = User.objects.get(pk=buyorder.owner_user_id)
     crypto_currency = Cryptocurrency.objects.get(pk=buyorder.crypto)
     operation_comment = 'User {0} open buy order {1} with total {2}{3}({4}x@{5})'.format(
         buyorder.owner_user_id, buyorder.order_id, buyorder.total_amount,
@@ -155,22 +154,22 @@ def create_purchase_order(buyorder, reference_order_id, operator):
         buyorder.unit_price)
     order = None
     with transaction.atomic():
+        userwallet = UserWallet.objects.select_for_update().get(user__id=buyorder.owner_user_id)
         reference_order = Order.objects.select_for_update().get(pk=reference_order_id)
         if reference_order.status != 'PARTIALFILLED' and reference_order.status != 'OPEN':
-            return 'SELLORDER_NOT_OPEN', buyorder
+            return None, 'SELLORDER_NOT_OPEN'
         if buyorder.total_units > reference_order.units_available_to_trade:
             logger.error('sell order %s has %f to trade, buyer buy %f units' % (
                       reference_order.order_id,
                       reference_order.units_available_to_trade,
                       buyorder.total_units))
-            return 'BUY_EXCEED_AVAILABLE_UNITS', buyorder
-        userwallet = UserWallet.objects.select_for_update().get(user__id=buyorder.owner_user_id)
+            return None, 'BUY_EXCEED_AVAILABLE_UNITS'
         logger.info('before creating order {0}, userwallet {1} has balance:{2} available_balance:{3} locked_balance: {4}'.format(
            frmt_date, userwallet.id, userwallet.balance, userwallet.available_balance, userwallet.locked_balance
         ))
         order = Order.objects.create(
             order_id = buyorder.order_id,
-            user= userobj,
+            user= User.objects.get(pk=buyorder.owner_user_id),
             created_by = operatorObj,
             lastupdated_by = operatorObj,
             reference_order= reference_order,
@@ -191,10 +190,7 @@ def create_purchase_order(buyorder, reference_order_id, operator):
           balance_update_type= 'CREDIT',
           transaction_type = 'OPEN BUY ORDER',
           comment = operation_comment,
-          #TODO: need to get the transaction and its timestamp
           reported_timestamp = 0,
-          #TODO: need to make it PENDING, if the transaction's confirmation
-          # has not reached the threshold
           status = 'PENDING',
           created_by = operatorObj,
           lastupdated_by = operatorObj
@@ -203,18 +199,19 @@ def create_purchase_order(buyorder, reference_order_id, operator):
             userwallet_trans.id, order.order_id, userwallet.id
         ))
         reference_order.status = 'LOCKED'
+        reference_order.units_locked = reference_order.units_locked + buyorder.total_units
         reference_order.units_available_to_trade = reference_order.units_available_to_trade - buyorder.total_units
         reference_order.save()
         logger.info('After creating buy order {0}, sell order {1} has available_units:{2} locked_units: {3} original units: {4}'.format(
            order.order_id, reference_order.order_id,
            reference_order.units_available_to_trade,
-           reference_order.units - reference_order.units_available_to_trade,
+           reference_order.units_locked,
            reference_order.units
         ))
 
-    return order.order_id if order is not None else None
+    return order.order_id if order is not None else None, ''
 
-def update_order_with_heepay_notification(notify_json, order_owner_id, operator):
+def update_order_with_heepay_notification(notify_json, operator):
     """ a) the payment provider will call a specific url of us, and post a standard notification http://dev.heepay.com/index.php?s=/55&page_id=540
   b) need to parse and validate it (validate the sign)
   c) if the payment is success, in a transaction.atomic() scope
@@ -240,11 +237,14 @@ def update_order_with_heepay_notification(notify_json, order_owner_id, operator)
     	"sign": "EEB980CD2663C9E27C7A38094410CB60"
     }
         """
-    logger.info('update_order_with_heepay_notification(with hy_bill_no {0} out_trade_no {1}, owner id {2}, operator {3})'.format(
-        notify_json['hy_bill_no'], notify_json['out_trade_no'], order_owner_id,
-        operator
+    logger.info('update_order_with_heepay_notification(with hy_bill_no {0} out_trade_no {1}'.format(
+        notify_json['hy_bill_no'], notify_json['out_trade_no']
     ))
     operatorObj = UserLogin.objects.get(pk=operator)
+
+    # get original buy order
+
+    #get the original purchase user_wallet_trans
     purchase_trans = UserWalletTransaction.objects.get(
           reference_order__order_id=notify_json['out_trade_no'],
           status='PENDING',
@@ -258,6 +258,7 @@ def update_order_with_heepay_notification(notify_json, order_owner_id, operator)
     logger.info('For hy_bill_no {0} find buy order id {1}'.format(
            notify_json['hy_bill_no'], buyorder.order_id
     ))
+    buyer_userid = buyorder.user.id
     sellorder = buyorder.reference_order
     logger.info('for hy_bill_no {0} find related seller order {1}'.format(
           notify_json['hy_bill_no'], sellorder.order_id
@@ -306,7 +307,7 @@ def update_order_with_heepay_notification(notify_json, order_owner_id, operator)
         purchase_trans.lastupdated_by = operatorObj
         purchase_trans.save()
 
-        sellorder.unit_balance = sellorder.units_balance - buyorder.units
+        sellorder.units_locked = sellorder.units_locked - buyorder.units
         sellorder.status = 'PARTIALFILLED'
         if sellorder.units_available_to_trade == 0:
             sellorder.status == 'FILLED'

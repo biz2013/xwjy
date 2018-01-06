@@ -239,9 +239,8 @@ class Order(models.Model):
    #sell order
    lock_count = models.IntegerField(default=0)
 
-   #how many units left to be taken, for sale order only, it is
-   #units - paid units
-   units_balance = models.FloatField(default=0.0)
+   #how many units is being purchased(not paid) by buyers
+   units_locked = models.FloatField(default=0.0)
    # units - paid units - units being bought but not paid (locked)
    units_available_to_trade = models.FloatField(default=0.0)
 
