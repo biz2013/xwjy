@@ -16,4 +16,4 @@ def axfd_send_fund(dst, amount, comment):
     axfd_datadir = sitesettings.axfd_datadir
     result_str = subprocess.check_output(
        [axfd_path, '-datadir=%s'%(axfd_data), 'sendtoaddress', dst, str(amount), comment])
-    return json.loads(result_str)
+    return result_str

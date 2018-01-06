@@ -18,8 +18,8 @@ logger = logging.getLogger("site.redeemmanager")
 
 def redeem(command, operator):
     operatorObj = UserLogin.objects.get(pk=operator)
-    operation_comment = 'User (id:{0}) redeem {1}'.format(command.userid,
-             command.amount)
+    operation_comment = 'UserId:{0},redeem:{1},to:{2}'.format(command.userid,
+             command.amount, command.toaddress)
     txid = axfd_utils.sendtoaddress(command.toaddress, command.amount,
         operation_comment)
     with transaction.atomic():
@@ -41,14 +41,8 @@ def redeem(command, operator):
           comment = operation_comment,
           #TODO: need to get the transaction and its timestamp
           reported_timestamp = 0,
-          #TODO: need to make it PENDING, if the transaction's confirmation
-          # has not reached the threshold
-          status = 'PROCESSED',
+          status = 'PENDING',
           created_by = operatorObj,
           lastupdated_by = operatorObj
         )
         userwallet_trans.save()
-        userwallet.user_wallet_trans_id = userwallet_trans.id
-        userwallet.balance = userwallet.balance - command.amount
-        userwallet.available_balance = userwallet.available_balance - command.amount
-        userwallet.save()

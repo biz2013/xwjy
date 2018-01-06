@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'mathfilters',
     'views',
     'users',
+    'tests',
     'config',
     'controller',
 ]
@@ -87,6 +88,9 @@ DATABASES = {
         'PASSWORD': 'aaaaaa',
         'HOST': '127.0.0.1',
         'PORT': '3306',
+        'TEST':{
+           'CHARSET': 'UTF8',
+           },
       'OPTIONS': {
         'init_command': 'SET default_storage_engine=INNODB',
       }

@@ -97,8 +97,8 @@ def create_purchase_order(request):
         total_amount = float(request.POST['total_amount'])
         buyorder = OrderItem('', userid, username, unit_price, 'CNY', quantity,
             0, total_amount, crypto, '', '')
-        rs, buyorder = ordermanager.create_purchase_order(buyorder, reference_order_id, username)
-        if len(rs) > 0:
+        buyorderid = ordermanager.create_purchase_order(buyorder, reference_order_id, username)
+        if buyorderid is None:
            logger.error('Failed to create purchase order %s' % rs)
            owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
            useraccountInfo = useraccountinfomanager.get_user_accountInfo(userid,'AXFund')
@@ -110,7 +110,7 @@ def create_purchase_order(request):
                'available_units_for_purchase': available_units,
                'owner_payment_methods': owner_payment_methods,
                'buyer_payment_methods': useraccountInfo.paymentmethods,
-               'returnstatus' : ReturnStatus(-1, rs, '') }
+               'returnstatus' : ReturnStatus(-1, 'Failed', '') }
            )
 
         returnstatus = None
@@ -132,8 +132,8 @@ def create_purchase_order(request):
 
         # read the sitsettings
         sitesettings = context_processor.settings(request)['settings']
-        notify_url = 'http://{0}:{1}/mysellorder/heepay/confirm_payment/'.format(sitesettings.heepay_notify_url_host, sitesettings.heepay_notify_url_port)
-        return_url = 'http://{0}:{1}/purchase/createorder2/heepay/confirmed/'.format(sitesettings.heepay_return_url_host, sitesettings.heepay_return_url_port)
+        notify_url = 'http://{0}:{1}/heepay/confirm_payment/'.format(sitesettings.heepay_notify_url_host, sitesettings.heepay_notify_url_port)
+        return_url = 'http://{0}:{1}/heepay/confirm_payment/'.format(sitesettings.heepay_return_url_host, sitesettings.heepay_return_url_port)
         if (seller_payment_provider == 'heepay'):
             heepay = HeePayManager()
             json_payload = heepay.create_heepay_payload('wallet.pay.apply',
@@ -172,6 +172,6 @@ def create_purchase_order(request):
         )
     except Exception as e:
         error_msg = '创建买单遇到错误: {0}'.format(sys.exc_info()[0])
-        logger.exception(e)
+        logger.exception(error_msg)
         return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
