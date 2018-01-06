@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 import logging, json
 from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 
+from config import context_processor
 from controller.heepaymanager import *
 from controller import ordermanager
 
@@ -39,7 +41,7 @@ def get_payment_confirmation_json(request, app_key):
            json_data['from_account'] = request.GET['from_account']
        json_data['sign'] = request.GET['sign']
 
-   logger.info('Receive payment confirmation {0}'.format(json.dumps(json_data)))
+   logger.info('Receive payment confirmation {0}'.format(request.body))
    manager = HeePayManager()
    if not manager.confirmation_is_valid(json_data, app_key):
        return None
@@ -59,7 +61,7 @@ def heepay_confirm_payment(request):
             return HttpResponse(content='error')
         sitesettings = context_processor.settings(request)['settings']
         json_data = get_payment_confirmation_json(request,
-                          sitesetting.sitesettings.heepay_app_key)
+                          sitesettings.heepay_app_key)
         validated = False
         if json_data is None:
             error_msg = 'Receive invalid notification from confirmation request, nothing to do'
