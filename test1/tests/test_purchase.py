@@ -33,9 +33,16 @@ class PurchaseTestCase(TransactionTestCase):
             buyer = User.objects.get(login__username='yingzhou')
             user_wallet = UserWallet.objects.get(user__login__username = 'yingzhou',
                   wallet__cryptocurrency__currency_code = 'AXFund')
+            # remember old buyer user wallet balance
             old_balance = user_wallet.balance
             old_locked_balance = user_wallet.locked_balance
             old_available_balance = user_wallet.available_balance
+
+            # remember old sell order's balance
+            old_sell_order_units_locked = sell_order.units_locked
+            old_sell_order_units = sell_order.units
+            old_sell_order_units_available = sell_order.units_available_to_trade
+
             units = 1.1
             available_units = 0
             unit_price = sell_order.unit_price
@@ -49,10 +56,11 @@ class PurchaseTestCase(TransactionTestCase):
                 available_units, total_amount ,
                 'AXFund', None, None)
             print 'issue command to create buy order for sell order {0}'.format(sell_order.order_id)
-            orderid = ordermanager.create_purchase_order(buyorder,
+            orderid, rs = ordermanager.create_purchase_order(buyorder,
                           sell_order.order_id, 'yingzhou')
             print 'buy order created and start validate it'
             self.assertTrue(orderid is not None)
+            self.assertTrue(len(rs) == 0)
             order = Order.objects.get(pk=orderid)
             self.assertEqual('BUY', order.order_type)
             self.assertEqual(sell_order.order_id, order.reference_order.order_id)
@@ -61,7 +69,7 @@ class PurchaseTestCase(TransactionTestCase):
             self.assertEqual('AXFund', order.cryptocurrency.currency_code)
             self.assertEqual(units, order.units)
             self.assertEqual(0.0, order.units_available_to_trade)
-            self.assertEqual(0.0, order.units_balance)
+            self.assertEqual(0.0, order.units_locked)
             self.assertEqual('yingzhou', order.created_by.username)
             self.assertEqual('yingzhou', order.lastupdated_by.username)
 
@@ -87,6 +95,11 @@ class PurchaseTestCase(TransactionTestCase):
             self.assertEqual('yingzhou', user_wallet_trans.created_by.username)
             self.assertEqual('yingzhou', user_wallet_trans.lastupdated_by.username)
 
+            print 'validate sell order change'
+            sell_order.refresh_from_db()
+            self.assertEqual(old_sell_order_units, sell_order.units)
+            self.assertEqual(old_sell_order_units_locked + buyorder.total_units, sell_order.units_locked)
+            self.assertEqual(old_sell_order_units_available - buyorder.total_units, sell_order.units_available_to_trade)
         except UserWalletTransaction.DoesNotExist:
             fail('There should be one user_wallet_transaction record for the new purchase order')
         except UserWalletTransaction.MultipleObjectsReturned:
@@ -133,7 +146,7 @@ class PurchaseTestCase(TransactionTestCase):
            self.assertEqual(u'', order.payment_status)
            self.assertEqual(units, order.units)
            self.assertEqual(unit_price, order.unit_price)
-           self.assertEqual(units, order.units_balance)
+           self.assertEqual(0, order.units_locked)
            self.assertEqual(units, order.units_available_to_trade)
            self.assertEqual(amount, order.total_amount)
            self.assertEqual('OPEN', order.status)
@@ -209,7 +222,7 @@ class PurchaseTestCase(TransactionTestCase):
                 available_units, total_amount ,
                 'AXFund', None, None)
             print 'issue command to create buy order for sell order {0}'.format(sell_order_id)
-            buy_order_id = ordermanager.create_purchase_order(buyorder,
+            buy_order_id, rs = ordermanager.create_purchase_order(buyorder,
                           sell_order_id, 'yingzhou')
 
             sell_order_begin = Order.objects.get(pk=sell_order_id)
