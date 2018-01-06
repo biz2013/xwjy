@@ -46,7 +46,7 @@ def update_user_wallet_based_on_deposit(trx, user_wallet, min_trx_confirmation,
             logger.error('Update user wallet balance for user id {0} address {1} related to newly confirmed txid {2}'.format(
                  user_wallet.user.id, user_wallet.wallet_addr, trx['txid']))
         elif user_wallet_trans.status == 'PENDING' and trx['confirmations'] < min_trx_confirmation:
-            if int(dt.datetime.utcnow().timestamp()) - trx['timereceived'] >= 24 * 3600:
+            if int(time.time()) - trx['timereceived'] >= 24 * 3600:
                 error_msg = 'Wallet deposite txid {0} has not had {1} confirmation after more than a day'.format(trx['txid'], min_trx_confirmation)
                 logger.warn(error_msg)
                 raise ValueError(error_msg)
@@ -136,7 +136,7 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
             logger.error('Update user wallet balance for user id {0} address {1} related to newly confirmed txid {2}'.format(
                  user_wallet.user.id, user_wallet.wallet_addr, trx['txid']))
         elif user_wallet_trans.status == 'PENDING' and trx['confirmations'] < min_trx_confirmation:
-            if int(dt.datetime.utcnow().timestamp()) - trx['timereceived'] >= 24 * 3600:
+            if int(time.time()) - trx['timereceived'] >= 24 * 3600:
                 logger.warn('Wallet redeem txid {0} has not had {1} confirmation after more than a day'.format(trx['txid'], min_trx_confirmation))
         elif user_wallet_trans.status == 'PROCESSED' and trx['confirmations'] < min_trx_confirmation:
             logger.error("How come txid {0} only has {1} confirmation but wallet_trans {2} is PROCESSED".format(
