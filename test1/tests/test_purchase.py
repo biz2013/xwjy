@@ -3,15 +3,16 @@
 from django.test import TestCase, TransactionTestCase
 from django.test import Client
 from users.models import *
+from controller.heepaymanager import HeePayManager
 from views.models.orderitem import OrderItem
 from controller import ordermanager
 
-import sys, traceback, time
+import sys, traceback, time, json
 
 class PurchaseTestCase(TransactionTestCase):
     fixtures = ['fixture_for_tests.json']
 
-    def test_create_purchase_order(self):
+    def test_1_create_purchase_order(self):
         print 'run test_create_purchase_order()'
         self.create_sell_order()
         print 'out of create_sell_order()'
@@ -166,3 +167,70 @@ class PurchaseTestCase(TransactionTestCase):
            print error_msg
            print traceback.format_exc()
            self.fail(error_msg)
+
+    def test_2_payconfirmation(self):
+        try:
+            seller_wallet = UserWallet.objects.get(user__login__username='taozhang',
+                   wallet__cryptocurrency__currency_code = 'AXFund')
+            seller_old_balance = seller_wallet.balance
+            seller_old_locked_balance = seller_wallet.locked_balance
+            seller_old_available_balance = seller_wallet.available_balance
+
+            buyer_wallet = UserWallet.objects.get(user__login__username='yingzhou',
+                   wallet__cryptocurrency__currency_code = 'AXFund')
+            buyer_old_balance = seller_wallet.balance
+            buyer_old_locked_balance = seller_wallet.locked_balance
+            buyer_old_available_balance = seller_wallet.available_balance
+
+            unit_price = 1.01
+            unit_price_currency = 'CNY'
+            units = 100.0
+            amount = units * unit_price
+            order_item = OrderItem('', seller_wallet.user.id,
+               seller_wallet.user.login.username,
+               unit_price, unit_price_currency,
+               # total units
+               units,
+               # available units
+               units, amount,
+               'AXFund', None, None)
+            print 'ready to create sell order'
+            sell_order_id = ordermanager.create_sell_order(order_item, 'taozhang')
+
+            buy_units = 1.1
+            available_units = 0
+            total_amount = round(buy_units * unit_price, 2)
+            buyorder = OrderItem('', buyer_wallet.id,
+                buyer_wallet.user.login.username,
+                unit_price, unit_price_currency,
+                # total units
+                units,
+                # available units
+                available_units, total_amount ,
+                'AXFund', None, None)
+            print 'issue command to create buy order for sell order {0}'.format(sell_order_id)
+            buy_order_id = ordermanager.create_purchase_order(buyorder,
+                          sell_order_id, 'yingzhou')
+
+            sell_order_begin = Order.objects.get(pk=sell_order_id)
+            buy_order_begin = Order.objects.get(pk=buy_order_id)
+            confirmation_json = None
+            with open('tests/data/test_heepay_confirm.json', 'r') as myfile:
+                confirmation_json=myfile.read()
+            confirmation_json = confirmation_json.replace('__ORDER_ID__', buy_order_id)
+            json_data = json.loads(confirmation_json)
+            hmgr = HeePayManager()
+            signed_str = hmgr.create_confirmation_sign(json_data,'4AE4583FD4D240559F80ED39')
+            confirmation_json = confirmation_json.replace('__SIGN__', signed_str)
+            c = Client()
+            response = c.post('/heepay/confirm_payment/',
+                                confirmation_json,
+                                content_type="application/json; charset=utf-8")
+            self.assertEqual('OK', response.content.decode('utf-8'))
+
+        except Exception as e:
+            error_msg = 'test_create_sell_order() hit exception {0}'.format(
+                  sys.exc_info()[0])
+            print error_msg
+            print traceback.format_exc()
+            self.fail(error_msg)

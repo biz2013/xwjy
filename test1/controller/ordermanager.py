@@ -241,7 +241,7 @@ def update_order_with_heepay_notification(notify_json, order_owner_id, operator)
     }
         """
     logger.info('update_order_with_heepay_notification(with hy_bill_no {0} out_trade_no {1}, owner id {2}, operator {3})'.format(
-        notify_json['hy_bill_no'], notify_json['out_trade_no'], owner_user_id,
+        notify_json['hy_bill_no'], notify_json['out_trade_no'], order_owner_id,
         operator
     ))
     operatorObj = UserLogin.objects.get(pk=operator)
@@ -249,14 +249,14 @@ def update_order_with_heepay_notification(notify_json, order_owner_id, operator)
           reference_order__order_id=notify_json['out_trade_no'],
           status='PENDING',
           transaction_type='OPEN BUY ORDER')
-    buyer_user_wallet = purchase_trans.wallet
+    buyer_user_wallet = purchase_trans.user_wallet
     logger.info('For hy_bill_no {0} find purchase userwallet trans id {1}, refer to wallet {2}'.format(
-           notify_json['hy_bill_no'], purchase_trans.id, user_wallet.id
+           notify_json['hy_bill_no'], purchase_trans.id, buyer_user_wallet.id
     ))
 
     buyorder = purchase_trans.reference_order
     logger.info('For hy_bill_no {0} find buy order id {1}'.format(
-           notify_json['hy_bill_no'], buyorder.id
+           notify_json['hy_bill_no'], buyorder.order_id
     ))
     sellorder = buyorder.reference_order
     logger.info('for hy_bill_no {0} find related seller order {1}'.format(
@@ -265,14 +265,14 @@ def update_order_with_heepay_notification(notify_json, order_owner_id, operator)
     with transaction.atomic():
         seller_user_wallet = UserWallet.objects.select_for_update().get(
              user__id=sellorder.user.id,
-             wallet__cryptocurrency__currency_code = purchase_trans.user_wallet.cryptocurrency.currency_code)
-        buyer_user_wallet = UserWallet.object.select_for_update().get(
-            pk=buyer_user_id)
+             wallet__cryptocurrency__currency_code = purchase_trans.user_wallet.wallet.cryptocurrency.currency_code)
+        buyer_user_wallet = UserWallet.objects.select_for_update().get(
+            pk=buyer_user_wallet.id)
         sellorder = Order.objects.select_for_update().get(pk=sellorder.order_id)
-        purchase_trans = UserWalletTransaction.objects.select_for_update().get(user=purchase_trans.id)
+        purchase_trans = UserWalletTransaction.objects.select_for_update().get(pk=purchase_trans.id)
         buyorder = Order.objects.select_for_update().get(pk=buyorder.order_id)
         sell_order_fulfill_comment = 'deliver on buyer order {0}, with {1} units on payment bill no {2}'.format(
-             buyorder.order_id, buyorder.total_units, notify_json['hy_bill_no']
+             buyorder.order_id, buyorder.units, notify_json['hy_bill_no']
         )
         seller_userwallet_trans = UserWalletTransaction.objects.create(
           user_wallet = seller_user_wallet,
@@ -282,7 +282,7 @@ def update_order_with_heepay_notification(notify_json, order_owner_id, operator)
           locked_balance_end = seller_user_wallet.locked_balance - buyorder.units,
           available_to_trade_begin = seller_user_wallet.available_balance,
           available_to_trade_end = seller_user_wallet.available_balance - buyorder.units,
-          reference_order = sell_order,
+          reference_order = sellorder,
           reference_wallet_trxId = '',
           amount = buyorder.units,
           balance_update_type= 'DEBT',
@@ -306,9 +306,9 @@ def update_order_with_heepay_notification(notify_json, order_owner_id, operator)
         purchase_trans.lastupdated_by = operatorObj
         purchase_trans.save()
 
-        sellorder.unit_balance = sellorder.unit_balance - buyorder.units
+        sellorder.unit_balance = sellorder.units_balance - buyorder.units
         sellorder.status = 'PARTIALFILLED'
-        if sellorder.available_units == 0:
+        if sellorder.units_available_to_trade == 0:
             sellorder.status == 'FILLED'
         sellorder.lastupdated_by = operatorObj
         sellorder.save()

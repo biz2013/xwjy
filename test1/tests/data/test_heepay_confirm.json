@@ -1,0 +1,16 @@
+{
+"version": "1.0",
+"app_id": "hyq17121610000800000911220E16AB0",
+"subject": "购买1.020000CNY",
+"out_trade_no": "__ORDER_ID__",
+"hy_bill_no": "180102122300364021000081666",
+"payment_type": "Alipay",
+"total_fee": "1",
+"trade_status": "Success",
+"real_fee": "1",
+"payment_time": "20180102122507",
+"api_account_mode": "Account",
+"to_account": "15811302702",
+"from_account": "18600701961",
+"sign": "__SIGN__"
+}
