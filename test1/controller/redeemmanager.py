@@ -16,12 +16,8 @@ from views.models.userexternalwalletaddrinfo import *
 
 logger = logging.getLogger("site.redeemmanager")
 
-def redeem(command, operator):
+def redeem(command, operator, txid, operation_comment):
     operatorObj = UserLogin.objects.get(pk=operator)
-    operation_comment = 'UserId:{0},redeem:{1},to:{2}'.format(command.userid,
-             command.amount, command.toaddress)
-    txid = axfd_utils.sendtoaddress(command.toaddress, command.amount,
-        operation_comment)
     with transaction.atomic():
         userwallet = UserWallet.objects.select_for_update().get(user__id=userid,
              wallet__cryptocurrency__currency_code=command.crypto)

@@ -9,7 +9,7 @@ from django.db import transaction
 
 from users.models import *
 from config import context_processor
-from controller import axfd_utils
+from controller.axfd_utils import AXFundUtility
 from views.models.useraccountinfo import *
 from views.models.userpaymentmethodview import *
 from views.models.userexternalwalletaddrinfo import *
@@ -43,7 +43,7 @@ def update_user_wallet_based_on_deposit(trx, user_wallet, min_trx_confirmation,
                 user_wallet.user_wallet_trans_id = wallet_trans.id
                 user_wallet.lastupdated_by = operator
                 user_wallet.save()
-            logger.error('Update user wallet balance for user id {0} address {1} related to newly confirmed txid {2}'.format(
+            logger.info('Update user wallet balance for user id {0} address {1} related to newly confirmed txid {2}'.format(
                  user_wallet.user.id, user_wallet.wallet_addr, trx['txid']))
         elif user_wallet_trans.status == 'PENDING' and trx['confirmations'] < min_trx_confirmation:
             if int(time.time()) - trx['timereceived'] >= 24 * 3600:
@@ -99,7 +99,7 @@ def update_user_wallet_based_on_deposit(trx, user_wallet, min_trx_confirmation,
                 user_wallet.user_wallet_trans_id = wallet_trans.id
                 user_wallet.lastupdated_by = operator
                 user_wallet.save()
-                logger.error('Update user wallet balance for user id {0} address {1} related to txid {2}'.format(
+                logger.info('Update user wallet balance for user id {0} address {1} related to txid {2}'.format(
                     user_wallet.user.id, user_wallet.wallet_addr, trx['txid']))
 
     except UserWalletTransaction.MultipleObjectsReturned:
@@ -133,7 +133,7 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
                 user_wallet.user_wallet_trans_id = wallet_trans.id
                 user_wallet.lastupdated_by = operator
                 user_wallet.save()
-            logger.error('Update user wallet balance for user id {0} address {1} related to newly confirmed txid {2}'.format(
+            logger.info('Update user wallet balance for user id {0} address {1} related to newly confirmed txid {2}'.format(
                  user_wallet.user.id, user_wallet.wallet_addr, trx['txid']))
         elif user_wallet_trans.status == 'PENDING' and trx['confirmations'] < min_trx_confirmation:
             if int(time.time()) - trx['timereceived'] >= 24 * 3600:
@@ -182,7 +182,7 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
                 user_wallet.user_wallet_trans_id = wallet_trans.id
                 user_wallet.lastupdated_by = operator
                 user_wallet.save()
-                logger.error('Update user wallet balance for user id {0} address {1} related to txid {2}'.format(
+                logger.info('Update user wallet balance for user id {0} address {1} related to txid {2}'.format(
                     user_wallet.user.id, user_wallet.wallet_addr, trx['txid']))
 
     except UserWalletTransaction.MultipleObjectsReturned:
@@ -200,7 +200,7 @@ def get_send_money_trans_userid(trx):
         logger.exception(error_msg)
         return -1
 
-def update_account_balance_with_wallet_trx(crypto, wallet_account_name, lookback_count, min_trx_confirmation):
+def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
     print 'update_account_balance_with_wallet_trx'
     # prepare the data for sysop, which will be the created_by and last
     # updated by
@@ -226,8 +226,6 @@ def update_account_balance_with_wallet_trx(crypto, wallet_account_name, lookback
         else:
            raise ValueError('user id {0} should not have more than one entry in userwallets'.format(wallet.user.id))
 
-    # get all past 10000 transactions in wallet
-    trans = axfd_utils.axfd_listtransactions(wallet_account_name, lookback_count)
     print 'calling listtransaction return {0}'.format(trans)
     for trx in trans:
         # only process confirmed wallet transactions
