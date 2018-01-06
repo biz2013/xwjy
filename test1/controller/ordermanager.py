@@ -6,6 +6,7 @@ import pytz
 import logging
 
 from django.db import transaction
+from django.db.models import F
 from users.models import *
 from views.models.orderitem import OrderItem
 from views.models.userpaymentmethodview import *
@@ -269,7 +270,7 @@ def update_order_with_heepay_notification(notify_json, operator):
              wallet__cryptocurrency__currency_code = purchase_trans.user_wallet.wallet.cryptocurrency.currency_code)
         buyer_user_wallet = UserWallet.objects.select_for_update().get(
             pk=buyer_user_wallet.id)
-        sellorder = Order.objects.select_for_update().get(pk=sellorder.order_id)
+        sellorder = Order.objects.get(pk=sellorder.order_id)
         purchase_trans = UserWalletTransaction.objects.select_for_update().get(pk=purchase_trans.id)
         buyorder = Order.objects.select_for_update().get(pk=buyorder.order_id)
         sell_order_fulfill_comment = 'deliver on buyer order {0}, with {1} units on payment bill no {2}'.format(
@@ -282,17 +283,14 @@ def update_order_with_heepay_notification(notify_json, operator):
           locked_balance_begin = seller_user_wallet.locked_balance,
           locked_balance_end = seller_user_wallet.locked_balance - buyorder.units,
           available_to_trade_begin = seller_user_wallet.available_balance,
-          available_to_trade_end = seller_user_wallet.available_balance - buyorder.units,
+          available_to_trade_end = seller_user_wallet.available_balance,
           reference_order = sellorder,
           reference_wallet_trxId = '',
           amount = buyorder.units,
           balance_update_type= 'DEBT',
           transaction_type = 'DELIVER ON PURCHASE',
           comment = sell_order_fulfill_comment,
-          #TODO: need to get the transaction and its timestamp
           reported_timestamp = 0,
-          #TODO: need to make it PENDING, if the transaction's confirmation
-          # has not reached the threshold
           status = 'PROCESSED',
           created_by = operatorObj,
           lastupdated_by = operatorObj
@@ -307,7 +305,7 @@ def update_order_with_heepay_notification(notify_json, operator):
         purchase_trans.lastupdated_by = operatorObj
         purchase_trans.save()
 
-        sellorder.units_locked = sellorder.units_locked - buyorder.units
+        sellorder.units_locked = F('units_locked') - buyorder.units
         sellorder.status = 'PARTIALFILLED'
         if sellorder.units_available_to_trade == 0:
             sellorder.status == 'FILLED'
