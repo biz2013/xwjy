@@ -338,11 +338,11 @@ def get_order_owner_info(order_id):
     return order.user.id, order.user.login.username
 
 def cancel_sell_order(userid, order_id, crypto, operator):
-    operatorObj = UserLogin.objects.get(username=oeprator)
+    operatorObj = UserLogin.objects.get(username=operator)
     with transaction.atomic():
         user_wallet = UserWallet.objects.select_for_update().get(
             user__id=userid,
-            cryptocurrency__currency_code = crypto)
+            wallet__cryptocurrency__currency_code = crypto)
         order = Order.objects.select_for_update().get(pk=order_id)
         if order.status == 'LOCKED' or order.status == 'CANCELLED':
             logger.error('order {0} has status {1}, can\'t be cancelled anymore'.format(
@@ -353,8 +353,8 @@ def cancel_sell_order(userid, order_id, crypto, operator):
         order.lastupdated_by = operatorObj
         order.save()
 
-        locked_balance_end = user_wallet.locked_balance - order.available_units
-        available_to_trade_end = user_wallet.available_balance + order.available_units
+        locked_balance_end = user_wallet.locked_balance - order.units_available_to_trade
+        available_to_trade_end = user_wallet.available_balance + order.units_available_to_trade
         seller_userwallet_trans = UserWalletTransaction.objects.create(
           user_wallet = user_wallet,
           balance_begin = user_wallet.balance,
@@ -365,12 +365,12 @@ def cancel_sell_order(userid, order_id, crypto, operator):
           available_to_trade_end = available_to_trade_end,
           reference_order = order,
           reference_wallet_trxId = '',
-          amount = order.available_units,
+          amount = order.units_available_to_trade,
           balance_update_type= 'CREDIT',
           transaction_type = 'CANCEL SELL ORDER',
           comment = 'cancel sell order {0}'.format(order.order_id),
           #TODO: need to get the transaction and its timestamp
-          reported_timestamp = int(dt.datetime.utcnow().timestamp()),
+          reported_timestamp = time.time(),
           #TODO: need to make it PENDING, if the transaction's confirmation
           # has not reached the threshold
           status = 'PROCESSED',
