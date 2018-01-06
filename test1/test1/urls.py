@@ -22,7 +22,7 @@ from controller.global_utils import *
 from . import app
 from views import mysellorder, homeview, accountinfoview, mypurchaseview
 from views import account_cronjob, externaladdrview, paymentmethods
-from views import redeemview
+from views import redeemview, heepay_notify_view
 
 urlpatterns = [
     url(r'^$', homeview.home, name='home'),
@@ -35,8 +35,8 @@ urlpatterns = [
     url(r'^accounts/paymentmethods/$', paymentmethods.payment_method),
     url(r'^axfund/transfer/$', app.transfer),
     url(r'^mysellorder/$', mysellorder.sell_axfund, name="sellorder"),
-    url(r'^purchase/createorder2/heepay/confirmed/$', app.confirm_payment),
-    url(r'^mysellorder/heepay/confirm_payment/$', app.heepay_confirm_payment),
+    url(r'^mysellorder/cancel$', mysellorder.cancel_sell_order, name="sellorder"),
+    url(r'^heepay/confirm_payment/$', heepay_notify_view.heepay_confirm_payment),
     url(r'^purchase/$', mypurchaseview.show_active_sell_orders, name='purchase'),
     url(r'^purchase/createorder1/$', mypurchaseview.show_purchase_input, name="input_purchase"),
     url(r'^purchase/createorder2/$', mypurchaseview.create_purchase_order),

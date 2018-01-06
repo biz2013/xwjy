@@ -48,3 +48,24 @@ def sell_axfund(request):
        logger.exception(error_msg)
        return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
+
+def cancel_sell_order(request):
+    #try:
+       if not user_session_is_valid(request):
+          return render(request, 'html/login.html', { 'next_action' : '/mysellorder/'})
+       username = request.session[REQ_KEY_USERNAME]
+       userId = int(request.session[REQ_KEY_USERID])
+       if request.method == 'POST':
+           orderid = request.POST['order_id']
+           ordermanager.cancel_sell_order(userId, orderid, 'AXFund', username)
+       accountinfo = useraccountinfomanager.get_user_accountInfo(userId, 'AXFund')
+       sellorders = ordermanager.get_user_open_sell_orders(userId)
+       buyorders = ordermanager.get_pending_incoming_buy_orders_by_user(userId)
+       return render(request, 'html/mysellorder.html', {'sellorders': sellorders,
+                'buyorders':buyorders, REQ_KEY_USERNAME: username})
+
+    #except Exception as e:
+       error_msg = '撤销美基金卖单遇到错误: {0}'.format(sys.exc_info()[0])
+       logger.exception(error_msg)
+       return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
+              '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
