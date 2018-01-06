@@ -12,9 +12,11 @@ test_data = json.load(open('tests/data/trx_test_data1.json'))
 class AccountCronJobTestCase(TransactionTestCase):
     fixtures = ['fixture_for_tests.json']
 
-    @patch('controller.axfd_utils.axfd_listtransactions', return_value=test_data)
-    def test_update_account_from_trx(self, axfd_listtransactions_function):
+    @patch.object(axfd_utils.AXFundUtility, 'listtransactions')
+    def test_update_account_from_trx(self, mock_listtransactions):
         print 'testdata is {0}'.format(test_data)
+        mock_listtransactions.return_value = test_data
+
         #with patch('controller.axfd_utils.axfd_listtransactions') as mock:
         #    instance = mock.return_value
         #    instance.method.return_value = test_data

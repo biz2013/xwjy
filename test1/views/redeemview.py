@@ -25,8 +25,18 @@ def redeem(request):
        if request.method=='POST':
            userid = request.session[REQ_KEY_USERID]
            toaddr = request.POST['toaddress']
-           amount = request.POST['quantity']
+           amount = float(request.POST['quantity'])
            crypto = request.POST['crypto']
+           sitesettings = context_processor.settings(request)['settings']
+           axfd_bin_path = sitesetting.axfd_path
+           axfd_datadir = sitesetting.axfd_datadir
+           wallet_account_name = sitesettings.axfd_account_name
+           axfd_tool = AXFundUtility(axfd_bin_path, axfd_datadir,
+                wallet_account_name)
+           operation_comment = 'UserId:{0},redeem:{1},to:{2}'.format(
+               userid, amount, toaddr)
+           txid = axfd_tool.send_fund(toaddr, amount,
+                   operation_comment)
            redeem_cmd = RedeemItem(userid, toaddr, amount, crypto)
            redeemmanager.redeem(redeem_cmd, request.session[REQ_KEY_USERNAME])
        else:
