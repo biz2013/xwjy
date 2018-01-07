@@ -74,7 +74,7 @@
     <!-- popup window for confirm payment of purchase -->
     <form id="redeem-modal" tabindex="-1" class="modal fade" role="dialog" action="/accounts/redeem/" aria-labelledby="lockfund-form-label" aria-hidden="true" method='post'>
       {% csrf_token %}
-      <input type="hidden" id="id_toaddress" name="toaddress" value = "{{ useraccountInfo.externaladdreess.address }}"/>
+      <input type="hidden" id="id_toaddress" name="toaddress" value = "{{ useraccountInfo.externaladdress.address }}"/>
       <input type="hidden" name="crypto" value="AXFund"/>
       <div class="modal-dialog">
         <!-- Modal content-->
