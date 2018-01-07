@@ -36,6 +36,7 @@ def update_user_wallet_based_on_deposit(trx, user_wallet, min_trx_confirmation,
                 user_wallet_trans.available_to_trade_begin = user_wallet.available_balance
                 user_wallet_trans.available_to_trade_end = available_to_trade_end
                 user_wallet_trans.lastupdated_by = operator
+                user_wallet_trans.status = 'PROCESSED'
                 user_wallet_trans.save()
 
                 user_wallet.balance = balance_end
