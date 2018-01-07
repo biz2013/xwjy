@@ -8,6 +8,7 @@ from controller.global_utils import *
 
 # this is for test UI. A fake one
 from controller.global_constants import *
+from controller.axfd_utils import *
 from controller import redeemmanager
 
 from users.models import *
