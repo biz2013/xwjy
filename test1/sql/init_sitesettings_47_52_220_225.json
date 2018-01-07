@@ -15,7 +15,7 @@
       "axfd_datadir": "/root/workspace/django/xwjy/qb",
       "axfd_account_name": "",
       "axfd_list_trans_count": 1000,
-      "min_trx_confirmation": 8
+      "min_trx_confirmation": 3 
     }
   }
 ]
