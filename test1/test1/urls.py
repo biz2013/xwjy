@@ -26,6 +26,7 @@ from views import redeemview, heepay_notify_view
 
 urlpatterns = [
     url(r'^$', homeview.home, name='home'),
+    url(r'^admin/', admin.site.urls),
     url(r'^testpage/$', app.testpage),
     url(r'^registration/$', app.registration),
     url(r'^accounts/login/$', app.login, name='login'),
