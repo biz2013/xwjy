@@ -20,7 +20,7 @@ class AXFundUtility(object):
         return json.loads(result_str)
 
     def send_fund(self, dst, amount, comment):
-        logger.info('{0} {1} {2} {3} {4}'.format(
+        logger.info('{0} {1} {2} {3} {4} {5}'.format(
             self.axfd_path, '-datadir=%s'%(self.axfd_datadir), 'sendtoaddress',
             dst, str(amount), comment
         ))
