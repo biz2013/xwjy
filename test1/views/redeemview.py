@@ -28,8 +28,8 @@ def redeem(request):
            amount = float(request.POST['quantity'])
            crypto = request.POST['crypto']
            sitesettings = context_processor.settings(request)['settings']
-           axfd_bin_path = sitesetting.axfd_path
-           axfd_datadir = sitesetting.axfd_datadir
+           axfd_bin_path = sitesettings.axfd_path
+           axfd_datadir = sitesettings.axfd_datadir
            wallet_account_name = sitesettings.axfd_account_name
            axfd_tool = AXFundUtility(axfd_bin_path, axfd_datadir,
                 wallet_account_name)
