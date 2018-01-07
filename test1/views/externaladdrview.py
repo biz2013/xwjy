@@ -49,7 +49,7 @@ def external_address(request):
           if len(crypto) == 0:
               crypto = 'AXFund'
           externaladdress = UserExternalWalletAddressInfo(id,
-             request.session[REQ_KEY_USERID], address, alias, crypto)
+             request.session[REQ_KEY_USERID], alias, address, crypto)
           useraccountinfomanager.create_update_externaladdr(
              externaladdress, request.session[REQ_KEY_USERNAME])
           return redirect('accountinfo')
