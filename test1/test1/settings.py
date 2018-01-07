@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'tests',
     'config',
     'controller',
+    'trade.apps.TradeConfig'
 ]
 
 MIDDLEWARE = [
