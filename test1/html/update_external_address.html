@@ -28,7 +28,7 @@
             {% endif %}
             <div id="div_id_address" class="form-group"> <label for="lbl_id_address" class="control-label  requiredField">
 				提币地址<span class="asteriskField">*</span> </label>
-              <div class="controls "> <input class="textinput textInput form-control" id="txt_id_address" name="address" type="text" value="{{ user_external_address.address }}"/> </div>
+              <div class="controls "> <input class="textinput textInput form-control" id="txt_id_address" name="address" type="text" max_length="128" value="{{ user_external_address.address }}"/> </div>
             </div>
             <div id="div_id_alias" class="form-group"> <label for="lbl_id_alias" class="control-label requiredField">
 			    备注名<span class="asteriskField">*</span> </label>
