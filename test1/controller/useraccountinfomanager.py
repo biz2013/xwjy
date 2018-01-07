@@ -27,7 +27,7 @@ def update_user_wallet_based_on_deposit(trx, user_wallet, min_trx_confirmation,
             logger.info('txid {0} is confirmed, need to change status for user_wallet_trans {1}'.format(
                  trx['txid'], user_wallet_trans.id
             ))
-            with transactin.atomic():
+            with transaction.atomic():
                 user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet.id)
                 balance_end = user_wallet.balance + trx['amount']
                 available_to_trade_end = user_wallet.available_balance + trx['amount']
@@ -117,7 +117,7 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
             logger.info('txid {0} is confirmed, need to change status for user_wallet_trans {1}'.format(
                  trx['txid'], user_wallet_trans.id
             ))
-            with transactin.atomic():
+            with transaction.atomic():
                 user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet.id)
                 balance_end = user_wallet.balance - trx['amount']
                 available_to_trade_end = user_wallet.available_balance - trx['amount']
