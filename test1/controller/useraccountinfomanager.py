@@ -192,6 +192,9 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
 def get_send_money_trans_userid(trx):
     try:
         comment_parts = trx['comment'].split(',')
+        if len(comment_parts) < 3:
+            logger.error("The comment {0} is not in expected format of User:id redeem: amount to:address".format(trx['comment']))
+            return -1
         parts1 = comment_parts[0].split(':')
         return int(parts1[1])
     except Exception as e:
