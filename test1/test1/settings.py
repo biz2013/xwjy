@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'tests',
     'config',
     'controller',
-    'trade.apps.TradeConfig'
 ]
 
 MIDDLEWARE = [
@@ -61,7 +60,7 @@ ROOT_URLCONF = 'test1.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [ '.', ],
+        'DIRS': [ '.', './html'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -182,6 +181,9 @@ LOGGING = {
     },
 }
 
+# Redirect to home URL after login (Default redirects to /accounts/profile/)
+LOGIN_REDIRECT_URL = '/'
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
@@ -218,3 +220,14 @@ MEDIA_URL='/media/'
 MEDIA_ROOT= os.path.join(BASE_DIR,'')
 
 print 'media root is %s' % (MEDIA_ROOT)
+
+# Set password reset email to console.
+# Comment this line and use below email settings when moving to production.
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# EMAIL_USE_TLS = True
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = 'xxxx@xxxx.com'
+# EMAIL_HOST_PASSWORD = 'xxxxxx'
+
