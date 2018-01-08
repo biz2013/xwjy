@@ -131,7 +131,7 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
 
                 user_wallet.balance = balance_end
                 user_wallet.available_balance = available_to_trade_end
-                user_wallet.user_wallet_trans_id = wallet_trans.id
+                user_wallet.user_wallet_trans_id = user_wallet_trans.id
                 user_wallet.lastupdated_by = operator
                 user_wallet.save()
             logger.info('Update user wallet balance for user id {0} address {1} related to newly confirmed txid {2}'.format(
