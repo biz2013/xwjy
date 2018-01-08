@@ -41,7 +41,7 @@ def sell_axfund(request):
        buyorders = ordermanager.get_pending_incoming_buy_orders_by_user(userId)
        return render(request, 'html/mysellorder.html', {'sellorders': sellorders,
                 'buyorders':buyorders, REQ_KEY_USERNAME: username,
-                'useraccountInfo': useraccountInfo,
+                'useraccountInfo': accountinfo,
                 'previous_call_status' : status})
 
     except Exception as e:
