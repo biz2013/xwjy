@@ -29,7 +29,7 @@
     }
   </script>
   <div class="container">
-    <h6>锁定余额: {{ axfund.locked_balance }} 可用余额: {{ axfund.available_balance }} 总余额：{{ axfund.balance}} </h6>
+    {% include "html/include/balance_banner.html" %}
     <div class="well">
       <div class="row">
         {% if previous_call_status %}
