@@ -35,8 +35,10 @@ def show_active_sell_orders(request):
        userId = int(request.session[REQ_KEY_USERID])
        status = None
        sellorders = ordermanager.get_all_open_seller_order_exclude_user(userId)
+       accountinfo = useraccountinfomanager.get_user_accountInfo(userId, 'AXFund', True)
        return render(request, 'html/purchase.html', {'sellorders': sellorders,
                 REQ_KEY_USERNAME: username,
+                'useraccountInfo': useraccountInfo,
                 'previous_call_status' : status})
 
     except Exception as e:
