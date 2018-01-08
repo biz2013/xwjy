@@ -38,7 +38,7 @@ def show_active_sell_orders(request):
        accountinfo = useraccountinfomanager.get_user_accountInfo(userId, 'AXFund', True)
        return render(request, 'html/purchase.html', {'sellorders': sellorders,
                 REQ_KEY_USERNAME: username,
-                'useraccountInfo': useraccountInfo,
+                'useraccountInfo': accountinfo,
                 'previous_call_status' : status})
 
     except Exception as e:
