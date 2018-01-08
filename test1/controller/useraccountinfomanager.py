@@ -256,7 +256,7 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
                 logger.error('Could not find user wallet for Transaction {0} with  comment {1} '.format(
                         trx['txid'],trx['comment']))
 
-def get_user_accountInfo(userid, crypto):
+def get_user_accountInfo(userid, crypto, load_balance_only=False):
     logger.info("get account info for user {0} in {1}".format(userid, crypto))
     user = User.objects.get(pk=userid)
     userwallet = UserWallet.objects.get(user__id= userid, wallet__cryptocurrency__currency_code=crypto)
@@ -264,24 +264,25 @@ def get_user_accountInfo(userid, crypto):
     available_balance = userwallet.available_balance
     locked_balance = userwallet.locked_balance
     receiving_addr = userwallet.wallet_addr
-    userpayments = UserPaymentMethod.objects.filter(user__id=userid)
-    external_addresses = UserExternalWalletAddress.objects.filter(user__id= userid).filter(cryptocurrency__currency_code=crypto)
     externaladdr = None
-    if external_addresses:
-       logger.info('Found the external address record for user {0} with {1}'.format(userid, crypto))
-       record = external_addresses[0]
-       externaladdr = UserExternalWalletAddressInfo(record.id, record.user.id,
-           record.alias, record.address, record.cryptocurrency.currency_code)
-    else:
-       logger.info('There is no external address for user {0} with {1}'.format(userid, crypto))
     payment_methods= []
-    if userpayments:
-       logger.info('User {0} has setup payment methods'.format(userid))
-       for method in userpayments:
-          payment_methods.append(UserPaymentMethodView(method.id,
-                user.id, method.provider.code,
-                method.provider.name,method.account_at_provider,
-                method.provider_qrcode_image))
+    if not load_balance_only:
+        userpayments = UserPaymentMethod.objects.filter(user__id=userid)
+        external_addresses = UserExternalWalletAddress.objects.filter(user__id= userid).filter(cryptocurrency__currency_code=crypto)
+        if external_addresses:
+           logger.info('Found the external address record for user {0} with {1}'.format(userid, crypto))
+           record = external_addresses[0]
+           externaladdr = UserExternalWalletAddressInfo(record.id, record.user.id,
+               record.alias, record.address, record.cryptocurrency.currency_code)
+        else:
+           logger.info('There is no external address for user {0} with {1}'.format(userid, crypto))
+        if userpayments:
+           logger.info('User {0} has setup payment methods'.format(userid))
+           for method in userpayments:
+              payment_methods.append(UserPaymentMethodView(method.id,
+                    user.id, method.provider.code,
+                    method.provider.name,method.account_at_provider,
+                    method.provider_qrcode_image))
     userInfo = UserAccountInfo(user.login, user.id,
           balance,
           locked_balance,

@@ -36,11 +36,12 @@ def sell_axfund(request):
               unit_price_currency, units, units, total_amount,
               crypto, None, None)
           status = ordermanager.create_sell_order(order, username)
-       accountinfo = useraccountinfomanager.get_user_accountInfo(userId, 'AXFund')
+       accountinfo = useraccountinfomanager.get_user_accountInfo(userId, 'AXFund', True)
        sellorders = ordermanager.get_user_open_sell_orders(userId)
        buyorders = ordermanager.get_pending_incoming_buy_orders_by_user(userId)
        return render(request, 'html/mysellorder.html', {'sellorders': sellorders,
                 'buyorders':buyorders, REQ_KEY_USERNAME: username,
+                'useraccountInfo': useraccountInfo,
                 'previous_call_status' : status})
 
     except Exception as e:
@@ -58,10 +59,12 @@ def cancel_sell_order(request):
        if request.method == 'POST':
            orderid = request.POST['order_id']
            ordermanager.cancel_sell_order(userId, orderid, 'AXFund', username)
-       accountinfo = useraccountinfomanager.get_user_accountInfo(userId, 'AXFund')
+       accountinfo = useraccountinfomanager.get_user_accountInfo(userId, 'AXFund', True)
        sellorders = ordermanager.get_user_open_sell_orders(userId)
        buyorders = ordermanager.get_pending_incoming_buy_orders_by_user(userId)
-       return render(request, 'html/mysellorder.html', {'sellorders': sellorders,
+       return render(request, 'html/mysellorder.html', {
+                'sellorders': sellorders,
+                'useraccountInfo': useraccountInfo,
                 'buyorders':buyorders, REQ_KEY_USERNAME: username})
 
     #except Exception as e:
