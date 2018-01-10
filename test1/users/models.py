@@ -219,6 +219,9 @@ class Order(models.Model):
    reference_order = models.ForeignKey('self', null=True)
    cryptocurrency = models.ForeignKey('Cryptocurrency')
 
+   # payment provider, purchase order only
+   payment_provider = models.ForeignKey('PaymentProvider', null=True)
+
    # bill no of the payment. purchase order only,
    payment_bill_no = models.CharField(max_length=128, null=True)
 

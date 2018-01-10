@@ -16,6 +16,14 @@ logger = logging.getLogger("site.ordermanager")
 def get_user_payment_account(user_id, payment_provider_code):
     return UserPaymentMethod.objects.filter(user__id=user_id).filter(provider__code=payment_provider_code)
 
+def get_seller_buyer_payment_accounts(buyorder_id, payment_provider):
+    buyorder = Order.objects.get(pk=buyerorder_id)
+    sellorder = Order.objects.get(pk=buyorder.reference_order.order_id)
+    seller_payment_method = UserPaymentMethod.objects.get(user__id=sellorder.user.id, provider__code = payment_provider)
+    buyer_payment_method = UserPaymentMethod.objects.get(user__id=buyorder.user.id, provider__code = payment_provider)
+    return seller_payment_method.account_at_provider,
+           buyer_payment_method.account_at_provider,
+
 def create_sell_order(order, operator):
     userobj = User.objects.get(id = order.owner_user_id)
     operatorObj = UserLogin.objects.get(username = operator)
@@ -210,7 +218,7 @@ def create_purchase_order(buyorder, reference_order_id, operator):
            reference_order.units
         ))
 
-    return order.order_id if order is not None else None, ''
+    return order.order_id if order is not None else None
 
 def update_order_with_heepay_notification(notify_json, operator):
     """ a) the payment provider will call a specific url of us, and post a standard notification http://dev.heepay.com/index.php?s=/55&page_id=540
@@ -382,3 +390,29 @@ def cancel_sell_order(userid, order_id, crypto, operator):
         user_wallet.available_balance = available_to_trade_end
         user_wallet.lastupdated_by = operatorObj
         user_wallet.save()
+
+def post_open_payment_order(buyorder_id, payment_provider, bill_no, username):
+    operator = UserLogin.objects.get(pk=username)
+    buyorder = Order.objects.get(pk=buyorder_id)
+    sell_order = Order.objects.get(pk=order_id=buyorder.reference_order.order_id)
+    with transaction.atomic():
+        if buyorder.status != 'CANCELLED':
+            updated = sell_order.objects.filter(
+                       order_id=buyorder.reference_order.order_id,
+                       Q(status='LOCKED') )\
+                      .update(status='OPEN')
+            if not updated:
+                error_msg = "Purchase order {0}:status{1} is not locked by buy order {2} anymore.  Should not happen.".format(
+                        sell_order.order_id, sell_order.status, buyorder.order_id)
+                logger.error(error_msg)
+                raise ValueError(error_msg)
+            logger.info("update related sell order {0} status to OPEN".format(sell_order.order_id))
+            buyorder.payment_bill_no = bill_no
+            buyorder.payment_provider = payment_provider
+            buyorder.save()
+            logger.info("record {0}.bill#: {1} to related buyorder: {2}".format(
+                payment_method, bill_no, buyorder.order_id
+            ))
+            return True
+         else:
+            return False
