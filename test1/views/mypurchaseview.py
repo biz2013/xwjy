@@ -124,8 +124,7 @@ def create_purchase_order(request):
         logger.debug('create_purchase_order()...')
         if not user_session_is_valid(request):
            return render(request, 'html/login.html', { 'next_action' : '/purchase/'})
-        username = request.POST[REQ_KEY_USERNAME]
-        userid = int(request.session[REQ_KEY_USERID])
+        username, userid = get_user_session_value(request)
         reference_order_id = request.POST['reference_order_id']
         owner_user_id = int(request.POST["owner_user_id"])
         quantity = float(request.POST['quantity'])
