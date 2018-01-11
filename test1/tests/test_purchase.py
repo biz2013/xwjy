@@ -2,14 +2,20 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase, TransactionTestCase
 from django.test import Client
+from mock import Mock, MagicMock, patch, mock
 from users.models import *
 from controller.heepaymanager import HeePayManager
 from views.models.orderitem import OrderItem
 from controller import ordermanager
+from controller.global_utils import *
 
 import sys, traceback, time, json
 from calendar import timegm
 from datetime import datetime as dt
+
+TEST_HY_BILL_NO='Test_heepay_bill_no'
+
+heepay_reponse_template = json.load(open('tests/data/trx_test_data1.json'))
 
 class PurchaseTestCase(TransactionTestCase):
     fixtures = ['fixture_for_tests.json']
@@ -115,13 +121,13 @@ class PurchaseTestCase(TransactionTestCase):
             fail('There should be one user_wallet_transaction record for the new purchase order')
         except UserWalletTransaction.MultipleObjectsReturned:
             fail('There should ONLY be one user_wallet_transaction record for the new purchase order')
-        """except Exception as e:
+        except Exception as e:
             error_msg = 'test_create_purchase_order() hit exception {0}'.format(
                   sys.exc_info()[0])
             print error_msg
             print traceback.format_exc()
             self.fail(error_msg)
-        """
+
 
     def create_sell_order(self):
        print 'run create_sell_order()'
@@ -193,7 +199,36 @@ class PurchaseTestCase(TransactionTestCase):
            print traceback.format_exc()
            self.fail(error_msg)
 
-    def test_2_payconfirmation(self):
+    def send_buy_apply_request_side_effect(payload):
+        json_payload = json.loads(payload)
+        json_response = copy.copy(heepay_reponse_template)
+        json_response['out_trade_no'] = json_payload['biz_content']['out_trade_no']
+        json_response['hy_bill_no'] = TEST_HY_BILL_NO
+        return json_response
+
+    def get_buyer(request):
+        return 'yingzhou', 2
+
+    @mock.patch('controller.heepaymanager.HeePayManager.send_buy_apply_request', side_effect=send_buy_apply_request_side_effect)
+    @mock.patch('controller.global_utils.user_session_is_valid')
+    @mock.patch('controller.global_utils.get_user_session_value', side_effect=get_buyer)
+    def test_2_purchase_view(self, send_buy_apply_request_function,
+           mock_user_session_is_valid, get_user_session_value_function):
+        mock_user_session_is_valid.return_value = True
+        try:
+            c = Client()
+            response = c.post('/purchase/createorder2/',
+                )
+            self.assertEqual(200, response.status_code)
+
+        except Exception as e:
+            error_msg = 'test_create_sell_order() hit exception {0}'.format(
+                  sys.exc_info()[0])
+            print error_msg
+            print traceback.format_exc()
+            self.fail(error_msg)
+
+    def test_3_payconfirmation(self):
         try:
             seller_wallet = UserWallet.objects.get(user__login__username='taozhang',
                    wallet__cryptocurrency__currency_code = 'AXFund')

@@ -15,6 +15,9 @@ def user_session_is_valid(request):
        return False
     return True
 
+def get_user_session_value(request):
+    return request.POST[REQ_KEY_USERNAME], int(request.session[REQ_KEY_USERID])
+
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
