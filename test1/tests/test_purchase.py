@@ -8,6 +8,8 @@ from views.models.orderitem import OrderItem
 from controller import ordermanager
 
 import sys, traceback, time, json
+from calendar import timegm
+from datetime import datetime as dt
 
 class PurchaseTestCase(TransactionTestCase):
     fixtures = ['fixture_for_tests.json']
@@ -28,6 +30,8 @@ class PurchaseTestCase(TransactionTestCase):
                 wait_count = wait_count + 1
                 time.sleep(1)
                 continue
+            except Order.MultipleObjectsReturned:
+                fail('There should ONLY be one sell order created')
         try:
             print 'about to create buy order'
             buyer = User.objects.get(login__username='yingzhou')
@@ -56,11 +60,11 @@ class PurchaseTestCase(TransactionTestCase):
                 available_units, total_amount ,
                 'AXFund', None, None)
             print 'issue command to create buy order for sell order {0}'.format(sell_order.order_id)
-            orderid, rs = ordermanager.create_purchase_order(buyorder,
+            orderid = ordermanager.create_purchase_order(buyorder,
                           sell_order.order_id, 'yingzhou')
+            ltimestamp_now = timegm(dt.utcnow().utctimetuple())
             print 'buy order created and start validate it'
             self.assertTrue(orderid is not None)
-            self.assertTrue(len(rs) == 0)
             order = Order.objects.get(pk=orderid)
             self.assertEqual('BUY', order.order_type)
             self.assertEqual(sell_order.order_id, order.reference_order.order_id)
@@ -72,6 +76,8 @@ class PurchaseTestCase(TransactionTestCase):
             self.assertEqual(0.0, order.units_locked)
             self.assertEqual('yingzhou', order.created_by.username)
             self.assertEqual('yingzhou', order.lastupdated_by.username)
+            llastupdated_timestamp = timegm(order.lastupdated_at.utctimetuple())
+            self.assertTrue(abs(llastupdated_timestamp - ltimestamp_now) < 120)
 
             print 'validate buyer user wallet balance after purchase order, there should be no changes'
             self.assertEqual(old_balance, user_wallet.balance)
@@ -94,9 +100,14 @@ class PurchaseTestCase(TransactionTestCase):
             self.assertEqual('PENDING', user_wallet_trans.status)
             self.assertEqual('yingzhou', user_wallet_trans.created_by.username)
             self.assertEqual('yingzhou', user_wallet_trans.lastupdated_by.username)
+            lcreated_timestamp = timegm(user_wallet_trans.created_at.utctimetuple())
+            self.assertTrue(abs(lcreated_timestamp - ltimestamp_now) < 120)
+            llastupdated_timestamp = timegm(user_wallet_trans.lastupdated_at.utctimetuple())
+            self.assertTrue(abs(llastupdated_timestamp - ltimestamp_now) < 120)
 
             print 'validate sell order change'
             sell_order.refresh_from_db()
+            self.assertEqual('LOCKED', sell_order.status)
             self.assertEqual(old_sell_order_units, sell_order.units)
             self.assertEqual(old_sell_order_units_locked + buyorder.total_units, sell_order.units_locked)
             self.assertEqual(old_sell_order_units_available - buyorder.total_units, sell_order.units_available_to_trade)
@@ -104,12 +115,13 @@ class PurchaseTestCase(TransactionTestCase):
             fail('There should be one user_wallet_transaction record for the new purchase order')
         except UserWalletTransaction.MultipleObjectsReturned:
             fail('There should ONLY be one user_wallet_transaction record for the new purchase order')
-        except Exception as e:
+        """except Exception as e:
             error_msg = 'test_create_purchase_order() hit exception {0}'.format(
                   sys.exc_info()[0])
             print error_msg
             print traceback.format_exc()
             self.fail(error_msg)
+        """
 
     def create_sell_order(self):
        print 'run create_sell_order()'

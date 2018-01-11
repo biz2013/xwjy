@@ -138,7 +138,7 @@ def create_purchase_order(request):
             0, total_amount, crypto, '', '')
         buyorderid, rs= ordermanager.create_purchase_order(buyorder, reference_order_id, username)
         if buyorderid is None:
-           raise ValueError('Failed to get purchase order id' %s' % rs')
+           raise ValueError('Failed to get purchase order id')
 
         returnstatus = None
 
