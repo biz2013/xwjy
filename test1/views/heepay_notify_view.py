@@ -14,9 +14,10 @@ logger = logging.getLogger("site.heepay_confirm")
 def get_payment_confirmation_json(request, app_key):
    logger.info('get_payment_confirmation_json()')
    json_data = {}
+   logger.info('notification method is %s, full url is %s' % (request.method, request.get_full_path()))
    if request.method == 'POST':
        json_data = json.loads(request.body)
-   else:
+   elif request.method == 'GET':
        json_data['version'] = request.GET['version']
        json_data['app_id'] = request.GET['app_id']
        json_data['subject'] = request.GET['subject']
@@ -40,7 +41,8 @@ def get_payment_confirmation_json(request, app_key):
        if 'from_account' in request.GET:
            json_data['from_account'] = request.GET['from_account']
        json_data['sign'] = request.GET['sign']
-
+   else:
+       raise ValueError('Unsupported request method %s' % request.method)
    logger.info('Receive payment confirmation {0}'.format(request.body))
    manager = HeePayManager()
    if not manager.confirmation_is_valid(json_data, app_key):
