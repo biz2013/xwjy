@@ -21,8 +21,7 @@ def get_seller_buyer_payment_accounts(buyorder_id, payment_provider):
     sellorder = Order.objects.get(pk=buyorder.reference_order.order_id)
     seller_payment_method = UserPaymentMethod.objects.get(user__id=sellorder.user.id, provider__code = payment_provider)
     buyer_payment_method = UserPaymentMethod.objects.get(user__id=buyorder.user.id, provider__code = payment_provider)
-    return seller_payment_method.account_at_provider,
-           buyer_payment_method.account_at_provider,
+    return seller_payment_method.account_at_provider, buyer_payment_method.account_at_provider
 
 def create_sell_order(order, operator):
     userobj = User.objects.get(id = order.owner_user_id)
@@ -394,13 +393,13 @@ def cancel_sell_order(userid, order_id, crypto, operator):
 def post_open_payment_order(buyorder_id, payment_provider, bill_no, username):
     operator = UserLogin.objects.get(pk=username)
     buyorder = Order.objects.get(pk=buyorder_id)
-    sell_order = Order.objects.get(pk=order_id=buyorder.reference_order.order_id)
+    sell_order = Order.objects.get(pk=buyorder.reference_order.order_id)
     with transaction.atomic():
         if buyorder.status != 'CANCELLED':
             updated = sell_order.objects.filter(
                        order_id=buyorder.reference_order.order_id,
-                       Q(status='LOCKED') )\
-                      .update(status='OPEN')
+                       status='LOCKED').update(status='OPEN',
+                                lastupdated_at = dt.utcnow())
             if not updated:
                 error_msg = "Purchase order {0}:status{1} is not locked by buy order {2} anymore.  Should not happen.".format(
                         sell_order.order_id, sell_order.status, buyorder.order_id)
@@ -414,5 +413,5 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, username):
                 payment_method, bill_no, buyorder.order_id
             ))
             return True
-         else:
+        else:
             return False
