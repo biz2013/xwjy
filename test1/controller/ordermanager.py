@@ -397,10 +397,10 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, username):
     sell_order = Order.objects.get(pk=buyorder.reference_order.order_id)
     with transaction.atomic():
         if buyorder.status != 'CANCELLED':
-            updated = sell_order.objects.filter(
+            updated = Order.objects.filter(
                        order_id=buyorder.reference_order.order_id,
                        status='LOCKED').update(status='OPEN',
-                                lastupdated_at = dt.utcnow())
+                                lastupdated_at = dt.datetime.utcnow())
             if not updated:
                 error_msg = "Purchase order {0}:status{1} is not locked by buy order {2} anymore.  Should not happen.".format(
                         sell_order.order_id, sell_order.status, buyorder.order_id)
@@ -408,10 +408,10 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, username):
                 raise ValueError(error_msg)
             logger.info("update related sell order {0} status to OPEN".format(sell_order.order_id))
             buyorder.payment_bill_no = bill_no
-            buyorder.payment_provider = payment_provider
+            buyorder.payment_provider = PaymentProvider.objects.get(pk=payment_provider)
             buyorder.save()
             logger.info("record {0}.bill#: {1} to related buyorder: {2}".format(
-                payment_method, bill_no, buyorder.order_id
+                payment_provider, bill_no, buyorder.order_id
             ))
             return True
         else:

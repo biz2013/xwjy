@@ -6,16 +6,35 @@ from mock import Mock, MagicMock, patch, mock
 from users.models import *
 from controller.heepaymanager import HeePayManager
 from views.models.orderitem import OrderItem
+from views.models.userpaymentmethodview import UserPaymentMethodView
 from controller import ordermanager
+from controller import userpaymentmethodmanager
 from controller.global_utils import *
 
-import sys, traceback, time, json
+import sys, io, traceback, time, json, copy
 from calendar import timegm
 from datetime import datetime as dt
 
 TEST_HY_BILL_NO='Test_heepay_bill_no'
 
-heepay_reponse_template = json.load(open('tests/data/trx_test_data1.json'))
+heepay_reponse_template = json.load(io.open('tests/data/heepay_return_success.json', 'r', encoding='utf-8'))
+
+#mock function
+def send_buy_apply_request_side_effect(payload):
+    json_payload = json.loads(payload)
+    json_response = copy.copy(heepay_reponse_template)
+    print 'copied response template is {0}'.format(json.dumps(json_response))
+    biz_content = json.loads(json_payload['biz_content'])
+    print 'biz_content json is {0}'.format(json.dumps(biz_content))
+    json_response['out_trade_no'] = biz_content['out_trade_no']
+    json_response['hy_bill_no'] = TEST_HY_BILL_NO
+    json_response['to_account'] = '15811302702'
+    print 'copied and templated response is {0}'.format(json.dumps(json_response))
+    return 200, 'Ok', json.dumps(json_response)
+
+#mock function
+def get_buyer(request):
+    return 'yingzhou', 2
 
 class PurchaseTestCase(TransactionTestCase):
     fixtures = ['fixture_for_tests.json']
@@ -199,15 +218,6 @@ class PurchaseTestCase(TransactionTestCase):
            print traceback.format_exc()
            self.fail(error_msg)
 
-    def send_buy_apply_request_side_effect(payload):
-        json_payload = json.loads(payload)
-        json_response = copy.copy(heepay_reponse_template)
-        json_response['out_trade_no'] = json_payload['biz_content']['out_trade_no']
-        json_response['hy_bill_no'] = TEST_HY_BILL_NO
-        return json_response
-
-    def get_buyer(request):
-        return 'yingzhou', 2
 
     @mock.patch('controller.heepaymanager.HeePayManager.send_buy_apply_request', side_effect=send_buy_apply_request_side_effect)
     @mock.patch('controller.global_utils.user_session_is_valid', return_value=True)
@@ -215,24 +225,37 @@ class PurchaseTestCase(TransactionTestCase):
     def test_2_purchase_view(self, send_buy_apply_request_function,
            user_session_is_valid_function, get_user_session_value_function):
         try:
+            # get seller initial info
             seller = User.objects.get(login__username='taozhang')
             seller_wallet = UserWallet.objects.get(user__id = seller.id,
                   wallet__cryptocurrency__currency_code = 'AXFund')
             old_seller_balance = seller_wallet.balance
             old_seller_locked_balance = seller_wallet.locked_balance
             old_seller_available_balance = seller_wallet.available_balance
+            # prepare seller payment method
+            seller_paymentmethod = UserPaymentMethodView(0, seller.id,
+               'heepay', '汇钱包', '15811302702', '')
+            userpaymentmethodmanager.create_update_user_payment_method(
+                   seller_paymentmethod, 'taozhang')
 
-            #seller_paymentmethod = UserPaymentMethodView(0, seller.id,
-            #   'heepay', '')
+            # get buyer initial info
             buyer = User.objects.get(login__username='yingzhou')
             buyer_wallet = UserWallet.objects.get(user__id = buyer.id,
                   wallet__cryptocurrency__currency_code = 'AXFund')
             old_buyer_balance = buyer_wallet.balance
             old_buyer_locked_balance = buyer_wallet.locked_balance
             old_buyer_available_balance = buyer_wallet.available_balance
+            # prepare buyer payment method
+            buyer_paymentmethod = UserPaymentMethodView(0, buyer.id,
+               'heepay', '汇钱包', '13641388306', '')
+            userpaymentmethodmanager.create_update_user_payment_method(
+                   buyer_paymentmethod, 'yingzhou')
 
+            # create sell order
             sell_order_id = self.create_sell_order()
             sell_order = Order.objects.get(pk=sell_order_id)
+
+            # create buyer order based on sell order
             total_amount_str = str(round(sell_order.unit_price * 2.1,2))
             buyorder_dict = { 'reference_order_id': sell_order_id,
                     'owner_user_id': str(seller.id),
