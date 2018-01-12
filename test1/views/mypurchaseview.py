@@ -96,10 +96,10 @@ def send_payment_request_to_heepay(sitesettings, buyorder_id, amount):
     logger.info('find seller account {0} and buyer account {1} with provider heepay'.format(
               seller_account, buyer_account))
     json_payload = heepay.create_heepay_payload('wallet.pay.apply',
-         buyorder.order_id,
+         buyorder_id,
          sitesettings.heepay_app_id.encode('ascii'),
          sitesettings.heepay_app_key.encode('ascii'),
-         '127.0.0.1', total_amount,
+         '127.0.0.1', amount,
          seller_account,
          buyer_account,
          notify_url,
@@ -118,6 +118,15 @@ def send_payment_request(sitesettings, payment_provider, buyorder_id, amount):
         return send_payment_request_to_heepay(sitesettings, buyorder_id, amount)
     else:
         raise ValueError('Payment method {0} is not supported'.format(payment_method))
+
+def generate_payment_qrcode(payment_provider,payment_provider_response_json,
+         qrcode_image_basedir):
+    if payment_provider == 'heepay':
+        heepay = HeePayManager()
+        return heepay.generate_heepay_qrcode(payment_provider_response_json,
+                qrcode_image_basedir)
+    else:
+        raise ValueError('Payment provider {0} is not supported'.format(payment_provider))
 
 def create_purchase_order(request):
     try:
@@ -149,10 +158,11 @@ def create_purchase_order(request):
             buyorder.order_id, total_amount)
         if json_response is not None and json_response['return_code'] == 'SUCCESS':
             if ordermanager.post_open_payment_order(
-                            buyorder_id, 'heepay',
+                            buyorderid, 'heepay',
                             json_response['hy_bill_no'],
                             username):
-                qrcode_file = heepay.generate_heepay_qrcode(json_response, settings.MEDIA_ROOT)
+
+                qrcode_file = generate_payment_qrcode('heepay', json_response, settings.MEDIA_ROOT)
                 return render(request, 'html/purchase_heepay_qrcode.html',
                      { 'total_units' : quantity, 'unit_price': unit_price,
                        'total_amount': total_amount,
