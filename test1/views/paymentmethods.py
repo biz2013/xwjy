@@ -14,13 +14,17 @@ from views.models.userpaymentmethodview import *
 from views.models.orderitem import OrderItem
 from views.models.returnstatus import ReturnStatus
 from views import errorpage
+from django.contrib.auth.decorators import login_required
 
 import logging,json
 
 # logger for user registration
 logger = logging.getLogger("site.paymentmethods")
 
+@login_required
 def payment_method(request):
+    # TO DO: pass down request.user to controller.
+
     try:
        if not user_session_is_valid(request):
           return render(request, 'html/login.html', { 'next_action' : '/purchase/'})

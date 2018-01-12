@@ -15,10 +15,12 @@ from controller import useraccountinfomanager
 from views.models.orderitem import OrderItem
 from views.models.returnstatus import ReturnStatus
 from views import errorpage
+from django.contrib.auth.decorators import login_required
 
 
 logger = logging.getLogger("site.sellorder")
 
+@login_required
 def sell_axfund(request):
     try:
        if not user_session_is_valid(request):
@@ -49,6 +51,7 @@ def sell_axfund(request):
        return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
 
+@login_required
 def cancel_sell_order(request):
     #try:
        if not user_session_is_valid(request):
