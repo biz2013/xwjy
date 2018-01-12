@@ -17,8 +17,9 @@ def get_user_payment_account(user_id, payment_provider_code):
     return UserPaymentMethod.objects.filter(user__id=user_id).filter(provider__code=payment_provider_code)
 
 def get_seller_buyer_payment_accounts(buyorder_id, payment_provider):
-    buyorder = Order.objects.get(pk=buyerorder_id)
+    buyorder = Order.objects.get(pk=buyorder_id)
     sellorder = Order.objects.get(pk=buyorder.reference_order.order_id)
+    logger.info("seller {0} buyer {1} payment_provider {2}".format(sellorder.user.id, buyorder.user.id, payment_provider))
     seller_payment_method = UserPaymentMethod.objects.get(user__id=sellorder.user.id, provider__code = payment_provider)
     buyer_payment_method = UserPaymentMethod.objects.get(user__id=buyorder.user.id, provider__code = payment_provider)
     return seller_payment_method.account_at_provider, buyer_payment_method.account_at_provider

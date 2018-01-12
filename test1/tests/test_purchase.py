@@ -22,14 +22,14 @@ class PurchaseTestCase(TransactionTestCase):
 
     def test_1_create_purchase_order(self):
         print 'run test_create_purchase_order()'
-        self.create_sell_order()
+        seller_order_id = self.create_sell_order()
         print 'out of create_sell_order()'
         found_seller_order = False
         sell_order = None
         wait_count = 0
         while not found_seller_order and wait_count < 60:
             try:
-                sell_order = Order.objects.get(units=100.0, unit_price=1.01)
+                sell_order = Order.objects.get(pk=sell_order_id)
                 found_seller_order = True
             except Order.DoesNotExist:
                 print 'test_create_purchase_order(): expected sell order does not exist wait for one second'
@@ -191,7 +191,7 @@ class PurchaseTestCase(TransactionTestCase):
            self.assertEqual('PROCESSED', user_wallet_trans.status)
            self.assertEqual('taozhang', user_wallet_trans.created_by.username)
            self.assertEqual('taozhang', user_wallet_trans.lastupdated_by.username)
-           print 'done '
+           return orderid
        except Exception as e:
            error_msg = 'test_create_sell_order() hit exception {0}'.format(
                   sys.exc_info()[0])
@@ -210,15 +210,42 @@ class PurchaseTestCase(TransactionTestCase):
         return 'yingzhou', 2
 
     @mock.patch('controller.heepaymanager.HeePayManager.send_buy_apply_request', side_effect=send_buy_apply_request_side_effect)
-    @mock.patch('controller.global_utils.user_session_is_valid')
+    @mock.patch('controller.global_utils.user_session_is_valid', return_value=True)
     @mock.patch('controller.global_utils.get_user_session_value', side_effect=get_buyer)
     def test_2_purchase_view(self, send_buy_apply_request_function,
-           mock_user_session_is_valid, get_user_session_value_function):
-        mock_user_session_is_valid.return_value = True
+           user_session_is_valid_function, get_user_session_value_function):
         try:
+            seller = User.objects.get(login__username='taozhang')
+            seller_wallet = UserWallet.objects.get(user__id = seller.id,
+                  wallet__cryptocurrency__currency_code = 'AXFund')
+            old_seller_balance = seller_wallet.balance
+            old_seller_locked_balance = seller_wallet.locked_balance
+            old_seller_available_balance = seller_wallet.available_balance
+
+            #seller_paymentmethod = UserPaymentMethodView(0, seller.id,
+            #   'heepay', '')
+            buyer = User.objects.get(login__username='yingzhou')
+            buyer_wallet = UserWallet.objects.get(user__id = buyer.id,
+                  wallet__cryptocurrency__currency_code = 'AXFund')
+            old_buyer_balance = buyer_wallet.balance
+            old_buyer_locked_balance = buyer_wallet.locked_balance
+            old_buyer_available_balance = buyer_wallet.available_balance
+
+            sell_order_id = self.create_sell_order()
+            sell_order = Order.objects.get(pk=sell_order_id)
+            total_amount_str = str(round(sell_order.unit_price * 2.1,2))
+            buyorder_dict = { 'reference_order_id': sell_order_id,
+                    'owner_user_id': str(seller.id),
+                    'quantity': '2.1',
+                    'available_units': str(sell_order.units_available_to_trade),
+                    'unit_price' : str(sell_order.unit_price),
+                    'seller_payment_provider': 'heepay',
+                    'crypto': 'AXFund',
+                    'total_amount': total_amount_str }
             c = Client()
-            response = c.post('/purchase/createorder2/',
+            response = c.post('/purchase/createorder2/', buyorder_dict
                 )
+            self.assertTrue(user_session_is_valid_function.called)
             self.assertEqual(200, response.status_code)
 
         except Exception as e:
