@@ -14,7 +14,7 @@ from controller.global_utils import *
 from controller import ordermanager
 from controller import useraccountinfomanager
 from controller.heepaymanager import HeePayManager
-
+from django.contrib.auth.decorators import login_required
 
 from users.models import *
 from views.models.orderitem import OrderItem
@@ -25,6 +25,7 @@ from test1 import settings
 
 logger = logging.getLogger("site.purchaseview")
 
+@login_required
 def show_active_sell_orders(request):
     try:
        logger.debug("get show show_active_sell_orders request")
@@ -45,6 +46,7 @@ def show_active_sell_orders(request):
        return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
 
+@login_required
 def show_purchase_input(request):
     if not user_session_is_valid(request):
        return render(request, 'html/login.html', { 'next_action' : '/purchase/'})
@@ -80,6 +82,7 @@ def show_purchase_input(request):
             'buyer_payment_methods': useraccountInfo.paymentmethods }
            )
 
+@login_required
 def create_purchase_order(request):
     try:
         logger.debug('create_purchase_order()...')

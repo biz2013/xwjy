@@ -15,10 +15,12 @@ from users.models import *
 from views import errorpage
 from views.models.redeemitem import *
 import logging,json
+from django.contrib.auth.decorators import login_required
 
 # logger for user registration
 logger = logging.getLogger("site.redeemview")
 
+@login_required(login_url='/accounts/login/')
 def redeem(request):
     try:
        if not user_session_is_valid(request):
