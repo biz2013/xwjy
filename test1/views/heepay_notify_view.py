@@ -8,9 +8,11 @@ from django.shortcuts import render, redirect
 from config import context_processor
 from controller.heepaymanager import *
 from controller import ordermanager
+from django.contrib.auth.decorators import login_required
 
 logger = logging.getLogger("site.heepay_confirm")
 
+@login_required
 def get_payment_confirmation_json(request, app_key):
    logger.info('get_payment_confirmation_json()')
    json_data = {}

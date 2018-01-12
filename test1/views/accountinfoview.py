@@ -12,11 +12,13 @@ from controller.global_constants import *
 from controller.global_utils import *
 from views.models.returnstatus import ReturnStatus
 from views import errorpage
+from django.contrib.auth.decorators import login_required
 
 import logging,json
 
 logger = logging.getLogger("site.accountinfo")
 
+@login_required
 def accountinfo(request):
     try:
        if not user_session_is_valid(request):

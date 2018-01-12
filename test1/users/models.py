@@ -1,5 +1,8 @@
 from django.core.cache import cache
 from django.db import models
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class SingletonModel(models.Model):
 
@@ -45,68 +48,95 @@ class GlobalCounter(models.Model):
     lastupdated_at = models.DateTimeField(auto_now=True, null=True)
     lastupdated_by = models.CharField(max_length=32)
 
-class UserLogin(models.Model):
-   username = models.CharField(max_length=32, primary_key=True)
-   passwd_hash = models.CharField(max_length=64)
-   alias = models.CharField(max_length=64, default='')
-   config_json = models.CharField(max_length=4096)
-   created_at = models.DateTimeField(auto_now_add=True)
-   created_by = models.ForeignKey('self', on_delete = models.CASCADE, related_name="login_created_by", null = True)
-   lastupdated_at = models.DateTimeField(auto_now=True, null=True)
-   lastupdated_by = models.ForeignKey('self', on_delete=models.CASCADE, related_name="login_lastupdated_by", null = True)
+# class UserLogin(models.Model):
+#    username = models.CharField(max_length=32, primary_key=True)
+#    passwd_hash = models.CharField(max_length=64)
+#    alias = models.CharField(max_length=64, default='')
+#    config_json = models.CharField(max_length=4096)
+#    created_at = models.DateTimeField(auto_now_add=True)
+#    created_by = models.ForeignKey('self', on_delete = models.CASCADE, related_name="login_created_by", null = True)
+#    lastupdated_at = models.DateTimeField(auto_now=True, null=True)
+#    lastupdated_by = models.ForeignKey('self', on_delete=models.CASCADE, related_name="login_lastupdated_by", null = True)
 
 class PaymentProvider(models.Model):
    code = models.CharField(max_length=32, primary_key=True)
    name = models.CharField(max_length=32)
    config_json = models.TextField()
    created_at = models.DateTimeField(auto_now_add=True)
-   created_by = models.ForeignKey('UserLogin', related_name='PaymentProvider_created_by')
+   created_by = models.ForeignKey(User, related_name='PaymentProvider_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
-   lastupdated_by = models.ForeignKey('UserLogin', related_name='PaymentProvider_lastupdated_by')
+   lastupdated_by = models.ForeignKey(User, related_name='PaymentProvider_lastupdated_by')
 
-class User(models.Model):
-   login = models.OneToOneField('UserLogin', on_delete= models.CASCADE, null=True)
+# class User(models.Model):
+#    login = models.OneToOneField('UserLogin', on_delete= models.CASCADE, null=True)
+#    firstname = models.CharField(max_length=32)
+#    middle = models.CharField(max_length=32, default='')
+#    lastname = models.CharField(max_length=32)
+#    email = models.CharField(max_length=64)
+#    phone = models.CharField(max_length=32, default='')
+#    config_json = models.TextField(default='')
+#    created_at = models.DateTimeField(auto_now_add=True)
+#    created_by = models.ForeignKey('UserLogin', related_name='User_created_by')
+#    lastupdated_at = models.DateTimeField(auto_now=True)
+#    lastupdated_by = models.ForeignKey('UserLogin', related_name='User_lastupdated_by')
+
+# User Profile, extension of auth.models.User
+class Profile(models.Model):
+   user = models.OneToOneField(User, on_delete=models.CASCADE)
    firstname = models.CharField(max_length=32)
    middle = models.CharField(max_length=32, default='')
    lastname = models.CharField(max_length=32)
    email = models.CharField(max_length=64)
    phone = models.CharField(max_length=32, default='')
+   birth_date = models.DateField(null=True, blank=True)
    config_json = models.TextField(default='')
    created_at = models.DateTimeField(auto_now_add=True)
-   created_by = models.ForeignKey('UserLogin', related_name='User_created_by')
+   created_by = models.ForeignKey(User, related_name='User_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
-   lastupdated_by = models.ForeignKey('UserLogin', related_name='User_lastupdated_by')
+   lastupdated_by = models.ForeignKey(User, related_name='User_lastupdated_by')
+
+# TODO: Chi, enable this later.
+# define signals so our Profile model will be automatically created/updated
+# when we create/update User instances.
+# @receiver(post_save, sender=User)
+# def create_user_profile(sender, instance, created, **kwargs):
+#     if created:
+#         Profile.objects.create(user=instance)
+#
+# @receiver(post_save, sender=User)
+# def save_user_profile(sender, instance, **kwargs):
+#     instance.profile.save()
 
 class UserPaymentMethod(models.Model):
-   user = models.ForeignKey('User', on_delete=models.CASCADE)
+   user = models.ForeignKey(User, on_delete=models.CASCADE)
    provider = models.ForeignKey('PaymentProvider', on_delete=models.CASCADE)
    account_at_provider = models.CharField(max_length=64)
    provider_qrcode_image = models.ImageField(upload_to='uploads/')
    created_at = models.DateTimeField(auto_now_add=True)
-   created_by = models.ForeignKey('UserLogin', related_name='UserPaymentMethod_created_by')
+   created_by = models.ForeignKey(User, related_name='UserPaymentMethod_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
-   lastupdated_by = models.ForeignKey('UserLogin', related_name='UserPaymentMethod_lastupdated_by')
+   lastupdated_by = models.ForeignKey(User, related_name='UserPaymentMethod_lastupdated_by')
 
 
 class Cryptocurrency(models.Model):
    currency_code = models.CharField(max_length=16, primary_key=True)
    name = models.CharField(max_length=32)
    created_at = models.DateTimeField(auto_now_add=True)
-   created_by = models.ForeignKey('UserLogin', related_name='Cryptocurrency_created_by')
+   created_by = models.ForeignKey(User, related_name='Cryptocurrency_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
-   lastupdated_by = models.ForeignKey('UserLogin', related_name='Cryptocurrency_lastupdated_by')
+   lastupdated_by = models.ForeignKey(User, related_name='Cryptocurrency_lastupdated_by')
 
 class Wallet(models.Model):
    name = models.CharField(max_length=32, unique=True, default='first')
    cryptocurrency = models.ForeignKey('Cryptocurrency', on_delete=models.CASCADE)
    config_json = models.TextField()
    created_at = models.DateTimeField(auto_now_add=True)
-   created_by = models.ForeignKey('UserLogin', related_name='Wallet_created_by')
+   created_by = models.ForeignKey(User, related_name='Wallet_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
-   lastupdated_by = models.ForeignKey('UserLogin', related_name='Wallet_lastupdated_by')
+   lastupdated_by = models.ForeignKey(User, related_name='Wallet_lastupdated_by')
 
 class UserWallet(models.Model):
-   user = models.ForeignKey('User', on_delete=models.CASCADE, null=True)
+   user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
    wallet = models.ForeignKey('Wallet', on_delete=models.CASCADE)
    # refer the to last user wallet transaction record's id, which is the
    # transaction that gives the latest update. Not make it foreign key to
@@ -121,9 +151,9 @@ class UserWallet(models.Model):
    last_wallet_trxId = models.CharField(max_length=128, default='')
    last_wallet_timestamp = models.IntegerField(default=0)
    created_at = models.DateTimeField(auto_now_add=True)
-   created_by = models.ForeignKey('UserLogin', related_name='UserWallet_created_by')
+   created_by = models.ForeignKey(User, related_name='UserWallet_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
-   lastupdated_by = models.ForeignKey('UserLogin', related_name='UserWallet_lastupdated_by')
+   lastupdated_by = models.ForeignKey(User, related_name='UserWallet_lastupdated_by')
 
 class UserWalletTransaction(models.Model):
    BALANCE_UPDATE_TYPES = (('CREDIT','Credit'),('DEBT','Debt'))
@@ -155,39 +185,28 @@ class UserWalletTransaction(models.Model):
    reported_timestamp = models.IntegerField(default =0)
    status = models.CharField(max_length=32, choices = TRANS_STATUS)
    created_at = models.DateTimeField(auto_now_add=True)
-   created_by = models.ForeignKey('UserLogin', related_name='UserWallet_trans_created_by')
+   created_by = models.ForeignKey(User, related_name='UserWallet_trans_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
-   lastupdated_by = models.ForeignKey('UserLogin', related_name='UserWallet_trans_lastupdated_by')
-
+   lastupdated_by = models.ForeignKey(User, related_name='UserWallet_trans_lastupdated_by')
 
 class UserExternalWalletAddress(models.Model):
-   user = models.OneToOneField('User', on_delete=models.CASCADE)
+   user = models.OneToOneField(User, on_delete=models.CASCADE)
    cryptocurrency = models.ForeignKey('Cryptocurrency', on_delete=models.CASCADE)
    address = models.CharField(max_length=128)
    alias = models.CharField(max_length=32, null=True)
    created_at = models.DateTimeField(auto_now_add=True)
-   created_by = models.ForeignKey('UserLogin', related_name='UserExternalWalletAddress_created_by')
+   created_by = models.ForeignKey(User, related_name='UserExternalWalletAddress_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
-   lastupdated_by = models.ForeignKey('UserLogin', related_name='UserExternalWalletAddress_lastupdated_by')
-
-class UserReview(models.Model):
-   target_userId = models.ForeignKey('User', on_delete=models.CASCADE, related_name='target_user')
-   review_userId = models.ForeignKey('User', on_delete=models.CASCADE, related_name='review_user')
-   score = models.FloatField()
-   message = models.TextField()
-   created_at = models.DateTimeField(auto_now_add=True)
-   created_by = models.ForeignKey('UserLogin', related_name='UserReview_created_by')
-   lastupdated_at = models.DateTimeField(auto_now=True)
-   lastupdated_by = models.ForeignKey('UserLogin', related_name='UserReview_lastupdated_by')
+   lastupdated_by = models.ForeignKey(User, related_name='UserExternalWalletAddress_lastupdated_by')
 
 class UserStatue(models.Model):
-   user = models.ForeignKey('User', on_delete=models.CASCADE)
+   user = models.ForeignKey(User, on_delete=models.CASCADE)
    avg_score = models.FloatField()
    trans_count = models.IntegerField()
    created_at = models.DateTimeField(auto_now_add=True)
-   created_by = models.ForeignKey('UserLogin', related_name='UserStatue_created_by')
+   created_by = models.ForeignKey(User, related_name='UserStatue_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
-   lastupdated_by = models.ForeignKey('UserLogin', related_name='UserStatue_lastupdated_by')
+   lastupdated_by = models.ForeignKey(User, related_name='UserStatue_lastupdated_by')
 
 class Order(models.Model):
    ORDER_TYPE = (('BUY','Buy'),('SELL','Sell'),('REDEEM','Redeem'))
@@ -212,7 +231,7 @@ class Order(models.Model):
      ('FAILURE','Failure'),
      ('STARTING', 'Starting'))
    order_id = models.CharField(max_length=64, primary_key=True)
-   user = models.ForeignKey('User', on_delete=models.CASCADE)
+   user = models.ForeignKey(User, on_delete=models.CASCADE)
 
    # purchase order only, this is the order # of the sell order it
    # buy from
@@ -253,9 +272,40 @@ class Order(models.Model):
    status = models.CharField(max_length=32, choices=ORDER_STATUS)
 
    created_at = models.DateTimeField(auto_now_add=True)
-   created_by = models.ForeignKey('UserLogin', related_name='Order_created_by')
+   created_by = models.ForeignKey(User, related_name='Order_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
-   lastupdated_by = models.ForeignKey('UserLogin', related_name='Order_lastupdated_by')
+   lastupdated_by = models.ForeignKey(User, related_name='Order_lastupdated_by')
+
+class Transaction(models.Model) :
+   TRANS_TYPES= (('BUY_ON_ASK','BUY_ON_ASK'), ('SELL_ON_BID', 'SELL_ON_BID'),
+         ('SELLER_TRANSFER_AXFUND','SELLER_TRANSFER_AXFUND'),
+         ('USER_WITHDRAW_AXFUND', 'USER_WITHDRAW_AXFUND'),
+         ('DEPOSIT_AXFUND', 'DEPOSIT_AXFUND'),
+         ('BUYER_PREPARE_ORDER_FOR_PAYMENT', 'BUYER_PREPARE_ORDER_FOR_PAYMENT'),
+         ('PAYMENT_CONFIRM_NOTIFIED', 'PAYMENT_CONFIRM_NOTIFIED'),
+         ('UPDATE_OTHER_TRANS', 'UPDATE_OTHER_TRANS'))
+   TRANS_STATUS = (('SUCCEED','SUCCESS'),
+         ('FAILED','FAILED'))
+   transactionId = models.CharField(primary_key=True, max_length=64)
+   transactionType = models.CharField(max_length=64, choices=TRANS_TYPES)
+   buy_order = models.ForeignKey('Order', null = True, related_name='trans_buy_order')
+   sell_order = models.ForeignKey('Order', null = True, related_name='trans_sell_order')
+   axf_txId = models.CharField(max_length=128, null = True)
+   fromUser = models.ForeignKey(User, null = True, related_name='trans_fromuser')
+   fromUser_paymentmethod = models.ForeignKey('UserPaymentMethod', null = True, related_name='trans_fromuser_paymentmethod')
+   toUser = models.ForeignKey(User, null = True, related_name='trans_touser')
+   toUser_paymentmethod = models.ForeignKey('UserPaymentMethod', null = True, related_name='trans_touser_paymentmethod')
+   reference_trans = models.ForeignKey('Transaction', null = True)
+   units = models.FloatField(default=0)
+   unit_price = models.FloatField(default=0)
+   total = models.FloatField(default=0)
+   fees = models.FloatField(default=0)
+   status = models.CharField(max_length=32, choices=TRANS_STATUS)
+   created_at = models.DateTimeField(auto_now_add=True)
+   created_by = models.ForeignKey(User, related_name='trans_created_by')
+   lastupdated_at = models.DateTimeField(auto_now=True)
+   lastupdated_by = models.ForeignKey(User, related_name='trans_lastupdated_by')
+
 
 class OrderChangeLog(models.Model):
    order_action = (('OPEN_PAYMENT', 'Open_Payment'),
@@ -277,6 +327,6 @@ class CronJobData(models.Model):
    last_run_at_timestamp = models.IntegerField(default=0)
    data = models.CharField(max_length=1024, default='{}')
    created_at = models.DateTimeField(auto_now_add=True)
-   created_by = models.ForeignKey('UserLogin', related_name='cron_created_by')
+   created_by = models.ForeignKey(User, related_name='cron_created_by')
    lastupdated_at = models.DateTimeField(auto_now=True)
-   lastupdated_by = models.ForeignKey('UserLogin', related_name='cron_lastupdated_by')
+   lastupdated_by = models.ForeignKey(User, related_name='cron_lastupdated_by')
