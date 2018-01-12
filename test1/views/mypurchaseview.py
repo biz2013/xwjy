@@ -14,7 +14,7 @@ from controller.global_utils import *
 from controller import ordermanager
 from controller import useraccountinfomanager
 from controller.heepaymanager import HeePayManager
-
+import controller
 
 from users.models import *
 from views.models.orderitem import OrderItem
@@ -83,7 +83,7 @@ def show_purchase_input(request):
            )
 
 
-def send_payment_request_to_heepay(sitesettings, buyerorder_id, amount):
+def send_payment_request_to_heepay(sitesettings, buyorder_id, amount):
     notify_url = 'http://{0}:{1}/heepay/confirm_payment/'.format(
            sitesettings.heepay_notify_url_host,
            sitesettings.heepay_notify_url_port)
@@ -122,9 +122,11 @@ def send_payment_request(sitesettings, payment_provider, buyorder_id, amount):
 def create_purchase_order(request):
     try:
         logger.debug('create_purchase_order()...')
-        if not user_session_is_valid(request):
-           return render(request, 'html/login.html', { 'next_action' : '/purchase/'})
-        username, userid = get_user_session_value(request)
+        if not controller.global_utils.user_session_is_valid(request):
+            logger.error("user session is not valid.  Go to logout")
+            return render(request, 'html/login.html', { 'next_action' : '/purchase/'})
+        username, userid = controller.global_utils.get_user_session_value(request)
+        logger.info("Begin process user input for creating purchase order")
         reference_order_id = request.POST['reference_order_id']
         owner_user_id = int(request.POST["owner_user_id"])
         quantity = float(request.POST['quantity'])
@@ -135,7 +137,7 @@ def create_purchase_order(request):
         total_amount = float(request.POST['total_amount'])
         buyorder = OrderItem('', userid, username, unit_price, 'CNY', quantity,
             0, total_amount, crypto, '', '')
-        buyorderid, rs= ordermanager.create_purchase_order(buyorder, reference_order_id, username)
+        buyorderid = ordermanager.create_purchase_order(buyorder, reference_order_id, username)
         if buyorderid is None:
            raise ValueError('Failed to get purchase order id')
 
@@ -144,7 +146,7 @@ def create_purchase_order(request):
         # read the sitsettings
         sitesettings = context_processor.settings(request)['settings']
         json_response = send_payment_request(sitesettings, seller_payment_provider,
-            buyorder.order_id, total_amount, seller_account, buyer_account)
+            buyorder.order_id, total_amount)
         if json_response is not None and json_response['return_code'] == 'SUCCESS':
             if ordermanager.post_open_payment_order(
                             buyorder_id, 'heepay',
