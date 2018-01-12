@@ -15,6 +15,7 @@ from controller.global_constants import *
 from controller.global_utils import *
 from views.models.returnstatus import ReturnStatus
 from views import errorpage
+from django.contrib.auth.decorators import login_required
 
 import logging,json
 
