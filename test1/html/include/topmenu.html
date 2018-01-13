@@ -15,7 +15,7 @@
           <li><a href="/purchase/">买美基金</a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
-        {% if not username %}
+        {% if not user.is_authenticated %}
           <li><a href="/registration/"><span class="glyphicon glyphicon-user"></span>免费注册</a></li>
           <li><a href="/accounts/login/"><span class="glyphicon glyphicon-log-in"></span>登录</a></li>
         {% else %}
