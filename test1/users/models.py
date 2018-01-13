@@ -48,16 +48,6 @@ class GlobalCounter(models.Model):
     lastupdated_at = models.DateTimeField(auto_now=True, null=True)
     lastupdated_by = models.CharField(max_length=32)
 
-# class UserLogin(models.Model):
-#    username = models.CharField(max_length=32, primary_key=True)
-#    passwd_hash = models.CharField(max_length=64)
-#    alias = models.CharField(max_length=64, default='')
-#    config_json = models.CharField(max_length=4096)
-#    created_at = models.DateTimeField(auto_now_add=True)
-#    created_by = models.ForeignKey('self', on_delete = models.CASCADE, related_name="login_created_by", null = True)
-#    lastupdated_at = models.DateTimeField(auto_now=True, null=True)
-#    lastupdated_by = models.ForeignKey('self', on_delete=models.CASCADE, related_name="login_lastupdated_by", null = True)
-
 class PaymentProvider(models.Model):
    code = models.CharField(max_length=32, primary_key=True)
    name = models.CharField(max_length=32)
@@ -67,18 +57,6 @@ class PaymentProvider(models.Model):
    lastupdated_at = models.DateTimeField(auto_now=True)
    lastupdated_by = models.ForeignKey(User, related_name='PaymentProvider_lastupdated_by')
 
-# class User(models.Model):
-#    login = models.OneToOneField('UserLogin', on_delete= models.CASCADE, null=True)
-#    firstname = models.CharField(max_length=32)
-#    middle = models.CharField(max_length=32, default='')
-#    lastname = models.CharField(max_length=32)
-#    email = models.CharField(max_length=64)
-#    phone = models.CharField(max_length=32, default='')
-#    config_json = models.TextField(default='')
-#    created_at = models.DateTimeField(auto_now_add=True)
-#    created_by = models.ForeignKey('UserLogin', related_name='User_created_by')
-#    lastupdated_at = models.DateTimeField(auto_now=True)
-#    lastupdated_by = models.ForeignKey('UserLogin', related_name='User_lastupdated_by')
 
 # User Profile, extension of auth.models.User
 class Profile(models.Model):

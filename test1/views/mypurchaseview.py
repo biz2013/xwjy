@@ -5,6 +5,7 @@ import logging,json
 
 from django.db.models import Q
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 
 # this is for test UI. A fake one
 from config import context_processor
@@ -31,10 +32,10 @@ def show_active_sell_orders(request):
     try:
        logger.debug("get show show_active_sell_orders request")
 
-       if not user_session_is_valid(request):
-          return render(request, 'html/login.html', { 'next_action' : '/purchase/'})
-       username = request.session[REQ_KEY_USERNAME]
-       userId = int(request.session[REQ_KEY_USERID])
+        if not request.user.is_authenticated():
+           return render(request, 'login.html', { 'next' : '/purchase/'})
+        username = request.user.username
+        userid = request.user.id
        status = None
        sellorders = ordermanager.get_all_open_seller_order_exclude_user(userId)
        accountinfo = useraccountinfomanager.get_user_accountInfo(userId, 'AXFund', True)
@@ -51,39 +52,45 @@ def show_active_sell_orders(request):
 
 @login_required
 def show_purchase_input(request):
-    if not user_session_is_valid(request):
-       return render(request, 'html/login.html', { 'next_action' : '/purchase/'})
-    username = request.session[REQ_KEY_USERNAME]
-    userid = int(request.session[REQ_KEY_USERID])
-    useraccountInfo = useraccountinfomanager.get_user_accountInfo(userid,'AXFund')
-    owner_user_id = request.POST["owner_user_id"]
-    reference_order_id = request.POST["reference_order_id"]
-    owner_login = request.POST["owner_login"]
-    unit_price = float(request.POST["locked_in_unit_price"])
-    total_units = 0
-    if 'quantity' in request.POST:
-       total_units = float(request.POST['quantity'])
-    available_units = float(request.POST["available_units_for_purchase"])
-    owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
-    #for method in owner_payment_methods:
-    #    print ("provider %s has image %s" % (method.provider.name, method.provider_qrcode_image))
-    buyorder = OrderItem(
-       '',
-       userid,
-       username,
-       unit_price,'CYN',
-       total_units, 0,
-       0.0, 'AXFund',
-       '','')
-    return render(request, 'html/input_purchase.html',
-           {'username': username,
-            'buyorder': buyorder,
-            'owner_user_id': owner_user_id,
-            'reference_order_id': reference_order_id,
-            'available_units_for_purchase': available_units,
-            'owner_payment_methods': owner_payment_methods,
-            'buyer_payment_methods': useraccountInfo.paymentmethods }
-           )
+    try:
+        if not request.user.is_authenticated():
+           return render(request, 'login.html', { 'next' : '/purchase/'})
+        username = request.user.username
+        userid = request.user.id
+        useraccountInfo = useraccountinfomanager.get_user_accountInfo(userid,'AXFund')
+        owner_user_id = request.POST["owner_user_id"]
+        reference_order_id = request.POST["reference_order_id"]
+        owner_login = request.POST["owner_login"]
+        unit_price = float(request.POST["locked_in_unit_price"])
+        total_units = 0
+        if 'quantity' in request.POST:
+           total_units = float(request.POST['quantity'])
+        available_units = float(request.POST["available_units_for_purchase"])
+        owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
+        #for method in owner_payment_methods:
+        #    print ("provider %s has image %s" % (method.provider.name, method.provider_qrcode_image))
+        buyorder = OrderItem(
+           '',
+           userid,
+           username,
+           unit_price,'CYN',
+           total_units, 0,
+           0.0, 'AXFund',
+           '','')
+        return render(request, 'html/input_purchase.html',
+               {'username': username,
+                'buyorder': buyorder,
+                'owner_user_id': owner_user_id,
+                'reference_order_id': reference_order_id,
+                'available_units_for_purchase': available_units,
+                'owner_payment_methods': owner_payment_methods,
+                'buyer_payment_methods': useraccountInfo.paymentmethods }
+               )
+    except Exception as e:
+       error_msg = '显示买单出现错误: {0}'.format(sys.exc_info()[0])
+       logger.exception(e)
+       return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
+              '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
 
 def send_payment_request_to_heepay(sitesettings, buyorder_id, amount):
     notify_url = 'http://{0}:{1}/heepay/confirm_payment/'.format(
@@ -134,10 +141,11 @@ def generate_payment_qrcode(payment_provider,payment_provider_response_json,
 def create_purchase_order(request):
     try:
         logger.debug('create_purchase_order()...')
-        if not controller.global_utils.user_session_is_valid(request):
+        if not request.user.is_authenticated():
             logger.error("user session is not valid.  Go to logout")
-            return render(request, 'html/login.html', { 'next_action' : '/purchase/'})
-        username, userid = controller.global_utils.get_user_session_value(request)
+            return render(request, 'login.html', { 'next': '/purchase/'})
+        username = request.user.username
+        userid = request.user.id
         logger.info("Begin process user input for creating purchase order")
         reference_order_id = request.POST['reference_order_id']
         owner_user_id = int(request.POST["owner_user_id"])

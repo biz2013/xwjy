@@ -6,6 +6,7 @@ import pytz
 import logging
 
 from django.db import transaction
+from django.contrib.auth.models import User
 
 from users.models import *
 from config import context_processor
@@ -17,7 +18,7 @@ from views.models.userexternalwalletaddrinfo import *
 logger = logging.getLogger("site.redeemmanager")
 
 def redeem(command, operator, txid, operation_comment):
-    operatorObj = UserLogin.objects.get(pk=operator)
+    operatorObj = User.objects.get(username=operator)
     with transaction.atomic():
         userwallet = UserWallet.objects.select_for_update().get(user__id=userid,
              wallet__cryptocurrency__currency_code=command.crypto)
