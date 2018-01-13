@@ -8,6 +8,7 @@ from controller.global_utils import *
 # this is for test UI. A fake one
 from controller.test_model_manager import ModelManager
 from controller.global_constants import *
+from controller import loginmanager
 from users.models import *
 from views.models.orderitem import OrderItem
 from views.models.returnstatus import ReturnStatus
@@ -34,8 +35,8 @@ def registration(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
-            form.save()
             username = form.cleaned_data.get('username')
+            loginmanager.create_login(form, username)            
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_password)
             login(request, user)
