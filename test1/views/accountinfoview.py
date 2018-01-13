@@ -21,15 +21,12 @@ logger = logging.getLogger("site.accountinfo")
 @login_required
 def accountinfo(request):
     try:
-       if not user_session_is_valid(request):
-          return render(request, 'html/login.html', { 'next_action' : '/accounts/accountinfo/'})
-       username = request.session[REQ_KEY_USERNAME]
-       userId = int(request.session[REQ_KEY_USERID])
+#       if !request.user.is_authenticated()
 
-       useraccountInfo = useraccountinfomanager.get_user_accountInfo(userId,'AXFund')
+       useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
        request.session[REQ_KEY_USERACCOUNTINFO] = useraccountInfo.tojson()
        return render(request, 'html/myaccount.html', {'useraccountInfo': useraccountInfo,
-                     REQ_KEY_USERNAME: username})
+                     REQ_KEY_USERNAME: request.user.username})
     except Exception as e:
        error_msg = '用户主页显示遇到错误: {0}'.format(sys.exc_info()[0])
        logger.exception(error_msg)
