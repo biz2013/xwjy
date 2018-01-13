@@ -337,14 +337,16 @@ class PurchaseTestCase(TransactionTestCase):
             hmgr = HeePayManager()
             signed_str = hmgr.create_confirmation_sign(json_data,'4AE4583FD4D240559F80ED39')
             confirmation_json = confirmation_json.replace('__SIGN__', signed_str)
+            print 'the confirmation about to send to confirmation payment is {0}'.format(confirmation_json)
             c = Client()
             response = c.post('/heepay/confirm_payment/',
                                 confirmation_json,
                                 content_type="application/json; charset=utf-8")
+            print 'confirmation response is {0}'.format(response.content)
             self.assertEqual('OK', response.content.decode('utf-8'))
 
         except Exception as e:
-            error_msg = 'test_create_sell_order() hit exception {0}'.format(
+            error_msg = 'test_3_payconfirmation() hit exception {0}'.format(
                   sys.exc_info()[0])
             print error_msg
             print traceback.format_exc()

@@ -32,10 +32,10 @@ def show_active_sell_orders(request):
     try:
        logger.debug("get show show_active_sell_orders request")
 
-        if not request.user.is_authenticated():
+       if not request.user.is_authenticated():
            return render(request, 'login.html', { 'next' : '/purchase/'})
-        username = request.user.username
-        userid = request.user.id
+       username = request.user.username
+       userid = request.user.id
        status = None
        sellorders = ordermanager.get_all_open_seller_order_exclude_user(userId)
        accountinfo = useraccountinfomanager.get_user_accountInfo(userId, 'AXFund', True)
