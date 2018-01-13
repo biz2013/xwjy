@@ -21,8 +21,8 @@ logger = logging.getLogger("site.accountinfo")
 @login_required
 def accountinfo(request):
     try:
-#       if !request.user.is_authenticated()
-
+       if not request.user.is_authenticated():
+           return render(request, 'login.html', { 'next': '/accounts/accountinfo/'})
        useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
        request.session[REQ_KEY_USERACCOUNTINFO] = useraccountInfo.tojson()
        return render(request, 'html/myaccount.html', {'useraccountInfo': useraccountInfo,
