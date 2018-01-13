@@ -12,7 +12,6 @@ from django.contrib.auth.decorators import login_required
 
 logger = logging.getLogger("site.heepay_confirm")
 
-@login_required
 def get_payment_confirmation_json(request, app_key):
    logger.info('get_payment_confirmation_json()')
    json_data = {}
@@ -64,6 +63,7 @@ def heepay_confirm_payment(request):
         else:
             return HttpResponse(content='error')
         sitesettings = context_processor.settings(request)['settings']
+        logger.info("about to call get_payment_confirmation_json()")
         json_data = get_payment_confirmation_json(request,
                           sitesettings.heepay_app_key)
         validated = False
@@ -76,7 +76,7 @@ def heepay_confirm_payment(request):
             error_msg = 'Receive notification with unsupported trade_status %s' % trade_status
             logger.error(error_msg)
             return HttpResponse(content='error')
-        ordermanager.update_order_with_heepay_notification(json_data, 'sysop')
+        ordermanager.update_order_with_heepay_notification(json_data, 'admin')
         if request.method == 'GET':
             request.session[REQ_KEY_USERID] = userid
             request.session[REQ_KEY_USERNAME] = operator
