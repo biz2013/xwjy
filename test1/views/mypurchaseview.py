@@ -157,7 +157,9 @@ def create_purchase_order(request):
         total_amount = float(request.POST['total_amount'])
         buyorder = OrderItem('', userid, username, unit_price, 'CNY', quantity,
             0, total_amount, crypto, '', '')
-        buyorderid = ordermanager.create_purchase_order(buyorder, reference_order_id, username)
+        buyorderid = ordermanager.create_purchase_order(buyorder,
+                 reference_order_id,
+                 seller_payment_provider, username)
         if buyorderid is None:
            raise ValueError('Failed to get purchase order id')
 

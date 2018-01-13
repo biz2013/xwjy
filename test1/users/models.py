@@ -142,6 +142,16 @@ class UserWalletTransaction(models.Model):
         ('DELIVER ON PURCHASE', 'Deliver on purhcase'),
         ('REDEEM','Redeem'), ('DEPOSIT','Deposit'))
    TRANS_STATUS = (('PENDING','Pending'), ('PROCESSED','Processed'), ('CANCELLED', 'Cancelled'))
+   # status for automatic payment
+   PAYMENT_STATUS = (('NOTSTATRTED', 'Not Started'),
+     ('PAYSUCCESS', 'PaySuccess'),
+     ('SUCCESS','Success'),
+     ('EXPIREDINVALID', 'ExpiredInvalid'),
+     ('DEVCLOSE', 'DevClose'),
+     ('USERABANDON', 'UserAbandon'),
+     ('UNKONW','UnKnown'),
+     ('FAILURE','Failure'),
+     ('STARTING', 'Starting'))
    user_wallet = models.ForeignKey('UserWallet', on_delete=models.CASCADE)
    balance_begin = models.FloatField(default=0.0)
    balance_end = models.FloatField(default=0.0)
@@ -156,7 +166,7 @@ class UserWalletTransaction(models.Model):
    # if the transaction is related to deposite or redeem, put wallet
    # txid here
    reference_wallet_trxId = models.CharField(max_length=128, default='')
-   amount = models.FloatField(default=0.0)
+   units = models.FloatField(default=0.0)
    balance_update_type= models.CharField(max_length=32, choices=BALANCE_UPDATE_TYPES)
    transaction_type = models.CharField(max_length=32, choices=TRANS_TYPES)
    # payment provider
@@ -207,16 +217,6 @@ class Order(models.Model):
             ('DELIVERED','Delivered'),('PARTIALFILLED','PartialFilled'),('LOCKED','Locked'))
    CURRENCY = (('CYN', 'Renminbi'), ('USD', 'US Dollar'))
 
-   # status for automatic payment
-   PAYMENT_STATUS = (('NOTSTATRTED', 'Not Started'),
-     ('PAYSUCCESS', 'PaySuccess'),
-     ('SUCCESS','Success'),
-     ('EXPIREDINVALID', 'ExpiredInvalid'),
-     ('DEVCLOSE', 'DevClose'),
-     ('USERABANDON', 'UserAbandon'),
-     ('UNKONW','UnKnown'),
-     ('FAILURE','Failure'),
-     ('STARTING', 'Starting'))
    order_id = models.CharField(max_length=64, primary_key=True)
    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
