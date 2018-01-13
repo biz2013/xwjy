@@ -6,6 +6,7 @@ import pytz
 import logging
 
 from django.db import transaction
+from django.contrib.auth.models import User
 
 from users.models import *
 from config import context_processor
@@ -208,7 +209,7 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
     print 'update_account_balance_with_wallet_trx'
     # prepare the data for sysop, which will be the created_by and last
     # updated by
-    operator = UserLogin.objects.get(pk='sysop')
+    operator = User.objects.get(username='admin')
 
     # get all user's Wallets
     user_wallets = UserWallet.objects.filter(user__isnull=False, wallet__cryptocurrency__currency_code=crypto)
@@ -298,7 +299,7 @@ def get_user_externaladdr_by_id(id):
         record.alias, record.address, record.cryptocurrency.currency_code)
 
 def create_update_externaladdr(externaladdress, operator):
-    operatorObj = UserLogin.objects.get(pk=operator)
+    operatorObj = User.objects.get(username=operator)
     if externaladdress.id == 0:
         UserExternalWalletAddress.objects.create(
           user = User.objects.get(pk=externaladdress.userid),

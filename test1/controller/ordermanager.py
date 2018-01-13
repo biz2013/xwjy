@@ -7,6 +7,8 @@ import logging
 
 from django.db import transaction
 from django.db.models import F
+from django.contrib.auth.models import User
+
 from users.models import *
 from views.models.orderitem import OrderItem
 from views.models.userpaymentmethodview import *
@@ -26,7 +28,7 @@ def get_seller_buyer_payment_accounts(buyorder_id, payment_provider):
 
 def create_sell_order(order, operator):
     userobj = User.objects.get(id = order.owner_user_id)
-    operatorObj = UserLogin.objects.get(username = operator)
+    operatorObj = User.objects.get(username = operator)
     crypto = Cryptocurrency.objects.get(currency_code = order.crypto)
     frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
     operation_comment = 'User {0} open sell order {1} with total {2}{3}({4}x@{5})'.format(
@@ -97,7 +99,7 @@ def get_user_open_sell_orders(user_id):
     orders = []
     for order in sell_orders:
         orders.append(OrderItem(order.order_id, order.user.id,
-                                order.user.login.username,
+                                order.user.username,
                                 order.unit_price, order.unit_price_currency,
                                 order.units, order.units_available_to_trade,
                                 order.total_amount,
@@ -110,7 +112,7 @@ def get_all_open_seller_order_exclude_user(user_id):
     orders = []
     for order in sell_orders:
         orders.append(OrderItem(order.order_id, order.user.id,
-                                order.user.login.username,
+                                order.user.username,
                                 order.unit_price, order.unit_price_currency,
                                 order.units, order.units_available_to_trade,
                                 order.total_amount,
@@ -122,7 +124,7 @@ def get_pending_incoming_buy_orders_by_user(userid):
     buyorders = Order.objects.filter(order_type='BUY', reference_order__user__id=userid).exclude(status='CANCELLED').exclude(status='DELIVERED')
     orders = []
     for order in buyorders:
-        orders.append(OrderItem(order.order_id, order.user.id, order.user.login.username,
+        orders.append(OrderItem(order.order_id, order.user.id, order.user.username,
                                 order.unit_price, order.unit_price_currency,
                                 order.units, order.units_available_to_trade,
                                 order.total_amount,
@@ -153,7 +155,7 @@ def get_sellorder_seller_payment_methods(sell_order_id):
     return payment_methods
 
 def create_purchase_order(buyorder, reference_order_id, operator):
-    operatorObj = UserLogin.objects.get(pk=operator)
+    operatorObj = User.objects.get(username=operator)
     frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
     buyorder.order_id = frmt_date
     crypto_currency = Cryptocurrency.objects.get(pk=buyorder.crypto)
@@ -249,7 +251,7 @@ def update_order_with_heepay_notification(notify_json, operator):
     logger.info('update_order_with_heepay_notification(with hy_bill_no {0} out_trade_no {1}'.format(
         notify_json['hy_bill_no'], notify_json['out_trade_no']
     ))
-    operatorObj = UserLogin.objects.get(pk=operator)
+    operatorObj = User.objects.get(username=operator)
 
     # get original buy order
 
@@ -342,10 +344,10 @@ def update_order_with_heepay_notification(notify_json, operator):
 
 def get_order_owner_info(order_id):
     order = Order.objects.get(pk=order_id)
-    return order.user.id, order.user.login.username
+    return order.user.id, order.user.username
 
 def cancel_sell_order(userid, order_id, crypto, operator):
-    operatorObj = UserLogin.objects.get(username=operator)
+    operatorObj = User.objects.get(username=operator)
     with transaction.atomic():
         user_wallet = UserWallet.objects.select_for_update().get(
             user__id=userid,
@@ -392,7 +394,7 @@ def cancel_sell_order(userid, order_id, crypto, operator):
         user_wallet.save()
 
 def post_open_payment_order(buyorder_id, payment_provider, bill_no, username):
-    operator = UserLogin.objects.get(pk=username)
+    operator = User.objects.get(username=username)
     buyorder = Order.objects.get(pk=buyorder_id)
     sell_order = Order.objects.get(pk=buyorder.reference_order.order_id)
     with transaction.atomic():

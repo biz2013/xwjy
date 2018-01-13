@@ -2,18 +2,24 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase, TransactionTestCase
 from django.test import Client
-from mock import Mock, MagicMock, patch, mock
+from django.contrib.auth.models import User
+
 from users.models import *
+
 from controller.heepaymanager import HeePayManager
 from views.models.orderitem import OrderItem
 from views.models.userpaymentmethodview import UserPaymentMethodView
-from controller import ordermanager
+from controller import ordermanager, loginmanager
 from controller import userpaymentmethodmanager
 from controller.global_utils import *
 
+from test1.forms import *
+
 import sys, io, traceback, time, json, copy
+from mock import Mock, MagicMock, patch, mock
 from calendar import timegm
 from datetime import datetime as dt
+from setuptest import *
 
 TEST_HY_BILL_NO='Test_heepay_bill_no'
 
@@ -34,14 +40,21 @@ def send_buy_apply_request_side_effect(payload):
 
 #mock function
 def get_buyer(request):
-    return 'yingzhou', 2
+    buyer = User.objects.get(username='yingzhou')
+    return 'yingzhou', buyer.id
 
 class PurchaseTestCase(TransactionTestCase):
     fixtures = ['fixture_for_tests.json']
 
+    def setUp(self):
+        try:
+            User.objects.get(username='taozhang')
+        except User.DoesNotExist:
+            setup_test()
+
     def test_1_create_purchase_order(self):
         print 'run test_create_purchase_order()'
-        seller_order_id = self.create_sell_order()
+        sell_order_id = self.create_sell_order()
         print 'out of create_sell_order()'
         found_seller_order = False
         sell_order = None
@@ -59,8 +72,8 @@ class PurchaseTestCase(TransactionTestCase):
                 fail('There should ONLY be one sell order created')
         try:
             print 'about to create buy order'
-            buyer = User.objects.get(login__username='yingzhou')
-            user_wallet = UserWallet.objects.get(user__login__username = 'yingzhou',
+            buyer = User.objects.get(username='yingzhou')
+            user_wallet = UserWallet.objects.get(user__username = 'yingzhou',
                   wallet__cryptocurrency__currency_code = 'AXFund')
             # remember old buyer user wallet balance
             old_balance = user_wallet.balance
@@ -77,7 +90,7 @@ class PurchaseTestCase(TransactionTestCase):
             unit_price = sell_order.unit_price
             unit_price_currency = sell_order.unit_price_currency
             total_amount = round(units * unit_price, 2)
-            buyorder = OrderItem('', buyer.id, buyer.login.username,
+            buyorder = OrderItem('', buyer.id, buyer.username,
                 unit_price, unit_price_currency,
                 # total units
                 units,
@@ -151,7 +164,7 @@ class PurchaseTestCase(TransactionTestCase):
     def create_sell_order(self):
        print 'run create_sell_order()'
        try:
-           user = User.objects.get(login__username='taozhang')
+           user = User.objects.get(username='taozhang')
            user_wallet = UserWallet.objects.get(user__id = user.id,
                   wallet__cryptocurrency__currency_code = 'AXFund')
            old_balance = user_wallet.balance
@@ -160,7 +173,7 @@ class PurchaseTestCase(TransactionTestCase):
            unit_price = 1.01
            units = 100.0
            amount = units * unit_price
-           order_item = OrderItem('', user.id, user.login.username,
+           order_item = OrderItem('', user.id, user.username,
                unit_price, 'CNY',
                # total units
                units,
@@ -176,7 +189,7 @@ class PurchaseTestCase(TransactionTestCase):
            print 'validate sell order'
            order = Order.objects.get(pk=orderid)
            self.assertEqual('SELL', order.order_type)
-           self.assertEqual('taozhang', order.user.login.username)
+           self.assertEqual('taozhang', order.user.username)
            self.assertEqual(None, order.reference_order)
            self.assertEqual('AXFund', order.cryptocurrency.currency_code)
            self.assertEqual(None, order.payment_bill_no)
@@ -220,36 +233,25 @@ class PurchaseTestCase(TransactionTestCase):
 
 
     @mock.patch('controller.heepaymanager.HeePayManager.send_buy_apply_request', side_effect=send_buy_apply_request_side_effect)
-    @mock.patch('controller.global_utils.user_session_is_valid', return_value=True)
-    @mock.patch('controller.global_utils.get_user_session_value', side_effect=get_buyer)
-    def test_2_purchase_view(self, send_buy_apply_request_function,
-           user_session_is_valid_function, get_user_session_value_function):
+    #@mock.patch('controller.global_utils.user_session_is_valid', return_value=True)
+    #@mock.patch('controller.global_utils.get_user_session_value', side_effect=get_buyer)
+    def test_2_purchase_view(self, send_buy_apply_request_function):
         try:
             # get seller initial info
-            seller = User.objects.get(login__username='taozhang')
+            seller = User.objects.get(username='taozhang')
             seller_wallet = UserWallet.objects.get(user__id = seller.id,
                   wallet__cryptocurrency__currency_code = 'AXFund')
             old_seller_balance = seller_wallet.balance
             old_seller_locked_balance = seller_wallet.locked_balance
             old_seller_available_balance = seller_wallet.available_balance
-            # prepare seller payment method
-            seller_paymentmethod = UserPaymentMethodView(0, seller.id,
-               'heepay', '汇钱包', '15811302702', '')
-            userpaymentmethodmanager.create_update_user_payment_method(
-                   seller_paymentmethod, 'taozhang')
 
             # get buyer initial info
-            buyer = User.objects.get(login__username='yingzhou')
+            buyer = User.objects.get(username='yingzhou')
             buyer_wallet = UserWallet.objects.get(user__id = buyer.id,
                   wallet__cryptocurrency__currency_code = 'AXFund')
             old_buyer_balance = buyer_wallet.balance
             old_buyer_locked_balance = buyer_wallet.locked_balance
             old_buyer_available_balance = buyer_wallet.available_balance
-            # prepare buyer payment method
-            buyer_paymentmethod = UserPaymentMethodView(0, buyer.id,
-               'heepay', '汇钱包', '13641388306', '')
-            userpaymentmethodmanager.create_update_user_payment_method(
-                   buyer_paymentmethod, 'yingzhou')
 
             # create sell order
             sell_order_id = self.create_sell_order()
@@ -266,9 +268,12 @@ class PurchaseTestCase(TransactionTestCase):
                     'crypto': 'AXFund',
                     'total_amount': total_amount_str }
             c = Client()
+            c.login(username='yingzhou', password='user@123')
             response = c.post('/purchase/createorder2/', buyorder_dict
                 )
-            self.assertTrue(user_session_is_valid_function.called)
+            print 'purchase view return {0}'.format(response.content)
+            print 'purchase view template {0}'.format(response.templates)
+            #self.assertTrue(user_session_is_valid_function.called)
             self.assertEqual(200, response.status_code)
 
         except Exception as e:
@@ -280,13 +285,13 @@ class PurchaseTestCase(TransactionTestCase):
 
     def test_3_payconfirmation(self):
         try:
-            seller_wallet = UserWallet.objects.get(user__login__username='taozhang',
+            seller_wallet = UserWallet.objects.get(user__username='taozhang',
                    wallet__cryptocurrency__currency_code = 'AXFund')
             seller_old_balance = seller_wallet.balance
             seller_old_locked_balance = seller_wallet.locked_balance
             seller_old_available_balance = seller_wallet.available_balance
 
-            buyer_wallet = UserWallet.objects.get(user__login__username='yingzhou',
+            buyer_wallet = UserWallet.objects.get(user__username='yingzhou',
                    wallet__cryptocurrency__currency_code = 'AXFund')
             buyer_old_balance = seller_wallet.balance
             buyer_old_locked_balance = seller_wallet.locked_balance
@@ -297,7 +302,7 @@ class PurchaseTestCase(TransactionTestCase):
             units = 100.0
             amount = units * unit_price
             order_item = OrderItem('', seller_wallet.user.id,
-               seller_wallet.user.login.username,
+               seller_wallet.user.username,
                unit_price, unit_price_currency,
                # total units
                units,
@@ -311,7 +316,7 @@ class PurchaseTestCase(TransactionTestCase):
             available_units = 0
             total_amount = round(buy_units * unit_price, 2)
             buyorder = OrderItem('', buyer_wallet.id,
-                buyer_wallet.user.login.username,
+                buyer_wallet.user.username,
                 unit_price, unit_price_currency,
                 # total units
                 units,
@@ -319,7 +324,7 @@ class PurchaseTestCase(TransactionTestCase):
                 available_units, total_amount ,
                 'AXFund', None, None)
             print 'issue command to create buy order for sell order {0}'.format(sell_order_id)
-            buy_order_id, rs = ordermanager.create_purchase_order(buyorder,
+            buy_order_id = ordermanager.create_purchase_order(buyorder,
                           sell_order_id, 'yingzhou')
 
             sell_order_begin = Order.objects.get(pk=sell_order_id)
