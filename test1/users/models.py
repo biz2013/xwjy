@@ -141,7 +141,7 @@ class UserWalletTransaction(models.Model):
         ('CANCEL BUY ORDER', 'Cancel Buy Order'),
         ('DELIVER ON PURCHASE', 'Deliver on purhcase'),
         ('REDEEM','Redeem'), ('DEPOSIT','Deposit'))
-   TRANS_STATUS = (('PENDING','Pending'), ('PROCESSED','Processed'))
+   TRANS_STATUS = (('PENDING','Pending'), ('PROCESSED','Processed'), ('CANCELLED', 'Cancelled'))
    user_wallet = models.ForeignKey('UserWallet', on_delete=models.CASCADE)
    balance_begin = models.FloatField(default=0.0)
    balance_end = models.FloatField(default=0.0)
@@ -159,6 +159,15 @@ class UserWalletTransaction(models.Model):
    amount = models.FloatField(default=0.0)
    balance_update_type= models.CharField(max_length=32, choices=BALANCE_UPDATE_TYPES)
    transaction_type = models.CharField(max_length=32, choices=TRANS_TYPES)
+   # payment provider
+   payment_provider = models.ForeignKey('PaymentProvider', null=True)
+   # bill no of the associated payment.
+   payment_bill_no = models.CharField(max_length=128, null=True)
+   # status of the associated payment.
+   payment_status = models.CharField(max_length=64, choices=PAYMENT_STATUS, default='UNKNOWN')
+   # fiat money amount for the payment transaction
+
+   fiat_money_amount = models.FloatField(default=0.0)
    comment = models.CharField(max_length=2048, null = True)
    reported_timestamp = models.IntegerField(default =0)
    status = models.CharField(max_length=32, choices = TRANS_STATUS)
@@ -205,7 +214,7 @@ class Order(models.Model):
      ('EXPIREDINVALID', 'ExpiredInvalid'),
      ('DEVCLOSE', 'DevClose'),
      ('USERABANDON', 'UserAbandon'),
-     ('UNKONW','UnKnow'),
+     ('UNKONW','UnKnown'),
      ('FAILURE','Failure'),
      ('STARTING', 'Starting'))
    order_id = models.CharField(max_length=64, primary_key=True)
@@ -216,20 +225,9 @@ class Order(models.Model):
    reference_order = models.ForeignKey('self', null=True)
    cryptocurrency = models.ForeignKey('Cryptocurrency')
 
-   # payment provider, purchase order only
-   payment_provider = models.ForeignKey('PaymentProvider', null=True)
+   # payment provider picked by purchase order, purchase order only
+   selected_payment_provider = models.ForeignKey('PaymentProvider', null=True)
 
-   # bill no of the payment. purchase order only,
-   payment_bill_no = models.CharField(max_length=128, null=True)
-
-   # status of the payment, this provides refined status info
-   # purchase order only,
-   payment_status = models.CharField(max_length=64, choices=PAYMENT_STATUS)
-
-   #reference_wallet = models.ForeignKey('Wallet', null= True)
-   # For purchase order only, once unit is delivered, this is the
-   # transaction id of
-   #reference_wallet_trxId = models.CharField(max_length=128, null = True)
    order_type = models.CharField(max_length=32, choices=ORDER_TYPE)
    sub_type = models.CharField(max_length=32, default='OPEN', choices=SUBORDER_TYPE)
    units = models.FloatField()

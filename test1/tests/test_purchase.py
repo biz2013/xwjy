@@ -118,6 +118,7 @@ class PurchaseTestCase(TransactionTestCase):
             self.assertTrue(abs(llastupdated_timestamp - ltimestamp_now) < 120)
 
             print 'validate buyer user wallet balance after purchase order, there should be no changes'
+            user_wallet.refresh_from_db()
             self.assertEqual(old_balance, user_wallet.balance)
             self.assertEqual(old_locked_balance, user_wallet.locked_balance )
             self.assertEqual(old_available_balance, user_wallet.available_balance )
@@ -133,7 +134,7 @@ class PurchaseTestCase(TransactionTestCase):
             self.assertEqual(0.0, user_wallet_trans.available_to_trade_begin)
             self.assertEqual(0.0, user_wallet_trans.available_to_trade_end)
             self.assertEqual(u'', user_wallet_trans.reference_wallet_trxId)
-            self.assertEqual(total_amount, user_wallet_trans.amount)
+            self.assertEqual(units, user_wallet_trans.amount)
             self.assertEqual('OPEN BUY ORDER', user_wallet_trans.transaction_type)
             self.assertEqual('PENDING', user_wallet_trans.status)
             self.assertEqual('yingzhou', user_wallet_trans.created_by.username)
@@ -196,6 +197,7 @@ class PurchaseTestCase(TransactionTestCase):
            self.assertEqual(u'', order.payment_status)
            self.assertEqual(units, order.units)
            self.assertEqual(unit_price, order.unit_price)
+           self.assertTrue(order.selected_payment_provider is None)
            self.assertEqual(0, order.units_locked)
            self.assertEqual(units, order.units_available_to_trade)
            self.assertEqual(amount, order.total_amount)
@@ -208,21 +210,14 @@ class PurchaseTestCase(TransactionTestCase):
            self.assertEqual(old_locked_balance + units, user_wallet.locked_balance )
            self.assertEqual(old_available_balance - units, user_wallet.available_balance )
 
-           print 'validate sell order user_wallet_trans'
-           user_wallet_trans = UserWalletTransaction.objects.get(reference_order__order_id = order.order_id)
-           print 'get the user_wallet_trans record of the sell order'
-           self.assertEqual('DEBT', user_wallet_trans.balance_update_type)
-           self.assertEqual(user_wallet.id, user_wallet_trans.user_wallet.id)
-           self.assertEqual(user_wallet_trans.balance_begin, user_wallet_trans.balance_end)
-           self.assertEqual(user_wallet.balance, user_wallet_trans.balance_end)
-           self.assertEqual(user_wallet.locked_balance, user_wallet_trans.locked_balance_end)
-           self.assertEqual(user_wallet.available_balance, user_wallet_trans.available_to_trade_end)
-           self.assertEqual(u'', user_wallet_trans.reference_wallet_trxId)
-           self.assertEqual(amount, user_wallet_trans.amount)
-           self.assertEqual('OPEN SELL ORDER', user_wallet_trans.transaction_type)
-           self.assertEqual('PROCESSED', user_wallet_trans.status)
-           self.assertEqual('taozhang', user_wallet_trans.created_by.username)
-           self.assertEqual('taozhang', user_wallet_trans.lastupdated_by.username)
+           try:
+               # should no transaction for sell order for now
+               UserWalletTransaction.objects.get(reference_order__order_id = sell_order.order_id, )
+               self.fail("There should be no user wallet transaction after creating sell order")
+           except UserWalletTransaction.DoesNotExist:
+               print 'create_sell_order(): Good! no extra user wallet transaction after creating sell order'
+           except UserWalletTransaction.MultipleObjectsReturned:
+               self.fail("There should be no user wallet transaction, not to mention multiple, after creating sell order")
            return orderid
        except Exception as e:
            error_msg = 'test_create_sell_order() hit exception {0}'.format(
@@ -231,11 +226,11 @@ class PurchaseTestCase(TransactionTestCase):
            print traceback.format_exc()
            self.fail(error_msg)
 
-
     @mock.patch('controller.heepaymanager.HeePayManager.send_buy_apply_request', side_effect=send_buy_apply_request_side_effect)
     #@mock.patch('controller.global_utils.user_session_is_valid', return_value=True)
     #@mock.patch('controller.global_utils.get_user_session_value', side_effect=get_buyer)
     def test_2_purchase_view(self, send_buy_apply_request_function):
+        print 'test_2_purchase_view():...'
         try:
             # get seller initial info
             seller = User.objects.get(username='taozhang')
@@ -253,15 +248,20 @@ class PurchaseTestCase(TransactionTestCase):
             old_buyer_locked_balance = buyer_wallet.locked_balance
             old_buyer_available_balance = buyer_wallet.available_balance
 
-            # create sell order
+            print 'test_2_purchase_view(): create sell order...'
             sell_order_id = self.create_sell_order()
             sell_order = Order.objects.get(pk=sell_order_id)
+            old_sell_order_units = sell_order.units
+            old_sell_order_units_locked = sell_order.units_locked
+            old_sell_order_units_available = sell_order.units_available_to_trade
 
-            # create buyer order based on sell order
-            total_amount_str = str(round(sell_order.unit_price * 2.1,2))
+            print 'test_2_purchase_view(): create buyer order based on sell order through client call...'
+            purchase_units = 2.1
+            total_amount = round(sell_order.unit_price * purchase_units,2)
+            total_amount_str = str(total_amount)
             buyorder_dict = { 'reference_order_id': sell_order_id,
                     'owner_user_id': str(seller.id),
-                    'quantity': '2.1',
+                    'quantity': purchase_units,
                     'available_units': str(sell_order.units_available_to_trade),
                     'unit_price' : str(sell_order.unit_price),
                     'seller_payment_provider': 'heepay',
@@ -271,13 +271,77 @@ class PurchaseTestCase(TransactionTestCase):
             c.login(username='yingzhou', password='user@123')
             response = c.post('/purchase/createorder2/', buyorder_dict
                 )
-            print 'purchase view return {0}'.format(response.content)
-            print 'purchase view template {0}'.format(response.templates)
-            #self.assertTrue(user_session_is_valid_function.called)
+            print 'test_2_purchase_view(): purchase view return {0}'.format(response.content)
+            #print 'purchase view template {0}'.format(response.templates)
             self.assertEqual(200, response.status_code)
 
+            print 'test_2_purchase_view(): verify sell_order balance change...'
+            sell_order.refresh_from_db()
+            self.assertEqual(old_sell_order_units, sell_order.units)
+            self.assertEqual(old_sell_order_units_locked + purchase_units, sell_order.units_locked)
+            self.assertEqual(old_sell_order_units_available - purchase_units, sell_order.units_available_to_trade)
+            self.assertEqual('OPEN', sell_order.status)
+
+            print 'test_2_purchase_view(): verify seller wallet balance change...'
+            seller_wallet.refresh_from_db()
+            self.assertEqual(old_seller_balance, seller_wallet.balance)
+            self.assertEqual(old_seller_locked_balance + sell_order.units, seller_wallet.locked_balance)
+            self.assertEqual(old_seller_available_balance - sell_order.units, seller_wallet.available_balance)
+
+            wallet_trans = UserWalletTransaction.objects.all()
+            count_of_wallet_trans = len(wallet_trans)
+            if (count_of_wallet_trans != 1):
+                self.fail('There should be 1 wallet trans but we hit {0}'.format(count_of_wallet_trans))
+
+            try:
+                # should no transaction for sell order for now
+                UserWalletTransaction.objects.get(reference_order__order_id = sell_order.order_id, )
+                self.fail("There should be no user wallet transaction for the sell order at this point")
+            except UserWalletTransaction.DoesNotExist:
+                print 'test_2_purchase_view(): Good! no extra user wallet transaction for sell order yet'
+
+            print 'test_2_purchase_view(): verify purchase order ...'
+            purchase_order = Order.objects.get(reference_order__order_id = sell_order.order_id)
+            self.assertEqual('')
+            self.assertEqual('BUY', purchase_order.order_type)
+            self.assertEqual('BUY_ON_ASK', purchase_order.sub_type)
+            self.assertEqual('PAYING', purchase_order.status)
+            self.assertEqual('UNKNOWN', purchase_order.payment_status)
+            self.assertEqual('AXFund', purchase_order.cryptocurrency.currency_code)
+            self.assertEqual(TEST_HY_BILL_NO, purchase_order.payment_bill_no)
+            self.assertEqual('heepay', purchase_order.payment_provider.code)
+            self.assertEqual(purchase_units, purchase_order.units)
+            self.assertEqual(0.0, purchase_order.units_available_to_trade)
+            self.assertEqual(0.0, purchase_order.units_locked)
+            self.assertEqual('yingzhou', purchase_order.created_by.username)
+            self.assertEqual('yingzhou', purchase_order.lastupdated_by.username)
+            llastupdated_timestamp = timegm(purchase_order.lastupdated_at.utctimetuple())
+            self.assertTrue(abs(llastupdated_timestamp - ltimestamp_now) < 120)
+
+            print 'test_2_purchase_view(): verify purchase order user wallet trans ...'
+            user_wallet_trans = UserWalletTransaction.objects.get(reference_order__order_id = purchase_order.order_id)
+            self.assertEqual('CREDIT', user_wallet_trans.balance_update_type)
+            self.assertEqual(user_wallet.id, user_wallet_trans.user_wallet.id)
+            self.assertEqual(0.0, user_wallet_trans.balance_begin)
+            self.assertEqual(0.0, user_wallet_trans.balance_end)
+            self.assertEqual(0.0, user_wallet_trans.locked_balance_begin)
+            self.assertEqual(0.0, user_wallet_trans.locked_balance_end)
+            self.assertEqual(0.0, user_wallet_trans.available_to_trade_begin)
+            self.assertEqual(0.0, user_wallet_trans.available_to_trade_end)
+            self.assertEqual(u'', user_wallet_trans.reference_wallet_trxId)
+            self.assertEqual('CREDIT', user_wallet_trans.balance_update_type)
+            self.assertEqual(purchase_units, user_wallet_trans.amount)
+            self.assertEqual('OPEN BUY ORDER', user_wallet_trans.transaction_type)
+            self.assertEqual('PENDING', user_wallet_trans.status)
+            self.assertEqual('yingzhou', user_wallet_trans.created_by.username)
+            self.assertEqual('yingzhou', user_wallet_trans.lastupdated_by.username)
+            lcreated_timestamp = timegm(user_wallet_trans.created_at.utctimetuple())
+            self.assertTrue(abs(lcreated_timestamp - ltimestamp_now) < 120)
+            llastupdated_timestamp = timegm(user_wallet_trans.lastupdated_at.utctimetuple())
+            self.assertTrue(abs(llastupdated_timestamp - ltimestamp_now) < 120)
+
         except Exception as e:
-            error_msg = 'test_create_sell_order() hit exception {0}'.format(
+            error_msg = 'test_2_purchase_view(): hit exception {0}'.format(
                   sys.exc_info()[0])
             print error_msg
             print traceback.format_exc()
@@ -344,6 +408,8 @@ class PurchaseTestCase(TransactionTestCase):
                                 content_type="application/json; charset=utf-8")
             print 'confirmation response is {0}'.format(response.content)
             self.assertEqual('OK', response.content.decode('utf-8'))
+
+
 
         except Exception as e:
             error_msg = 'test_3_payconfirmation() hit exception {0}'.format(

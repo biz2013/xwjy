@@ -58,31 +58,6 @@ def create_sell_order(order, operator):
            total_amount = order.total_amount,
            status = 'OPEN')
         logger.info("order {0} created".format(orderRecord.order_id))
-        userwallet_trans = UserWalletTransaction.objects.create(
-          user_wallet = userwallet,
-          balance_begin = userwallet.balance,
-          balance_end = userwallet.balance,
-          locked_balance_begin = userwallet.locked_balance,
-          locked_balance_end = userwallet.locked_balance + order.total_units,
-          available_to_trade_begin = userwallet.available_balance,
-          available_to_trade_end = userwallet.available_balance - order.total_units,
-          reference_order = orderRecord,
-          reference_wallet_trxId = '',
-          amount = order.total_amount,
-          balance_update_type= 'DEBT',
-          transaction_type = 'OPEN SELL ORDER',
-          comment = operation_comment,
-          #TODO: need to get the transaction and its timestamp
-          reported_timestamp = 0,
-          #TODO: need to make it PENDING, if the transaction's confirmation
-          # has not reached the threshold
-          status = 'PROCESSED',
-          created_by = operatorObj,
-          lastupdated_by = operatorObj
-        )
-        logger.info('userwallet transaction {0} for order {1} userwallet{2} created'.format(
-            userwallet_trans.id, orderRecord.order_id, userwallet.id
-        ))
         userwallet.user_wallet_trans_id = userwallet_trans.id
         userwallet.locked_balance = userwallet.locked_balance + order.total_units
         userwallet.available_balance = userwallet.available_balance - order.total_units
@@ -197,7 +172,7 @@ def create_purchase_order(buyorder, reference_order_id, operator):
           user_wallet = userwallet,
           reference_order = order,
           reference_wallet_trxId = '',
-          amount = buyorder.total_amount,
+          amount = buyorder.total_units,
           balance_update_type= 'CREDIT',
           transaction_type = 'OPEN BUY ORDER',
           comment = operation_comment,
@@ -294,7 +269,7 @@ def update_order_with_heepay_notification(notify_json, operator):
           locked_balance_end = seller_user_wallet.locked_balance - buyorder.units,
           available_to_trade_begin = seller_user_wallet.available_balance,
           available_to_trade_end = seller_user_wallet.available_balance,
-          reference_order = sellorder,
+          reference_order = buyorder,
           reference_wallet_trxId = '',
           amount = buyorder.units,
           balance_update_type= 'DEBT',
@@ -411,6 +386,8 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, username):
             logger.info("update related sell order {0} status to OPEN".format(sell_order.order_id))
             buyorder.payment_bill_no = bill_no
             buyorder.payment_provider = PaymentProvider.objects.get(pk=payment_provider)
+            buyorder.status = 'PAYING'
+            buyorder.payment_status = 'UNKNOWN'
             buyorder.save()
             logger.info("record {0}.bill#: {1} to related buyorder: {2}".format(
                 payment_provider, bill_no, buyorder.order_id
