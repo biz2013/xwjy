@@ -32,7 +32,7 @@ def redeem(command, operator, txid, operation_comment):
           available_to_trade_end = userwallet.available_balance - command.amount,
           reference_order = None,
           reference_wallet_trxId = txid,
-          amount = command.amount,
+          units = command.amount,
           balance_update_type= 'DEBT',
           transaction_type = 'REDEEM',
           comment = operation_comment,

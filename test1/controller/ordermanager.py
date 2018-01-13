@@ -4,6 +4,7 @@ import time
 import datetime as dt
 import pytz
 import logging
+from calendar import timegm
 
 from django.db import transaction
 from django.db.models import F
@@ -58,7 +59,6 @@ def create_sell_order(order, operator):
            total_amount = order.total_amount,
            status = 'OPEN')
         logger.info("order {0} created".format(orderRecord.order_id))
-        userwallet.user_wallet_trans_id = userwallet_trans.id
         userwallet.locked_balance = userwallet.locked_balance + order.total_units
         userwallet.available_balance = userwallet.available_balance - order.total_units
         userwallet.save()
@@ -129,7 +129,8 @@ def get_sellorder_seller_payment_methods(sell_order_id):
                 method.provider_qrcode_image))
     return payment_methods
 
-def create_purchase_order(buyorder, reference_order_id, operator):
+def create_purchase_order(buyorder, reference_order_id,
+         seller_payment_provider, operator):
     operatorObj = User.objects.get(username=operator)
     frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
     buyorder.order_id = frmt_date
@@ -156,6 +157,7 @@ def create_purchase_order(buyorder, reference_order_id, operator):
         order = Order.objects.create(
             order_id = buyorder.order_id,
             user= User.objects.get(pk=buyorder.owner_user_id),
+            selected_payment_provider = PaymentProvider.objects.get(pk=seller_payment_provider),
             created_by = operatorObj,
             lastupdated_by = operatorObj,
             reference_order= reference_order,
@@ -172,11 +174,13 @@ def create_purchase_order(buyorder, reference_order_id, operator):
           user_wallet = userwallet,
           reference_order = order,
           reference_wallet_trxId = '',
-          amount = buyorder.total_units,
+          units = buyorder.total_units,
+          fiat_money_amount = buyorder.total_amount,
+          payment_provider = PaymentProvider.objects.get(pk=seller_payment_provider),
           balance_update_type= 'CREDIT',
           transaction_type = 'OPEN BUY ORDER',
           comment = operation_comment,
-          reported_timestamp = 0,
+          reported_timestamp = timegm(dt.datetime.utcnow().utctimetuple()),
           status = 'PENDING',
           created_by = operatorObj,
           lastupdated_by = operatorObj
@@ -271,7 +275,8 @@ def update_order_with_heepay_notification(notify_json, operator):
           available_to_trade_end = seller_user_wallet.available_balance,
           reference_order = buyorder,
           reference_wallet_trxId = '',
-          amount = buyorder.units,
+          units = buyorder.units,
+          fiat_money_amount = buyorder.total_amount,
           balance_update_type= 'DEBT',
           transaction_type = 'DELIVER ON PURCHASE',
           comment = sell_order_fulfill_comment,
@@ -349,7 +354,7 @@ def cancel_sell_order(userid, order_id, crypto, operator):
           available_to_trade_end = available_to_trade_end,
           reference_order = order,
           reference_wallet_trxId = '',
-          amount = order.units_available_to_trade,
+          units = order.units_available_to_trade,
           balance_update_type= 'CREDIT',
           transaction_type = 'CANCEL SELL ORDER',
           comment = 'cancel sell order {0}'.format(order.order_id),
@@ -384,14 +389,26 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, username):
                 logger.error(error_msg)
                 raise ValueError(error_msg)
             logger.info("update related sell order {0} status to OPEN".format(sell_order.order_id))
-            buyorder.payment_bill_no = bill_no
-            buyorder.payment_provider = PaymentProvider.objects.get(pk=payment_provider)
             buyorder.status = 'PAYING'
-            buyorder.payment_status = 'UNKNOWN'
             buyorder.save()
-            logger.info("record {0}.bill#: {1} to related buyorder: {2}".format(
-                payment_provider, bill_no, buyorder.order_id
-            ))
+            updated = UserWalletTransaction.objects.filter(
+                       reference_order__order_id = buyorder.order_id,
+                       payment_bill_no__isnull = True,
+                       payment_status='UNKNOWN').update(payment_bill_no=bill_no,
+                       lastupdated_at = dt.datetime.utcnow())
+            if not updated:
+                logger.warn("Cannot find the original wallet trans for buy order {0} with empty payment bill no and 'UNKNOWN' payment status".format(buyorder.order_id))
+                user_wallet_trans = UserWalletTransaction.object.get(
+                      reference_order__order_id = buyorder.order_id)
+                if not user_wallet_trans.payment_bill_no is None:
+                    logger.warn("user wallet transaction for buy order {0} has had bill no {1} and payment status {2}".format(
+                        buyorder.order_id, user_wallet_trans.payment_bill_no,
+                        user_wallet_trans.payment_status
+                    ))
+            else:
+                logger.info("record {0}.bill#: {1} to related buyorder: {2}".format(
+                   payment_provider, bill_no, buyorder.order_id
+                ))
             return True
         else:
             return False
