@@ -13,15 +13,17 @@ from users.models import *
 from views.models.returnstatus import ReturnStatus
 from views.models.userexternalwalletaddrinfo import UserExternalWalletAddressInfo
 from views import errorpage
+from django.contrib.auth.decorators import login_required
 
 import logging,json
 
 logger = logging.getLogger("site.externaladdresss")
 
+@login_required
 def external_address(request):
     try:
-       if not user_session_is_valid(request):
-          return render(request, 'html/login.html', { 'next_action' : '/accounts/accountinfo/'})
+       if not request.user.is_authenticated():
+          return render(request, 'login.html', { 'next' : '/accounts/accountinfo/'})
        externaladdress = None
        if request.method == 'GET':
           # if there's id parameter, this is view/update request,
@@ -32,7 +34,7 @@ def external_address(request):
               if len(id_str) > 0:
                  id = int(id_str)
               logger.info('Get user {0}\'s external address by {1}'.format(
-                  request.session[REQ_KEY_USERNAME], id))
+                  request.user.username, id))
               externaladdress = useraccountinfomanager.get_user_externaladdr_by_id(id)
           else:
               externaladdress = None
@@ -49,9 +51,9 @@ def external_address(request):
           if len(crypto) == 0:
               crypto = 'AXFund'
           externaladdress = UserExternalWalletAddressInfo(id,
-             request.session[REQ_KEY_USERID], alias, address, crypto)
+             request.user.id, alias, address, crypto)
           useraccountinfomanager.create_update_externaladdr(
-             externaladdress, request.session[REQ_KEY_USERNAME])
+             externaladdress, request.user.username)
           return redirect('accountinfo')
     except Exception as e:
        error_msg = '添加／修改提币抵制遇到错误: {0}'.format(sys.exc_info()[0])

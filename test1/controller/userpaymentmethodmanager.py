@@ -6,6 +6,7 @@ import pytz
 import logging
 
 from django.db import transaction
+from django.contrib.auth.models import User
 
 from users.models import *
 from config import context_processor
@@ -31,7 +32,7 @@ def get_user_payment_methods(userid):
     return method_list
 
 def create_update_user_payment_method(user_payment_method, operator):
-    operatorObj = UserLogin.objects.get(username=operator)
+    operatorObj = User.objects.get(username=operator)
     if user_payment_method.user_payment_method_id == 0:
         UserPaymentMethod.objects.create(
          user = User.objects.get(pk=user_payment_method.userid),

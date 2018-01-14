@@ -14,19 +14,23 @@ from views.models.userpaymentmethodview import *
 from views.models.orderitem import OrderItem
 from views.models.returnstatus import ReturnStatus
 from views import errorpage
+from django.contrib.auth.decorators import login_required
 
 import logging,json
 
 # logger for user registration
 logger = logging.getLogger("site.paymentmethods")
 
+@login_required
 def payment_method(request):
+    # TO DO: pass down request.user to controller.
+
     try:
-       if not user_session_is_valid(request):
-          return render(request, 'html/login.html', { 'next_action' : '/purchase/'})
+       if not request.user.is_authenticated():
+          return render(request, 'login.html', { 'next' : '/accounts/accountinfo/'})
        if request.method == 'GET':
            payment_providers = userpaymentmethodmanager.get_payment_providers()
-           user_payment_methods = userpaymentmethodmanager.get_user_payment_methods(int(request.session[REQ_KEY_USERID]))
+           user_payment_methods = userpaymentmethodmanager.get_user_payment_methods(request.user.id)
            return render(request, 'html/update_payment_method.html',
               {'user_payment_methods':user_payment_methods,
                'payment_providers': payment_providers})
@@ -36,10 +40,10 @@ def payment_method(request):
            payment_provider = request.POST['payment_provider']
            account = request.POST['account']
            record = UserPaymentMethodView(payment_method_id,
-                    request.session[REQ_KEY_USERID],
+                    request.user.id,
                     payment_provider,
                     '', account, '')
-           userpaymentmethodmanager.create_update_user_payment_method(record, request.session[REQ_KEY_USERNAME])
+           userpaymentmethodmanager.create_update_user_payment_method(record, request.user.username)
            return redirect('accountinfo')
     except Exception as e:
        error_msg = 'sell_axfund hit exception'

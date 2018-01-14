@@ -6,6 +6,7 @@ import pytz
 import logging
 
 from django.db import transaction
+from django.contrib.auth.models import User
 
 from users.models import *
 from config import context_processor
@@ -83,7 +84,7 @@ def update_user_wallet_based_on_deposit(trx, user_wallet, min_trx_confirmation,
                 available_to_trade_end = available_to_trade_end,
                 reference_order = None,
                 reference_wallet_trxId = trx['txid'],
-                amount = trx['amount'],
+                units = trx['amount'],
                 balance_update_type = 'CREDIT',
                 transaction_type = 'DEPOSIT',
                 comment = 'User deposit',
@@ -166,7 +167,7 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
                 available_to_trade_end = available_to_trade_end,
                 reference_order = None,
                 reference_wallet_trxId = trx['txid'],
-                amount = trx['amount'],
+                units = trx['amount'],
                 balance_update_type = 'DEBT',
                 transaction_type = 'REDEEM',
                 comment = 'User redeem',
@@ -208,7 +209,7 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
     print 'update_account_balance_with_wallet_trx'
     # prepare the data for sysop, which will be the created_by and last
     # updated by
-    operator = UserLogin.objects.get(pk='sysop')
+    operator = User.objects.get(username='admin')
 
     # get all user's Wallets
     user_wallets = UserWallet.objects.filter(user__isnull=False, wallet__cryptocurrency__currency_code=crypto)
@@ -256,10 +257,10 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
                 logger.error('Could not find user wallet for Transaction {0} with  comment {1} '.format(
                         trx['txid'],trx['comment']))
 
-def get_user_accountInfo(userid, crypto, load_balance_only=False):
-    logger.info("get account info for user {0} in {1}".format(userid, crypto))
-    user = User.objects.get(pk=userid)
-    userwallet = UserWallet.objects.get(user__id= userid, wallet__cryptocurrency__currency_code=crypto)
+def get_user_accountInfo(user, crypto, load_balance_only=False):
+    logger.info("get account info for user {0} in {1}".format(user.username, crypto))
+    #user = User.objects.get(pk=userid)
+    userwallet = UserWallet.objects.get(user=user, wallet__cryptocurrency__currency_code=crypto)
     balance = userwallet.balance
     available_balance = userwallet.available_balance
     locked_balance = userwallet.locked_balance
@@ -267,23 +268,23 @@ def get_user_accountInfo(userid, crypto, load_balance_only=False):
     externaladdr = None
     payment_methods= []
     if not load_balance_only:
-        userpayments = UserPaymentMethod.objects.filter(user__id=userid)
-        external_addresses = UserExternalWalletAddress.objects.filter(user__id= userid).filter(cryptocurrency__currency_code=crypto)
+        userpayments = UserPaymentMethod.objects.filter(user=user)
+        external_addresses = UserExternalWalletAddress.objects.filter(user= user).filter(cryptocurrency__currency_code=crypto)
         if external_addresses:
-           logger.info('Found the external address record for user {0} with {1}'.format(userid, crypto))
+           logger.info('Found the external address record for user {0} with {1}'.format(user.username, crypto))
            record = external_addresses[0]
            externaladdr = UserExternalWalletAddressInfo(record.id, record.user.id,
                record.alias, record.address, record.cryptocurrency.currency_code)
         else:
-           logger.info('There is no external address for user {0} with {1}'.format(userid, crypto))
+           logger.info('There is no external address for user {0} with {1}'.format(user.username, crypto))
         if userpayments:
-           logger.info('User {0} has setup payment methods'.format(userid))
+           logger.info('User {0} has setup payment methods'.format(user.username))
            for method in userpayments:
               payment_methods.append(UserPaymentMethodView(method.id,
                     user.id, method.provider.code,
                     method.provider.name,method.account_at_provider,
                     method.provider_qrcode_image))
-    userInfo = UserAccountInfo(user.login, user.id,
+    userInfo = UserAccountInfo(user.username, user.id,
           balance,
           locked_balance,
           available_balance,
@@ -298,7 +299,7 @@ def get_user_externaladdr_by_id(id):
         record.alias, record.address, record.cryptocurrency.currency_code)
 
 def create_update_externaladdr(externaladdress, operator):
-    operatorObj = UserLogin.objects.get(pk=operator)
+    operatorObj = User.objects.get(username=operator)
     if externaladdress.id == 0:
         UserExternalWalletAddress.objects.create(
           user = User.objects.get(pk=externaladdress.userid),

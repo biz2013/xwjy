@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  {% include 'html/include/common_header.html' %}
+</head>
+
+<body>
+  <!-- menu section -->
+  {% include "html/include/topmenu.html" %}
+  <!-- body section -->
+  <div class="container">
+    <div class="row center-block ">
+      <div class="col-md-4 col-md-offset-4">
+        <div id="login-body">
+          <h2>登录美基金场外交易</h2>
+{#          <form method="post" class="paper-form" action="/accounts/login/" method="post">#}
+{#            {% csrf_token %}#}
+{#            <input type="hidden" name="forwardto" value="{{ forwardto }}"/>#}
+{#            {% if message and message|length > 0 %}#}
+{#               {% if message_type == 'success' %}#}
+{#            <p class="text-success">{{ message }}</p>#}
+{#               {% else %}#}
+{#            <p class="text-danger">{{ message }}</p>#}
+{#               {% endif %}#}
+{#            {% endif %}#}
+{#            <div id="div_id_username" class="form-group"> <label for="id_username" class="control-label  requiredField">#}
+{#				用户名</label>#}
+{#              <div class="controls "> <input class="textinput textInput form-control" id="id_username" maxlength="30" name="username" type="text" value="{{ login.username }}" /> </div>#}
+{#            </div>#}
+{#            <div id="div_id_password1" class="form-group"> <label for="id_password1" class="control-label  requiredField">#}
+{#				密码</label>#}
+{#              <div class="controls "> <input class="textinput textInput form-control" id="id_password1" name="password" type="password" /> </div>#}
+{#            </div>#}
+{#            <p>#}
+{#              <button class="btn btn-primary" id="login-button">登录</button>#}
+{#            </p>#}
+{#          </form>#}
+
+            <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+
+            <div>
+              <td>{{ form.username.label_tag }}</td>
+              <td>{{ form.username }}</td>
+            </div>
+            <div>
+              <td>{{ form.password.label_tag }}</td>
+              <td>{{ form.password }}</td>
+            </div>
+
+            <div>
+              <input type="submit" value="login" />
+              <input type="hidden" name="next" value="{% if next %}{{ next }}{% else %}/accounts/accountinfo/{% endif %}" />
+            </div>
+            </form>
+        </div>
+        <p>还未注册？ <a href="/registration/">注册</a></p>
+        <p>忘记密码？ <a href="{% url 'password_reset' %}">重设密码</a></p>
+      </div>
+    </div>
+  </div>
+  <!-- footer section-->
+  {% include 'html/include/footer.html' %}
+</body>
+
+</html>
