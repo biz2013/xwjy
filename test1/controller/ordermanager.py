@@ -7,7 +7,7 @@ import logging
 from calendar import timegm
 
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Q, Count
 from django.contrib.auth.models import User
 
 from users.models import *
@@ -38,7 +38,9 @@ def create_sell_order(order, operator):
         order.unit_price)
     logger.info(operation_comment)
     with transaction.atomic():
-        userwallet = UserWallet.objects.select_for_update().get(user__id=order.owner_user_id)
+        userwallet = UserWallet.objects.select_for_update().get(
+                user__id=order.owner_user_id,
+                wallet__cryptocurrency = crypto)
         logger.info('before creating order {0}, userwallet {1} has balance:{2} available_balance:{3} locked_balance: {4}'.format(
            frmt_date, userwallet.id, userwallet.balance, userwallet.available_balance, userwallet.locked_balance
         ))
@@ -141,7 +143,9 @@ def create_purchase_order(buyorder, reference_order_id,
         buyorder.unit_price)
     order = None
     with transaction.atomic():
-        userwallet = UserWallet.objects.select_for_update().get(user__id=buyorder.owner_user_id)
+        userwallet = UserWallet.objects.select_for_update().get(
+              user__id=buyorder.owner_user_id,
+              wallet__cryptocurrency = crypto_currency)
         reference_order = Order.objects.select_for_update().get(pk=reference_order_id)
         if reference_order.status != 'PARTIALFILLED' and reference_order.status != 'OPEN':
             return None, 'SELLORDER_NOT_OPEN'
@@ -151,7 +155,7 @@ def create_purchase_order(buyorder, reference_order_id,
                       reference_order.units_available_to_trade,
                       buyorder.total_units))
             return None, 'BUY_EXCEED_AVAILABLE_UNITS'
-        logger.info('before creating order {0}, userwallet {1} has balance:{2} available_balance:{3} locked_balance: {4}'.format(
+        logger.info('before creating purchase order {0}, userwallet {1} has balance:{2} available_balance:{3} locked_balance: {4}'.format(
            frmt_date, userwallet.id, userwallet.balance, userwallet.available_balance, userwallet.locked_balance
         ))
         order = Order.objects.create(
@@ -169,7 +173,7 @@ def create_purchase_order(buyorder, reference_order_id,
             unit_price_currency = buyorder.unit_price_currency,
             total_amount = buyorder.total_amount,
             status = 'OPEN')
-        logger.info("order {0} created".format(order.order_id))
+        logger.info("purchase order {0} created".format(order.order_id))
         userwallet_trans = UserWalletTransaction.objects.create(
           user_wallet = userwallet,
           reference_order = order,
@@ -185,14 +189,14 @@ def create_purchase_order(buyorder, reference_order_id,
           created_by = operatorObj,
           lastupdated_by = operatorObj
         )
-        logger.info('userwallet transaction {0} for order {1} userwallet{2} created'.format(
+        logger.info('userwallet transaction {0} for purchase order {1} userwallet{2} created'.format(
             userwallet_trans.id, order.order_id, userwallet.id
         ))
         reference_order.status = 'LOCKED'
         reference_order.units_locked = reference_order.units_locked + buyorder.total_units
         reference_order.units_available_to_trade = reference_order.units_available_to_trade - buyorder.total_units
         reference_order.save()
-        logger.info('After creating buy order {0}, sell order {1} has available_units:{2} locked_units: {3} original units: {4}'.format(
+        logger.info('After creating purchase order {0}, sell order {1} has available_units:{2} locked_units: {3} original units: {4}'.format(
            order.order_id, reference_order.order_id,
            reference_order.units_available_to_trade,
            reference_order.units_locked,
@@ -201,67 +205,86 @@ def create_purchase_order(buyorder, reference_order_id,
 
     return order.order_id if order is not None else None
 
+def lock_trans_of_purchase_order(orderid, bill_no):
+    try:
+        purchase_trans = UserWalletTransaction.objects.select_for_update().get(
+              reference_order__order_id=orderid)
+        logger.info("--- trans: orderid {0}, pay bill: {1} status {2} trans_type {3} inside call of {4},{5}".format(
+              orderid, purchase_trans.payment_bill_no, purchase_trans.status,
+              purchase_trans.transaction_type, orderid, bill_no
+        ))
+        return UserWalletTransaction.objects.select_for_update().get(
+              reference_order__order_id=orderid,
+              payment_bill_no = bill_no,
+              status='PENDING',
+              transaction_type='OPEN BUY ORDER')
+    except UserWalletTransaction.DoesNotExist:
+        logger.warn("lock_trans_of_purchase_order(): could not find PENDING trans for purchase order {0} with bill_no {1}, maybe it has been processed".format(orderid, bill_no))
+        try:
+            return UserWalletTransaction.objects.select_for_update().get(
+                  reference_order__order_id=orderid,
+                  payment_bill_no = bill_no,
+                  status='PROCESSED',
+                  transaction_type='OPEN BUY ORDER')
+        except UserWalletTransaction.DoesNotExist:
+            raise ValueError("lock_trans_of_purchase_order(): could not find the processed trans for purchase order {0} with bill_no {1}, maybe payment failed.".format(orderid, bill_no))
+        except UserWalletTransaction.MultipleObjectsReturned:
+            raise ValueError("lock_trans_of_purchase_order(): There should be just one processed  trans for purchase order {0} with bill_no {1}".format(orderid, bill_no))
+    except UserWalletTransaction.MultipleObjectsReturned:
+        raise ValueError("lock_trans_of_purchase_order(): There should be just one wallet transaction for purchase order {0} with bill_no {1}".format(orderid, bill_no))
+
+def update_purchase_transaction(purchase_trans, trade_status, trade_msg):
+    normal_status = {'Not Started': 'NOTSTARTED','PaySuccess':'PAYSUCCESS',
+         'Starting':'STARTING', 'Unknown':'UNKNOWN'
+         }
+    bad_status = { 'ExpiredInvalid': 'EXPIREDINVALID',
+         'UserAbandon':'USERABANDON', 'DevClose':'DEVCLOSE',
+         'Failure':'FAILURE'}
+    if trade_status in normal_status:
+        purchase_trans.payment_methodstatus = normal_status[trade_status]
+    elif trade_status in bad_status:
+        purchase_trans.payment_status = bad_status[trade_status]
+        purchase_trans.comment = trade_msg
+        buyorder = purchase_trans.reference_order
+        buyorder.status = 'FAILED'
+        #revert locked unit and available units in sell order
+        Order.objects.filter(pk = buyorder.order_id).update(
+             units_locked = F('units_locked') - buyorder.units,
+             units_available_to_trade = F('units_available_to_trade') + buyorder.units
+             )
+        buyorder.save()
+    purchase_trans.save()
+
 def update_order_with_heepay_notification(notify_json, operator):
-    """ a) the payment provider will call a specific url of us, and post a standard notification http://dev.heepay.com/index.php?s=/55&page_id=540
-  b) need to parse and validate it (validate the sign)
-  c) if the payment is success, in a transaction.atomic() scope
-     i) find referred purchase order, update status to paid,
-     ii) find the sell order of the purchase order, find the UserWallet associated with it, create a DEBT UserWalletTransaction, to debt purchased amount from seller UserWallet balance and available balance.
-     iii ) update sell order's available_units -= purchase amount.  locked_amount += purchase_amount, order status = 'PARTIALFILLED' if available_balance > 0, and become 'FILLED' if available_balance ==0
-    iv ) create UserWalletTransaction for buyer, CREDIT buyer UserWallet with purchase amount on balance and available_balance
-    v) purchase order status is 'FILLE
-        {
-    	"version": "1.0",
-    	"app_id": "hyq17121610000800000911220E16AB0",
-    	"subject": "购买1.020000CNY",
-    	"out_trade_no": "20180102122319_293146",
-    	"hy_bill_no": "180102122300364021000081666",
-    	"payment_type": "Alipay",
-    	"total_fee": "1",
-    	"trade_status": "Success",
-    	"real_fee": "1",
-    	"payment_time": "20180102122507",
-    	"api_account_mode": "Account",
-    	"to_account": "15811302702",
-    	"from_account": "18600701961",
-    	"sign": "EEB980CD2663C9E27C7A38094410CB60"
-    }
-        """
     logger.info('update_order_with_heepay_notification(with hy_bill_no {0} out_trade_no {1}'.format(
         notify_json['hy_bill_no'], notify_json['out_trade_no']
     ))
     operatorObj = User.objects.get(username=operator)
 
-    # get original buy order
-
-    #get the original purchase user_wallet_trans
-    purchase_trans = UserWalletTransaction.objects.get(
-          reference_order__order_id=notify_json['out_trade_no'],
-          status='PENDING',
-          transaction_type='OPEN BUY ORDER')
-    buyer_user_wallet = purchase_trans.user_wallet
-    logger.info('For hy_bill_no {0} find purchase userwallet trans id {1}, refer to wallet {2}'.format(
-           notify_json['hy_bill_no'], purchase_trans.id, buyer_user_wallet.id
-    ))
-
-    buyorder = purchase_trans.reference_order
-    logger.info('For hy_bill_no {0} find buy order id {1}'.format(
-           notify_json['hy_bill_no'], buyorder.order_id
-    ))
-    buyer_userid = buyorder.user.id
-    sellorder = buyorder.reference_order
-    logger.info('for hy_bill_no {0} find related seller order {1}'.format(
-          notify_json['hy_bill_no'], sellorder.order_id
-    ))
     with transaction.atomic():
+        #get the original purchase user_wallet_trans
+        purchase_trans = lock_trans_of_purchase_order(notify_json['out_trade_no'],
+             notify_json['hy_bill_no'])
+        if purchase_trans.status == 'PROCESSED':
+            logger.info("The transaction has been processed.  Nothing to do")
+            return
+
+        if notify_json['trade_status'] != 'Success':
+            update_purchase_transaction(purchase_trans, notify_json['trade_status'])
+            return
+
+        # get original buy order
+        buyorder = Order.objects.select_for_update().get(
+            pk = notify_json['out_trade_no'])
+        sell_order = Order.objects.select_for_update().get(
+            pk = buyorder.reference_order.order_id)
+
         seller_user_wallet = UserWallet.objects.select_for_update().get(
-             user__id=sellorder.user.id,
-             wallet__cryptocurrency__currency_code = purchase_trans.user_wallet.wallet.cryptocurrency.currency_code)
+             user__id= sell_order.user.id,
+             wallet__cryptocurrency = purchase_trans.user_wallet.wallet.cryptocurrency)
         buyer_user_wallet = UserWallet.objects.select_for_update().get(
-            pk=buyer_user_wallet.id)
-        sellorder = Order.objects.get(pk=sellorder.order_id)
-        purchase_trans = UserWalletTransaction.objects.select_for_update().get(pk=purchase_trans.id)
-        buyorder = Order.objects.select_for_update().get(pk=buyorder.order_id)
+             user_id = buyorder.user.id,
+             wallet__cryptocurrency = purchase_trans.user_wallet.wallet.cryptocurrency)
         sell_order_fulfill_comment = 'deliver on buyer order {0}, with {1} units on payment bill no {2}'.format(
              buyorder.order_id, buyorder.units, notify_json['hy_bill_no']
         )
@@ -273,14 +296,17 @@ def update_order_with_heepay_notification(notify_json, operator):
           locked_balance_end = seller_user_wallet.locked_balance - buyorder.units,
           available_to_trade_begin = seller_user_wallet.available_balance,
           available_to_trade_end = seller_user_wallet.available_balance,
-          reference_order = buyorder,
+          reference_order = sell_order,
           reference_wallet_trxId = '',
           units = buyorder.units,
           fiat_money_amount = buyorder.total_amount,
+          payment_provider = purchase_trans.payment_provider,
+          payment_bill_no = purchase_trans.payment_bill_no,
+          payment_status = 'SUCCESS',
           balance_update_type= 'DEBT',
           transaction_type = 'DELIVER ON PURCHASE',
           comment = sell_order_fulfill_comment,
-          reported_timestamp = 0,
+          reported_timestamp = timegm(dt.datetime.utcnow().utctimetuple()),
           status = 'PROCESSED',
           created_by = operatorObj,
           lastupdated_by = operatorObj
@@ -289,28 +315,26 @@ def update_order_with_heepay_notification(notify_json, operator):
         purchase_trans.balance_end = buyer_user_wallet.balance + buyorder.units
         purchase_trans.locked_balance_begin = buyer_user_wallet.locked_balance
         purchase_trans.locked_balance_end = buyer_user_wallet.locked_balance
-        purchase_trans.available_balance_begin = buyer_user_wallet.available_balance
-        purchase_trans.available_balance_end = buyer_user_wallet.available_balance + buyorder.units
+        purchase_trans.available_to_trade_begin = buyer_user_wallet.available_balance
+        purchase_trans.available_to_trade_end = buyer_user_wallet.available_balance + buyorder.units
+        purchase_trans.payment_status = 'SUCCESS'
         purchase_trans.status = 'PROCESSED'
         purchase_trans.lastupdated_by = operatorObj
-        purchase_trans.save()
 
-        sellorder.units_locked = F('units_locked') - buyorder.units
-        sellorder.status = 'PARTIALFILLED'
-        if sellorder.units_available_to_trade == 0:
-            sellorder.status == 'FILLED'
-        sellorder.lastupdated_by = operatorObj
-        sellorder.save()
+        sell_order.units_locked = sell_order.units_locked - buyorder.units
+        sell_order.status = 'PARTIALFILLED'
+        if sell_order.units_available_to_trade < 0.00000001:
+            sell_order.status == 'FILLED'
+        sell_order.lastupdated_by = operatorObj
+        sell_order.save()
 
-        buyorder.payment_bill_no = notify_json['hy_bill_no']
-        buyorder.payment_status = 'SUCCESS'
         buyorder.status = 'FILLED'
         buyorder.lastupdated_by = operatorObj
         buyorder.save()
 
         buyer_user_wallet.balance = purchase_trans.balance_end
         buyer_user_wallet.locked_balance = purchase_trans.locked_balance_end
-        buyer_user_wallet.available_balance = purchase_trans.available_balance_end
+        buyer_user_wallet.available_balance = purchase_trans.available_to_trade_end
         buyer_user_wallet.user_wallet_trans_id = buyer_user_wallet.id
         buyer_user_wallet.lastupdated_by = operatorObj
         buyer_user_wallet.save()
@@ -322,6 +346,9 @@ def update_order_with_heepay_notification(notify_json, operator):
         seller_user_wallet.lastupdated_by = operatorObj
         seller_user_wallet.save()
 
+        # release lock at the last moment
+        purchase_trans.save()
+
 def get_order_owner_info(order_id):
     order = Order.objects.get(pk=order_id)
     return order.user.id, order.user.username
@@ -329,19 +356,20 @@ def get_order_owner_info(order_id):
 def cancel_sell_order(userid, order_id, crypto, operator):
     operatorObj = User.objects.get(username=operator)
     with transaction.atomic():
-        user_wallet = UserWallet.objects.select_for_update().get(
-            user__id=userid,
-            wallet__cryptocurrency__currency_code = crypto)
         order = Order.objects.select_for_update().get(pk=order_id)
-        if order.status == 'LOCKED' or order.status == 'CANCELLED':
-            logger.error('order {0} has status {1}, can\'t be cancelled anymore'.format(
+        if order.status == 'LOCKED' or Order.objects.filter(
+            Q(reference_order__order_id = order.order_id),
+            Q(order_type == 'BUY'),
+            Q(order.status == 'OPEN') | Q(order.status == 'PAYING')).count() > 0:
+            logger.error('order {0} has status {1} or has open buy orders. can\'t be cancelled anymore'.format(
                order_id, order.status
             ))
             raise ValueError("order has been locked or cancelled")
-        order.status = 'CANCELLED'
-        order.lastupdated_by = operatorObj
-        order.save()
 
+        user_wallet = UserWallet.objects.select_for_update().get(
+           user__id == order.user.id,
+           cryptocurrency__currency_code = crypto
+        )
         locked_balance_end = user_wallet.locked_balance - order.units_available_to_trade
         available_to_trade_end = user_wallet.available_balance + order.units_available_to_trade
         seller_userwallet_trans = UserWalletTransaction.objects.create(
@@ -366,49 +394,52 @@ def cancel_sell_order(userid, order_id, crypto, operator):
           created_by = operatorObj,
           lastupdated_by = operatorObj
         )
-        seller_userwallet_trans.save()
+
+        order.status = 'CANCELLED'
+        order.lastupdated_by = operatorObj
+        order.save()
 
         user_wallet.locked_balance = locked_balance_end
         user_wallet.available_balance = available_to_trade_end
         user_wallet.lastupdated_by = operatorObj
         user_wallet.save()
 
+
 def post_open_payment_order(buyorder_id, payment_provider, bill_no, username):
     operator = User.objects.get(username=username)
-    buyorder = Order.objects.get(pk=buyorder_id)
-    sell_order = Order.objects.get(pk=buyorder.reference_order.order_id)
     with transaction.atomic():
-        if buyorder.status != 'CANCELLED':
-            updated = Order.objects.filter(
-                       order_id=buyorder.reference_order.order_id,
-                       status='LOCKED').update(status='OPEN',
-                                lastupdated_at = dt.datetime.utcnow())
-            if not updated:
-                error_msg = "Purchase order {0}:status{1} is not locked by buy order {2} anymore.  Should not happen.".format(
-                        sell_order.order_id, sell_order.status, buyorder.order_id)
-                logger.error(error_msg)
-                raise ValueError(error_msg)
-            logger.info("update related sell order {0} status to OPEN".format(sell_order.order_id))
-            buyorder.status = 'PAYING'
-            buyorder.save()
-            updated = UserWalletTransaction.objects.filter(
-                       reference_order__order_id = buyorder.order_id,
-                       payment_bill_no__isnull = True,
-                       payment_status='UNKNOWN').update(payment_bill_no=bill_no,
-                       lastupdated_at = dt.datetime.utcnow())
-            if not updated:
-                logger.warn("Cannot find the original wallet trans for buy order {0} with empty payment bill no and 'UNKNOWN' payment status".format(buyorder.order_id))
-                user_wallet_trans = UserWalletTransaction.object.get(
-                      reference_order__order_id = buyorder.order_id)
-                if not user_wallet_trans.payment_bill_no is None:
-                    logger.warn("user wallet transaction for buy order {0} has had bill no {1} and payment status {2}".format(
-                        buyorder.order_id, user_wallet_trans.payment_bill_no,
-                        user_wallet_trans.payment_status
-                    ))
-            else:
-                logger.info("record {0}.bill#: {1} to related buyorder: {2}".format(
-                   payment_provider, bill_no, buyorder.order_id
-                ))
-            return True
-        else:
-            return False
+        purchase_trans = UserWalletTransaction.objects.select_for_update().get(
+            reference_order__order_id = buyorder_id)
+        if purchase_trans.status == 'FAILED':
+            raise ValueError("Purchase user wallet transaction for purchase order {0} had failed before starting payment".format(buyorder_id))
+        if purchase_trans.payment_status != 'UNKNOWN':
+            raise ValueError("Purchase user wallet transaction for purchase order {0} had payemnt status {1} before starting payment".format(
+                  buyorder_id, purchase_trans.payment_status))
+        buyorder = Order.objects.select_for_update().get(pk=buyorder_id)
+        if buyorder.status != 'OPEN':
+            raise ValueError("Purchase order {0} should not become {1} before starting payment".format(
+                buyorder_id, buyorder.status
+            ))
+        buyorder.status = 'PAYING'
+        buyorder.save()
+
+        # update sell order status
+        updated = Order.objects.filter(
+                   order_id=buyorder.reference_order.order_id,
+                   status='LOCKED').update(status='OPEN',
+                            lastupdated_at = dt.datetime.utcnow())
+        if not updated:
+            error_msg = "Sell order {0}:status{1} is not locked by buy order {2} anymore.  Should not happen.".format(
+                    sell_order.order_id, sell_order.status, buyorder.order_id)
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+        logger.info("update related status of sell order {0} (of purchase order {1}) to OPEN".format(
+            buyorder.reference_order.order_id, buyorder_id))
+
+        purchase_trans.payment_bill_no = bill_no
+        purchase_trans.save()
+        logger.info("record {0}.bill#: {1} to related buyorder: {2}".format(
+           payment_provider, bill_no, buyorder.order_id
+        ))
+
+        return True

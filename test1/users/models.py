@@ -149,7 +149,7 @@ class UserWalletTransaction(models.Model):
      ('EXPIREDINVALID', 'ExpiredInvalid'),
      ('DEVCLOSE', 'DevClose'),
      ('USERABANDON', 'UserAbandon'),
-     ('UNKONW','UnKnown'),
+     ('UNKONWN','UnKnown'),
      ('FAILURE','Failure'),
      ('STARTING', 'Starting'))
    user_wallet = models.ForeignKey('UserWallet', on_delete=models.CASCADE)
@@ -213,7 +213,7 @@ class Order(models.Model):
 
    # These are not necessarily final, but I think so far we need these
    ORDER_STATUS = (('OPEN','Open'),('CANCELLED','Cancelled'), ('FILLED','Filled'),
-            ('PAYING','Paying'), ('PAID','Paid'),
+            ('PAYING','Paying'), ('PAID','Paid'), ('FAILED', 'Failed'),
             ('DELIVERED','Delivered'),('PARTIALFILLED','PartialFilled'),('LOCKED','Locked'))
    CURRENCY = (('CYN', 'Renminbi'), ('USD', 'US Dollar'))
 

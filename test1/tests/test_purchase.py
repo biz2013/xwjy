@@ -15,13 +15,14 @@ from controller.global_utils import *
 
 from test1.forms import *
 
-import sys, io, traceback, time, json, copy
+import sys, io, traceback, time, json, copy, math
 from mock import Mock, MagicMock, patch, mock
 from calendar import timegm
 from datetime import datetime as dt
 from setuptest import *
 
-TEST_HY_BILL_NO='Test_heepay_bill_no'
+# match the hy_bill_no in test data test_heepay_confirm.json
+TEST_HY_BILL_NO='180102122300364021000081666'
 
 heepay_reponse_template = json.load(io.open('tests/data/heepay_return_success.json', 'r', encoding='utf-8'))
 
@@ -167,16 +168,16 @@ class PurchaseTestCase(TransactionTestCase):
             print traceback.format_exc()
             self.fail(error_msg)
 
-    def post_payment_confirmation(buy_order_id):
+    def post_payment_confirmation(self, buy_order_id):
         confirmation_json = None
-        with open('tests/data/test_heepay_confirm.json', 'r') as myfile:
+        with io.open('tests/data/test_heepay_confirm.json', mode='r', encoding='utf-8') as myfile:
             confirmation_json=myfile.read()
         confirmation_json = confirmation_json.replace('__ORDER_ID__', buy_order_id)
         json_data = json.loads(confirmation_json)
         hmgr = HeePayManager()
         signed_str = hmgr.create_confirmation_sign(json_data,'4AE4583FD4D240559F80ED39')
         confirmation_json = confirmation_json.replace('__SIGN__', signed_str)
-        print 'the confirmation about to send to confirmation payment is {0}'.format(confirmation_json)
+        print u'the confirmation about to send to confirmation payment is {0}'.format(confirmation_json)
         c = Client()
         response = c.post('/heepay/confirm_payment/',
                             confirmation_json,
@@ -275,6 +276,9 @@ class PurchaseTestCase(TransactionTestCase):
             old_sell_order_units = sell_order.units
             old_sell_order_units_locked = sell_order.units_locked
             old_sell_order_units_available = sell_order.units_available_to_trade
+            old_sell_order_amount = sell_order.total_amount
+            old_sell_order_unit_price = sell_order.unit_price
+            old_sell_order_unit_price_currency = sell_order.unit_price_currency
 
             print 'test_2_purchase_view(): create buyer order based on sell order through client call...'
             purchase_units = 2.1
@@ -332,12 +336,14 @@ class PurchaseTestCase(TransactionTestCase):
             self.assertEqual(purchase_units, purchase_order.units)
             self.assertEqual(0.0, purchase_order.units_available_to_trade)
             self.assertEqual(0.0, purchase_order.units_locked)
+            self.assertEqual(old_sell_order_unit_price, purchase_order.unit_price)
+            self.assertEqual(old_sell_order_unit_price_currency, purchase_order.unit_price_currency)
             self.assertEqual('yingzhou', purchase_order.created_by.username)
             self.assertEqual('yingzhou', purchase_order.lastupdated_by.username)
             llastupdated_timestamp = timegm(purchase_order.lastupdated_at.utctimetuple())
             self.assertTrue(abs(llastupdated_timestamp - ltimestamp_now) < 120)
 
-            print 'test_2_purchase_view(): verify purchase order user wallet trans ...'
+            print 'test_2_purchase_view(): verify purchase order {0} user wallet trans ...'.format(purchase_order.order_id)
             buyer_wallet_trans = UserWalletTransaction.objects.get(reference_order__order_id = purchase_order.order_id)
             self.assertEqual('CREDIT', buyer_wallet_trans.balance_update_type)
             self.assertEqual(buyer_wallet.id, buyer_wallet_trans.user_wallet.id)
@@ -369,8 +375,9 @@ class PurchaseTestCase(TransactionTestCase):
             self.assertEqual(old_buyer_locked_balance, buyer_wallet.locked_balance)
             self.assertEqual(old_buyer_available_balance, buyer_wallet.available_balance)
 
+            #-----------------------------------------------------------------
             print 'test_2_purchase_view(): create confirmation ...'
-            post_payment_confirmation(buyorder.order_id)
+            self.post_payment_confirmation(purchase_order.order_id)
 
             print 'test_2_purchase_view(): there should be just 2 trans ...'
             wallet_trans = UserWalletTransaction.objects.all()
@@ -383,28 +390,30 @@ class PurchaseTestCase(TransactionTestCase):
             self.assertEqual(old_seller_balance  - purchase_units, seller_wallet.balance)
             self.assertEqual(old_seller_locked_balance + sell_order.units - purchase_units , seller_wallet.locked_balance)
             self.assertEqual(old_seller_available_balance - sell_order.units, seller_wallet.available_balance)
-            self.assertEqual(seller_wallet.balance, seller_wallet.locked_balance
-                              + seller_wallet.available_balance)
+            self.assertTrue(math.fabs(seller_wallet.balance - seller_wallet.locked_balance
+                              - seller_wallet.available_balance) < 0.00000001)
 
             print 'test_2_purchase_view(): verify seller wallet trans at the end ...'
             seller_wallet_trans = UserWalletTransaction.objects.get(reference_order__order_id = sell_order.order_id)
             self.assertEqual('DEBT', seller_wallet_trans.balance_update_type)
-            self.assertEqual(buyorder.order_id, seller_wallet_trans.reference_order.order_id)
-            self.assertEqual(buyer_wallet.id, seller_wallet_trans.user_wallet.id)
-            self.assertEqual(old_buyer_balance, seller_wallet_trans.balance_begin)
-            self.assertEqual(buyer_wallet.balance, seller_wallet_trans.balance_end)
-            self.assertEqual(old_buyer_locked_balance, seller_wallet_trans.locked_balance_begin)
-            self.assertEqual(buyer_wallet.locked_balance, seller_wallet_trans.locked_balance_end)
-            self.assertEqual(old_buyer_available_balance, seller_wallet_trans.available_to_trade_begin)
-            self.assertEqual(buyer_wallet.available_balance, seller_wallet_trans.available_to_trade_end)
+            self.assertEqual(sell_order.order_id, seller_wallet_trans.reference_order.order_id)
+            self.assertEqual(seller_wallet.id, seller_wallet_trans.user_wallet.id)
+            self.assertEqual(old_seller_balance, seller_wallet_trans.balance_begin)
+            self.assertEqual(seller_wallet.balance, seller_wallet_trans.balance_end)
+            self.assertEqual(old_seller_locked_balance + sell_order.units, seller_wallet_trans.locked_balance_begin)
+            self.assertEqual(seller_wallet.locked_balance, seller_wallet_trans.locked_balance_end)
+            self.assertTrue(math.fabs(seller_wallet_trans.locked_balance_begin - seller_wallet_trans.units
+                   - seller_wallet_trans.locked_balance_end)<0.00000001)
+            self.assertEqual(old_seller_available_balance - sell_order.units, seller_wallet_trans.available_to_trade_begin)
+            self.assertEqual(seller_wallet.available_balance, seller_wallet_trans.available_to_trade_end)
+            self.assertTrue(math.fabs(seller_wallet_trans.available_to_trade_begin - seller_wallet_trans.available_to_trade_end)<0.00000001)
             self.assertEqual(u'', seller_wallet_trans.reference_wallet_trxId)
-            self.assertEqual('CREDIT', seller_wallet_trans.balance_update_type)
             self.assertEqual(purchase_units, seller_wallet_trans.units)
             self.assertEqual(total_amount, seller_wallet_trans.fiat_money_amount)
             self.assertEqual(TEST_HY_BILL_NO, seller_wallet_trans.payment_bill_no)
             self.assertEqual('heepay', seller_wallet_trans.payment_provider.code)
             self.assertEqual('SUCCESS', seller_wallet_trans.payment_status)
-            self.assertEqual('OPEN BUY ORDER', seller_wallet_trans.transaction_type)
+            self.assertEqual('DELIVER ON PURCHASE', seller_wallet_trans.transaction_type)
             self.assertEqual('PROCESSED', seller_wallet_trans.status)
             self.assertEqual('admin', seller_wallet_trans.created_by.username)
             self.assertEqual('admin', seller_wallet_trans.lastupdated_by.username)
@@ -413,18 +422,37 @@ class PurchaseTestCase(TransactionTestCase):
             llastupdated_timestamp = timegm(seller_wallet_trans.lastupdated_at.utctimetuple())
             self.assertTrue(abs(llastupdated_timestamp - ltimestamp_now) < 120)
 
+            print 'test_2_purchase_view(): verify sell order change ...'
+            sell_order.refresh_from_db()
+            self.assertEqual('PARTIALFILLED', sell_order.status)
+            self.assertEqual(old_sell_order_units, sell_order.units)
+            self.assertEqual(old_sell_order_units_locked + purchase_units - purchase_order.units, sell_order.units_locked)
+            self.assertEqual(old_sell_order_units_available - purchase_units, sell_order.units_available_to_trade)
+            self.assertEqual('SELL', sell_order.order_type)
+            self.assertEqual('taozhang', sell_order.user.username)
+            self.assertEqual(None, sell_order.reference_order)
+            self.assertEqual('AXFund', sell_order.cryptocurrency.currency_code)
+            self.assertEqual(old_sell_order_unit_price, sell_order.unit_price)
+            self.assertEqual(old_sell_order_unit_price_currency,sell_order.unit_price_currency)
+            self.assertTrue(sell_order.selected_payment_provider is None)
+            self.assertEqual(old_sell_order_amount, sell_order.total_amount)
+            self.assertEqual('taozhang', sell_order.created_by.username)
+            self.assertEqual('admin', sell_order.lastupdated_by.username)
+            llastupdated_timestamp = timegm(sell_order.lastupdated_at.utctimetuple())
+            self.assertTrue(abs(llastupdated_timestamp - ltimestamp_now) < 120)
+
             print 'test_2_purchase_view(): verify buyer wallet balance ...'
             buyer_wallet.refresh_from_db()
             self.assertEqual(old_buyer_balance + purchase_units, buyer_wallet.balance)
             self.assertEqual(old_buyer_locked_balance, buyer_wallet.locked_balance)
             self.assertEqual(old_buyer_available_balance + purchase_units, buyer_wallet.available_balance)
-            self.assertEqual(buyer_wallet.balance, buyer_wallet.locked_balance
-                              + buyer_wallet.available_balance)
+            self.assertTrue(math.fabs(buyer_wallet.balance - buyer_wallet.locked_balance
+                              - buyer_wallet.available_balance)<0.00000001)
 
             print 'test_2_purchase_view(): verify buyer wallet trans at the end ...'
             buyer_wallet_trans.refresh_from_db()
             self.assertEqual('CREDIT', buyer_wallet_trans.balance_update_type)
-            self.assertEqual(buyorder.order_id, buyer_wallet_trans.reference_order.order_id)
+            self.assertEqual(purchase_order.order_id, buyer_wallet_trans.reference_order.order_id)
             self.assertEqual(buyer_wallet.id, buyer_wallet_trans.user_wallet.id)
             self.assertEqual(old_buyer_balance, buyer_wallet_trans.balance_begin)
             self.assertEqual(buyer_wallet.balance, buyer_wallet_trans.balance_end)
@@ -447,79 +475,26 @@ class PurchaseTestCase(TransactionTestCase):
             llastupdated_timestamp = timegm(buyer_wallet_trans.lastupdated_at.utctimetuple())
             self.assertTrue(abs(llastupdated_timestamp - ltimestamp_now) < 120)
 
+            print 'test_2_purchase_view(): verify purchase  order changes ...'
+            purchase_order.refresh_from_db()
+            self.assertEqual('FILLED', purchase_order.status)
+            self.assertEqual('BUY', purchase_order.order_type)
+            self.assertEqual('BUY_ON_ASK', purchase_order.sub_type)
+            self.assertEqual('FILLED', purchase_order.status)
+            self.assertEqual('heepay', purchase_order.selected_payment_provider.code)
+            self.assertEqual('AXFund', purchase_order.cryptocurrency.currency_code)
+            self.assertEqual(old_sell_order_unit_price, purchase_order.unit_price)
+            self.assertEqual(old_sell_order_unit_price_currency, purchase_order.unit_price_currency)
+            self.assertEqual(purchase_units, purchase_order.units)
+            self.assertEqual(0.0, purchase_order.units_available_to_trade)
+            self.assertEqual(0.0, purchase_order.units_locked)
+            self.assertEqual('yingzhou', purchase_order.created_by.username)
+            self.assertEqual('admin', purchase_order.lastupdated_by.username)
+            llastupdated_timestamp = timegm(purchase_order.lastupdated_at.utctimetuple())
+            self.assertTrue(abs(llastupdated_timestamp - ltimestamp_now) < 120)
+
         except Exception as e:
             error_msg = 'test_2_purchase_view(): hit exception {0}'.format(
-                  sys.exc_info()[0])
-            print error_msg
-            print traceback.format_exc()
-            self.fail(error_msg)
-
-    def test_3_payconfirmation(self):
-        try:
-            seller_wallet = UserWallet.objects.get(user__username='taozhang',
-                   wallet__cryptocurrency__currency_code = 'AXFund')
-            seller_old_balance = seller_wallet.balance
-            seller_old_locked_balance = seller_wallet.locked_balance
-            seller_old_available_balance = seller_wallet.available_balance
-
-            buyer_wallet = UserWallet.objects.get(user__username='yingzhou',
-                   wallet__cryptocurrency__currency_code = 'AXFund')
-            buyer_old_balance = seller_wallet.balance
-            buyer_old_locked_balance = seller_wallet.locked_balance
-            buyer_old_available_balance = seller_wallet.available_balance
-
-            unit_price = 1.01
-            unit_price_currency = 'CNY'
-            units = 100.0
-            amount = units * unit_price
-            order_item = OrderItem('', seller_wallet.user.id,
-               seller_wallet.user.username,
-               unit_price, unit_price_currency,
-               # total units
-               units,
-               # available units
-               units, amount,
-               'AXFund', None, None)
-            print 'ready to create sell order'
-            sell_order_id = ordermanager.create_sell_order(order_item, 'taozhang')
-
-            buy_units = 1.1
-            available_units = 0
-            total_amount = round(buy_units * unit_price, 2)
-            buyorder = OrderItem('', buyer_wallet.id,
-                buyer_wallet.user.username,
-                unit_price, unit_price_currency,
-                # total units
-                units,
-                # available units
-                available_units, total_amount ,
-                'AXFund', None, None)
-            print 'issue command to create buy order for sell order {0}'.format(sell_order_id)
-            buy_order_id = ordermanager.create_purchase_order(buyorder,
-                          sell_order_id, 'heepay','yingzhou')
-
-            sell_order_begin = Order.objects.get(pk=sell_order_id)
-            buy_order_begin = Order.objects.get(pk=buy_order_id)
-            confirmation_json = None
-            with open('tests/data/test_heepay_confirm.json', 'r') as myfile:
-                confirmation_json=myfile.read()
-            confirmation_json = confirmation_json.replace('__ORDER_ID__', buy_order_id)
-            json_data = json.loads(confirmation_json)
-            hmgr = HeePayManager()
-            signed_str = hmgr.create_confirmation_sign(json_data,'4AE4583FD4D240559F80ED39')
-            confirmation_json = confirmation_json.replace('__SIGN__', signed_str)
-            print 'the confirmation about to send to confirmation payment is {0}'.format(confirmation_json)
-            c = Client()
-            response = c.post('/heepay/confirm_payment/',
-                                confirmation_json,
-                                content_type="application/json; charset=utf-8")
-            print 'confirmation response is {0}'.format(response.content)
-            self.assertEqual('OK', response.content.decode('utf-8'))
-
-
-
-        except Exception as e:
-            error_msg = 'test_3_payconfirmation() hit exception {0}'.format(
                   sys.exc_info()[0])
             print error_msg
             print traceback.format_exc()
