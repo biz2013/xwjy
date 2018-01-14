@@ -178,3 +178,14 @@ in /etc/php/7.0/apache2/php.ini
 Uncomment ";extension=php_curl.dll"
 
 Add "Include /etc/phpmyadmin/apache.conf " into /etc/apache2/apache.conf
+
+
+#
+# Setup admin
+#
+# create the super user for manage site.
+python3 manage.py createsuperuser
+# restart server
+python3 manage.py runserver
+
+# to login the admin site, open the /admin URL (e.g. http://127.0.0.1:8000/admin) and enter your new superuser userid and password credentials (you'll be redirected to the login page, and then back to the /admin URL after you've entered your details).
