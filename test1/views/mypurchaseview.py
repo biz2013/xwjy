@@ -35,10 +35,9 @@ def show_active_sell_orders(request):
        if not request.user.is_authenticated():
            return render(request, 'login.html', { 'next' : '/purchase/'})
        username = request.user.username
-       userid = request.user.id
        status = None
-       sellorders = ordermanager.get_all_open_seller_order_exclude_user(userId)
-       accountinfo = useraccountinfomanager.get_user_accountInfo(userId, 'AXFund', True)
+       sellorders = ordermanager.get_all_open_seller_order_exclude_user(request.user.id)
+       accountinfo = useraccountinfomanager.get_user_accountInfo(request.user, 'AXFund', True)
        return render(request, 'html/purchase.html', {'sellorders': sellorders,
                 REQ_KEY_USERNAME: username,
                 'useraccountInfo': accountinfo,
@@ -57,7 +56,7 @@ def show_purchase_input(request):
            return render(request, 'login.html', { 'next' : '/purchase/'})
         username = request.user.username
         userid = request.user.id
-        useraccountInfo = useraccountinfomanager.get_user_accountInfo(userid,'AXFund')
+        useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
         owner_user_id = request.POST["owner_user_id"]
         reference_order_id = request.POST["reference_order_id"]
         owner_login = request.POST["owner_login"]
@@ -182,7 +181,7 @@ def create_purchase_order(request):
                        'heepay_qrcode_file' : qrcode_file })
         returnstatus = ReturnStatus('FAILED', 'FAILED', '下单申请失败')
         owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
-        useraccountInfo = useraccountinfomanager.get_user_accountInfo(userid,'AXFund')
+        useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
         return render(request, 'html/input_purchase.html',
           {'username': username,
            'buyorder': buyorder,

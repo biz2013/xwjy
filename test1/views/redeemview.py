@@ -23,10 +23,10 @@ logger = logging.getLogger("site.redeemview")
 @login_required(login_url='/accounts/login/')
 def redeem(request):
     try:
-       if not user_session_is_valid(request):
-          return render(request, 'html/login.html', { 'next_action' : '/mysellorder/'})
+       if not request.user.is_authenticated():
+          return render(request, 'login.html', { 'next' : '/accounts/accountinfo/'})
        if request.method=='POST':
-           userid = request.session[REQ_KEY_USERID]
+           userid = request.user.id
            toaddr = request.POST['toaddress']
            amount = float(request.POST['quantity'])
            crypto = request.POST['crypto']
@@ -41,7 +41,7 @@ def redeem(request):
            txid = axfd_tool.send_fund(toaddr, amount,
                    operation_comment)
            redeem_cmd = RedeemItem(userid, toaddr, amount, crypto)
-           redeemmanager.redeem(redeem_cmd, request.session[REQ_KEY_USERNAME])
+           redeemmanager.redeem(redeem_cmd, request.user.username)
        else:
            return HttpBadRequestResponse('The method can not be GET for redeem')
     except Exception as e:
