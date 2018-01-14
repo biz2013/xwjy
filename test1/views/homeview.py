@@ -13,6 +13,6 @@ logger = logging.getLogger("site.homepage")
 def home(request):
     """Show the home page."""
     logger.info("visit home...")
-    if (REQ_KEY_USERNAME not in request.session) or (REQ_KEY_USERID not in request.session):
+    if not request.user.is_authenticated():
        return render(request, 'html/index.html', {})
     return redirect('accountinfo')

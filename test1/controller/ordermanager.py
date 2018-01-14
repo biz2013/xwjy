@@ -359,16 +359,16 @@ def cancel_sell_order(userid, order_id, crypto, operator):
         order = Order.objects.select_for_update().get(pk=order_id)
         if order.status == 'LOCKED' or Order.objects.filter(
             Q(reference_order__order_id = order.order_id),
-            Q(order_type == 'BUY'),
-            Q(order.status == 'OPEN') | Q(order.status == 'PAYING')).count() > 0:
+            Q(order_type = 'BUY'),
+            Q(status = 'OPEN') | Q(status = 'PAYING')).count() > 0:
             logger.error('order {0} has status {1} or has open buy orders. can\'t be cancelled anymore'.format(
                order_id, order.status
             ))
             raise ValueError("order has been locked or cancelled")
 
         user_wallet = UserWallet.objects.select_for_update().get(
-           user__id == order.user.id,
-           cryptocurrency__currency_code = crypto
+           user__id = order.user.id,
+           wallet__cryptocurrency__currency_code = crypto
         )
         locked_balance_end = user_wallet.locked_balance - order.units_available_to_trade
         available_to_trade_end = user_wallet.available_balance + order.units_available_to_trade
