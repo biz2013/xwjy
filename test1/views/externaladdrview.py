@@ -13,11 +13,13 @@ from users.models import *
 from views.models.returnstatus import ReturnStatus
 from views.models.userexternalwalletaddrinfo import UserExternalWalletAddressInfo
 from views import errorpage
+from django.contrib.auth.decorators import login_required
 
 import logging,json
 
 logger = logging.getLogger("site.externaladdresss")
 
+@login_required
 def external_address(request):
     try:
        if not user_session_is_valid(request):

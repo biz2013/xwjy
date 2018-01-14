@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  {% include 'html/include/common_header.html' %}
+</head>
+
+<body>
+  <!-- menu section -->
+  {% include "html/include/topmenu.html" %}
+  <!-- body section -->
+  <div class="container">
+    <div class="row center-block ">
+      <div class="col-md-4 col-md-offset-4">
+        <div id="logout-body">
+          <h2>登录美基金场外交易</h2>
+          <p>You are logged out!</p>
+
+          <a href="{% url 'login'%}">Click here to login again.</a>
+
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- footer section-->
+  {% include 'html/include/footer.html' %}
+</body>
+
+</html>
