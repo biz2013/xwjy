@@ -1,0 +1,94 @@
+[
+  {
+    "model": "users.sitesettings",
+    "pk": "1",
+    "fields":{
+      "support": "",
+      "heepay_notify_url_host": "47.52.220.225",
+      "heepay_notify_url_port": 8000,
+      "heepay_return_url_host":"47.52.220.225",
+      "heepay_return_url_port": 8000,
+      "heepay_app_id" : "hyq17121610000800000911220E16AB0",
+      "heepay_app_key" : "4AE4583FD4D240559F80ED39",
+      "heepay_expire_in_sec" : 90,
+      "axfd_path": "/root/workspace/django/xwjy/smwy/src/axfd",
+      "axfd_datadir": "/root/workspace/django/xwjy/qb",
+      "axfd_account_name": "",
+      "axfd_list_trans_count": 1000,
+      "min_trx_confirmation": 3
+    }
+  },
+  {
+    "model": "users.cryptocurrency",
+    "pk": "AXFund",
+    "fields":{
+      "name":"美基金",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
+   {
+     "model": "auth.user",
+     "pk": 1,
+     "fields":{
+       "username":"admin",
+       "first_name": "",
+       "last_name": "",
+       "email":"tttzhang2000@yahoo.com",
+       "is_superuser": 1,
+       "is_staff": 1,
+       "is_active":1,
+       "date_joined": "2017-12-17T21:14:00+08:00"
+     }
+   },
+   {
+     "model": "users.wallet",
+     "pk": 1,
+     "fields":{
+       "name":"AXFundWallet",
+       "cryptocurrency": "AXFund",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by": 1
+     }
+   },
+   {
+     "model": "users.paymentprovider",
+     "pk": "weixin",
+     "fields" : {
+       "name" : "微信支付",
+       "config_json" : "",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by" : 1
+     }
+   },
+   {
+     "model": "users.paymentprovider",
+     "pk": "alipay",
+     "fields" : {
+       "name" : "支付宝",
+       "config_json" : "",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by" : 1
+     }
+   },
+   {
+     "model": "users.paymentprovider",
+     "pk": "heepay",
+     "fields" : {
+       "name" : "汇钱包",
+       "config_json" : "",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by" : 1
+     }
+   }
+ ]
