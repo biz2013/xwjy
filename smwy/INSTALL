@@ -106,16 +106,10 @@ python manage.py migrate
 # 1. load basic objects such as crypto currency, payment provider, sysop user
 python manage.py loaddata sql/init_fixture.json
 
-# 2. load site settings
-python manage.py loaddata sql/init_sitesettings.json
-
 # NOTE: on Aliyun need this
-python manage.py loaddata sql/init_sitesettings_47_52_220_225.json
+python manage.py loaddata sql/init_fixture_47_52_220_225.json
 
-# 3. load test data which create taozhang, yingzhou
-python manage.py loaddata sql/init_testdata.json
-
-# 4: load test user and their wallet
+# 2: load test user and their wallet
 python manage.py loaddata sql/add_new_addr.json
 
 # NOTE: this for Aliyun
