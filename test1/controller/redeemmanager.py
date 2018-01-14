@@ -6,6 +6,7 @@ import pytz
 import logging
 
 from django.db import transaction
+from django.contrib.auth.models import User
 
 from users.models import *
 from config import context_processor
@@ -17,7 +18,7 @@ from views.models.userexternalwalletaddrinfo import *
 logger = logging.getLogger("site.redeemmanager")
 
 def redeem(command, operator, txid, operation_comment):
-    operatorObj = UserLogin.objects.get(pk=operator)
+    operatorObj = User.objects.get(username=operator)
     with transaction.atomic():
         userwallet = UserWallet.objects.select_for_update().get(user__id=userid,
              wallet__cryptocurrency__currency_code=command.crypto)
@@ -31,7 +32,7 @@ def redeem(command, operator, txid, operation_comment):
           available_to_trade_end = userwallet.available_balance - command.amount,
           reference_order = None,
           reference_wallet_trxId = txid,
-          amount = command.amount,
+          units = command.amount,
           balance_update_type= 'DEBT',
           transaction_type = 'REDEEM',
           comment = operation_comment,

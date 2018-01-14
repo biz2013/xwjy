@@ -8,10 +8,14 @@ from controller.global_utils import *
 # this is for test UI. A fake one
 from controller.test_model_manager import ModelManager
 from controller.global_constants import *
+from controller import loginmanager
 from users.models import *
 from views.models.orderitem import OrderItem
 from views.models.returnstatus import ReturnStatus
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.forms import UserCreationForm
 
+from test1.forms import *
 import logging,json
 
 # root logging.
@@ -21,60 +25,47 @@ rlogger = logging.getLogger("site.registration")
 
 def testpage(request):
     return render(request, 'html/testpage.html')
+
 def home(request):
     if request.session['username']:
         return redirect('accountinfo')
     return render(request, 'html/index.html')
 
-def logout(request):
-    request.session.flush()
-    return render(request, 'html/index.html')
-
-def login(request):
-    login = UserLogin()
-    if request.method == 'POST':
-        login.username = request.POST['username']
-        login.password = request.POST['password']
-        manager = ModelManager()
-        rc, msg, user = manager.login(login.username, login.password)
-        if rc == 0:
-            request.session['username'] = login.username
-            request.session['userid'] = user.id
-
-            forwardto = request.POST['forwardto']
-            if forwardto:
-                return redirect(forwardto)
-            else:
-                return redirect("accountinfo")
-        else:
-            return render(request, "html/login.html",
-               {'message': msg, 'login':login})
-    else:
-        return render(request, "html/login.html",
-            { 'login' : login})
-
 def registration(request):
-    login = UserLogin()
-    user = User()
-    user.login = login
     if request.method == 'POST':
-        login.username = request.POST['username']
-        login.password = request.POST['password']
-
-        rlogger.debug("Get registration request : username %s password %s email %s", login.username, login.password, user.email)
-        user.email = request.POST['email']
-        print "registration: username %s password %s email %s" % (login.username, login.password, user.email)
-        manager = ModelManager()
-        rc, msg = manager.register(user)
-        if 0 == rc:
-            return render(request, 'html/login.html',
-              {'message':msg, 'message_type':'success',
-              'login': User()})
-        return render(request,'html/register.html',
-              {'message':msg, 'message_type':'fail', 'registration':user})
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            loginmanager.create_login(form, username)            
+            raw_password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=raw_password)
+            login(request, user)
+            return redirect('home')
     else:
-        return render(request,'html/register.html',
-              {'registration':user})
+        form = SignUpForm()
+    return render(request, 'html/register.html', {'form': form})
+
+    # login = UserLogin()
+    # user = User()
+    # user.login = login
+    # if request.method == 'POST':
+    #     login.username = request.POST['username']
+    #     login.password = request.POST['password']
+    #
+    #     rlogger.debug("Get registration request : username %s password %s email %s", login.username, login.password, user.email)
+    #     user.email = request.POST['email']
+    #     print "registration: username %s password %s email %s" % (login.username, login.password, user.email)
+    #     manager = ModelManager()
+    #     rc, msg = manager.register(user)
+    #     if 0 == rc:
+    #         return render(request, 'html/login.html',
+    #           {'message':msg, 'message_type':'success',
+    #           'login': User()})
+    #     return render(request,'html/register.html',
+    #           {'message':msg, 'message_type':'fail', 'registration':user})
+    # else:
+    #     return render(request,'html/register.html',
+    #           {'registration':user})
 
 
 def query_user_open_sell_orders(userlogin):

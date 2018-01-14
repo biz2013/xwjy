@@ -106,16 +106,10 @@ python manage.py migrate
 # 1. load basic objects such as crypto currency, payment provider, sysop user
 python manage.py loaddata sql/init_fixture.json
 
-# 2. load site settings
-python manage.py loaddata sql/init_sitesettings.json
-
 # NOTE: on Aliyun need this
-python manage.py loaddata sql/init_sitesettings_47_52_220_225.json
+python manage.py loaddata sql/init_fixture_47_52_220_225.json
 
-# 3. load test data which create taozhang, yingzhou
-python manage.py loaddata sql/init_testdata.json
-
-# 4: load test user and their wallet
+# 2: load test user and their wallet
 python manage.py loaddata sql/add_new_addr.json
 
 # NOTE: this for Aliyun
@@ -178,3 +172,14 @@ in /etc/php/7.0/apache2/php.ini
 Uncomment ";extension=php_curl.dll"
 
 Add "Include /etc/phpmyadmin/apache.conf " into /etc/apache2/apache.conf
+
+
+#
+# Setup admin
+#
+# create the super user for manage site.
+python3 manage.py createsuperuser
+# restart server
+python3 manage.py runserver
+
+# to login the admin site, open the /admin URL (e.g. http://127.0.0.1:8000/admin) and enter your new superuser userid and password credentials (you'll be redirected to the login page, and then back to the /admin URL after you've entered your details).

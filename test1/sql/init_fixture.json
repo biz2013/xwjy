@@ -1,30 +1,45 @@
 [
-   { "model": "users.userlogin",
-     "pk": "sysop",
-     "fields": {
-        "passwd_hash": "5d381d1c4e755e6784e036736a78e871613d7b58c2d1b8d66cc4fe3b162e8807",
-        "created_at": "2017-12-17T21:14:00+08:00",
-        "lastupdated_at": "2017-12-17T21:14:00+08:00",
-        "created_by": "sysop",
-        "lastupdated_by": "sysop"}
-   },
-   { "model": "users.globalcounter",
-      "pk": 1,
-      "fields" : {
-        "counter" : 0,
-        "lastupdated_by": "sysop",
-        "lastupdated_at": "2017-12-14T13:12:00+08:00"
-      }
-   },
+  {
+    "model": "users.sitesettings",
+    "pk": "1",
+    "fields":{
+      "support": "",
+      "heepay_notify_url_host": "localhost",
+      "heepay_notify_url_port": 8000,
+      "heepay_return_url_host":"localhost",
+      "heepay_return_url_port": 8000,
+      "heepay_app_id" : "hyq17121610000800000911220E16AB0",
+      "heepay_app_key" : "4AE4583FD4D240559F80ED39",
+      "heepay_expire_in_sec" : 90,
+      "axfd_path": "/home/osboxes/workspace/xwjy/smwy/src/axfd",
+      "axfd_datadir": "/home/osboxes/workspace/xwjy/qb",
+      "axfd_account_name": "",
+      "axfd_list_trans_count": 1000
+    }
+  },
+  {
+    "model": "users.cryptocurrency",
+    "pk": "AXFund",
+    "fields":{
+      "name":"美基金",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
    {
-     "model": "users.cryptocurrency",
-     "pk": "AXFund",
+     "model": "auth.user",
+     "pk": 1,
      "fields":{
-       "name":"美基金",
-       "created_at": "2017-12-17T21:14:00+08:00",
-       "lastupdated_at": "2017-12-17T21:14:00+08:00",
-       "created_by": "sysop",
-       "lastupdated_by": "sysop"
+       "username":"admin",
+       "first_name": "",
+       "last_name": "",
+       "email":"tttzhang2000@yahoo.com",
+       "is_superuser": 1,
+       "is_staff": 1,
+       "is_active":1,
+       "date_joined": "2017-12-17T21:14:00+08:00"
      }
    },
    {
@@ -35,8 +50,8 @@
        "cryptocurrency": "AXFund",
        "created_at": "2017-12-17T21:14:00+08:00",
        "lastupdated_at": "2017-12-17T21:14:00+08:00",
-       "created_by": "sysop",
-       "lastupdated_by": "sysop"
+       "created_by": 1,
+       "lastupdated_by": 1
      }
    },
    {
@@ -47,8 +62,8 @@
        "config_json" : "",
        "created_at": "2017-12-17T21:14:00+08:00",
        "lastupdated_at": "2017-12-17T21:14:00+08:00",
-       "created_by": "sysop",
-       "lastupdated_by" : "sysop"
+       "created_by": 1,
+       "lastupdated_by" : 1
      }
    },
    {
@@ -59,8 +74,8 @@
        "config_json" : "",
        "created_at": "2017-12-17T21:14:00+08:00",
        "lastupdated_at": "2017-12-17T21:14:00+08:00",
-       "created_by": "sysop",
-       "lastupdated_by" : "sysop"
+       "created_by": 1,
+       "lastupdated_by" : 1
      }
    },
    {
@@ -71,18 +86,8 @@
        "config_json" : "",
        "created_at": "2017-12-17T21:14:00+08:00",
        "lastupdated_at": "2017-12-17T21:14:00+08:00",
-       "created_by": "sysop",
-       "lastupdated_by" : "sysop"
-     }
-   },
-   {
-     "model" : "users.cronjobdata",
-     "pk": "useraccountinfo_updater",
-     "fields": {
-       "created_at": "2017-12-27T00:00:00+08:00",
-       "lastupdated_at": "2017-12-27T00:00:00+08:00",
-       "created_by": "sysop",
-       "lastupdated_by" : "sysop"
+       "created_by": 1,
+       "lastupdated_by" : 1
      }
    }
  ]

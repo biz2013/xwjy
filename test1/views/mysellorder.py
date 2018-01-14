@@ -15,16 +15,18 @@ from controller import useraccountinfomanager
 from views.models.orderitem import OrderItem
 from views.models.returnstatus import ReturnStatus
 from views import errorpage
+from django.contrib.auth.decorators import login_required
 
 
 logger = logging.getLogger("site.sellorder")
 
+@login_required
 def sell_axfund(request):
     try:
-       if not user_session_is_valid(request):
-          return render(request, 'html/login.html', { 'next_action' : '/mysellorder/'})
-       username = request.session[REQ_KEY_USERNAME]
-       userId = int(request.session[REQ_KEY_USERID])
+       if not request.user.is_authenticated():
+          return render(request, 'login.html', { 'next' : '/mysellorder/'})
+       username = request.user.username
+       userId = request.user.id
        status = None
        if request.method == 'POST':
           units = float(request.POST['quantity'])
@@ -36,7 +38,7 @@ def sell_axfund(request):
               unit_price_currency, units, units, total_amount,
               crypto, None, None)
           status = ordermanager.create_sell_order(order, username)
-       accountinfo = useraccountinfomanager.get_user_accountInfo(userId, 'AXFund', True)
+       accountinfo = useraccountinfomanager.get_user_accountInfo(request.user, 'AXFund', True)
        sellorders = ordermanager.get_user_open_sell_orders(userId)
        buyorders = ordermanager.get_pending_incoming_buy_orders_by_user(userId)
        return render(request, 'html/mysellorder.html', {'sellorders': sellorders,
@@ -50,24 +52,25 @@ def sell_axfund(request):
        return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
 
+@login_required
 def cancel_sell_order(request):
-    #try:
-       if not user_session_is_valid(request):
-          return render(request, 'html/login.html', { 'next_action' : '/mysellorder/'})
-       username = request.session[REQ_KEY_USERNAME]
-       userId = int(request.session[REQ_KEY_USERID])
+    try:
+       if not request.user.is_authenticated():
+          return render(request, 'login.html', { 'next_action' : '/mysellorder/'})
+       username = request.user.username
+       userId = request.user.id
        if request.method == 'POST':
            orderid = request.POST['order_id']
            ordermanager.cancel_sell_order(userId, orderid, 'AXFund', username)
-       accountinfo = useraccountinfomanager.get_user_accountInfo(userId, 'AXFund', True)
+       accountinfo = useraccountinfomanager.get_user_accountInfo(request.user, 'AXFund', True)
        sellorders = ordermanager.get_user_open_sell_orders(userId)
        buyorders = ordermanager.get_pending_incoming_buy_orders_by_user(userId)
        return render(request, 'html/mysellorder.html', {
                 'sellorders': sellorders,
-                'useraccountInfo': useraccountInfo,
+                'useraccountInfo': accountinfo,
                 'buyorders':buyorders, REQ_KEY_USERNAME: username})
 
-    #except Exception as e:
+    except Exception as e:
        error_msg = '撤销美基金卖单遇到错误: {0}'.format(sys.exc_info()[0])
        logger.exception(error_msg)
        return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,

@@ -8,15 +8,17 @@ from django.shortcuts import render, redirect
 from config import context_processor
 from controller.heepaymanager import *
 from controller import ordermanager
+from django.contrib.auth.decorators import login_required
 
 logger = logging.getLogger("site.heepay_confirm")
 
 def get_payment_confirmation_json(request, app_key):
    logger.info('get_payment_confirmation_json()')
    json_data = {}
+   logger.info('notification method is %s, full url is %s' % (request.method, request.get_full_path()))
    if request.method == 'POST':
        json_data = json.loads(request.body)
-   else:
+   elif request.method == 'GET':
        json_data['version'] = request.GET['version']
        json_data['app_id'] = request.GET['app_id']
        json_data['subject'] = request.GET['subject']
@@ -40,7 +42,8 @@ def get_payment_confirmation_json(request, app_key):
        if 'from_account' in request.GET:
            json_data['from_account'] = request.GET['from_account']
        json_data['sign'] = request.GET['sign']
-
+   else:
+       raise ValueError('Unsupported request method %s' % request.method)
    logger.info('Receive payment confirmation {0}'.format(request.body))
    manager = HeePayManager()
    if not manager.confirmation_is_valid(json_data, app_key):
@@ -60,6 +63,7 @@ def heepay_confirm_payment(request):
         else:
             return HttpResponse(content='error')
         sitesettings = context_processor.settings(request)['settings']
+        logger.info("about to call get_payment_confirmation_json()")
         json_data = get_payment_confirmation_json(request,
                           sitesettings.heepay_app_key)
         validated = False
@@ -72,7 +76,7 @@ def heepay_confirm_payment(request):
             error_msg = 'Receive notification with unsupported trade_status %s' % trade_status
             logger.error(error_msg)
             return HttpResponse(content='error')
-        ordermanager.update_order_with_heepay_notification(json_data, 'sysop')
+        ordermanager.update_order_with_heepay_notification(json_data, 'admin')
         if request.method == 'GET':
             request.session[REQ_KEY_USERID] = userid
             request.session[REQ_KEY_USERNAME] = operator
