@@ -51,7 +51,6 @@
             <td>更改时间</td>-->
           </tr>
           {% for trans in transactions %}
-          {% if trans.trans_type != 'CANCEL SELL ORDER' %}
           <tr>
             <td>{{ trans.id }}</td>
             <td>{{ trans.trans_type_display }}</td>
@@ -61,7 +60,6 @@
             <!--<td>{{ trans.locked_balance }}</td>
             <td>{{ trans.availables_balance }}</td>-->
           </tr>
-          {% endif %}
           {% endfor %}
         </table>
         {% endif %}
