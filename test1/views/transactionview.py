@@ -57,27 +57,3 @@ def listusertransactions(request):
        logger.exception(error_msg)
        return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
-
-@login_required
-def cancel_sell_order(request):
-    try:
-       if not request.user.is_authenticated():
-          return render(request, 'login.html', { 'next_action' : '/mysellorder/'})
-       username = request.user.username
-       userId = request.user.id
-       if request.method == 'POST':
-           orderid = request.POST['order_id']
-           ordermanager.cancel_sell_order(userId, orderid, 'AXFund', username)
-       accountinfo = useraccountinfomanager.get_user_accountInfo(request.user, 'AXFund', True)
-       sellorders = ordermanager.get_user_open_sell_orders(userId)
-       buyorders = ordermanager.get_pending_incoming_buy_orders_by_user(userId)
-       return render(request, 'html/mysellorder.html', {
-                'sellorders': sellorders,
-                'useraccountInfo': accountinfo,
-                'buyorders':buyorders, REQ_KEY_USERNAME: username})
-
-    except Exception as e:
-       error_msg = '撤销美基金卖单遇到错误: {0}'.format(sys.exc_info()[0])
-       logger.exception(error_msg)
-       return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
-              '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
