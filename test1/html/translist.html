@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  {% include 'html/include/common_header.html' %}
+</head>
+
+<body>
+  <!-- menu section -->
+  {% include "html/include/topmenu.html" %}
+  <!-- body section -->
+  {% load mathfilters %}
+  <div class="container">
+    {% include "html/include/balance_banner.html" %}
+    <div class="well">
+      <div class="row">
+        <h3>我的交易历史</h3>
+        {% if pending_trans %}
+        <h4>未完成的交易</h4>
+        <table class="table stripped">
+          <tr>
+            <th></th>
+            <th>类型</th>
+            <th>进账</th>
+            <th>出账</th>
+            <th>状态</th>
+            <!--<td>更改时间</td>-->
+          </tr>
+          {% for trans in pending_trans %}
+          <tr>
+            <td>{{ trans.id }}</td>
+            <td>{{ trans.trans_type }}</td>
+            <td>{% if trans.balance_update_type == 'CREDIT' %}{{ trans.units }}{% endif %}</td>
+            <td>{% if trans.balance_update_type == 'DEBT' %}-{{ trans.units }}{% endif %}</td>
+            <td>等待</td>
+          </tr>
+          {% endfor %}
+        </table>
+        {% endif %}
+        {% if transactions %}
+        <h4>完成的交易</h4>
+        <table class="table stripped">
+          <tr>
+            <th></th>
+            <th>类型</th>
+            <th>进账</th>
+            <th>出账</th>
+            <th>总余额</th>
+            <!--<th>锁定余额</th>
+            <th>可用余额</th>
+            <td>更改时间</td>-->
+          </tr>
+          {% for trans in transactions %}
+          {% if trans.trans_type != 'CANCEL SELL ORDER' %}
+          <tr>
+            <td>{{ trans.id }}</td>
+            <td>{{ trans.trans_type_display }}</td>
+            <td>{% if trans.balance_update_type == 'CREDIT' %}{{ trans.units }}{% endif %}</td>
+            <td>{% if trans.balance_update_type == 'DEBT' %}-{{ trans.units }}{% endif %}</td>
+            <td>{{ trans.units }}</td>
+            <td>{{ trans.balance }}</td>
+            <!--<td>{{ trans.locked_balance }}</td>
+            <td>{{ trans.availables_balance }}</td>-->
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </table>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <!-- footer section-->
+  {% include 'html/include/footer.html' %}
+</body>
+<script>
+</script>
+
+</html>

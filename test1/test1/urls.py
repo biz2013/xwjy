@@ -22,7 +22,7 @@ from controller.global_utils import *
 from . import app
 from views import mysellorder, homeview, accountinfoview, mypurchaseview
 from views import account_cronjob, externaladdrview, paymentmethods
-from views import redeemview, heepay_notify_view
+from views import redeemview, heepay_notify_view, transactionview
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
@@ -44,6 +44,7 @@ urlpatterns = [
     url(r'^registration/$', app.registration),
     url(r'^accounts/login/$', auth_views.login, name='login'),
     url(r'^accounts/logout/$', auth_views.logout, name='logout'),
+    url(r'^transhistory/$', transactionview.listusertransactions, name='mytransactions'),
     url(r'^accounts/password_reset/$', auth_views.password_reset, name='password_reset'),
     url(r'^accounts/password_reset_done/$', auth_views.password_reset_done, name='password_reset_done'),
     url(r'^accounts/password_reset_complete/$', auth_views.password_reset_complete, name='password_reset_complete'),
@@ -51,4 +52,3 @@ urlpatterns = [
 
     # url(r'^accounts/', include('django.contrib.auth.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-

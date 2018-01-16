@@ -443,3 +443,7 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, username):
         ))
 
         return True
+
+def get_user_transactions(userid, crypto):
+    return UserWalletTransaction.objects.filter(user_wallet__user__id= userid,
+        user_wallet__wallet__cryptocurrency__currency_code = crypto).order_by('-lastupdated_at')
