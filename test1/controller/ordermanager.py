@@ -250,8 +250,8 @@ def update_purchase_transaction(purchase_trans, trade_status, trade_msg):
         #revert locked unit and available units in sell order
         Order.objects.filter(pk = buyorder.order_id).update(
              units_locked = F('units_locked') - buyorder.units,
-             units_available_to_trade = F('units_available_to_trade') + buyorder.units
-             )
+             units_available_to_trade = F('units_available_to_trade') + buyorder.units,
+             lastupdated_at = dt.datetime.utcnow())
         buyorder.save()
     purchase_trans.save()
 
