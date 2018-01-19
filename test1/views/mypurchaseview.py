@@ -9,7 +9,6 @@ from django.contrib.auth.decorators import login_required
 
 # this is for test UI. A fake one
 from config import context_processor
-from controller.test_model_manager import ModelManager
 from controller.global_constants import *
 from controller.global_utils import *
 from controller import ordermanager
