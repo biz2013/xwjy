@@ -29,7 +29,9 @@ def create_trans_list_item(transaction, crypto):
        transaction.balance_end,
        transaction.locked_balance_end,
        transaction.available_to_trade_end,
-       transaction.status ,crypto)
+       transaction.status,
+       transaction.lastupdated_at,
+       crypto)
 
 @login_required
 def listusertransactions(request):
