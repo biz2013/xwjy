@@ -78,8 +78,8 @@ class HeePayManager(object):
        logger.info('generate qrcode for {0} refers to hy_bill_no {1}'.format(
            content, heepay_response_json['hy_bill_no']))
        myQR = qrtools.QR(data=content, pixel_size=6)
-       myQR.encode()
-       shutil.move(myQR.filename, dst)
+       myQR.encode(dst)
+       #shutil.move(myQR.filename, dst)
        img_path = os.path.join('qrcode', qrcode_filename)
        return img_path
 

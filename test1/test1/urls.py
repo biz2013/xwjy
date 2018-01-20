@@ -32,7 +32,7 @@ urlpatterns = [
     url(r'^accounts/accountinfo/$', accountinfoview.accountinfo, name='accountinfo'),
     url(r'^accounts/redeem/$', redeemview.redeem),
     url(r'^accounts/external_address/$', externaladdrview.external_address),
-    url(r'^accounts/paymentmethods/$', paymentmethods.payment_method),
+    url(r'^accounts/paymentmethods/$', paymentmethods.payment_method, name='paymentmethods'),
     url(r'^axfund/transfer/$', app.transfer),
     url(r'^mysellorder/$', mysellorder.sell_axfund, name="sellorder"),
     url(r'^mysellorder/cancel$', mysellorder.cancel_sell_order, name="sellorder"),
