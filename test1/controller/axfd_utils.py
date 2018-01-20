@@ -8,6 +8,7 @@ class AXFundUtility(object):
         self.axfd_datadir = axfd_datadir_val
         self.axfd_account = axfd_account_val
 
+
     def listtransactions(self, lookback_count):
         logger.info('{0} {1} {2} {3} {4}'.format(
             self.axfd_path, '-datadir=%s'%(self.axfd_datadir),
@@ -30,3 +31,9 @@ class AXFundUtility(object):
         logger.info("send to address return transaction id {0}".format(
             result_str))
         return result_str
+
+    def unlock_wallet(self, passphrase, timeout_in_sec):
+        logger.info("unlock wallet ...")
+        subprocess.check_output(
+           [self.axfd_path, '-datadir=%s'%(self.axfd_datadir), 'walletpassphrase',
+            passphrase, str(timeout_in_sec)])
