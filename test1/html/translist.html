@@ -56,7 +56,6 @@
             <td>{{ trans.trans_type_display }}</td>
             <td>{% if trans.balance_update_type == 'CREDIT' %}{{ trans.units }}{% endif %}</td>
             <td>{% if trans.balance_update_type == 'DEBT' %}-{{ trans.units }}{% endif %}</td>
-            <td>{{ trans.balance }}</td>
             <td>{{ trans.lastupdated_at|date:"m-d" }} {{ trans.lastupdated_at|time:"H:i:s" }}</td>
             <!--<td>{{ trans.availables_balance }}</td>-->
           </tr>
