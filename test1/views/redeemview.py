@@ -33,15 +33,18 @@ def redeem(request):
            sitesettings = context_processor.settings(request)['settings']
            axfd_bin_path = sitesettings.axfd_path
            axfd_datadir = sitesettings.axfd_datadir
+           axfd_passphrase = sitesettings.axfd_passphrase
            wallet_account_name = sitesettings.axfd_account_name
            axfd_tool = AXFundUtility(axfd_bin_path, axfd_datadir,
                 wallet_account_name)
+           axfd_tool.unlock_wallet(axfd_passphrase, 15)
            operation_comment = 'UserId:{0},redeem:{1},to:{2}'.format(
                userid, amount, toaddr)
            txid = axfd_tool.send_fund(toaddr, amount,
                    operation_comment)
-           redeem_cmd = RedeemItem(userid, toaddr, amount, crypto)
-           redeemmanager.redeem(redeem_cmd, request.user.username)
+           # with the background checking, this seems not necessart
+           #redeem_cmd = RedeemItem(userid, toaddr, amount, crypto)
+           #redeemmanager.redeem(redeem_cmd, request.user.username)
        else:
            return HttpBadRequestResponse('The method can not be GET for redeem')
     except Exception as e:
