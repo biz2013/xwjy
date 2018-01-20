@@ -45,6 +45,7 @@ def redeem(request):
            # with the background checking, this seems not necessart
            #redeem_cmd = RedeemItem(userid, toaddr, amount, crypto)
            #redeemmanager.redeem(redeem_cmd, request.user.username)
+           return redirect('accountinfo')
        else:
            return HttpBadRequestResponse('The method can not be GET for redeem')
     except Exception as e:
