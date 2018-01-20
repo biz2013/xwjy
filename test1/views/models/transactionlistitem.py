@@ -20,4 +20,3 @@ class TransactionListItem(object):
         self.status = status
         self.crypto = crypto
         self.lastupdated_at = lastupdated_at
-        self.lastupdated_at_short_display = self.lastupdated_at.strftime('MM-DD HH:mm:ss.mil')
