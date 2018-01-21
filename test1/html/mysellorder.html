@@ -158,6 +158,14 @@
         return;
       }
 
+      var per_trans_limit = $("#id_per_transaction_limit").val();
+      if (per_trans_limit) {
+        if (parseFloat(units) - parseFloat(per_trans_limit) > 0) {
+           $("#error-message-sell-modal").text("每笔交易不可超过" + per_trans_limit + "单元");
+           return;
+         }
+      }
+
       if (parseFloat(units) < 0.00000001) {
         $("#error-message-sell-modal").text("请输入出售数量，最少0.00000001单元");
         return;
@@ -185,6 +193,7 @@
     <form id="sell-modal" tabindex="-1" class="modal fade" role="dialog" action="/mysellorder/" aria-labelledby="purchase-form-label" aria-hidden="true" method='post'>
       {% csrf_token %}
       <input type="hidden" id="id_available_units" name="available_units" value="{{ useraccountInfo.available_balance  }}" />
+      <input type="hidden" id="id_per_transaction_limit" name="per_transaction_limit" value="{{ settings.per_transaction_limit  }}" />
       <input type="hidden" id="id_request_source" name="request_source" value="" />
       <input type="hidden" id="id_unit_price_currency" name="unit_price_currency" value="CYN"/>
       <input type="hidden" id="id_crypto" name="crypto" value="AXFund" />
