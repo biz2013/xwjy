@@ -72,7 +72,7 @@ def create_sell_order(order, operator):
 def get_user_open_sell_orders(user_id):
     # only query seller order that is still opened, not
     # fullfiled or cancelled
-    sell_orders = Order.objects.filter(user__id=user_id).exclude(status='CANCELLED').exclude(status='FILLED').order_by('lastupdated_at')
+    sell_orders = Order.objects.filter(user__id=user_id, order_type='SELL').exclude(status='CANCELLED').exclude(status='FILLED').order_by('-lastupdated_at')
     orders = []
     for order in sell_orders:
         orders.append(OrderItem(order.order_id, order.user.id,
