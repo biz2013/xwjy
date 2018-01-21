@@ -1,67 +1,56 @@
-<!DOCTYPE html>
-<html lang="en-us">
+{% extends "base_generic.html" %} 
 
-<head>
-  {% include 'html/include/common_header.html' %}
-</head>
+{% block content %} 
 
-<body>
-  <!-- menu section -->
-  {% include "html/include/topmenu.html" %}
-  <!-- body section -->
-  <div class="container">
-    <div class="row center-block ">
-      <div class="col-md-4 col-md-offset-4">
-        <div id="login-body">
-          <h2>登录美基金场外交易</h2>
-{#          <form method="post" class="paper-form" action="/accounts/login/" method="post">#}
-{#            {% csrf_token %}#}
-{#            <input type="hidden" name="forwardto" value="{{ forwardto }}"/>#}
-{#            {% if message and message|length > 0 %}#}
-{#               {% if message_type == 'success' %}#}
-{#            <p class="text-success">{{ message }}</p>#}
-{#               {% else %}#}
-{#            <p class="text-danger">{{ message }}</p>#}
-{#               {% endif %}#}
-{#            {% endif %}#}
-{#            <div id="div_id_username" class="form-group"> <label for="id_username" class="control-label  requiredField">#}
-{#				用户名</label>#}
-{#              <div class="controls "> <input class="textinput textInput form-control" id="id_username" maxlength="30" name="username" type="text" value="{{ login.username }}" /> </div>#}
-{#            </div>#}
-{#            <div id="div_id_password1" class="form-group"> <label for="id_password1" class="control-label  requiredField">#}
-{#				密码</label>#}
-{#              <div class="controls "> <input class="textinput textInput form-control" id="id_password1" name="password" type="password" /> </div>#}
-{#            </div>#}
-{#            <p>#}
-{#              <button class="btn btn-primary" id="login-button">登录</button>#}
-{#            </p>#}
-{#          </form>#}
-
-            <form method="post" action="{% url 'login' %}">
-            {% csrf_token %}
-
-            <div>
-              <td>{{ form.username.label_tag }}</td>
-              <td>{{ form.username }}</td>
-            </div>
-            <div>
-              <td>{{ form.password.label_tag }}</td>
-              <td>{{ form.password }}</td>
-            </div>
-
-            <div>
-              <input type="submit" value="login" />
-              <input type="hidden" name="next" value="{% if next %}{{ next }}{% else %}/accounts/accountinfo/{% endif %}" />
-            </div>
-            </form>
+<!-- body section -->
+<div class="container">
+    <div class="row">
+      {% if form.errors %}
+      <div class="alert alert-danger alert-dismissable fade in">
+          <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+          您的密码不正确，请重试。。
         </div>
-        <p>还未注册？ <a href="/registration/">注册</a></p>
-        <p>忘记密码？ <a href="{% url 'password_reset' %}">重设密码</a></p>
-      </div>
+      {% endif %}
     </div>
-  </div>
-  <!-- footer section-->
-  {% include 'html/include/footer.html' %}
-</body>
+  <div class="row center-block ">
+    <div id="login-body">
+      <div class="row">
+        <h2 class="col-sm-offset-2 col-sm-6" >登录美基金场外交易</h2>
+      </div>
+      <form method="post" class="form-horizontal" action="{% url 'login' %}">
+        {% csrf_token %}
 
-</html>
+
+        <div class="form-group">
+          <label class="control-label col-sm-2 requiredField" for="username1">用户名：</label>
+          <div class="col-sm-6">
+            <input id="username1" type="text" class="form-control" placeholder="用户名" name="form.username">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="control-label col-sm-2 requiredField" for="pwd">密码：</label>
+          <div class="col-sm-6">
+            <input type="password" class="form-control" id="pwd" placeholder="请输入密码" name="form.password">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-6">
+            <button type="submit" class="btn btn-primary">登录</button>
+            <input type="hidden" name="next" value="{% if next %}{{ next }}{% else %}/accounts/accountinfo/{% endif %}" />
+          </div>
+        </div>
+
+      </form>
+    </div>
+    <p class="col-sm-offset-2 col-sm-6">还未注册？
+      <a href="/registration/">注册</a>
+    </p>
+    <p class="col-sm-offset-2 col-sm-6">忘记密码？
+      <a href="{% url 'password_reset' %}">重设密码</a>
+    </p>
+  </div>
+</div>
+
+{% endblock %}
