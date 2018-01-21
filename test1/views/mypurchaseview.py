@@ -182,7 +182,8 @@ def create_purchase_order(request):
         returnstatus = ReturnStatus('FAILED', 'FAILED', '下单申请失败')
         owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
         useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
-        messages.error(request, '向汇钱包下单申请失败')
+        # sample reply error : {"return_code":"FAIL","return_msg":"无效的total_fee"}
+        messages.error(request, '向汇钱包下单申请失败:{0}'.format(json_response['return_msg'].encode("utf-8")))
         return render(request, 'html/input_purchase.html',
           {'buyorder': buyorder,
            'owner_user_id': owner_user_id,
