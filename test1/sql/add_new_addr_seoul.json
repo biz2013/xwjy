@@ -1,0 +1,65 @@
+[{
+  "model": "users.userwallet",
+  "pk": "1",
+  "fields":{
+    "user": null,
+    "wallet": 1,
+    "wallet_addr":"AZ3VkSpMCj4fWzNDiZPY6Ze7uAG5ow79pc",
+    "created_at": "2017-12-17T21:14:00+08:00",
+    "lastupdated_at": "2017-12-17T21:14:00+08:00",
+    "created_by": 1,
+    "lastupdated_by": 1
+  }
+},
+{
+  "model": "users.userwallet",
+  "pk": "2",
+  "fields":{
+    "user": null,
+    "wallet": 1,
+    "wallet_addr":"AHfC2fBXG3Jv5SY5YYtuCsF7azmAByaToB",
+    "created_at": "2017-12-17T21:14:00+08:00",
+    "lastupdated_at": "2017-12-17T21:14:00+08:00",
+    "created_by": 1,
+    "lastupdated_by": 1
+  }
+},
+{
+  "model": "users.userwallet",
+  "pk": "3",
+  "fields":{
+    "user": null,
+    "wallet": 1,
+    "wallet_addr":"APdbxnRJiGu2DhMTqSL3W9hvtLQUuSMAzn",
+    "created_at": "2017-12-17T21:14:00+08:00",
+    "lastupdated_at": "2017-12-17T21:14:00+08:00",
+    "created_by": 1,
+    "lastupdated_by": 1
+  }
+},
+{
+  "model": "users.userwallet",
+  "pk": "3",
+  "fields":{
+    "user": null,
+    "wallet": 1,
+    "wallet_addr":"Aa9VMSSbbVSCDX2kBjq3Ezo6cVwyXZFoqt",
+    "created_at": "2017-12-17T21:14:00+08:00",
+    "lastupdated_at": "2017-12-17T21:14:00+08:00",
+    "created_by": 1,
+    "lastupdated_by": 1
+  }
+},
+{
+  "model": "users.userwallet",
+  "pk": "3",
+  "fields":{
+    "user": null,
+    "wallet": 1,
+    "wallet_addr":"AWF8HeqWF66GQKfpwPyKxJ8BeoaRUBtzr3",
+    "created_at": "2017-12-17T21:14:00+08:00",
+    "lastupdated_at": "2017-12-17T21:14:00+08:00",
+    "created_by": 1,
+    "lastupdated_by": 1
+  }
+}]
