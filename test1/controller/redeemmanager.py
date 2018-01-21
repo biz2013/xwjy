@@ -17,10 +17,11 @@ from views.models.userexternalwalletaddrinfo import *
 
 logger = logging.getLogger("site.redeemmanager")
 
+#TODO: this may not needed
 def redeem(command, operator, txid, operation_comment):
     operatorObj = User.objects.get(username=operator)
     with transaction.atomic():
-        userwallet = UserWallet.objects.select_for_update().get(user__id=userid,
+        userwallet = UserWallet.objects.select_for_update().get(user__username=operator,
              wallet__cryptocurrency__currency_code=command.crypto)
         userwallet_trans = UserWalletTransaction.objects.create(
           user_wallet = userwallet,
