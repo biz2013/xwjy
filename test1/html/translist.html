@@ -17,28 +17,6 @@
         <h3>我的交易历史</h3>
         {% load tz %}
         {% timezone "Asia/Taipei" %}
-        {% if pending_trans %}
-        <h4>未完成的交易</h4>
-        <table class="table stripped">
-          <tr>
-            <th>类型</th>
-            <th>进账</th>
-            <th>出账</th>
-            <th>状态</th>
-            <th>时间</th>
-            <!--<td>更改时间</td>-->
-          </tr>
-          {% for trans in pending_trans %}
-          <tr>
-            <td>{{ trans.trans_type_display }}</td>
-            <td>{% if trans.balance_update_type == 'CREDIT' %}{{ trans.units }}{% endif %}</td>
-            <td>{% if trans.balance_update_type == 'DEBT' %}-{{ trans.units }}{% endif %}</td>
-            <td>等待</td>
-            <td>{{ trans.lastupdated_at|date:"m-d" }} {{ trans.lastupdated_at|time:"H:i:s" }}</td>
-          </tr>
-          {% endfor %}
-        </table>
-        {% endif %}
         {% if transactions %}
         <h4>完成的交易</h4>
         <table class="table stripped">
@@ -56,7 +34,6 @@
             <td>{{ trans.trans_type_display }}</td>
             <td>{% if trans.balance_update_type == 'CREDIT' %}{{ trans.units }}{% endif %}</td>
             <td>{% if trans.balance_update_type == 'DEBT' %}-{{ trans.units }}{% endif %}</td>
-            <td>{{ trans.balance }}</td>
             <td>{{ trans.lastupdated_at|date:"m-d" }} {{ trans.lastupdated_at|time:"H:i:s" }}</td>
             <!--<td>{{ trans.availables_balance }}</td>-->
           </tr>
