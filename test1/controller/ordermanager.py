@@ -357,13 +357,15 @@ def cancel_sell_order(userid, order_id, crypto, operator):
     operatorObj = User.objects.get(username=operator)
     with transaction.atomic():
         order = Order.objects.select_for_update().get(pk=order_id)
-        if order.status == 'LOCKED' or Order.objects.filter(
-            Q(reference_order__order_id = order.order_id),
-            Q(order_type = 'BUY'),
-            Q(status = 'OPEN') | Q(status = 'PAYING')).count() > 0:
-            logger.error('order {0} has status {1} or has open buy orders. can\'t be cancelled anymore'.format(
-               order_id, order.status
-            ))
+        logger.info("select to cancel order {0}".format(order_id))
+        if order.status == 'LOCKED' or order.status=='CANCELLED':
+            #Order.objects.filter(
+            #Q(reference_order__order_id = order.order_id),
+            #Q(order_type = 'BUY'),
+            #Q(status = 'OPEN') | Q(status = 'PAYING')).count() > 0:
+            #logger.error('order {0} has status {1} or has open buy orders. can\'t be cancelled anymore'.format(
+            #   order_id, order.status
+            #))
             raise ValueError("order has been locked or cancelled")
 
         user_wallet = UserWallet.objects.select_for_update().get(
