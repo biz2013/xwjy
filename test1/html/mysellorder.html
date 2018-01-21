@@ -32,12 +32,14 @@
     {% include "html/include/balance_banner.html" %}
     <div class="well">
       <div class="row">
-        {% if previous_call_status %}
-        {% if previous_call_status.status == 'OK' %}
-        <div id="div_previous_call_status" class="text-success">{{ previous_call_status.message }}</div>
+        {% if messages %}
+           {% for message in messages %}
+        {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+        <div id="div_message" class="text-danger">{{ message }}</div>
         {% else %}
-        <div id="div_previous_call_status" class="text-danger">{{ previous_call_status.message }}</div>
+        <div id="div_message" class="text-success">{{ message }}</div>
         {% endif %}
+           {% endfor %}
         {% endif %}
         {% if buyorders %}
         <h4>给我的买单</h4>
@@ -67,9 +69,9 @@
         <table class="table table-condensed">
           <tr>
             <th>
-              <h4>卖单状况</h4>
+              <h4>我的卖单</h4>
             </th>
-            <th><button type="button" class="btn btn-primary" data-toggle="modal" data-target="#sell-modal">添加卖单</button></th>
+            <th><button type="button" class="btn btn-primary" id="btn-sell-order">添加卖单</button></th>
           </tr>
         </table>
         <table class="table table-striped table-condensed">
@@ -139,31 +141,49 @@
     function create_sell_order() {
       units = $("#id_quantity").val();
       price = $("#id_unit_price").val();
-      if (isNaN(units)) {
-        $("#error-message-sell-modal").val("请输入正确的出售数量");
+      var available_units = $("#id_available_units").val();
+
+      if ( !units ) {
+        $("#error-message-sell-modal").text("请输入正确的出售数量");
         return;
       }
 
-      if (isNaN(price)) {
-        $("#error-message-sell-modal").val("请输入正确的单价");
+      if ( price && isNaN(price) ) {
+        $("#error-message-sell-modal").text("请输入正确的单价");
         return;
       }
 
-      units_val = parseFloat(units).toFixed(2);
-      price_val = parseFloat(price).toFixed(2);
-      if (units_val < 0.01) {
-        $("#error-message-sell-modal").val("请输入出售数量");
-        return;
-      }
-      if (price_val < 0.01) {
-        $("#error-message-sell-modal").val("请输入单价");
+      if (parseFloat(units) - parseFloat(available_units) > 0) {
+        $("#error-message-sell-modal").text("出售数量必须小于现有可用余额:" + available_units);
         return;
       }
 
+      var per_trans_limit = $("#id_per_transaction_limit").val();
+      if (per_trans_limit) {
+        if (parseFloat(units) - parseFloat(per_trans_limit) > 0) {
+           $("#error-message-sell-modal").text("每笔交易不可超过" + per_trans_limit + "单元");
+           return;
+         }
+      }
+
+      if (parseFloat(units) < 0.00000001) {
+        $("#error-message-sell-modal").text("请输入出售数量，最少0.00000001单元");
+        return;
+      }
+      if (parseFloat(price) < 0.01) {
+        $("#error-message-sell-modal").text("请输入单价, 至少是一分钱");
+        return;
+      }
+
+      var total_amount = (parseFloat(units) * parseFloat(price)).toFixed(2);
+      $("#txt_id_total_amount").val(""+total_amount);
+
+      $("#id_request_source").val("sellorder");
       $("#sell-modal").submit();
     }
+
     function show_total_amount(units, price) {
-      if (!isNaN(units) && !isNaN(price)) {
+      if ( units && price ) {
         var total_amount = (parseFloat(units) * parseFloat(price)).toFixed(2);
         $("#total_amount").text(total_amount);
         $("#txt_id_total_amount").val(""+total_amount);
@@ -172,7 +192,9 @@
     </script>
     <form id="sell-modal" tabindex="-1" class="modal fade" role="dialog" action="/mysellorder/" aria-labelledby="purchase-form-label" aria-hidden="true" method='post'>
       {% csrf_token %}
-      <input type="hidden" id="id_username" name="username" value="{{ username }}" />
+      <input type="hidden" id="id_available_units" name="available_units" value="{{ useraccountInfo.available_balance  }}" />
+      <input type="hidden" id="id_per_transaction_limit" name="per_transaction_limit" value="{{ settings.per_transaction_limit  }}" />
+      <input type="hidden" id="id_request_source" name="request_source" value="" />
       <input type="hidden" id="id_unit_price_currency" name="unit_price_currency" value="CYN"/>
       <input type="hidden" id="id_crypto" name="crypto" value="AXFund" />
       <input type="hidden" id="txt_id_total_amount" name="total_amount" value=""/>
@@ -183,8 +205,10 @@
             <button type="button" class="close" data-dismiss="modal">&times;</button>
             <h4 id="purchase-form-label">出售美基金</h4>
           </div>
-          <div class="text-danger" id="error-message-sell-modal"></div>
           <div class="modal-body">
+            <div id="div_id_quantity" class="form-group">
+            <div class="text-danger" id="error-message-sell-modal"></div>
+            </div>
             <div id="div_id_quantity" class="form-group">
               <label for="id_quantitiy" class="control-label">数量</label><span class="asteriskField">*</span> </label>
               <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" onkeyup="show_total_amount(this.value, $('#id_unit_price').val())" /> </div>
@@ -215,7 +239,7 @@
             <button type="button" class="close" data-dismiss="modal">&times;</button>
             <h4 id="cancel-form-lable">取消美基金买单</h4>
           </div>
-          <div class="text-danger" id="error-message-sell-modal"></div>
+          <div class="text-danger" id="error-message-cancel-modal"></div>
           <div class="modal-body">
             <div id="div_id_quantity" class="form-group">
               <table class="table">
@@ -244,6 +268,16 @@
   </div>
   <!-- footer section-->
   {% include 'html/include/footer.html' %}
+  <script language="JavaScript">
+$(document).ready(function(){
+    $("#btn-sell-order").click(function(){
+        $("#sell-modal").modal({backdrop: "static"});
+    });
+    $("#sell-modal").on('hide.bs.modal', function () {
+        $("id_request_source").val("");
+    });
+});
+</script>
 </body>
 <script>
 </script>

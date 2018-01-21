@@ -63,6 +63,9 @@ sudo apt-get install libzbar-dev
 pip install zbar
 pip install qrtools
 
+# NOTE!! Still need to do this on AWS Ubuntu 16.04
+sudo apt install qrencode
+
 # create folder for payment qrcode images
 cd ~/workspace/django/xwjy/test1
 mkdir qrcode

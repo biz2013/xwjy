@@ -22,7 +22,7 @@ from controller.global_utils import *
 from . import app
 from views import mysellorder, homeview, accountinfoview, mypurchaseview
 from views import account_cronjob, externaladdrview, paymentmethods
-from views import redeemview, heepay_notify_view
+from views import redeemview, heepay_notify_view, transactionview
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
@@ -32,10 +32,10 @@ urlpatterns = [
     url(r'^accounts/accountinfo/$', accountinfoview.accountinfo, name='accountinfo'),
     url(r'^accounts/redeem/$', redeemview.redeem),
     url(r'^accounts/external_address/$', externaladdrview.external_address),
-    url(r'^accounts/paymentmethods/$', paymentmethods.payment_method),
+    url(r'^accounts/paymentmethods/$', paymentmethods.payment_method, name='paymentmethods'),
     url(r'^axfund/transfer/$', app.transfer),
     url(r'^mysellorder/$', mysellorder.sell_axfund, name="sellorder"),
-    url(r'^mysellorder/cancel$', mysellorder.cancel_sell_order, name="sellorder"),
+    url(r'^mysellorder/cancel$', mysellorder.cancel_sell_order, name="cancelsellorder"),
     url(r'^heepay/confirm_payment/$', heepay_notify_view.heepay_confirm_payment),
     url(r'^purchase/$', mypurchaseview.show_active_sell_orders, name='purchase'),
     url(r'^purchase/createorder1/$', mypurchaseview.show_purchase_input, name="input_purchase"),
@@ -44,6 +44,7 @@ urlpatterns = [
     url(r'^registration/$', app.registration),
     url(r'^accounts/login/$', auth_views.login, name='login'),
     url(r'^accounts/logout/$', auth_views.logout, name='logout'),
+    url(r'^transhistory/$', transactionview.listusertransactions, name='mytransactions'),
     url(r'^accounts/password_reset/$', auth_views.password_reset, name='password_reset'),
     url(r'^accounts/password_reset_done/$', auth_views.password_reset_done, name='password_reset_done'),
     url(r'^accounts/password_reset_complete/$', auth_views.password_reset_complete, name='password_reset_complete'),
@@ -51,4 +52,3 @@ urlpatterns = [
     url(r'^activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', app.activate_user_registration, name='activate_user_registration'),
     # url(r'^accounts/', include('django.contrib.auth.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-

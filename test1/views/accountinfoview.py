@@ -5,7 +5,6 @@ from django.db.models import Q
 from django.shortcuts import render, redirect
 
 # this is for test UI. A fake one
-from controller.test_model_manager import ModelManager
 from users.models import *
 from controller import useraccountinfomanager
 from controller.global_constants import *

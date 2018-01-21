@@ -3,7 +3,7 @@
 import sys
 import logging,json
 
-from django.db.models import Q
+from django.contrib import messages
 from django.shortcuts import render, redirect
 
 # this is for test UI. A fake one
@@ -20,31 +20,45 @@ from django.contrib.auth.decorators import login_required
 
 logger = logging.getLogger("site.sellorder")
 
+def read_order_input(request):
+    username = request.user.username
+    userId = request.user.id
+    units = float(request.POST['quantity'])
+    unit_price = float(request.POST['unit_price'])
+    unit_price_currency = request.POST['unit_price_currency']
+    total_amount = float(request.POST['total_amount'])
+    crypto = request.POST['crypto']
+    return OrderItem('', userId, username, unit_price,
+          unit_price_currency, units, units, total_amount,
+          crypto, None, None)
+
 @login_required
 def sell_axfund(request):
     try:
        if not request.user.is_authenticated():
           return render(request, 'login.html', { 'next' : '/mysellorder/'})
-       username = request.user.username
-       userId = request.user.id
-       status = None
-       if request.method == 'POST':
-          units = float(request.POST['quantity'])
-          unit_price = float(request.POST['unit_price'])
-          unit_price_currency = request.POST['unit_price_currency']
-          total_amount = float(request.POST['total_amount'])
-          crypto = request.POST['crypto']
-          order = OrderItem('', userId, username, unit_price,
-              unit_price_currency, units, units, total_amount,
-              crypto, None, None)
-          status = ordermanager.create_sell_order(order, username)
        accountinfo = useraccountinfomanager.get_user_accountInfo(request.user, 'AXFund', True)
-       sellorders = ordermanager.get_user_open_sell_orders(userId)
-       buyorders = ordermanager.get_pending_incoming_buy_orders_by_user(userId)
-       return render(request, 'html/mysellorder.html', {'sellorders': sellorders,
-                'buyorders':buyorders, REQ_KEY_USERNAME: username,
-                'useraccountInfo': accountinfo,
-                'previous_call_status' : status})
+       if request.method == 'POST':
+          request_source = request.POST['request_source']
+          # this indicate that the request come from submit
+          # order instead of refresh a response page of previous
+          # order
+          if len(request_source) > 0:
+              order_command = read_order_input(request)
+              if order_command.total_units - accountinfo.available_balance < 0:
+                  ordermanager.create_sell_order(order_command, request.user.username)
+                  messages.success(request,'您的卖单已经成功创建')
+              else:
+                  messages.error(request, '卖单数量不可以高于可用余额')
+       sellorders = ordermanager.get_user_open_sell_orders(request.user.id)
+       buyorders = ordermanager.get_pending_incoming_buy_orders_by_user(request.user.id)
+       if request.method == 'POST':
+           return redirect('sellorder')
+       else:
+           return render(request, 'html/mysellorder.html',
+               {'sellorders': sellorders,
+                'buyorders':buyorders,
+                'useraccountInfo': accountinfo})
 
     except Exception as e:
        error_msg = '出售美基金遇到错误: {0}'.format(sys.exc_info()[0])
@@ -62,14 +76,15 @@ def cancel_sell_order(request):
        if request.method == 'POST':
            orderid = request.POST['order_id']
            ordermanager.cancel_sell_order(userId, orderid, 'AXFund', username)
-       accountinfo = useraccountinfomanager.get_user_accountInfo(request.user, 'AXFund', True)
-       sellorders = ordermanager.get_user_open_sell_orders(userId)
-       buyorders = ordermanager.get_pending_incoming_buy_orders_by_user(userId)
-       return render(request, 'html/mysellorder.html', {
-                'sellorders': sellorders,
-                'useraccountInfo': accountinfo,
-                'buyorders':buyorders, REQ_KEY_USERNAME: username})
 
+       return redirect('sellorder')
+    except ValueError as ve:
+       if ve.args[0] == "order has been locked or cancelled":
+           logger.exception("Cancel hit exception: {0} ".format(ve.args[0]))
+           messages.error(request, "您选择的卖单在锁定或已经被取消")
+           return redirect('sellorder')
+       else:
+           raise
     except Exception as e:
        error_msg = '撤销美基金卖单遇到错误: {0}'.format(sys.exc_info()[0])
        logger.exception(error_msg)

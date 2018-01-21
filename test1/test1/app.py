@@ -6,7 +6,8 @@ from controller.heepaymanager import HeePayManager
 from controller.global_utils import *
 
 # this is for test UI. A fake one
-from controller.test_model_manager import ModelManager
+
+
 from controller.token import account_activation_token
 
 from controller.global_constants import *
@@ -46,6 +47,7 @@ def registration(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
+
             # username = form.cleaned_data.get('username')
             # loginmanager.create_login(form, username)
             # raw_password = form.cleaned_data.get('password1')
@@ -69,6 +71,7 @@ def registration(request):
             )
             email.send()
             return HttpResponse('Please confirm your email address to complete the registration')
+
     else:
         form = SignUpForm()
     return render(request, 'html/register.html', {'form': form})
@@ -94,40 +97,6 @@ def query_user_open_sell_orders(userlogin):
 def query_buy_orders(userlogin):
     return Order.objects.select_related('reference_order','reference_order__user').filter(reference_order__user__login= userlogin)
 
+
 def transfer(request):
     return render(request, 'html/myaccount.html')
-
-def mysellorder(request):
-    username = request.session['username']
-    manager = ModelManager()
-    status = None
-    if request.method == 'POST':
-        units = float(request.POST['quantity']),
-        unit_price = float(request.POST['unit_price']),
-        unit_price_currency = request.POST['unit_price_currency'],
-        crypto_currency = request.POST['crypto']
-        status = manager.create_sell_order(username, units, unit_price,
-                    unit_price_currency, crypto_currency)
-    sellorders = manager.get_open_sell_orders_by_user(username)
-    buyorders = manager.get_pending_incoming_buy_orders_by_user(username)
-    return render(request, 'html/mysellorder.html', {'sellorders': sellorders,
-            'buyorders':buyorders,'username': username,
-            'previous_call_status' : status})
-
-def confirm_payment(request):
-    slogger.info("get into return_url")
-    if request.method == 'POST':
-       json_data = json.loads(request.body) # request.raw_post_data w/ Django < 1.4
-       slogger.info("Return url:we recevied from heepay %s" % json.dumps(json_data))
-    else:
-       slogger.info("Return url:surprise we get GET notification from heepay")
-    return redirect('accountinfo')
-
-def heepay_confirm_payment(request):
-    slogger.info("enter heepay_confirm_payment")
-    if request.method == 'POST':
-       json_data = json.loads(request.body) # request.raw_post_data w/ Django < 1.4
-       slogger.info("we recevied from heepay %s" % json.dumps(json_data))
-    else:
-       slogger.info("surprise we get GET notification from heepay")
-    return redirect('purchase')
