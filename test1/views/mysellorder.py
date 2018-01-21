@@ -76,14 +76,15 @@ def cancel_sell_order(request):
        if request.method == 'POST':
            orderid = request.POST['order_id']
            ordermanager.cancel_sell_order(userId, orderid, 'AXFund', username)
-       accountinfo = useraccountinfomanager.get_user_accountInfo(request.user, 'AXFund', True)
-       sellorders = ordermanager.get_user_open_sell_orders(userId)
-       buyorders = ordermanager.get_pending_incoming_buy_orders_by_user(userId)
-       return render(request, 'html/mysellorder.html', {
-                'sellorders': sellorders,
-                'useraccountInfo': accountinfo,
-                'buyorders':buyorders, REQ_KEY_USERNAME: username})
 
+       return redirect('sellorder')
+    except ValueError as ve:
+       if ve.args[0] == "order has been locked or cancelled":
+           logger.exception("Cancel hit exception: {0} ".format(ve.args[0]))
+           messages.error(request, "您选择的卖单在锁定或已经被取消")
+           return redirect('sellorder')
+       else:
+           raise
     except Exception as e:
        error_msg = '撤销美基金卖单遇到错误: {0}'.format(sys.exc_info()[0])
        logger.exception(error_msg)
