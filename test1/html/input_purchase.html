@@ -60,13 +60,17 @@
         <div class="offset2 col-md-6">
             <h3>购买美基金</h3>
           <div id="input_purchase">
-            {% if returnstatus and returnstatus.reason != 'OK' %}
-               <div id="div_id_returnstatus" class="text-danger">{{ returnstatus.reason }}. {{ returnstatus.message }}</div>
+            {% if messages %}
+               {% for message in messages %}
+            {% if messages.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+            <div id="div_message" class="text-danger">{{ message }}</div>
+            {% else %}
+            <div id="div_message" class="text-success">{{ message }}</div>
             {% endif %}
-               <div id="div_id_error" class="text-danger" ></div>
+               {% endfor %}
+            {% endif %}
              <form id="create_purchase" tabindex="-1" role="dialog" action="/purchase/createorder2/" method="post">
                {% csrf_token %}
-               <input type="hidden" name="username" value="{{ username }}" />
                <input type="hidden" id="id_available_units" name="available_units" value = "{{ available_units_for_purchase }}"/>
                <input type="hidden" name="owner_user_id" value="{{ owner_user_id }}"/>
                <input type="hidden" name="reference_order_id" value="{{ reference_order_id }}"/>
