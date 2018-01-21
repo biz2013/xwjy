@@ -45,6 +45,7 @@ class SiteSettings(SingletonModel):
     per_transaction_limit = models.IntegerField(default=100)
     axfd_passphrase = models.CharField(max_length=64, blank=True, default='')
 
+
 class GlobalCounter(models.Model):
     counter = models.IntegerField(default=0)
     lastupdated_at = models.DateTimeField(auto_now=True, null=True)
