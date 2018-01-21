@@ -34,7 +34,7 @@
       <div class="row">
         {% if messages %}
            {% for message in messages %}
-        {% if messages.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+        {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
         <div id="div_message" class="text-danger">{{ message }}</div>
         {% else %}
         <div id="div_message" class="text-success">{{ message }}</div>
