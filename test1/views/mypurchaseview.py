@@ -3,13 +3,12 @@
 import sys
 import logging,json
 
-from django.db.models import Q
+from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
 # this is for test UI. A fake one
 from config import context_processor
-from controller.test_model_manager import ModelManager
 from controller.global_constants import *
 from controller.global_utils import *
 from controller import ordermanager
@@ -114,6 +113,7 @@ def send_payment_request_to_heepay(sitesettings, buyorder_id, amount):
          return_url)
     status, reason, message = heepay.send_buy_apply_request(json_payload)
     if status == 200:
+        logger.info("heepay replied: {0}".format(message))
         return json.loads(message)
     else:
         logger.error('Request to heepay failed with {0}:{1}-{2}'.format(
@@ -182,16 +182,16 @@ def create_purchase_order(request):
         returnstatus = ReturnStatus('FAILED', 'FAILED', '下单申请失败')
         owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
         useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
+        # sample reply error : {"return_code":"FAIL","return_msg":"无效的total_fee"}
+        messages.error(request, '向汇钱包下单申请失败:{0}'.format(json_response['return_msg'].encode("utf-8")))
         return render(request, 'html/input_purchase.html',
-          {'username': username,
-           'buyorder': buyorder,
+          {'buyorder': buyorder,
            'owner_user_id': owner_user_id,
            'reference_order_id': reference_order_id,
            'available_units_for_purchase': available_units,
            'owner_payment_methods': owner_payment_methods,
            'buyer_payment_methods': useraccountInfo.paymentmethods,
-           'useraccountInfo': useraccountInfo,
-           'returnstatus' : ReturnStatus(-1, rs, '') }
+           'useraccountInfo': useraccountInfo }
         )
     except Exception as e:
         error_msg = '创建买单遇到错误: {0}'.format(sys.exc_info()[0])

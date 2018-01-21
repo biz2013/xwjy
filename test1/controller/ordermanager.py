@@ -72,7 +72,7 @@ def create_sell_order(order, operator):
 def get_user_open_sell_orders(user_id):
     # only query seller order that is still opened, not
     # fullfiled or cancelled
-    sell_orders = Order.objects.filter(user__id=user_id).exclude(status='CANCELLED').exclude(status='FILLED').order_by('lastupdated_at')
+    sell_orders = Order.objects.filter(user__id=user_id, order_type='SELL').exclude(status='CANCELLED').exclude(status='FILLED').order_by('-lastupdated_at')
     orders = []
     for order in sell_orders:
         orders.append(OrderItem(order.order_id, order.user.id,
@@ -85,7 +85,7 @@ def get_user_open_sell_orders(user_id):
     return orders
 
 def get_all_open_seller_order_exclude_user(user_id):
-    sell_orders = Order.objects.exclude(user__id=user_id).exclude(status='CANCELLED').exclude(status='FILLED').order_by('unit_price')
+    sell_orders = Order.objects.filter(order_type='SELL').exclude(user__id=user_id).exclude(status='CANCELLED').exclude(status='FILLED').order_by('unit_price','-lastupdated_at')
     orders = []
     for order in sell_orders:
         orders.append(OrderItem(order.order_id, order.user.id,
@@ -250,8 +250,8 @@ def update_purchase_transaction(purchase_trans, trade_status, trade_msg):
         #revert locked unit and available units in sell order
         Order.objects.filter(pk = buyorder.order_id).update(
              units_locked = F('units_locked') - buyorder.units,
-             units_available_to_trade = F('units_available_to_trade') + buyorder.units
-             )
+             units_available_to_trade = F('units_available_to_trade') + buyorder.units,
+             lastupdated_at = dt.datetime.utcnow())
         buyorder.save()
     purchase_trans.save()
 
@@ -357,13 +357,15 @@ def cancel_sell_order(userid, order_id, crypto, operator):
     operatorObj = User.objects.get(username=operator)
     with transaction.atomic():
         order = Order.objects.select_for_update().get(pk=order_id)
-        if order.status == 'LOCKED' or Order.objects.filter(
-            Q(reference_order__order_id = order.order_id),
-            Q(order_type = 'BUY'),
-            Q(status = 'OPEN') | Q(status = 'PAYING')).count() > 0:
-            logger.error('order {0} has status {1} or has open buy orders. can\'t be cancelled anymore'.format(
-               order_id, order.status
-            ))
+        logger.info("select to cancel order {0}".format(order_id))
+        if order.status == 'LOCKED' or order.status=='CANCELLED':
+            #Order.objects.filter(
+            #Q(reference_order__order_id = order.order_id),
+            #Q(order_type = 'BUY'),
+            #Q(status = 'OPEN') | Q(status = 'PAYING')).count() > 0:
+            #logger.error('order {0} has status {1} or has open buy orders. can\'t be cancelled anymore'.format(
+            #   order_id, order.status
+            #))
             raise ValueError("order has been locked or cancelled")
 
         user_wallet = UserWallet.objects.select_for_update().get(
@@ -443,3 +445,7 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, username):
         ))
 
         return True
+
+def get_user_transactions(userid, crypto):
+    return UserWalletTransaction.objects.filter(user_wallet__user__id= userid,
+        user_wallet__wallet__cryptocurrency__currency_code = crypto).order_by('-lastupdated_at')

@@ -39,9 +39,12 @@ class SiteSettings(SingletonModel):
     heepay_expire_in_sec = models.IntegerField(default=300)
     axfd_path= models.CharField(max_length=255, default='')
     axfd_datadir = models.CharField(max_length=255, default='')
-    axfd_account_name = models.CharField(max_length=64, default='')
+    axfd_account_name = models.CharField(max_length=64, blank=True, default='')
     axfd_list_trans_count = models.IntegerField(default=1000)
     min_trx_confirmation = models.IntegerField(default=8)
+    per_transaction_limit = models.IntegerField(default=100)
+    axfd_passphrase = models.CharField(max_length=64, blank=True, default='')
+
 
 class GlobalCounter(models.Model):
     counter = models.IntegerField(default=0)

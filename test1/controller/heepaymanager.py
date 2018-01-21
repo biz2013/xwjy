@@ -31,8 +31,9 @@ class HeePayManager(object):
        #frmt_date = '20171218094803'
        jsonobj['timestamp'] = frmt_date
        biz_content = '{\"out_trade_no\":\"%s\",' % (order_id_str)
-       biz_content = biz_content + ('\"subject\":\"购买%fCNY\",' %(amount))
-       biz_content = biz_content + ('\"total_fee\":\"1\",')
+       amount_str = str(int(round(amount, 2)*100))
+       biz_content = biz_content + ('\"subject\":\"购买{0}CNY\",'.format(amount_str))
+       biz_content = biz_content + ('\"total_fee\":\"{0}\",'.format(amount_str))
        biz_content = biz_content + ('\"api_account_mode\":\"Account\",')
        #biz_content = biz_content + ('\"from_account\":\"{0}\",'.format(buyer_account))
        biz_content = biz_content + ('\"to_account\":\"{0}\",'.format(seller_account))
@@ -78,8 +79,8 @@ class HeePayManager(object):
        logger.info('generate qrcode for {0} refers to hy_bill_no {1}'.format(
            content, heepay_response_json['hy_bill_no']))
        myQR = qrtools.QR(data=content, pixel_size=6)
-       myQR.encode()
-       shutil.move(myQR.filename, dst)
+       myQR.encode(dst)
+       #shutil.move(myQR.filename, dst)
        img_path = os.path.join('qrcode', qrcode_filename)
        return img_path
 

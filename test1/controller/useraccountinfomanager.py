@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import time
 import datetime as dt
-import pytz
+import pytz, math
 import logging
 
 from django.db import transaction
@@ -63,24 +63,32 @@ def update_user_wallet_based_on_deposit(trx, user_wallet, min_trx_confirmation,
 
     except UserWalletTransaction.DoesNotExist:
         with transaction.atomic():
-            print 'come to create trans for deposit, trx confirmation is {0}, amount is {1} min_confirmation is {2}'.format(
-                trx['confirmations'], trx['amount'], min_trx_confirmation
+            print 'come to create trans for deposit on user {0}, trx confirmation is {1}, amount is {2} min_confirmation is {3}'.format(
+                user_wallet.user.id, trx['confirmations'], trx['amount'], min_trx_confirmation
             )
             trans_status = 'PENDING'
-            balance_end = user_wallet.balance
-            available_to_trade_end = user_wallet.available_balance
+            balance_begin = 0
+            balance_end = 0
+            locked_balance_begin = 0
+            locked_balance_end = 0
+            available_to_trade_begin =0
+            available_to_trade_end = 0
             if trx['confirmations'] >= min_trx_confirmation:
                 user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet.id)
                 trans_status = 'PROCESSED'
+                balance_begin = user_wallet.balance
                 balance_end = user_wallet.balance + trx['amount']
+                locked_balance_begin = user_wallet.locked_balance
+                locked_balance_end = user_wallet.locked_balance
+                available_to_trade_begin = user_wallet.available_balance
                 available_to_trade_end = user_wallet.available_balance + trx['amount']
             wallet_trans = UserWalletTransaction.objects.create(
                 user_wallet = user_wallet,
-                balance_begin= user_wallet.balance,
+                balance_begin= balance_begin,
                 balance_end = balance_end,
-                locked_balance_begin = user_wallet.locked_balance,
-                locked_balance_end = user_wallet.locked_balance,
-                available_to_trade_begin = user_wallet.available_balance,
+                locked_balance_begin = locked_balance_begin,
+                locked_balance_end = locked_balance_end,
+                available_to_trade_begin = available_to_trade_begin,
                 available_to_trade_end = available_to_trade_end,
                 reference_order = None,
                 reference_wallet_trxId = trx['txid'],
@@ -121,13 +129,16 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
             ))
             with transaction.atomic():
                 user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet.id)
-                balance_end = user_wallet.balance - trx['amount']
-                available_to_trade_end = user_wallet.available_balance - trx['amount']
+                balance_end = user_wallet.balance + trx['amount']
+                available_to_trade_end = user_wallet.available_balance + trx['amount']
                 user_wallet_trans.balance_begin = user_wallet.balance
                 user_wallet_trans.balance_end = balance_end
+                user_wallet_trans.locked_balance_begin =  user_wallet.locked_balance
+                user_wallet_trans.locked_balance_end =  user_wallet.locked_balance
                 user_wallet_trans.available_to_trade_begin = user_wallet.available_balance
                 user_wallet_trans.available_to_trade_end = available_to_trade_end
                 user_wallet_trans.lastupdated_by = operator
+                user_wallet_trans.status = 'PROCESSED'
                 user_wallet_trans.save()
 
                 user_wallet.balance = balance_end
@@ -150,24 +161,32 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
     except UserWalletTransaction.DoesNotExist:
         with transaction.atomic():
             trans_status = 'PENDING'
+            balance_begin = 0
             balance_end = 0
+            locked_balance_begin = 0
+            locked_balance_end = 0
+            available_to_trade_begin =0
             available_to_trade_end = 0
             if trx['confirmations'] >= min_trx_confirmation:
                 user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet.id)
                 trans_status = 'PROCESSED'
+                balance_begin = user_wallet.balance
                 balance_end = user_wallet.balance + trx['amount']
+                locked_balance_begin = user_wallet.locked_balance
+                locked_balance_end = user_wallet.locked_balance
+                available_to_trade_begin = user_wallet.available_balance
                 available_to_trade_end = user_wallet.available_balance + trx['amount']
             wallet_trans = UserWalletTransaction.objects.create(
                 user_wallet = user_wallet,
-                balance_begin= user_wallet.balance,
+                balance_begin= balance_begin,
                 balance_end = balance_end,
-                locked_balance_begin = user_wallet.locked_balance,
-                locked_balance_end = user_wallet.locked_balance,
-                available_to_trade_begin = user_wallet.available_balance,
+                locked_balance_begin = locked_balance_begin,
+                locked_balance_end = locked_balance_end,
+                available_to_trade_begin = available_to_trade_begin,
                 available_to_trade_end = available_to_trade_end,
                 reference_order = None,
                 reference_wallet_trxId = trx['txid'],
-                units = trx['amount'],
+                units = math.fabs(trx['amount']),
                 balance_update_type = 'DEBT',
                 transaction_type = 'REDEEM',
                 comment = 'User redeem',
