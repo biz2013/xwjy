@@ -4,11 +4,12 @@ import logging, json
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 
 from config import context_processor
 from controller.heepaymanager import *
 from controller import ordermanager
-from django.contrib.auth.decorators import login_required
+from views import errorpage
 
 logger = logging.getLogger("site.heepay_confirm")
 
@@ -19,6 +20,9 @@ def get_payment_confirmation_json(request, app_key):
    if request.method == 'POST':
        json_data = json.loads(request.body)
    elif request.method == 'GET':
+       if len(request.GET.items()) == 0:
+           logger.error("There is no input in GET confirmation request")
+           return None
        json_data['version'] = request.GET['version']
        json_data['app_id'] = request.GET['app_id']
        json_data['subject'] = request.GET['subject']
