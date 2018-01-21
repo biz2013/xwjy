@@ -98,7 +98,7 @@ def get_all_open_seller_order_exclude_user(user_id):
     return orders
 
 def get_pending_incoming_buy_orders_by_user(userid):
-    buyorders = Order.objects.filter(order_type='BUY', reference_order__user__id=userid).exclude(status='CANCELLED').exclude(status='DELIVERED')
+    buyorders = Order.objects.filter(order_type='BUY', reference_order__user__id=userid).exclude(status='CANCELLED').exclude(status='FILLED')
     orders = []
     for order in buyorders:
         orders.append(OrderItem(order.order_id, order.user.id, order.user.username,
