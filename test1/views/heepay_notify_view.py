@@ -62,31 +62,40 @@ def heepay_confirm_payment(request):
     try:
         if request.method == 'POST':
             logger.info("Receive async payment notification ")
+            json_data = get_payment_confirmation_json(request,
+                              sitesettings.heepay_app_key)
+            if json_data is None:
+                error_msg = 'Receive invalid notification from confirmation request, nothing to do'
+                logger.error(error_msg)
+                return HttpResponse(content='error')
+            trade_status = json_data.get('trade_status', 'Unknown')
+            if trade_status not in ['Success', 'Starting', 'PaySuccess']:
+                error_msg = 'Receive notification with unsupported trade_status %s' % trade_status
+                logger.error(error_msg)
+                return HttpResponse(content='error')
+            ordermanager.update_order_with_heepay_notification(json_data, 'admin')
+            return HttpResponse(content='OK')
         elif request.method == 'GET':
             logger.info("Receive sync payment notification")
+            if 'order_id' not in request.GET:
+                logger.error('heepay didn\'t return with order_id with sync notification')
+                messages.error('汇钱包回复没有买单号码，请刷新交易记录等待交易完成')
+            else：
+                order_id = request.GET['order_id']
+                buyorder = ordermanager.get_order_info(order_id)
+                if order.status == 'PAYING':
+                    logger.warn('purchse order {0} is still in PAYING mode'.format(order_id))
+                    messages.warn('支付系统还未最终确认买单{0}支付成功，请刷新交易记录等待交易完成'.format(order_id,order.units))
+                elif order.status == 'PAID':
+                    logger.info('purchse order {0} is already PAID'.format(order_id))
+                    messages.success('支付系统确认买单{0}支付成功，请刷新交易记录等待交易完成'.format(order_id))
+                elif
+                    logger.info('purchase order {0} has been filled'.format(order_id))
+                    messages.success('您的买单{0}交易已完成，请看交易记录'.format(order_id))
+                    return redirect('mytransactions')
         else:
-            return HttpResponse(content='error')
-        sitesettings = context_processor.settings(request)['settings']
-        logger.info("about to call get_payment_confirmation_json()")
-        json_data = get_payment_confirmation_json(request,
-                          sitesettings.heepay_app_key)
-        validated = False
-        if json_data is None:
-            error_msg = 'Receive invalid notification from confirmation request, nothing to do'
-            logger.error(error_msg)
-            return HttpResponse(content='error')
-        trade_status = json_data.get('trade_status', 'Unknown')
-        if trade_status not in ['Success', 'Starting', 'PaySuccess']:
-            error_msg = 'Receive notification with unsupported trade_status %s' % trade_status
-            logger.error(error_msg)
-            return HttpResponse(content='error')
-        ordermanager.update_order_with_heepay_notification(json_data, 'admin')
-        if request.method == 'GET':
-            request.session[REQ_KEY_USERID] = userid
-            request.session[REQ_KEY_USERNAME] = operator
-            return redirect('accountinfo')
-        else:
-            return HttpResponse(content='OK')
+            logger.error('heepay_confirm_payment() receive invalid method {0}'.format(request.method))
+        return redirect('purchase')
     except Exception as e:
         error_msg = 'Confirmation processing hit exception: {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
