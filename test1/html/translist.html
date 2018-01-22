@@ -30,6 +30,7 @@
             <td>更改时间</td>-->
           </tr>
           {% for trans in transactions %}
+          {% if trans.trans_type != 'CANCEL SELL ORDER' and trans.trans_type != 'CANCEL BUY ORDER' %}
           <tr>
             <td>{{ trans.trans_type_display }}</td>
             <td>{% if trans.balance_update_type == 'CREDIT' %}{{ trans.units }}{% endif %}</td>
@@ -37,6 +38,7 @@
             <td>{{ trans.lastupdated_at|date:"m-d" }} {{ trans.lastupdated_at|time:"H:i:s" }}</td>
             <!--<td>{{ trans.availables_balance }}</td>-->
           </tr>
+          {% endif %}
           {% endfor %}
         </table>
         {% endif %}

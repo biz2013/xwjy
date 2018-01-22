@@ -41,7 +41,8 @@ class HeePayManager(object):
        if notify_url is not None and len(notify_url) > 0:
           biz_content = biz_content + ',\"notify_url\":\"%s\"' % notify_url
        if return_url is not None and len(return_url) > 0:
-          biz_content = biz_content + ',\"return_url\":\"%s\"' % return_url
+          full_return_url = '{0}?order_id={1}'.format(return_url, order_id_str) if return_url.endswith('/') else '{0}/?order_id={1}'.format(return_url, order_id_str)
+          biz_content = biz_content + ',\"return_url\":\"%s\"' % full_return_url
        biz_content = biz_content  + '}'
        jsonobj['biz_content'] = biz_content
 

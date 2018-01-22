@@ -74,7 +74,7 @@ def show_purchase_input(request):
            unit_price,'CYN',
            total_units, 0,
            0.0, 'AXFund',
-           '','')
+           '','','BUY')
         return render(request, 'html/input_purchase.html',
                {'username': username,
                 'buyorder': buyorder,
@@ -146,53 +146,59 @@ def create_purchase_order(request):
         username = request.user.username
         userid = request.user.id
         logger.info("Begin process user input for creating purchase order")
-        reference_order_id = request.POST['reference_order_id']
-        owner_user_id = int(request.POST["owner_user_id"])
-        quantity = float(request.POST['quantity'])
-        available_units = float(request.POST['available_units'])
-        unit_price = float(request.POST['unit_price'])
-        seller_payment_provider = request.POST['seller_payment_provider']
-        crypto= request.POST['crypto']
-        total_amount = float(request.POST['total_amount'])
-        buyorder = OrderItem('', userid, username, unit_price, 'CNY', quantity,
-            0, total_amount, crypto, '', '')
-        buyorderid = ordermanager.create_purchase_order(buyorder,
-                 reference_order_id,
-                 seller_payment_provider, username)
-        if buyorderid is None:
-           raise ValueError('Failed to get purchase order id')
+        if request.method == 'POST':
+            reference_order_id = request.POST['reference_order_id']
+            owner_user_id = int(request.POST["owner_user_id"])
+            quantity = float(request.POST['quantity'])
+            available_units = float(request.POST['available_units'])
+            unit_price = float(request.POST['unit_price'])
+            seller_payment_provider = request.POST['seller_payment_provider']
+            crypto= request.POST['crypto']
+            total_amount = float(request.POST['total_amount'])
+            buyorder = OrderItem('', userid, username, unit_price, 'CNY', quantity,
+                0, total_amount, crypto, '', '','BUY')
+            buyorderid = None
+            try:
+                buyorderid = ordermanager.create_purchase_order(buyorder,
+                     reference_order_id,
+                     seller_payment_provider, username)
+            except ValueError as ve:
+                if ve.args[0] == 'SELLORDER_NOT_OPEN':
+                    messages.error(request, '卖单暂时被锁定，请稍后再试')
+                elif ve.args[0] == 'BUY_EXCEED_AVAILABLE_UNITS':
+                    messages.error(request,'购买数量超过卖单余额，请按撤销键然后再试')
+                else:
+                    raise
+                owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
+                useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
+                redirect('purchase')
+            if buyorderid is None:
+               raise ValueError('Failed to get purchase order id')
 
-        returnstatus = None
+            returnstatus = None
 
-        # read the sitsettings
-        sitesettings = context_processor.settings(request)['settings']
-        json_response = send_payment_request(sitesettings, seller_payment_provider,
-            buyorder.order_id, total_amount)
-        if json_response is not None and json_response['return_code'] == 'SUCCESS':
-            if ordermanager.post_open_payment_order(
-                            buyorderid, 'heepay',
-                            json_response['hy_bill_no'],
-                            username):
+            # read the sitsettings
+            sitesettings = context_processor.settings(request)['settings']
+            json_response = send_payment_request(sitesettings, seller_payment_provider,
+                buyorder.order_id, total_amount)
+            if json_response is not None and json_response['return_code'] == 'SUCCESS':
+                if ordermanager.post_open_payment_order(
+                                buyorderid, 'heepay',
+                                json_response['hy_bill_no'],
+                                json_response['hy_url'],
+                                username):
 
-                qrcode_file = generate_payment_qrcode('heepay', json_response, settings.MEDIA_ROOT)
-                return render(request, 'html/purchase_heepay_qrcode.html',
-                     { 'total_units' : quantity, 'unit_price': unit_price,
-                       'total_amount': total_amount,
-                       'heepay_qrcode_file' : qrcode_file })
-        returnstatus = ReturnStatus('FAILED', 'FAILED', '下单申请失败')
-        owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
-        useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
-        # sample reply error : {"return_code":"FAIL","return_msg":"无效的total_fee"}
-        messages.error(request, '向汇钱包下单申请失败:{0}'.format(json_response['return_msg'].encode("utf-8")))
-        return render(request, 'html/input_purchase.html',
-          {'buyorder': buyorder,
-           'owner_user_id': owner_user_id,
-           'reference_order_id': reference_order_id,
-           'available_units_for_purchase': available_units,
-           'owner_payment_methods': owner_payment_methods,
-           'buyer_payment_methods': useraccountInfo.paymentmethods,
-           'useraccountInfo': useraccountInfo }
-        )
+                    qrcode_file = generate_payment_qrcode('heepay', json_response, settings.MEDIA_ROOT)
+                    return render(request, 'html/purchase_heepay_qrcode.html',
+                         { 'total_units' : quantity, 'unit_price': unit_price,
+                           'total_amount': total_amount,
+                           'heepay_qrcode_file' : qrcode_file })
+            owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
+            useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
+            # sample reply error : {"return_code":"FAIL","return_msg":"无效的total_fee"}
+            messages.error(request, '向汇钱包下单申请失败:{0}'.format(json_response['return_msg'].encode("utf-8")))
+            redirect('purchase')
+
     except Exception as e:
         error_msg = '创建买单遇到错误: {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)

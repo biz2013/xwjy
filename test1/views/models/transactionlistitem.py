@@ -6,7 +6,7 @@ class TransactionListItem(object):
                    'OPEN BUY ORDER': '购买',
                    'OPEN SELL ORDER': '出售',
                    'CANCEL BUY ORDER': '取消买单',
-                   'DELIVER ON PURCHASE': '交货',
+                   'DELIVER ON PURCHASE': '卖出',
                    'REDEEM': '提币',
                    'DEPOSIT': '存币'}
         self.id = id
