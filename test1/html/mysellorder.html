@@ -14,7 +14,7 @@
     function show_order_info(orderid, units, unit_price, unit_price_currency) {
       $("#id_units_confirm").text(units);
       $("#id_units_price_confirm").text(unit_price + ' ' + unit_price_currency);
-      $("#id_total_amount_confirm").text(parseFloat(units * unit_price).toFixed(2) + ' ' + unit_price_currency);
+      $("#id_total_amount_confirm").text('' + (parseFloat(units) * parseFloat(unit_price)).toFixed(2) + ' ' + unit_price_currency);
       $("#id_order_id_confirm").val(orderid);
     }
 
@@ -93,7 +93,7 @@
                    {% else %}<button class="btn btn-primary" type="button" onclick="popup_cancel_confirm_window('{{ order.order_id }}', {{ order.available_units }}, {{ order.unit_price }}, {{ order.available_units|mul:order.unit_price }})">取消</button>
                    {% endif %}
                 {% else %}
-                   {% if order.status == 'PAID' %}<button class="btn btn-primary" data-toggle="modal" data-target="#payment-confirm-modal" onclick="show_order_info({{ order.order_id}}, {{ order.total_units}},{{ order.unit_price }}, '{{ order.unit_price_currency}}')">确认</button>
+                   {% if order.status == 'PAID' %}<button class="btn btn-primary" data-toggle="modal" data-target="#payment-confirm-modal" onclick="show_order_info('{{ order.order_id}}', '{{ order.total_units}}','{{ order.unit_price }}', '{{ order.unit_price_currency}}')">确认</button>
                    {% else %}待付款
                    {% endif %}
                 {% endif %}</td>
@@ -111,7 +111,6 @@
     <!-- popup window for confirm payment of purchase -->
     <form id="payment-confirm-modal" tabindex="-1" class="modal fade" role="dialog" action="/mysellorder/confirm_payment/" aria-labelledby="confirm-form-label" aria-hidden="true" method='post'>
       {% csrf_token %}
-      <input type="hidden" id="id_username_confirm" name="username" value="{{ username }}" />
       <input type="hidden" id="id_order_id_confirm" name="order_id" value=""/>
       <div class="modal-dialog">
         <!-- Modal content-->
