@@ -402,9 +402,8 @@ def confirm_purchase_order(order_id, operator):
         # release lock at the last moment
         purchase_trans.save()
 
-def get_order_owner_info(order_id):
-    order = Order.objects.get(pk=order_id)
-    return order.user.id, order.user.username
+def get_order_info(order_id):
+    return Order.objects.get(pk=order_id)
 
 def cancel_sell_order(userid, order_id, crypto, operator):
     operatorObj = User.objects.get(username=operator)
