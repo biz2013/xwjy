@@ -1,83 +1,85 @@
-<!DOCTYPE html>
-<html lang="en-us">
-<head>
-{% include 'html/include/common_header.html' %}
-  <script language="JavaScript">
-   function registration() {
+{% extends "base_generic.html" %} {% block content %}
 
-     if ($("#txt_id_password2").val() != $("#txt_id_password").val()) {
-       $("#div_id_error_message").text('两个输入的密码不匹配，请重新输入');
-       $("#txt_id_password").val("");
-       $("#txt_id_password2").val("");
-     } else {
-       $("#txt_id_username").val($("#txt_id_email").val());
-       $("#div_id_error_message").text("");
-       $("#id_registration_form").submit();
-     }
-   }
-  </script>
-</head>
-<body>
-  <!-- menu section -->
-  {% include "html/include/topmenu.html" %}
-  <!-- body section -->
-  <div class="container">
-    <div class="row">
-      <div class="offset2 col-md-6">
-        <div id="register-body">
-          <h2>注册美基金场外交易账号</h2>
-          <p>开设账号，开始买卖美基金。</p>
-{#          <form method="post" class="paper-form" action="/registration/" id="id_registration_form">#}
-{#            {% csrf_token %}#}
-{#            <input type="hidden" id="txt_id_username" name="username" value=""/>#}
-{#            {% if message and message|length > 0 %}#}
-{#               {% if message_type == 'success' %}#}
-{#            <p class="text-success">{{ message }}</p>#}
-{#               {% else %}#}
-{#            <p class="text-danger">{{ message }}</p>#}
-{#               {% endif %}#}
-{#            {% endif %}#}
-{#            <div id="div_id_error_message" class="text-danger"></div>#}
-{#            <div id="div_id_email" class="form-group"> <label for="id_password2" class="control-label  requiredField">#}
-{#				邮箱<span class="asteriskField">*</span> </label>#}
-{#              <div class="controls "> <input class="textinput textInput form-control" id="txt_id_email" name="email" type="text" value="{{ registration.email }}"/> </div>#}
-{#            </div>#}
-{#            <div id="div_id_password1" class="form-group"> <label for="id_password1" class="control-label  requiredField">#}
-{#				密码<span class="asteriskField">*</span> </label>#}
-{#              <div class="controls "> <input class="textinput textInput form-control" id="txt_id_password" name="password" type="password" /> </div>#}
-{#            </div>#}
-{#            <div id="div_id_password2" class="form-group"> <label for="id_password2" class="control-label  requiredField">#}
-{#				密码（重复）<span class="asteriskField">*</span> </label>#}
-{#              <div class="controls "> <input class="textinput textInput form-control" id="txt_id_password2" name="password2" type="password" /> </div>#}
-{#            </div>#}
-{#            <p>#}
-{#              <button type="button" class="btn btn-success" id="register-page-confirm-button" onclick="registration()">注册</button>#}
-{#            </p>#}
-{#          </form>#}
-              <form method="post">
-                {% csrf_token %}
-                {% for field in form %}
-                  <p>
-                    {{ field.label_tag }}<br>
-                    {{ field }}
-                    {% if field.help_text %}
-                      <small style="color: grey">{{ field.help_text }}</small>
-                    {% endif %}
-                    {% for error in field.errors %}
-                      <p style="color: red">{{ error }}</p>
-                    {% endfor %}
-                  </p>
-                {% endfor %}
-                <button type="submit">注册</button>
-              </form>
+<!-- body section -->
+<div class="container">
+
+  <div class="row">
+    {% if form.errors %}
+    <div class="alert alert-danger alert-dismissable fade in">
+      <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+      {{ form.errors }}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="row">
+    <!-- <div class="offset2 col-md-6"> -->
+      <div id="register-body">
+
+        <div class="row">
+          <h2 class="col-sm-offset-2 col-sm-8">注册美基金场外交易账号</h2>
+          <p class="col-sm-offset-2 col-sm-8">开设账号，开始买卖美基金</p>
         </div>
-        <p>已经注册？ <a href="/accounts/login/">登录</a></p>
-        <p>忘记密码？ <a href="/password_reset/">重设密码</a></p>
+
+        <form method="post" class="form-horizontal">
+          {% csrf_token %}
+
+          <div class="form-group">
+            <label class="control-label col-sm-2 requiredField" for="username1">用户名:</label>
+            <div class="col-sm-6">
+              <input id="username1" type="text" class="form-control" placeholder="请设置用户名" name="form.username">
+              <!-- {% if form.username.help_text %}
+              <small style="color: grey">{{ form.username.help_text }}</small>
+              {% endif %} -->
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-sm-2 requiredField" for="email">邮箱:</label>
+            <div class="col-sm-6">
+              <input type="email" class="form-control" id="email" placeholder="请设置用户邮箱，可用于找回密码" name="form.email">
+              <!-- {% if form.email.help_text %}
+              <small style="color: grey">{{ form.email.help_text }}</small>
+              {% endif %} -->
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-sm-2 requiredField" for="pwd">密码:</label>
+            <div class="col-sm-6">
+              <input type="password" class="form-control" id="pwd" placeholder="请设置登录密码" name="form.password1"> 
+              <!-- {% if form.password1.help_text %}
+              <small style="color: grey">{{ form.password1.help_text }}</small>
+              {% endif %} -->
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-sm-2 requiredField" for="pwd">重复密码:</label>
+            <div class="col-sm-6">
+              <input type="password" class="form-control" id="pwd" placeholder="请确认登录密码" name="form.password2"> 
+              <!-- {% if form.password2.help_text %}
+              <small style="color: grey">{{ form.password2.help_text }}</small>
+              {% endif %} -->
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-6">
+              <button type="submit" class="btn btn-primary">注册</button>
+            </div>
+          </div>
+
+        </form>
       </div>
+      <p class="col-sm-offset-2 col-sm-6">已经注册？
+        <a href="/accounts/login/">登录</a>
+      </p>
+      <p class="col-sm-offset-2 col-sm-6">忘记密码？
+        <a href="/accounts/password_reset/">重设密码</a>
+      </p>
     </div>
   </div>
-  <!-- footer section-->
-  {% include 'html/include/footer.html' %}
-</body>
+</div>
 
-</html>
+{% endblock %}
