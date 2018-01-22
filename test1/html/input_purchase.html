@@ -54,7 +54,6 @@
   <!-- body section -->
   {% load mathfilters %}
   <div class="container">
-    {% include "html/include/balance_banner.html" %}
     <div class="well">
       <div class="row">
         <div class="offset2 col-md-6">
@@ -78,6 +77,7 @@
                <input type="hidden" name="crypto" value="AXFund"/>
                <input type="hidden" id="id_total_amount" name="total_amount" value="{% if buyorder.total_units > 0 %}{{ buyorder.total_units }}{% endif %}"/>
                <div class="form_group">
+                 <div id="div_id_error" class="text-danger"></div>
                  <table class="table">
                    <tr>
                      <th>购买上限</th>
