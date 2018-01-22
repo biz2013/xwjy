@@ -65,6 +65,20 @@ def sell_axfund(request):
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
 
 @login_required
+def confirm_payment(request):
+    try:
+       if not request.user.is_authenticated():
+          return render(request, 'login.html', { 'next_action' : '/mysellorder/'})
+       order_id = request.POST['order_id']
+       ordermanager.confirm_purchase_order(order_id, request.user.username)
+       messages.success('确认付款，交易完成')
+    except Exception as e:
+       error_msg = '确认付款遇到错误: {0}'.format(sys.exc_info()[0])
+       logger.exception(error_msg)
+       return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
+              '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
+
+@login_required
 def cancel_sell_order(request):
     try:
        if not request.user.is_authenticated():
