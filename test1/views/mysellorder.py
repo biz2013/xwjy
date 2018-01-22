@@ -71,7 +71,7 @@ def confirm_payment(request):
           return render(request, 'login.html', { 'next_action' : '/mysellorder/'})
        order_id = request.POST['order_id']
        ordermanager.confirm_purchase_order(order_id, request.user.username)
-       messages.success('确认付款，交易完成')
+       messages.success(request,'确认付款，交易完成')
     except Exception as e:
        error_msg = '确认付款遇到错误: {0}'.format(sys.exc_info()[0])
        logger.exception(error_msg)
