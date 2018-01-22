@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from django.db.models import Q
+from django.db import transaction
+from django.contrib import messages
 from django.shortcuts import render, redirect
 from controller.heepaymanager import HeePayManager
 from controller.global_utils import *
@@ -54,9 +56,15 @@ def registration(request):
             # user = authenticate(username=username, password=raw_password)
             # login(request, user)
             # return redirect('home')
-            user = form.save(commit=False)
-            user.is_active = False
-            user.save()
+            user = None
+            with transaction.atomic():
+                user = form.save(commit=False)
+                user.is_active = False
+                user.save()
+                user_wallet = UserWallet.objects.select_for_update().filter(Q(user__isnull=True))[0]
+                user_wallet.user = user
+                user_wallet.save()
+
             current_site = get_current_site(request)
             mail_subject = 'Activate your blog account.'
             message = render_to_string('registration/user_active_email.html', {
@@ -70,7 +78,8 @@ def registration(request):
                 mail_subject, message, to=[to_email]
             )
             email.send()
-            return HttpResponse('Please confirm your email address to complete the registration')
+            messages.success(request, '您的注册激活链接已经发到您的注册邮箱{0}。请在三天内激活。'.format(to_email))
+            return render(request, 'html/registration/registration_confirm.html')
 
     else:
         form = SignUpForm()
