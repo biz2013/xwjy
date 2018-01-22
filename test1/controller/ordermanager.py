@@ -324,10 +324,6 @@ def confirm_purchase_order(order_id, operator):
             logger.info("confirm_purchase_order(): The the payment transaction has been processed.  Nothing to do")
             return
 
-        if notify_json['trade_status'] != 'Success':
-            update_purchase_transaction(purchase_trans, notify_json['trade_status'])
-            return
-
         # get original buy order
         buyorder = Order.objects.select_for_update().get(pk=order_id)
         sell_order = Order.objects.select_for_update().get(
