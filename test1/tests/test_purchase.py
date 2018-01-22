@@ -98,7 +98,7 @@ class PurchaseTestCase(TransactionTestCase):
                 units,
                 # available units
                 available_units, total_amount ,
-                'AXFund', None, None)
+                'AXFund', None, None,'BUY')
             print 'issue command to create buy order for sell order {0}'.format(sell_order.order_id)
             orderid = ordermanager.create_purchase_order(buyorder,
                           sell_order.order_id, 'heepay', 'yingzhou')
@@ -203,7 +203,7 @@ class PurchaseTestCase(TransactionTestCase):
                units,
                # available units
                units, amount,
-               'AXFund', None, None)
+               'AXFund', None, None,'SELL')
            print 'ready to create sell order'
            orderid = ordermanager.create_sell_order(order_item, 'taozhang')
            print 'create sell order finished'

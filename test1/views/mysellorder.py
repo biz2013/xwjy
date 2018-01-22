@@ -30,7 +30,7 @@ def read_order_input(request):
     crypto = request.POST['crypto']
     return OrderItem('', userId, username, unit_price,
           unit_price_currency, units, units, total_amount,
-          crypto, None, None)
+          crypto, None, None, 'SELL')
 
 @login_required
 def sell_axfund(request):
@@ -50,18 +50,31 @@ def sell_axfund(request):
                   messages.success(request,'您的卖单已经成功创建')
               else:
                   messages.error(request, '卖单数量不可以高于可用余额')
-       sellorders = ordermanager.get_user_open_sell_orders(request.user.id)
-       buyorders = ordermanager.get_pending_incoming_buy_orders_by_user(request.user.id)
+       sellorders = ordermanager.get_sell_transactions_by_user(request.user.id)
        if request.method == 'POST':
            return redirect('sellorder')
        else:
            return render(request, 'html/mysellorder.html',
                {'sellorders': sellorders,
-                'buyorders':buyorders,
                 'useraccountInfo': accountinfo})
 
     except Exception as e:
        error_msg = '出售美基金遇到错误: {0}'.format(sys.exc_info()[0])
+       logger.exception(error_msg)
+       return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
+              '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
+
+@login_required
+def confirm_payment(request):
+    try:
+       if not request.user.is_authenticated():
+          return render(request, 'login.html', { 'next_action' : '/mysellorder/'})
+       order_id = request.POST['order_id']
+       ordermanager.confirm_purchase_order(order_id, request.user.username)
+       messages.success(request,'确认付款，交易完成')
+       return redirect('sellorder')
+    except Exception as e:
+       error_msg = '确认付款遇到错误: {0}'.format(sys.exc_info()[0])
        logger.exception(error_msg)
        return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
@@ -79,9 +92,9 @@ def cancel_sell_order(request):
 
        return redirect('sellorder')
     except ValueError as ve:
-       if ve.args[0] == "order has been locked or cancelled":
+       if ve.args[0] == "ORDER_USED_OR_LOCKED_CANCELLED":
            logger.exception("Cancel hit exception: {0} ".format(ve.args[0]))
-           messages.error(request, "您选择的卖单在锁定或已经被取消")
+           messages.error(request, "您选择的卖单有待完成买单，或在锁定，取消状态")
            return redirect('sellorder')
        else:
            raise
