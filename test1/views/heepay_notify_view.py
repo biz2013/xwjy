@@ -8,6 +8,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
 from config import context_processor
+from controller.global_constants import *
 from controller.heepaymanager import *
 from controller import ordermanager
 from views import errorpage
@@ -31,6 +32,7 @@ def get_payment_confirmation_json(request, app_key):
 @csrf_exempt
 def heepay_confirm_payment(request):
     try:
+        sitesettings = context_processor.settings(request)['settings']
         if request.method == 'POST':
             logger.info("Receive async payment notification ")
             json_data = get_payment_confirmation_json(request,
@@ -51,18 +53,18 @@ def heepay_confirm_payment(request):
             order_id = request.GET.get('order_id')
             if order_id is None:
                 logger.error('heepay did not return with order_id with sync notification')
-                messages.error('汇钱包回复没有买单号码，请刷新交易记录等待交易完成')
+                messages.error(request, '汇钱包回复没有买单号码，请刷新交易记录等待交易完成')
             else:
-                buyorder = ordermanager.get_order_info(order_id)
+                order = ordermanager.get_order_info(order_id)
                 if order.status == 'PAYING':
                     logger.warn('purchse order {0} is still in PAYING mode'.format(order_id))
-                    messages.warn('支付系统还未最终确认买单{0}支付成功，请刷新交易记录等待交易完成'.format(order_id,order.units))
+                    messages.warning(request, '支付系统还未最终确认买单{0}支付成功，请刷新交易记录等待交易完成'.format(order_id,order.units))
                 elif order.status == 'PAID':
                     logger.info('purchse order {0} is already PAID'.format(order_id))
-                    messages.success('支付系统确认买单{0}支付成功，请刷新交易记录等待交易完成'.format(order_id))
+                    messages.success(request, '支付系统确认买单{0}支付成功，请刷新交易记录等待交易完成'.format(order_id))
                 else:
                     logger.info('purchase order {0} has been filled'.format(order_id))
-                    messages.success('您的买单{0}交易已完成，请看交易记录'.format(order_id))
+                    messages.success(request, '您的买单{0}交易已完成，请看交易记录'.format(order_id))
                     return redirect('mytransactions')
         return redirect('purchase')
     except Exception as e:
