@@ -64,8 +64,8 @@ def create_sell_order(order, operator):
         userwallet.locked_balance = userwallet.locked_balance + order.total_units
         userwallet.available_balance = userwallet.available_balance - order.total_units
         userwallet.save()
-        logger.info('After creating order {0}, userwallet {1} has balance:{2} available_balance:{3} locked_balance: {4}'.format(
-           orderRecord.order_id, userwallet.id, userwallet.balance, userwallet.available_balance, userwallet.locked_balance
+        logger.info('Created sell order {0}, units {1} user\'s wallet: balance:{2} available_balance:{3} locked_balance: {4}'.format(
+           orderRecord.order_id, orderRecord.units, userwallet.balance, userwallet.available_balance, userwallet.locked_balance
         ))
         return orderRecord.order_id
 
@@ -206,8 +206,8 @@ def create_purchase_order(buyorder, reference_order_id,
         reference_order.units_locked = reference_order.units_locked + buyorder.total_units
         reference_order.units_available_to_trade = reference_order.units_available_to_trade - buyorder.total_units
         reference_order.save()
-        logger.info('After creating purchase order {0}, sell order {1} has available_units:{2} locked_units: {3} original units: {4}'.format(
-           order.order_id, reference_order.order_id,
+        logger.info('Created purchase order {0}: units:{1} sell order {2} available_units:{3} locked_units: {4} original units: {5}'.format(
+           order.order_id, order.units, reference_order.order_id,
            reference_order.units_available_to_trade,
            reference_order.units_locked,
            reference_order.units
