@@ -84,7 +84,6 @@
           </tr>
           {% if sellorders %}
           {% for order in sellorders %}
-          {% if order.order_type == 'BUY' or order.available_units > 0 %}
           <tr>
             <td>{% if order.order_type == 'SELL' %}{{ order.available_units }}{% else %}{{ order.total_units }}{% endif %}</td>
             <td>{{ order.unit_price }}</td>
@@ -95,12 +94,11 @@
                    {% endif %}
                 {% else %}
                    {% if order.status == 'PAID' %}<button class="btn btn-primary" data-toggle="modal" data-target="#payment-confirm-modal" onclick="show_order_info('{{ order.order_id}}', '{{ order.total_units}}','{{ order.unit_price }}', '{{ order.unit_price_currency}}')">确认</button>
-                   {% else %}锁定
+                   {% else %}待付款
                    {% endif %}
                 {% endif %}</td>
               <!--<td>{{ order.lastmodified_at }}</td>-->
           </tr>
-          {% endif %}
           {% endfor %} {% else %}
           <tr>
             <td>暂时没有活跃的卖单</td>
