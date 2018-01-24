@@ -107,6 +107,12 @@ class HeePayManager(object):
        return signed_str == json_data['sign']
 
 
+   def get_order_status(self, orderId, hy_bill_no, appId, app_key):
+       pass
+
+   def cancel_order(self, orderId, hy_bill_no, appId, app_key):
+       pass
+
 """
 {"sign":"19D4E6B0418D4F47CDE76BF3AA1B50AD"}
 """
