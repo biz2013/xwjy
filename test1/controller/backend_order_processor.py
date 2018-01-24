@@ -16,7 +16,7 @@ from views.models.userpaymentmethodview import *
 
 logger = logging.getLogger("site.backend_order_processor")
 
-def cancelPurchaseOrder(orderid, operator):
+def cancel_purchase_order(orderid, order_status, payment_status, operator):
     pass
 
 
@@ -24,5 +24,5 @@ def confirmPurchaseOrder(orderid, operator):
     pass
 
 def get_unfilled_purchase_orders():
-    return Orders.objects.filter(Q(status='PAYING') |\
-       Q(status='PAID' | Q(status='OPEN')).order_by('-lastupdated_at')
+    return Orders.objects.filter(Q(status='PAYING') |
+       Q(status='PAID') | Q(status='OPEN')).order_by('-lastupdated_at')

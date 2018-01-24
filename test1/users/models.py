@@ -44,6 +44,8 @@ class SiteSettings(SingletonModel):
     min_trx_confirmation = models.IntegerField(default=8)
     per_transaction_limit = models.IntegerField(default=100)
     axfd_passphrase = models.CharField(max_length=64, blank=True, default='')
+    order_timeout_insec = models.IntegerField(default=600)
+    confirmation_timeout_insec = models.IntegerField(default=300)
 
 
 class GlobalCounter(models.Model):
