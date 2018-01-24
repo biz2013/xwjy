@@ -23,6 +23,6 @@ def cancelPurchaseOrder(orderid, operator):
 def confirmPurchaseOrder(orderid, operator):
     pass
 
-def getAllUnfilledPurchaseOrder():
+def get_unfilled_purchase_orders():
     return Orders.objects.filter(Q(status='PAYING') |\
        Q(status='PAID' | Q(status='OPEN')).order_by('-lastupdated_at')

@@ -11,6 +11,7 @@ from controller.global_constants import *
 from controller.global_utils import *
 from controller import ordermanager
 from controller import useraccountinfomanager
+from controller import backend_order_processor
 
 from views.models.orderitem import OrderItem
 from views.models.returnstatus import ReturnStatus
@@ -21,4 +22,9 @@ from django.contrib.auth.decorators import login_required
 logger = logging.getLogger("site.order_batch_process")
 
 def order_batch_process(request):
+    sitesettings = context_processor.settings(request)['settings']
+    sell_order_timeout = sitesettings['order_timeout_insec']
+    confirmation_timeout = sitesettings['confirmation_timeout_insec']
+    orders = backend_order_processor.get_unfilled_purchase_orders(request)
+
     pass
