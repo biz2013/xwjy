@@ -1,5 +1,19 @@
 {% extends "base_generic.html" %} {% block content %}
 
+<script>
+    $(document).ready(
+      function() {
+        $('#email').on('change',
+          function(e) {
+            $('#username').val(
+              $('#email').val()
+            );
+          }
+        );
+      }
+    );
+</script>
+
 <!-- body section -->
 <div class="container">
 
@@ -25,12 +39,12 @@
           {% csrf_token %}
 
           <div class="form-group">
-            <label class="control-label col-sm-2 requiredField" for="username">用户名:</label>
+            <label class="control-label col-sm-2 hidden" for="username">用户名:</label>
             <div class="col-sm-6">
-              <input id="username" type="text" class="form-control" placeholder="请设置用户名" name="username">
-              <!-- {% if form.username.help_text %}
+              <input id="username" type="form-control" class="form-control hidden" placeholder="请设置用户名" name="username">
+                 <!-- {% if form.username.help_text %}
               <small style="color: grey">{{ form.username.help_text }}</small>
-              {% endif %} -->
+              {% endif %}  -->
             </div>
           </div>
 
