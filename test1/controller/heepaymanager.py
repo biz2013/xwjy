@@ -59,6 +59,16 @@ class HeePayManager(object):
 
        return json.dumps(jsonobj,ensure_ascii=False)
 
+   def send_inquiry_request(self, payload):
+       conn = httplib.HTTPSConnection('wallet.heepay.com')
+       pay_url = '/Api/v1/PayQuery'
+       logger.info('the payload is {0}'.format(payload))
+       headers = {"Content-Type": "application/json",
+               "charset": "UTF-8"}
+       conn.request('POST', pay_url, payload, headers)
+       response = conn.getresponse()
+       return response.status, response.reason, response.read()
+
    def send_buy_apply_request(self, payload):
        conn = httplib.HTTPSConnection('wallet.heepay.com')
        pay_url = '/Api/v1/PayApply'
@@ -106,6 +116,54 @@ class HeePayManager(object):
        ))
        return signed_str == json_data['sign']
 
+
+   def get_payment_status(self, orderId, hy_bill_no, appId, app_key):
+       logger.info('get_payment_status({0},{1})'.format(orderId, hy_bill_no))
+       jsonobj = {}
+       jsonobj['method'] = 'wallet.pay.query'
+       jsonobj['version'] = '1.0'
+       jsonobj['app_id']= appId
+       jsonobj['charset'] = 'UTF-8'
+       jsonobj['sign_type'] = 'MD5'
+       epoch_now = time.time()
+       frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S")
+       #frmt_date = '20171218094803'
+       jsonobj['timestamp'] = frmt_date
+       biz_content = '{\"hy_bill_no\":\"%s\",' % (hy_bill_no)
+       biz_content = biz_content + '\"out_trade_no\":\"%s\"}' % (orderId)
+       jsonobj['biz_content'] = biz_content
+
+       m = hashlib.md5()
+       content_to_signed = 'app_id=%s&biz_content=%s&charset=%s&method=%s&sign_type=MD5&timestamp=%s&version=1.0&key=%s' % (
+                      appId,
+                      biz_content,
+                      jsonobj['charset'],
+                      'wallet.pay.query', frmt_date,
+                      app_key)
+       logger.info('get_payment_status(): content to be signed: {0}'.format(content_to_signed))
+       m.update(content_to_signed)
+       signed_str = m.hexdigest()
+       jsonobj['sign'] =  signed_str.upper()
+
+       payload = json.dumps(jsonobj,ensure_ascii=False)
+       status, reason, message = self.send_inquiry_request(payload)
+       if status != 200:
+           logger.error("Calling heepay failed with {0}:{1} {2}".format(status, reason, message))
+           return 'UNKNOWN'
+       json_response = json.loads(message)
+
+       if json_response['return_code'] != 'SUCCESS':
+           logger.error('Heepay report failure: %s' % (json_response['return_msg']))
+       if 'result_code' in json_response:
+           if json_response['result_code'] != 'SUCCESS' and 'result_msg' in json_response:
+               logger.error('Heepay return result message: {0}'.format(json_response['result_msg']))
+       if 'hy_bill_no' in json_response and json_response['hy_bill_no'] != hy_bill_no:
+           logger.error("Mismatch Bill No: response bill no is {0}, expected {1}".format(json_response['hy_bill_no'], hy_bill_no))
+       return json_response
+
+
+   def cancel_payment(self, orderId, hy_bill_no, appId, app_key):
+       pass
 
 """
 {"sign":"19D4E6B0418D4F47CDE76BF3AA1B50AD"}
