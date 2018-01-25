@@ -23,6 +23,7 @@ from . import app
 from views import mysellorder, homeview, accountinfoview, mypurchaseview
 from views import account_cronjob, externaladdrview, paymentmethods
 from views import redeemview, heepay_notify_view, transactionview
+from views import order_batch_process_view
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
@@ -42,6 +43,7 @@ urlpatterns = [
     url(r'^purchase/createorder1/$', mypurchaseview.show_purchase_input, name="input_purchase"),
     url(r'^purchase/createorder2/$', mypurchaseview.create_purchase_order),
     url(r'^account/cron/update_receive/$', account_cronjob.update_account_with_receiving_fund),
+    url(r'^account/cron/order_batch_process/$', order_batch_process_view.order_batch_process),
     url(r'^registration/$', app.registration),
     url(r'^accounts/login/$', auth_views.login, name='login'),
     url(r'^accounts/logout/$', auth_views.logout, name='logout'),
