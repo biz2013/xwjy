@@ -89,9 +89,8 @@ def order_batch_process(request):
                 handle_paid_order(order, confirmation_timeout)
             elif order.status == 'OPEN':
                 handle_open_order(order, sell_order_timeout)
-
-
-
+        return HttpResponse(content='OK')
     except Exception as e:
         error_msg = 'order_batch_process hit eception {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
+        return HttpResponse(content=error_msg)
