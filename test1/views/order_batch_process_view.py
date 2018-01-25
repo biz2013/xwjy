@@ -24,6 +24,7 @@ logger = logging.getLogger("site.order_batch_process")
 
 def handle_paying_order(order, order_timeout, appId, appkey):
     try:
+        logger.info("handle_paying_order {0}".format(order.order_id))
         trans = order.get_order_transactions(order.order_id)
         if not trans.payment_bill_no:
             logger.error('purchase order {0}: transaction id{1} : no payment bill no yet its status is PAYING'.format(order.order_id, trans.id))
@@ -54,6 +55,7 @@ def handle_paying_order(order, order_timeout, appId, appkey):
 
 def handle_paid_order(order, confirmation_timeout):
     try:
+        logger.info("handle_paid_order {0}".format(order.order_id))
         timediff = datetime.datetime().utcnow() - order.lastupdated_at
         if timediff > confirmation_timeout:
             ordermanager.confirm_purchase_order(order.order_id, 'admin')
@@ -63,6 +65,7 @@ def handle_paid_order(order, confirmation_timeout):
 
 def handle_open_order(order, sell_order_timeout):
     try:
+        logger.info("handle_open_order {0}".format(order.order_id))
         timediff = datetime.datetime().utcnow() - order.lastupdated_at
         if timediff > confirmation_timeout:
             ordermanager.cancel_purchase_order(order.order_id,
