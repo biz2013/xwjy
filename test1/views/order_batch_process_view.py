@@ -5,6 +5,7 @@ import logging,json, datetime
 
 from django.contrib import messages
 from django.shortcuts import render, redirect
+from django.http import HttpResponse
 
 # this is for test UI. A fake one
 from controller.global_constants import *
