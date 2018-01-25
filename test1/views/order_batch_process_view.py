@@ -82,7 +82,7 @@ def order_batch_process(request):
         confirmation_timeout = sitesettings.confirmation_timeout_insec
         appId = sitesettings.heepay_app_id
         appKey = sitesettings.heepay_app_key
-        orders = backend_order_processor.get_unfilled_purchase_orders(request)
+        orders = backend_order_processor.get_unfilled_purchase_orders()
         for order in orders:
             if order.status == 'PAYING':
                 handle_paying_order(order.order_id, sell_order_timeout, appId, appKey)
