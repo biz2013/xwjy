@@ -37,3 +37,14 @@ class AXFundUtility(object):
         subprocess.check_output(
            [self.axfd_path, '-datadir=%s'%(self.axfd_datadir), 'walletpassphrase',
             passphrase, str(timeout_in_sec)])
+
+    def create_wallet_address(self):
+        logger.info('Create wallet address: {0} {1} {2}'.format(
+            self.axfd_path, '-datadir=%s'%(self.axfd_datadir), 'getnewaddress',
+        ))
+        
+        result_str = subprocess.check_output(
+           [self.axfd_path, '-datadir=%s'%(self.axfd_datadir), 'getnewaddress','\"\"'])
+
+        logger.info("Wallet address {0} created".format(result_str))
+        return result_str
