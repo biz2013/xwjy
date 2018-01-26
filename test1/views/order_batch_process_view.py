@@ -71,7 +71,7 @@ def handle_open_order(order, sell_order_timeout):
         logger.info("handle_open_order {0}".format(order.order_id))
         timediff = timezone.now() - order.lastupdated_at
         if int(timediff.total_seconds()) > sell_order_timeout:
-            ordermanager.cancel_purchase_order(order.order_id,
+            ordermanager.cancel_purchase_order(order,
               'CANCELLED', 'UNKNOWN', 'admin')
     except Exception as e:
         error_msg = 'handle_open_order hit eception {0}'.format(sys.exc_info()[0])
