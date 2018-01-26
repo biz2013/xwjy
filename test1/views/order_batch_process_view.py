@@ -6,6 +6,7 @@ import logging,json, datetime
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
+from django.utils import timezone
 
 # this is for test UI. A fake one
 from controller.global_constants import *
@@ -31,7 +32,7 @@ def handle_paying_order(order, order_timeout, appId, appkey):
             logger.error('purchase order {0}: transaction id{1} : no payment bill no yet its status is PAYING'.format(order.order_id, trans.id))
             return;
 
-        timediff = datetime.datetime().utcnow() - order.lastupdated_at
+        timediff = timezone.now() - order.lastupdated_at
         if int(timediff.total_seconds()) > order_timeout:
             heepay = HeePayManager()
             if trans.payment_status != 'SUCCESS':
@@ -57,7 +58,7 @@ def handle_paying_order(order, order_timeout, appId, appkey):
 def handle_paid_order(order, confirmation_timeout):
     try:
         logger.info("handle_paid_order {0}".format(order.order_id))
-        timediff = datetime.datetime().utcnow() - order.lastupdated_at
+        timediff = timezone.now() - order.lastupdated_at
         if timediff > confirmation_timeout:
             ordermanager.confirm_purchase_order(order.order_id, 'admin')
     except Exception as e:
@@ -67,7 +68,7 @@ def handle_paid_order(order, confirmation_timeout):
 def handle_open_order(order, sell_order_timeout):
     try:
         logger.info("handle_open_order {0}".format(order.order_id))
-        timediff = datetime.datetime().utcnow() - order.lastupdated_at
+        timediff = timezone.now() - order.lastupdated_at
         if timediff > confirmation_timeout:
             ordermanager.cancel_purchase_order(order.order_id,
               'CANCELLED', 'UNKNOWN', 'admin')
