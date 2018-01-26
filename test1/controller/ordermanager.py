@@ -90,7 +90,7 @@ def cancel_purchase_order(order, final_status, payment_status,
             logger.error("cancel_purchase_order(): order {0} does not have PENDING userwallettrans to be updated".format(order_id))
 
         updated = Order.objects.filter(
-           Q(status = 'PAYING')|Q(status='OPEN'), Q(order_id = order_id)).update(
+           Q(status = 'PAYING')|Q(status='OPEN'), Q(order_id = order.order_id)).update(
            status = final_status,
            lastupdated_by = operatorObj,
            lastupdated_at = dt.datetime.utcnow()
