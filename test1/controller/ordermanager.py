@@ -74,9 +74,9 @@ def cancel_purchase_order(order, final_status, payment_status,
     operatorObj = User.objects.get(username = operator)
     with transaction.atomic():
         sell_order = Order.objects.select_for_update().get(pk=order.reference_order.order_id)
-        sell_order.units_locked = sell_order.units_locked - order.units,
-        sell_order.units_available_to_trade = sell_order.units_available_to_trade + order.units,
-        sell_order.status = 'OPEN',
+        sell_order.units_locked = sell_order.units_locked - order.units
+        sell_order.units_available_to_trade = sell_order.units_available_to_trade + order.units
+        sell_order.status = 'OPEN'
         sell_order.lastupdated_by = operatorObj
         updated = UserWalletTransaction.objects.filter(
                reference_order__order_id= order.order_id,
