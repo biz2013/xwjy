@@ -59,7 +59,7 @@ def handle_paid_order(order, confirmation_timeout):
     try:
         logger.info("handle_paid_order {0}".format(order.order_id))
         timediff = timezone.now() - order.lastupdated_at
-        if timediff > confirmation_timeout:
+        if int(timediff.total_seconds()) > confirmation_timeout:
             ordermanager.confirm_purchase_order(order.order_id, 'admin')
     except Exception as e:
         error_msg = 'handle_paid_order hit eception {0}'.format(sys.exc_info()[0])
@@ -69,7 +69,7 @@ def handle_open_order(order, sell_order_timeout):
     try:
         logger.info("handle_open_order {0}".format(order.order_id))
         timediff = timezone.now() - order.lastupdated_at
-        if timediff > confirmation_timeout:
+        if int(timediff.total_seconds()) > sell_order_timeout:
             ordermanager.cancel_purchase_order(order.order_id,
               'CANCELLED', 'UNKNOWN', 'admin')
     except Exception as e:
@@ -86,7 +86,7 @@ def order_batch_process(request):
         orders = backend_order_processor.get_unfilled_purchase_orders()
         for order in orders:
             if order.status == 'PAYING':
-                handle_paying_order(order.order_id, sell_order_timeout, appId, appKey)
+                handle_paying_order(order, sell_order_timeout, appId, appKey)
             elif order.status == 'PAID':
                 handle_paid_order(order, confirmation_timeout)
             elif order.status == 'OPEN':
