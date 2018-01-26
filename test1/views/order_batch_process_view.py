@@ -45,12 +45,12 @@ def handle_paying_order(order, order_timeout, appId, appkey):
                 if payment_status in ['PAYSUCCESS','SUCCESS']:
                     ordermanager.update_order_with_heepay_notification(json_response, 'admin')
                 if payment_status in ['EXPIREDINVALID','DEVCLOSE','USERABANDON','UNKNOWN']:
-                    ordermanager.cancel_purchase_order(order.order_id,
+                    ordermanager.cancel_purchase_order(order,
                       'FAILED', payment_status, 'admin')
                 else:
                     heepay.cancel_payment(order.order_id, trans.payment_bill_no, appId,
                                            appkey)
-                    ordermanager.cancel_purchase_order(order.order_id,
+                    ordermanager.cancel_purchase_order(order,
                       'CANCELLED', payment_status, 'admin')
     except Exception as e:
         error_msg = 'handle_paying_order hit eception {0}'.format(sys.exc_info()[0])
