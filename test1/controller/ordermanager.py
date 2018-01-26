@@ -78,7 +78,7 @@ def cancel_purchase_order(order, final_status, payment_status,
         sell_order.units_available_to_trade = sell_order.units_available_to_trade + order.units,
         sell_order.status = 'OPEN',
         sell_order.lastupdated_by = operatorObj
-        updated = UserWalletTransaction.Objects.filter(
+        updated = UserWalletTransaction.objects.filter(
                reference_order__order_id= order.order_id,
                status = 'PENDING').update(
                status = 'final_status',
