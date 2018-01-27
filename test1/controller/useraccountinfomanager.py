@@ -299,7 +299,6 @@ def get_user_accountInfo(user, crypto, load_balance_only=False):
         if userpayments:
            logger.info('User {0} has setup payment methods'.format(user.username))
            for method in userpayments:
-              logger.info("adding payment method..")
               payment_methods.append(UserPaymentMethodView(method.id,
                     user.id, method.provider.code,
                     method.provider.name,method.account_at_provider,
