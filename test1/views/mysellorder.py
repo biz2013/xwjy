@@ -38,6 +38,12 @@ def sell_axfund(request):
        if not request.user.is_authenticated():
           return render(request, 'login.html', { 'next' : '/mysellorder/'})
        accountinfo = useraccountinfomanager.get_user_accountInfo(request.user, 'AXFund', True)
+       if len(useraccountInfo.paymentmethods) == 0:
+           messages.error(request, '请先注册支付账号再挂卖单')
+           return redirect('accountinfo')
+       if len(useraccountInfo.paymentmethods[0].account_at_provider) == 0:
+           messages.error(request, '请先注册支付账号再挂卖单')
+           return redirect('accountinfo')
        if request.method == 'POST':
           request_source = request.POST['request_source']
           # this indicate that the request come from submit
