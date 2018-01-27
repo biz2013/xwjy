@@ -145,7 +145,8 @@ class UserWalletTransaction(models.Model):
         ('CANCEL SELL ORDER', 'Cancel Sell Order'),
         ('CANCEL BUY ORDER', 'Cancel Buy Order'),
         ('DELIVER ON PURCHASE', 'Deliver on purhcase'),
-        ('REDEEM','Redeem'), ('DEPOSIT','Deposit'))
+        ('REDEEM','Redeem'), ('REDEEMFEE', 'RedeemFee'),
+        ('DEPOSIT','Deposit'))
    TRANS_STATUS = (('PENDING','Pending'), ('PROCESSED','Processed'), ('CANCELLED', 'Cancelled'))
    # status for automatic payment
    PAYMENT_STATUS = (('NOTSTATRTED', 'Not Started'),

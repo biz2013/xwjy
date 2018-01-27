@@ -120,6 +120,7 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
                                         operator):
     try:
         user_wallet_trans = UserWalletTransaction.objects.get(
+            transaction_type ='REDEEM',
             user_wallet__user__id=user_wallet.user.id,
             user_wallet__wallet_addr=user_wallet.wallet_addr,
             reference_wallet_trxId=trx['txid'])
@@ -127,22 +128,27 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
             logger.info('txid {0} is confirmed, need to change status for user_wallet_trans {1}'.format(
                  trx['txid'], user_wallet_trans.id
             ))
+            amount = math.fabs(trx['amount'])
             with transaction.atomic():
                 user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet.id)
-                balance_end = user_wallet.balance + trx['amount']
-                available_to_trade_end = user_wallet.available_balance + trx['amount']
+                # reduce total balance
+                balance_end = user_wallet.balance - amount
+                # release the locked amount
+                locked_balance_end = user_wallet.locked_balance + amount
+
                 user_wallet_trans.balance_begin = user_wallet.balance
                 user_wallet_trans.balance_end = balance_end
                 user_wallet_trans.locked_balance_begin =  user_wallet.locked_balance
-                user_wallet_trans.locked_balance_end =  user_wallet.locked_balance
+                user_wallet_trans.locked_balance_end =  locked_balance_end
+                # no change on the available balance
                 user_wallet_trans.available_to_trade_begin = user_wallet.available_balance
-                user_wallet_trans.available_to_trade_end = available_to_trade_end
+                user_wallet_trans.available_to_trade_end = user_wallet.available_balance
                 user_wallet_trans.lastupdated_by = operator
                 user_wallet_trans.status = 'PROCESSED'
                 user_wallet_trans.save()
 
                 user_wallet.balance = balance_end
-                user_wallet.available_balance = available_to_trade_end
+                user_wallet.locked_balance = locked_balance_end
                 user_wallet.user_wallet_trans_id = user_wallet_trans.id
                 user_wallet.lastupdated_by = operator
                 user_wallet.save()
@@ -167,15 +173,41 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
             locked_balance_end = 0
             available_to_trade_begin =0
             available_to_trade_end = 0
+
+            amount = math.fabs(trx['amount'])
+            fee = math.fabs(trx['fee'])
             if trx['confirmations'] >= min_trx_confirmation:
                 user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet.id)
                 trans_status = 'PROCESSED'
                 balance_begin = user_wallet.balance
-                balance_end = user_wallet.balance + trx['amount']
+                balance_end = user_wallet.balance - amount - fee
                 locked_balance_begin = user_wallet.locked_balance
                 locked_balance_end = user_wallet.locked_balance
                 available_to_trade_begin = user_wallet.available_balance
-                available_to_trade_end = user_wallet.available_balance + trx['amount']
+                available_to_trade_end = user_wallet.available_balance - amount -fee
+            else:
+                # if the transaction has not been confirmed, not recording fees
+                # in transactions' balance record
+                fee = 0
+            wallet_trans = UserWalletTransaction.objects.create(
+                user_wallet = user_wallet,
+                balance_begin= balance_begin,
+                balance_end = balance_end + fee,
+                locked_balance_begin = locked_balance_begin,
+                locked_balance_end = locked_balance_end,
+                available_to_trade_begin = available_to_trade_begin,
+                available_to_trade_end = available_to_trade_end + fee,
+                reference_order = None,
+                reference_wallet_trxId = trx['txid'],
+                units = amount,
+                balance_update_type = 'DEBT',
+                transaction_type = 'REDEEM',
+                comment = 'User redeem',
+                reported_timestamp = trx['timereceived'],
+                status = trans_status,
+                created_by = operator,
+                lastupdated_by = operator
+            )
             wallet_trans = UserWalletTransaction.objects.create(
                 user_wallet = user_wallet,
                 balance_begin= balance_begin,
@@ -186,10 +218,10 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
                 available_to_trade_end = available_to_trade_end,
                 reference_order = None,
                 reference_wallet_trxId = trx['txid'],
-                units = math.fabs(trx['amount']),
+                units = fee,
                 balance_update_type = 'DEBT',
-                transaction_type = 'REDEEM',
-                comment = 'User redeem',
+                transaction_type = 'REDEEMFEE',
+                comment = 'User redeem fee',
                 reported_timestamp = trx['timereceived'],
                 status = trans_status,
                 created_by = operator,
@@ -225,7 +257,6 @@ def get_send_money_trans_userid(trx):
         return -1
 
 def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
-    print 'update_account_balance_with_wallet_trx'
     # prepare the data for sysop, which will be the created_by and last
     # updated by
     operator = User.objects.get(username='admin')
