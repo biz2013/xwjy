@@ -1,0 +1,7 @@
+{% autoescape off %}
+Hi {{ user.email }} 您好，
+
+感谢注册美基金，请点击以下链接确认您的注册
+
+http://{{ domain }}{% url 'activate_user_registration' uidb64=uid token=token %}
+{% endautoescape %}
