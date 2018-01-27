@@ -223,11 +223,20 @@ print 'media root is %s' % (MEDIA_ROOT)
 
 # Set password reset email to console.
 # Comment this line and use below email settings when moving to production.
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'axfundnoreply@gmail.com'
+EMAIL_HOST_PASSWORD = 'axTrade@123'
+
+# Current Problem is 163 think we are spaming, need to refactor our email content.  (451 DT:SPM, http://help.163.com/09/1224/17/5RAJ4LMH00753VB8.html)
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.163.com'
+# EMAIL_PORT = 25
 # EMAIL_USE_TLS = True
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_HOST_USER = 'xxxx@xxxx.com'
-# EMAIL_HOST_PASSWORD = 'xxxxxx'
-
+# EMAIL_HOST_USER = 'axfund_noreply@163.com'
+# #Client Auth Code
+# EMAIL_HOST_PASSWORD = 'axTrade@163.com'
+# DEFAULT_FROM_EMAIL = 'AxFund<axfund_noreply@163.com>'  # Must be same as email address
