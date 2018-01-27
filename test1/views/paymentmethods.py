@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 from django.db.models import Q
+from django.contrib import messages
 from django.shortcuts import render, redirect
 from controller.heepaymanager import HeePayManager
 from controller.global_utils import *
@@ -39,6 +40,16 @@ def payment_method(request):
            payment_method_id = int(str_val) if len(str_val) > 0 else 0
            payment_provider = request.POST['payment_provider']
            account = request.POST['account']
+
+           has_error = False
+           if len(payment_provider) == 0:
+               has_error = True
+               messages.error(request, '请选择支付方式')
+           elif len(account) == 0:
+               has_error = True
+               messages.error(request, '请输入您的账号')
+           if has_error:
+               return redirect('paymentmethods')
            record = UserPaymentMethodView(payment_method_id,
                     request.user.id,
                     payment_provider,
