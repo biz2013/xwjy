@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase, TransactionTestCase
 from django.test import Client
+from django.utils import timezone
 from django.contrib.auth.models import User
 
 from users.models import *
@@ -20,6 +21,7 @@ from mock import Mock, MagicMock, patch, mock
 from calendar import timegm
 from datetime import datetime as dt
 from setuptest import *
+
 
 # match the hy_bill_no in test data test_heepay_confirm.json
 TEST_HY_BILL_NO='180102122300364021000081666'
@@ -495,6 +497,36 @@ class PurchaseTestCase(TransactionTestCase):
 
         except Exception as e:
             error_msg = 'test_2_purchase_view(): hit exception {0}'.format(
+                  sys.exc_info()[0])
+            print error_msg
+            print traceback.format_exc()
+            self.fail(error_msg)
+
+    def test_record_datetime_operation(self):
+        sell_order_id = self.create_sell_order()
+        found_seller_order = False
+        sell_order = None
+        wait_count = 0
+        while not found_seller_order and wait_count < 60:
+            try:
+                sell_order = Order.objects.get(pk=sell_order_id)
+                found_seller_order = True
+            except Order.DoesNotExist:
+                print 'test_create_purchase_order(): expected sell order does not exist wait for one second'
+                wait_count = wait_count + 1
+                time.sleep(1)
+                continue
+            except Order.MultipleObjectsReturned:
+                self.fail('There should ONLY be one sell order created')
+        try:
+
+            print 'order lastupdated at {0}'.format(sell_order.lastupdated_at)
+            now_aware = timezone.now()
+            print 'now aware is {0}'.format(now_aware)
+            timediff = now_aware - sell_order.lastupdated_at
+            print 'the order and now\'s difference is {0}'.format(timediff.total_seconds())
+        except Exception as e:
+            error_msg = 'test_create_purchase_order() hit exception {0}'.format(
                   sys.exc_info()[0])
             print error_msg
             print traceback.format_exc()

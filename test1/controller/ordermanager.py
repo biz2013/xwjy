@@ -64,10 +64,42 @@ def create_sell_order(order, operator):
         userwallet.locked_balance = userwallet.locked_balance + order.total_units
         userwallet.available_balance = userwallet.available_balance - order.total_units
         userwallet.save()
-        logger.info('After creating order {0}, userwallet {1} has balance:{2} available_balance:{3} locked_balance: {4}'.format(
-           orderRecord.order_id, userwallet.id, userwallet.balance, userwallet.available_balance, userwallet.locked_balance
+        logger.info('Created sell order {0}, units {1} user\'s wallet: balance:{2} available_balance:{3} locked_balance: {4}'.format(
+           orderRecord.order_id, orderRecord.units, userwallet.balance, userwallet.available_balance, userwallet.locked_balance
         ))
         return orderRecord.order_id
+
+def cancel_purchase_order(order, final_status, payment_status,
+                         operator):
+    operatorObj = User.objects.get(username = operator)
+    with transaction.atomic():
+        sell_order = Order.objects.select_for_update().get(pk=order.reference_order.order_id)
+        sell_order.units_locked = sell_order.units_locked - order.units
+        sell_order.units_available_to_trade = sell_order.units_available_to_trade + order.units
+        sell_order.status = 'OPEN'
+        sell_order.lastupdated_by = operatorObj
+        updated = UserWalletTransaction.objects.filter(
+               reference_order__order_id= order.order_id,
+               status = 'PENDING').update(
+               status = 'final_status',
+               payment_status = payment_status,
+               lastupdated_by = operatorObj,
+               lastupdated_at = dt.datetime.utcnow()
+        )
+        if not updated:
+            logger.error("cancel_purchase_order(): order {0} does not have PENDING userwallettrans to be updated".format(order_id))
+
+        updated = Order.objects.filter(
+           Q(status = 'PAYING')|Q(status='OPEN'), Q(order_id = order.order_id)).update(
+           status = final_status,
+           lastupdated_by = operatorObj,
+           lastupdated_at = dt.datetime.utcnow()
+        )
+        if not updated:
+            logger.error("cancel_purchase_order(): did not find order {0} to update, maybe someone changed its status from PAYING already".format(order_id))
+
+        # release lock
+        sell_order.save()
 
 def get_all_open_seller_order_exclude_user(user_id):
     sell_orders = Order.objects.filter(order_type='SELL').exclude(user__id=user_id).exclude(status='CANCELLED').exclude(status='FILLED').order_by('unit_price','-lastupdated_at')
@@ -206,8 +238,8 @@ def create_purchase_order(buyorder, reference_order_id,
         reference_order.units_locked = reference_order.units_locked + buyorder.total_units
         reference_order.units_available_to_trade = reference_order.units_available_to_trade - buyorder.total_units
         reference_order.save()
-        logger.info('After creating purchase order {0}, sell order {1} has available_units:{2} locked_units: {3} original units: {4}'.format(
-           order.order_id, reference_order.order_id,
+        logger.info('Created purchase order {0}: units:{1} sell order {2} available_units:{3} locked_units: {4} original units: {5}'.format(
+           order.order_id, order.units, reference_order.order_id,
            reference_order.units_available_to_trade,
            reference_order.units_locked,
            reference_order.units
@@ -499,3 +531,6 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, hy_url, user
 def get_user_transactions(userid, crypto):
     return UserWalletTransaction.objects.filter(user_wallet__user__id= userid,
         user_wallet__wallet__cryptocurrency__currency_code = crypto).order_by('-lastupdated_at')
+
+def get_order_transactions(orderid):
+    return UserWalletTransaction.objects.get(reference_order__order_id = orderid)

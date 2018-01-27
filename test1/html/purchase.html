@@ -47,6 +47,7 @@
             </tr>
             {% if sellorders %}
                {% for order in sellorders %}
+            {% if order.available_units > 0 %}
             <tr>
               <!--<td>{{ order.lastmodified_at }}</td>-->
               <td>{{ order.available_units }}</td>
@@ -58,6 +59,7 @@
               <td><button type="button" class="btn btn-primary" onclick="create_purchase_order('{{ order.order_id }}', '{{ order.owner_user_id }}', '{{ order.owner_login }}','{{ order.unit_price }}', '{{ order.available_units }}')">购买</button></td>
               {% endif %}
             </tr>
+            {% endif %}
                {% endfor %}
             {% else %}
             <tr>
