@@ -53,18 +53,18 @@ def heepay_confirm_payment(request):
             order_id = request.GET.get('order_id')
             if order_id is None:
                 logger.error('heepay did not return with order_id with sync notification')
-                messages.error(request, '汇钱包回复没有买单号码，请刷新交易记录等待交易完成')
+                messages.error(request, '请稍后再查看您的买单')
             else:
                 order = ordermanager.get_order_info(order_id)
                 if order.status == 'PAYING':
                     logger.warn('purchse order {0} is still in PAYING mode'.format(order_id))
-                    messages.warning(request, '支付系统还未最终确认买单{0}支付成功，请刷新交易记录等待交易完成'.format(order_id,order.units))
+                    messages.warning(request, '请等会确认付款完成'.format(order_id,order.units))
                 elif order.status == 'PAID':
                     logger.info('purchse order {0} is already PAID'.format(order_id))
-                    messages.success(request, '支付系统确认买单{0}支付成功，请刷新交易记录等待交易完成'.format(order_id))
+                    messages.success(request, '买单已发送，请等待卖方确认'.format(order_id))
                 else:
                     logger.info('purchase order {0} has been filled'.format(order_id))
-                    messages.success(request, '您的买单{0}交易已完成，请看交易记录'.format(order_id))
+                    messages.success(request, '您的购买交易已完成，请看交易记录'.format(order_id))
                     return redirect('mytransactions')
         return redirect('purchase')
     except Exception as e:
