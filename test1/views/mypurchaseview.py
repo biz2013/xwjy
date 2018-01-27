@@ -36,7 +36,7 @@ def show_active_sell_orders(request):
        username = request.user.username
        status = None
        sellorders = ordermanager.get_all_open_seller_order_exclude_user(request.user.id)
-       accountinfo = useraccountinfomanager.get_user_accountInfo(request.user, 'AXFund', True)
+       accountinfo = useraccountinfomanager.get_user_accountInfo(request.user, 'AXFund')
        return render(request, 'html/purchase.html', {'sellorders': sellorders,
                 REQ_KEY_USERNAME: username,
                 'useraccountInfo': accountinfo,
@@ -57,7 +57,7 @@ def show_purchase_input(request):
         userid = request.user.id
         useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
         if len(useraccountInfo.paymentmethods) == 0:
-            messages.error(request, '请先注册支付账号再购买')
+            messages.error(request, '请先注册支付方式再购买')
             return redirect('accountinfo')
         if len(useraccountInfo.paymentmethods[0].account_at_provider) == 0:
             messages.error(request, '请先注册支付账号再购买')
