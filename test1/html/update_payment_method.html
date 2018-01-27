@@ -57,10 +57,21 @@ $(function() {
       <div class="row">
         <div class="col-md-4 col-md-offset-4">
           <h4>添加,修改付款方式</h4>
-          <form action="/accounts/paymentmethods/" method="post">
+          {% if messages %}
+          {% for message in messages %}
+          {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+          <div id="div_message" class="text-danger">{{ message }}</div>
+          {% else %}
+          <div id="div_message" class="text-success">{{ message }}</div>
+          {% endif %}
+          {% endfor %}
+          {% else %}
+          <div id="div_message" class="text-danger"></div>
+          {% endif %}
+          <form id="frm_paymentmethod" action="/accounts/paymentmethods/" method="post">
             {% csrf_token %}
             <input type="hidden" id="txt_payment_method_id" name="payment_method_id" value=""/>
-            <div id="div_id_username" class="form-group"> <label for="id_username" class="control-label  requiredField">支付方式<span class="asteriskField">*</span> </label>
+            <div class="form-group"> <label for="id_username" class="control-label  requiredField">支付方式<span class="asteriskField">*</span> </label>
             <div class="controls ">
               <script language='JavaScript'>
               class PaymentMethod {
@@ -87,11 +98,27 @@ $(function() {
                     $("#txt_payment_method_id").val(payment_methods[provider_code].record_id)
                  }
               }
+
+              function save_payment_method() {
+                if ($("#sel_id_payment_provider").val() == "请选择支付方式"){
+                  $("#div_message").text("请您选择支付方式");
+                  return;
+                }
+                if ($("#txt_id_account_at_provider").val() == "") {
+                  $("#div_message").text("请您输入您的账号");
+                  return;
+                }
+
+                $("#frm_paymentmethod").submit();
+              }
               </script>
               <select class="form-control" id="sel_id_payment_provider" name="payment_provider" onchange="select_user_payment_method(this.value)">
+                   <option>请选择支付方式</option>
                 {% if payment_providers %}
                    {% for provider in payment_providers %}
+                   {% if provider.code == 'heepay' %}
                    <option value="{{ provider.code }}">{{ provider.name }}</option>
+                   {% endif %}
                    {% endfor %}
                 {% endif %}
               </select>
@@ -113,7 +140,7 @@ $(function() {
             </div>-->
             <!-- COMPONENT END -->
             <div class="form-group">
-              <button type="submit" class="btn btn-primary pull-left">确认</button>
+              <button type="button" class="btn btn-primary pull-left" onclick="save_payment_method()">确认</button>
               <a href='/accounts/accountinfo/' class="btn btn-default pull-right">取消</a>
             </div>
         </form>
