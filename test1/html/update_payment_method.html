@@ -91,7 +91,9 @@ $(function() {
               <select class="form-control" id="sel_id_payment_provider" name="payment_provider" onchange="select_user_payment_method(this.value)">
                 {% if payment_providers %}
                    {% for provider in payment_providers %}
+                   {% if provider.code == 'heepay' %}
                    <option value="{{ provider.code }}">{{ provider.name }}</option>
+                   {% endif %}
                    {% endfor %}
                 {% endif %}
               </select>

@@ -99,7 +99,9 @@
                    <div class="controls "> <select class="select select-input form-control" id="id_seller_payment_method" name="seller_payment_provider">
                        <option value="">请选择付款方式</option>
                        {% for payment_method in owner_payment_methods %}
+                       {% if payment_method.provider_code == 'heepay' %}
                        <option value="{{ payment_method.provider_code }}">{{ payment_method.provider_name }}</option>
+                       {% endif %}
                        {% endfor %}
                      </select>
                    </div>
