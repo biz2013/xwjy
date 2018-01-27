@@ -48,6 +48,7 @@ def home(request):
 def registration(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
+
         if form.is_valid():
 
             # username = form.cleaned_data.get('username')
@@ -56,6 +57,7 @@ def registration(request):
             # user = authenticate(username=username, password=raw_password)
             # login(request, user)
             # return redirect('home')
+
             user = None
             with transaction.atomic():
                 user = form.save(commit=False)
@@ -65,8 +67,9 @@ def registration(request):
                 user_wallet.user = user
                 user_wallet.save()
 
+            rlogger.info('User register complete') 
             current_site = get_current_site(request)
-            mail_subject = 'Activate your blog account.'
+            mail_subject = '请激活您的美基金账户.'
             message = render_to_string('registration/user_active_email.html', {
                 'user': user,
                 'domain': current_site.domain,
@@ -74,9 +77,13 @@ def registration(request):
                 'token': account_activation_token.make_token(user),
             })
             to_email = form.cleaned_data.get('email')
+
+            rlogger.info('Email to {0}'.format(to_email))
+
             email = EmailMessage(
                 mail_subject, message, to=[to_email]
             )
+
             email.send()
             messages.success(request, '您的注册激活链接已经发到您的注册邮箱{0}。请在三天内激活。'.format(to_email))
             return render(request, 'html/registration/registration_confirm.html')
