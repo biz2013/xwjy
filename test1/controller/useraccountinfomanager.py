@@ -273,8 +273,7 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
                     created_by = operator,
                     lastupdated_by = operator
                 )
-            logger.info('Create redeem transaction {0} related to txid {1}'.format(
-                  wallet_trans.id,trx['txid']))
+            logger.info('Create redeem transaction for related to txid {0}'.format(trx['txid']))
             if trx['confirmations'] >= min_trx_confirmation:
                 user_wallet.balance = balance_fee_end
                 user_wallet.locked_balance = locked_balance_fee_end
