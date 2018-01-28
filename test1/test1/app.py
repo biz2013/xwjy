@@ -14,6 +14,7 @@ from controller.token import account_activation_token
 
 from controller.global_constants import *
 from controller import loginmanager
+from controller import axfd_utils
 from users.models import *
 from views.models.orderitem import OrderItem
 from views.models.returnstatus import ReturnStatus
@@ -45,6 +46,19 @@ def home(request):
         return redirect('accountinfo')
     return render(request, 'html/index.html')
 
+def create_user_axfund_wallet():
+    sitesettings = SiteSettings.load()
+    axfd_tool = axfd_utils.AXFundUtility(sitesettings.axfd_path, sitesettings.axfd_datadir, sitesettings.axfd_account_name)
+    addr = axfd_tool.create_wallet_address()
+
+    axfund_wallet = Wallet.objects.get(name = "AXFundWallet")
+    axfund_user_wallet = UserWallet()
+    axfund_user_wallet.wallet = axfund_wallet
+    axfund_user_wallet.wallet_addr = addr
+    axfund_user_wallet.save()
+
+    return axfund_user_wallet
+
 def registration(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
@@ -60,10 +74,13 @@ def registration(request):
 
             user = None
             with transaction.atomic():
+
                 user = form.save(commit=False)
-                user.is_active = False
+                user.is_active = False    
                 user.save()
-                user_wallet = UserWallet.objects.select_for_update().filter(Q(user__isnull=True))[0]
+
+                #user_wallet = UserWallet.objects.select_for_update().filter(Q(user__isnull=True))[0]
+                user_wallet = create_user_axfund_wallet()
                 user_wallet.user = user
                 user_wallet.save()
 

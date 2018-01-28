@@ -134,9 +134,9 @@ class UserWallet(models.Model):
    last_wallet_trxId = models.CharField(max_length=128, default='')
    last_wallet_timestamp = models.IntegerField(default=0)
    created_at = models.DateTimeField(auto_now_add=True)
-   created_by = models.ForeignKey(User, related_name='UserWallet_created_by')
+   created_by = models.ForeignKey(User, related_name='UserWallet_created_by', null=True)
    lastupdated_at = models.DateTimeField(auto_now=True)
-   lastupdated_by = models.ForeignKey(User, related_name='UserWallet_lastupdated_by')
+   lastupdated_by = models.ForeignKey(User, related_name='UserWallet_lastupdated_by', null=True)
 
 class UserWalletTransaction(models.Model):
    BALANCE_UPDATE_TYPES = (('CREDIT','Credit'),('DEBT','Debt'))
