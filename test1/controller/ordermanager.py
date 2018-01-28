@@ -81,7 +81,7 @@ def cancel_purchase_order(order, final_status, payment_status,
         updated = UserWalletTransaction.objects.filter(
                reference_order__order_id= order.order_id,
                status = 'PENDING').update(
-               status = 'final_status',
+               status = final_status,
                payment_status = payment_status,
                lastupdated_by = operatorObj,
                lastupdated_at = dt.datetime.utcnow()
