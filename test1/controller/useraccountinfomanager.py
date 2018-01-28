@@ -278,7 +278,6 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
                 user_wallet.balance = balance_fee_end
                 user_wallet.locked_balance = locked_balance_fee_end
                 user_wallet.available_balance = available_to_trade_fee_end
-                user_wallet.user_wallet_trans_id = wallet_trans.id
                 user_wallet.lastupdated_by = operator
                 user_wallet.save()
                 logger.info('Update user wallet balance for user id {0} address {1} related to txid {2}'.format(
@@ -286,7 +285,6 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
             else:
                 user_wallet.locked_balance = user_wallet.locked_balance + amount + fee
                 user_wallet.available_balance = user_wallet.available_balance - amount - fee
-                user_wallet.user_wallet_trans_id = wallet_trans.id
                 user_wallet.lastupdated_by = operator
                 user_wallet.save()
                 logger.info('Update user wallet balance for user id {0} address {1} related to txid {2}'.format(
