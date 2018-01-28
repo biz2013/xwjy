@@ -284,7 +284,7 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
                 user_wallet.save()
                 logger.info('Update user wallet balance for user id {0} address {1} related to txid {2}'.format(
                     user_wallet.user.id, user_wallet.wallet_addr, trx['txid']))
-             else:
+            else:
                 user_wallet.locked_balance = user_wallet.locked_balance + amount + fee
                 user_wallet.available_balance = user_wallet.available_balance - amount - fee
                 user_wallet.user_wallet_trans_id = wallet_trans.id
