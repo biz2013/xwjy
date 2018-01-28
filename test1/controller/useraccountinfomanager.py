@@ -134,6 +134,7 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
             logger.info('txid {0} is confirmed, need to change status for user_wallet_trans {1}'.format(
                  trx['txid'], user_wallet_trans.id
             ))
+            user_wallet_fee_trans = None
             amount = math.fabs(trx['amount'])
             fee = math.fabs(trx['fee'])
             if user_wallet_trans.units != amount:
