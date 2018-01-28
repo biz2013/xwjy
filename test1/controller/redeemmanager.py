@@ -18,19 +18,13 @@ from views.models.userexternalwalletaddrinfo import *
 logger = logging.getLogger("site.redeemmanager")
 
 #TODO: this may not needed
-def redeem(command, operator, txid, operation_comment):
+def redeem(command, operator, txid, fee, operation_comment):
     operatorObj = User.objects.get(username=operator)
     with transaction.atomic():
-        userwallet = UserWallet.objects.select_for_update().get(user__username=operator,
+        userwallet = UserWallet.objects.get(user__username=operator,
              wallet__cryptocurrency__currency_code=command.crypto)
         userwallet_trans = UserWalletTransaction.objects.create(
           user_wallet = userwallet,
-          balance_begin = userwallet.balance,
-          balance_end = userwallet.balance - command.amount,
-          locked_balance_begin = userwallet.locked_balance,
-          locked_balance_end = userwallet.locked_balance,
-          available_to_trade_begin = userwallet.available_balance,
-          available_to_trade_end = userwallet.available_balance - command.amount,
           reference_order = None,
           reference_wallet_trxId = txid,
           units = command.amount,
@@ -43,4 +37,24 @@ def redeem(command, operator, txid, operation_comment):
           created_by = operatorObj,
           lastupdated_by = operatorObj
         )
-        userwallet_trans.save()
+        userwallet_trans = UserWalletTransaction.objects.create(
+          user_wallet = userwallet,
+          reference_order = None,
+          reference_wallet_trxId = txid,
+          units = fee,
+          balance_update_type= 'DEBT',
+          transaction_type = 'REDEEMFEE',
+          comment = operation_comment,
+          #TODO: need to get the transaction and its timestamp
+          reported_timestamp = 0,
+          status = 'PENDING',
+          created_by = operatorObj,
+          lastupdated_by = operatorObj
+        )
+
+        UserWallet.objects.fileter(id=userwallet.id).update(
+          locked_balance = F(locked_balance) + command.amount + fee,
+          avaiable_balance = F(avaiable_balance) - command.amount - fee,
+          lastupdated_at = dt.datetime().ntcnow(),
+          lastupdated_by = operatorObj
+        )

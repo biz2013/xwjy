@@ -39,7 +39,7 @@
 },
 {
   "model": "users.userwallet",
-  "pk": "3",
+  "pk": "4",
   "fields":{
     "user": null,
     "wallet": 1,
@@ -52,7 +52,7 @@
 },
 {
   "model": "users.userwallet",
-  "pk": "3",
+  "pk": "5",
   "fields":{
     "user": null,
     "wallet": 1,
