@@ -530,7 +530,7 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, hy_url, user
 
 def get_user_transactions(userid, crypto):
     return UserWalletTransaction.objects.filter(user_wallet__user__id= userid,
-        user_wallet__wallet__cryptocurrency__currency_code = crypto).order_by('-lastupdated_at')
+        user_wallet__wallet__cryptocurrency__currency_code = crypto, status='PROCESSED').order_by('-lastupdated_at')
 
 def get_order_transactions(orderid):
     return UserWalletTransaction.objects.get(reference_order__order_id = orderid)
