@@ -8,6 +8,7 @@ class TransactionListItem(object):
                    'CANCEL BUY ORDER': '取消买单',
                    'DELIVER ON PURCHASE': '卖出',
                    'REDEEM': '提币',
+                   'REDEEMFEE': '提币费',
                    'DEPOSIT': '存币'}
         self.id = id
         self.trans_type = trans_type

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import sys
+import sys, math
 from django.db.models import Q
 from django.shortcuts import render, redirect
 from controller.heepaymanager import HeePayManager
@@ -35,16 +35,18 @@ def redeem(request):
            axfd_datadir = sitesettings.axfd_datadir
            axfd_passphrase = sitesettings.axfd_passphrase
            wallet_account_name = sitesettings.axfd_account_name
+           axfd_account = sitesettings.axfd_account_name
            axfd_tool = AXFundUtility(axfd_bin_path, axfd_datadir,
                 wallet_account_name)
            axfd_tool.unlock_wallet(axfd_passphrase, 15)
            operation_comment = 'UserId:{0},redeem:{1},to:{2}'.format(
                userid, amount, toaddr)
-           txid = axfd_tool.send_fund(toaddr, amount,
+           trx = axfd_tool.send_fund(axfd_account, toaddr, amount,
                    operation_comment)
-           # with the background checking, this seems not necessart
-           #redeem_cmd = RedeemItem(userid, toaddr, amount, crypto)
-           #redeemmanager.redeem(redeem_cmd, request.user.username)
+           redeem_cmd = RedeemItem(userid, toaddr, amount, crypto)
+           redeemmanager.redeem(redeem_cmd,request.user.username,
+              trx['txid'], trx['fee'],
+              operation_comment)
            return redirect('accountinfo')
        else:
            return HttpBadRequestResponse('The method can not be GET for redeem')
