@@ -27,7 +27,7 @@ def update_account_with_receiving_fund(request):
        client_ip = get_client_ip(request)
        if client_ip != '127.0.0.1':
           message = 'update_account_with_receiving_fund() only accept request from localhost. The client ip is {0}'.format(client_ip)
-          loggger.error(message)
+          logger.error(message)
           return HttpResponseForbidden()
        sitesettings = context_processor.settings(request)['settings']
        axfd_bin_path = sitesettings.axfd_path
