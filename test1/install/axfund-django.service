@@ -20,8 +20,8 @@ WorkingDirectory=/home/ubuntu/workspace/django/xwjy/test1
 # The command to start Puma. This variant uses a binstub generated via
 # `bundle binstubs puma --path ./sbin` in the WorkingDirectory
 # (replace "<WD>" below)
-ExecStart=/usr/bin/python manage.py runserver 0.0.0.0:8000
-#ExecStart=/etc/systemd/system/axfund-django_start.sh
+#ExecStart=/usr/bin/python manage.py runserver 0.0.0.0:80
+ExecStart=/etc/systemd/system/axfund-django_start.sh
 ExecStop=/bin/pkill -f manage.py
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
