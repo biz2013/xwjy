@@ -30,7 +30,7 @@ class AXFundUtility(object):
             dst, str(amount), '\"{0}\"'.format(comment)])
         logger.info("send to address return transaction id {0}".format(
             result_str))
-        transactions = self.listtransactions(src_account, lookback_count)
+        transactions = self.listtransactions(lookback_count)
         for trans in transactions:
             if trans['txid'] == result_str:
                 return trans
