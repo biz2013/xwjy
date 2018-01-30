@@ -127,22 +127,26 @@ sudo cp ~/workspace/django/xwjy/test1/install/axfund-django* /etc/systemd/system
 sudo systemctl start axfund-django.service
 
 #
-# start wallet
+# Preparing wallet
 #
-under virtualenv django
-cd xwjy/smwy/src # assume you untar axfd here.
-
 #
-# start wallet use the ../../qb/axf.conf but use new wallet
-#
-./axfd -datadir=../../qb/axf.conf
+First, check the ~/workspace/jdango/xwjy/qb/axf.conf, make sure we open the port that axfd wants on AWS security group (usually 19344)
+Second, start the wallet 
+cd ~/workspace/jdango/xwjy/smwy/src # assume you untar axfd here.
+./axfd -datadir=../../qb &
+Third, run ./axfd -datadir=../../qb encryptwallet <passphrase>
+This one will stop axfd
+You need to restart it
 
-The initial setup will cause you to sync wallet, which could take hours. You can
-tail -f xwjy/qb/debug.log to see the progress
+Then, go to admin page of the service, change following:
+1. axfd password to the passphrase you just set
+2. make sure the heepay return IP is right
+3. make sure the heepay return port is right
+4. provide an email for support and save the change
 
+You can look at the wallet log
+tail -f xwjy/qb/debug.log
 
-
-./axfd -datadir=../../qb
 
 -----
 Optional: install JSON-RPC to talk to wallet
