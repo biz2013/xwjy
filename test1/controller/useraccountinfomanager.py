@@ -175,8 +175,8 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
                 user_wallet_fee_trans.status = 'PROCESSED'
                 user_wallet_fee_trans.save()
 
-                user_wallet.balance = balance_end
-                user_wallet.locked_balance = locked_balance_end
+                user_wallet.balance = round(balance_end,8)
+                user_wallet.locked_balance = round(locked_balance_end, 8)
                 user_wallet.user_wallet_trans_id = user_wallet_trans.id
                 user_wallet.lastupdated_by = operator
                 user_wallet.save()
