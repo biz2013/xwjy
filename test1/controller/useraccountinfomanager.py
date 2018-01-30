@@ -177,6 +177,7 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
 
                 user_wallet.balance = round(balance_end,8)
                 user_wallet.locked_balance = round(locked_balance_end, 8)
+                user_wallet.available_balance = round(user_wallet.available_balance, 8)
                 user_wallet.user_wallet_trans_id = user_wallet_trans.id
                 user_wallet.lastupdated_by = operator
                 user_wallet.save()
@@ -275,16 +276,16 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
                 )
             logger.info('Create redeem transaction for related to txid {0}'.format(trx['txid']))
             if trx['confirmations'] >= min_trx_confirmation:
-                user_wallet.balance = balance_fee_end
-                user_wallet.locked_balance = locked_balance_fee_end
-                user_wallet.available_balance = available_to_trade_fee_end
+                user_wallet.balance = round(balance_fee_end,8)
+                user_wallet.locked_balance = round(locked_balance_fee_end,8)
+                user_wallet.available_balance = round(available_to_trade_fee_end,8)
                 user_wallet.lastupdated_by = operator
                 user_wallet.save()
                 logger.info('Update user wallet balance for user id {0} address {1} related to redeem txid {2}'.format(
                     user_wallet.user.id, user_wallet.wallet_addr, trx['txid']))
             else:
-                user_wallet.locked_balance = user_wallet.locked_balance + amount + fee
-                user_wallet.available_balance = user_wallet.available_balance - amount - fee
+                user_wallet.locked_balance = round(user_wallet.locked_balance + amount + fee, 8)
+                user_wallet.available_balance = round(user_wallet.available_balance - amount - fee, 8)
                 user_wallet.lastupdated_by = operator
                 user_wallet.save()
                 logger.info('Update user wallet locked balance for user id {0} address {1} related to pending redeem txid {2}'.format(
