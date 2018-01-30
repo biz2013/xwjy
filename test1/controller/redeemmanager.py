@@ -6,6 +6,7 @@ import pytz
 import logging
 
 from django.db import transaction
+from django.db.models import F
 from django.contrib.auth.models import User
 
 from users.models import *
