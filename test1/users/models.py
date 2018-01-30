@@ -46,6 +46,7 @@ class SiteSettings(SingletonModel):
     axfd_passphrase = models.CharField(max_length=64, blank=True, default='')
     order_timeout_insec = models.IntegerField(default=600)
     confirmation_timeout_insec = models.IntegerField(default=300)
+    config_json = models.CharField(max_length=8192, default='{}')
 
 
 class GlobalCounter(models.Model):
