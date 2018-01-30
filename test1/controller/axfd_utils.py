@@ -17,7 +17,7 @@ class AXFundUtility(object):
         result_str = subprocess.check_output(
            [self.axfd_path, '-datadir=%s'%(self.axfd_datadir),
             'listtransactions', self.axfd_account, str(lookback_count)])
-        logger.info("listtransaction return: {0}".format(result_str))
+        #logger.info("listtransaction return: {0}".format(result_str))
         return json.loads(result_str)
 
     def send_fund(self, src_account, dst, amount, comment, lookback_count):
