@@ -20,7 +20,7 @@ class AXFundUtility(object):
         logger.info("listtransaction return: {0}".format(result_str))
         return json.loads(result_str)
 
-    def send_fund(self, src_account, dst, amount, comment):
+    def send_fund(self, src_account, dst, amount, comment, lookback_count):
         logger.info('{0} {1} {2} {3} {4} \'{5}\''.format(
             self.axfd_path, '-datadir=%s'%(self.axfd_datadir), 'sendtoaddress',
             dst, str(amount), comment
@@ -30,7 +30,7 @@ class AXFundUtility(object):
             dst, str(amount), '\"{0}\"'.format(comment)])
         logger.info("send to address return transaction id {0}".format(
             result_str))
-        transactions = self.listtransactions(src_account)
+        transactions = self.listtransactions(src_account, lookback_count)
         for trans in transactions:
             if trans['txid'] == result_str:
                 return trans

@@ -12,7 +12,7 @@
     }
 
     units_val = parseFloat(units);
-    if (units_val < 0.001) {
+    if (units_val < 0.00000001) {
       $("#div_id_error").text("请输入购买数量");
       return;
     }
@@ -24,7 +24,13 @@
     }
 
     unit_price = parseFloat($("#id_unit_price").val());
-    $("#id_total_amount").val((units_val * unit_price).toFixed(2));
+    total_amount = (units_val * unit_price).toFixed(2);
+    $("#id_total_amount").val(total_amount);
+
+    if (total_amount < 0.01) {
+      $("#div_id_error").text("您的总金额小于一分钱，请提高购买数量");
+      return;
+    }
 
     var provider = $("#id_seller_payment_method").val();
     if (provider.length==0){
