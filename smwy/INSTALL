@@ -13,12 +13,13 @@ Build ubuntu 16.04 image on AWS or 14.04 on AliCloud
 please following this sequence
 sudo apt-get upgrade
 sudo apt-get -y install mysql-server
-sudo apt-get -y install git build-essential libssl-dev libdb++-dev libboost-all-dev libqrencode-dev libminiupnpc-dev python-dev libmysqlclient-dev
+sudo apt-get -y install git build-essential libssl-dev libdb++-dev libboost-all-dev libqrencode-dev libminiupnpc-dev python-dev libmysqlclient-dev python-setuptools 
 
 # prepare graphic lib for Pillow, which is needed for
 # django database migration
 sudo apt-get install libtiff5-dev libjpeg8-dev zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev python-tk
 
+sudo easy_install pip 
 sudo pip install --upgrade pip
 
 #
