@@ -134,7 +134,6 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
             logger.info('txid {0} is confirmed, need to change status for user_wallet_trans {1}'.format(
                  trx['txid'], user_wallet_trans.id
             ))
-            user_wallet_fee_trans = None
             amount = math.fabs(trx['amount'])
             fee = math.fabs(trx['fee'])
             if user_wallet_trans.units != amount:
@@ -281,14 +280,14 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
                 user_wallet.available_balance = available_to_trade_fee_end
                 user_wallet.lastupdated_by = operator
                 user_wallet.save()
-                logger.info('Update user wallet balance for user id {0} address {1} related to txid {2}'.format(
+                logger.info('Update user wallet balance for user id {0} address {1} related to redeem txid {2}'.format(
                     user_wallet.user.id, user_wallet.wallet_addr, trx['txid']))
             else:
                 user_wallet.locked_balance = user_wallet.locked_balance + amount + fee
                 user_wallet.available_balance = user_wallet.available_balance - amount - fee
                 user_wallet.lastupdated_by = operator
                 user_wallet.save()
-                logger.info('Update user wallet balance for user id {0} address {1} related to txid {2}'.format(
+                logger.info('Update user wallet locked balance for user id {0} address {1} related to pending redeem txid {2}'.format(
                     user_wallet.user.id, user_wallet.wallet_addr, trx['txid']))
 
     except UserWalletTransaction.MultipleObjectsReturned:
