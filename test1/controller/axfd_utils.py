@@ -32,7 +32,7 @@ class AXFundUtility(object):
             result_str))
         transactions = self.listtransactions(lookback_count)
         for trans in transactions:
-            if trans['txid'] == result_str:
+            if trans['txid'] == result_str.rstrip():
                 return trans
         raise ValueError("Not transaction for redeem {0}".format(result_str))
 
