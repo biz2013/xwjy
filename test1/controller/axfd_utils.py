@@ -34,7 +34,7 @@ class AXFundUtility(object):
         for trans in transactions:
             if trans['txid'] == result_str:
                 return trans
-        return result_str
+        raise ValueError("Not transaction for redeem {0}".format(result_str))
 
     def unlock_wallet(self, passphrase, timeout_in_sec):
         logger.info("unlock wallet ...")
