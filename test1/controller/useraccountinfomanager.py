@@ -121,14 +121,14 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
     try:
         user_wallet_trans = UserWalletTransaction.objects.get(
             transaction_type ='REDEEM',
-            user_wallet__user__id=user_wallet.user.id,
-            user_wallet__wallet_addr=user_wallet.wallet_addr,
+            user_wallet__id=user_wallet.id,
             reference_wallet_trxId=trx['txid'])
+        logger.info("update_user_wallet_based_on_redeem(): find user wallet trans {0} for user_wallet {1}".format(user_wallet_trans.id, user_wallet.id))
         user_wallet_fee_trans = UserWalletTransaction.objects.get(
             transaction_type ='REDEEMFEE',
-            user_wallet__user__id=user_wallet.user.id,
-            user_wallet__wallet_addr=user_wallet.wallet_addr,
+            user_wallet__id=user_wallet.id,
             reference_wallet_trxId=trx['txid'])
+        logger.info("update_user_wallet_based_on_redeem(): find user wallet fee trans {0} for user_wallet {1}".format(user_wallet_fee_trans.id, user_wallet.id))
 
         if user_wallet_trans.status == 'PENDING' and trx['confirmations'] >= min_trx_confirmation:
             logger.info('txid {0} is confirmed, need to change status for user_wallet_trans {1}'.format(
@@ -151,12 +151,12 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
                 # reduce total balance
                 balance_end = user_wallet.balance - amount - fee
                 # release the locked amount
-                locked_balance_end = user_wallet.locked_balance + amount + fee
+                locked_balance_end = user_wallet.locked_balance - amount - fee
 
                 user_wallet_trans.balance_begin = user_wallet.balance
                 user_wallet_trans.balance_end = balance_end + fee
                 user_wallet_trans.locked_balance_begin =  user_wallet.locked_balance
-                user_wallet_trans.locked_balance_end =  locked_balance_end - fee
+                user_wallet_trans.locked_balance_end =  locked_balance_end + fee
                 # no change on the available balance
                 user_wallet_trans.available_to_trade_begin = user_wallet.available_balance
                 user_wallet_trans.available_to_trade_end = user_wallet.available_balance

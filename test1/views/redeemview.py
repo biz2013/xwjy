@@ -14,7 +14,7 @@ from controller import redeemmanager
 from users.models import *
 from views import errorpage
 from views.models.redeemitem import *
-import logging,json
+import logging,json, math
 from django.contrib.auth.decorators import login_required
 
 # logger for user registration
@@ -46,7 +46,7 @@ def redeem(request):
                    operation_comment,lookback_count)
            redeem_cmd = RedeemItem(userid, toaddr, amount, crypto)
            redeemmanager.redeem(redeem_cmd,request.user.username,
-              trx['txid'], trx['fee'],
+              trx['txid'], math.fabs(trx['fee']),
               operation_comment)
            return redirect('accountinfo')
        else:
