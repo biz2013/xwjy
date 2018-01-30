@@ -52,7 +52,7 @@ def redeem(command, operator, txid, fee, operation_comment):
           lastupdated_by = operatorObj
         )
 
-        UserWallet.objects.fileter(id=userwallet.id).update(
+        UserWallet.objects.filter(id=userwallet.id).update(
           locked_balance = F(locked_balance) + command.amount + fee,
           avaiable_balance = F(avaiable_balance) - command.amount - fee,
           lastupdated_at = dt.datetime().ntcnow(),
