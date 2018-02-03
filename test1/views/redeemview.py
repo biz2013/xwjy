@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys, math
 from django.db.models import Q
+from django.contrib import messages
 from django.shortcuts import render, redirect
 from controller.heepaymanager import HeePayManager
 from controller.global_utils import *
@@ -30,6 +31,9 @@ def redeem(request):
            toaddr = request.POST['toaddress']
            amount = float(request.POST['quantity'])
            crypto = request.POST['crypto']
+           if not redeemmanager.check_send_to_address(crypto, toaddr):
+               messages.error(request, "您的提币地址属于交易平台注入地址，请修改您的提币地址")
+               return redirect('accountinfo')
            sitesettings = context_processor.settings(request)['settings']
            axfd_bin_path = sitesettings.axfd_path
            axfd_datadir = sitesettings.axfd_datadir
