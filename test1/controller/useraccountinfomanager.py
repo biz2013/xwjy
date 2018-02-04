@@ -24,7 +24,8 @@ def update_user_wallet_based_on_deposit(trx, user_wallet, min_trx_confirmation,
         user_wallet_trans = UserWalletTransaction.objects.get(
             user_wallet__user__id=user_wallet.user.id,
             user_wallet__wallet_addr=user_wallet.wallet_addr,
-            reference_wallet_trxId=trx['txid'])
+            reference_wallet_trxId=trx['txid'],
+            transaction_type='DEPOSIT')
         if user_wallet_trans.status == 'PENDING' and trx['confirmations'] >= min_trx_confirmation:
             logger.info('txid {0} is confirmed, need to change status for user_wallet_trans {1}'.format(
                  trx['txid'], user_wallet_trans.id
@@ -114,7 +115,7 @@ def update_user_wallet_based_on_deposit(trx, user_wallet, min_trx_confirmation,
                     user_wallet.user.id, user_wallet.wallet_addr, trx['txid']))
 
     except UserWalletTransaction.MultipleObjectsReturned:
-         logger.error('There are more than one transaction related to txid {0} for user id {1} on receiving address {2}'.format(
+         logger.error('DEPOSIT: There are more than one transaction related to txid {0} for user id {1} on receiving address {2}'.format(
              trx['txid'], user_wallet.user.id, user_wallet.wallet_addr))
 
 def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
@@ -293,7 +294,7 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
                     user_wallet.user.id, user_wallet.wallet_addr, trx['txid']))
 
     except UserWalletTransaction.MultipleObjectsReturned:
-         logger.error('There are more than one transaction related to txid {0} for user id {1} on receiving address {2}'.format(
+         logger.error('REDEEM: There are more than one transaction related to txid {0} for user id {1} on receiving address {2}'.format(
              trx['txid'], user_wallet.user.id, user_wallet.wallet_addr))
 
 def get_send_money_trans_userid(trx):
