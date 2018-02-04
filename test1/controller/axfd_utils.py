@@ -32,7 +32,10 @@ class AXFundUtility(object):
             result_str))
         transactions = self.listtransactions(lookback_count)
         for trans in transactions:
-            if trans['txid'] == result_str.rstrip():
+            # if accidentally send money to address in the same accounts
+            # you can see two trans have the same txid. so need to check
+            # category field
+            if trans['txid'] == result_str.rstrip() and trans['category'] == 'send':
                 return trans
         raise ValueError("Not transaction for redeem {0}".format(result_str))
 
