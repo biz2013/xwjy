@@ -18,8 +18,18 @@ from views.models.userexternalwalletaddrinfo import *
 
 logger = logging.getLogger("site.redeemmanager")
 
-#TODO: this may not needed
+def check_send_to_address(crypto, address):
+    try:
+        userwallet = UserWallet.objects.get(wallet_addr = address,
+         wallet__cryptocurrency__currency_code=crypto)
+        return False
+    except UserWallet.DoesNotExist:
+        return True
+    except UserWallet.MultipleObjectsReturned:
+        return False
 def redeem(command, operator, txid, fee, operation_comment):
+    if not check_send_to_address(command.crypto, command.toaddress):
+        raise ValueError("提币地址不可以是交易平台注入地址");
     operatorObj = User.objects.get(username=operator)
     with transaction.atomic():
         userwallet = UserWallet.objects.get(user__username=operator,

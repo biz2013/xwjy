@@ -11,6 +11,7 @@ from django.contrib.auth.models import User
 from users.models import *
 from config import context_processor
 from controller.axfd_utils import AXFundUtility
+from controller import redeemmanager
 from views.models.useraccountinfo import *
 from views.models.userpaymentmethodview import *
 from views.models.userexternalwalletaddrinfo import *
@@ -406,6 +407,9 @@ def get_user_externaladdr_by_id(id):
 
 def create_update_externaladdr(externaladdress, operator):
     operatorObj = User.objects.get(username=operator)
+    if not redeemmanager.check_send_to_address(externaladdress.crypto,
+           externaladdress.address):
+        return False
     if externaladdress.id == 0:
         UserExternalWalletAddress.objects.create(
           user = User.objects.get(pk=externaladdress.userid),

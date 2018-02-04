@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 from django.db.models import Q
+from django.contrib import messages
 from django.shortcuts import render, redirect
 
 # this is for test UI. A fake one
@@ -52,8 +53,9 @@ def external_address(request):
               crypto = 'AXFund'
           externaladdress = UserExternalWalletAddressInfo(id,
              request.user.id, alias, address, crypto)
-          useraccountinfomanager.create_update_externaladdr(
-             externaladdress, request.user.username)
+          if not useraccountinfomanager.create_update_externaladdr(
+                 externaladdress, request.user.username):
+              messages.error(request, "您的提币地址属于交易平台注入地址，请修改您的提币地址")
           return redirect('accountinfo')
     except Exception as e:
        error_msg = '添加／修改提币抵制遇到错误: {0}'.format(sys.exc_info()[0])
