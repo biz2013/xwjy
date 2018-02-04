@@ -45,3 +45,7 @@ test1/site\.log\.*
 test1/users/migrations/*_auto_*\.py
 
 test1/django
+
+dj2env/*
+
+coinExchange/.vscode/*
