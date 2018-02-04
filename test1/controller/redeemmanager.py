@@ -21,7 +21,7 @@ logger = logging.getLogger("site.redeemmanager")
 def check_send_to_address(crypto, address):
     try:
         userwallet = UserWallet.objects.get(wallet_addr = address,
-         wallet__cryptocurrency__currency_code=command.crypto)
+         wallet__cryptocurrency__currency_code=crypto)
         return False
     except UserWallet.DoesNotExist:
         return True

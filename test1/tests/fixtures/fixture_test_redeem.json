@@ -90,13 +90,39 @@
        "lastupdated_by" : 1
      }
    },
+
+   {
+     "model": "auth.user",
+     "pk" : "2",
+     "fields":{
+       "password" : "pbkdf2_sha256$36000$jyptIRggNQSY$Y2c1hDzjRkGg3swnw9MdVpm1kzxkqj6dhrVLiXp1w5g=",
+       "username" : "tttzhang2000@yahoo.com",
+       "email" : "tttzhang2000@yahoo.com",
+       "is_superuser" : 0,
+       "is_staff" : 0,
+       "last_login" : "2018-01-30 03:52:14.396183"
+     }
+   },
+   {
+     "model": "auth.user",
+     "pk" : "3",
+     "fields":{
+       "password" : "pbkdf2_sha256$36000$jyptIRggNQSY$Y2c1hDzjRkGg3swnw9MdVpm1kzxkqj6dhrVLiXp1w5g=",
+       "username" : "yingzhou61@yahoo.ca",
+       "email" : "yingzhou61@yahoo.ca",
+       "is_superuser" : 0,
+       "is_staff" : 0,
+       "last_login" : "2018-01-30 03:52:14.396183"
+     }
+   },
    {
      "model": "users.userwallet",
      "pk": "1",
      "fields":{
-       "user": null,
+       "user": 2,
        "wallet": 1,
        "wallet_addr":"ANG53xNLvM4YkjHCeiaLMgobMZv3i6hT5m",
+       "balance" : 100,
        "created_at": "2017-12-17T21:14:00+08:00",
        "lastupdated_at": "2017-12-17T21:14:00+08:00",
        "created_by": 1,
@@ -128,5 +154,19 @@
        "created_by": 1,
        "lastupdated_by": 1
      }
+   },
+   {
+    "model": "users.userexternalwalletaddress",
+    "pk": "1",
+    "fields" : {
+        "address" :  "AcinEAwDsYgUDHeZijSDD7AHYNuDdqBn5j",
+        "alias" : "aaaa",
+        "user" : 2,
+        "cryptocurrency" : "AXFund",
+        "created_at": "2018-01-30 03:52:14.396183",
+        "lastupdated_at": "2018-01-30 03:52:14.396183",
+        "created_by":  1,
+        "lastupdated_by" : 1
+    }
    }
  ]
