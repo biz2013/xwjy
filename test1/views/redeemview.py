@@ -32,8 +32,10 @@ def redeem(request):
            amount = float(request.POST['quantity'])
            crypto = request.POST['crypto']
            if not redeemmanager.check_send_to_address(crypto, toaddr):
+               logger.info("Failed the address check")
                messages.error(request, "您的提币地址属于交易平台注入地址，请修改您的提币地址")
                return redirect('accountinfo')
+           logger.info("Pass the address check")
            sitesettings = context_processor.settings(request)['settings']
            axfd_bin_path = sitesettings.axfd_path
            axfd_datadir = sitesettings.axfd_datadir
