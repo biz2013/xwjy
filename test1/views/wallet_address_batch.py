@@ -39,7 +39,7 @@ def create_wallet_address(request):
         unassigned_count = wallet_address_query.get_unassigned_userwallets_count()
         if unassigned_count > batch_start_threshold:
             logger.info("There are still {0} address left.  Not creating new addresses".format(unassigned_count))
-            return
+            return HttpResponse('OK --- No change')
 
         new_addresses = []
         for i in range(0, batch_size - unassigned_count):
