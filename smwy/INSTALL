@@ -137,6 +137,7 @@ Then, go to admin page of the service, change following:
 5. run sudo crontab -e, to add following cronjob
 */3 * * * * curl -v http://localhost/account/cron/update_receive/
 */5 * * * * curl -v http://localhost/account/cron/order_batch_process/
+* 8 * * * curl -v http://localhost/account/cron/generate_address/
 
 You can look at the wallet log
 tail -f xwjy/qb/debug.log
