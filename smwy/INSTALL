@@ -11,7 +11,7 @@ implementation of AXFunds.
 Build ubuntu 16.04 image on AWS or 14.04 on AliCloud
 
 please following this sequence
-sudo apt-get upgrade
+sudo apt-get update
 #
 # please be aware during installation the system will ask for
 # root password.  Please remember it or the database is toasted
