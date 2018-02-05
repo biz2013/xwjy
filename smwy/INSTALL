@@ -111,16 +111,7 @@ python manage.py createsuperuser
 # input initial data for testing
 #
 # 1. load basic objects such as crypto currency, payment provider, sysop user
-python manage.py loaddata sql/init_fixture.json
-
-# NOTE: on Aliyun need this
-python manage.py loaddata sql/init_fixture_47_52_220_225.json
-
-# 2: load test user and their wallet
-python manage.py loaddata sql/add_new_addr.json
-
-# NOTE: this for Aliyun
-python manage.py loaddata sql/add_new_addr_47_52_220_225.json
+python manage.py loaddata sql/init_fixture_oregon.json
 
 # NOTE: this for Oregon on Ubuntu
 sudo cp ~/workspace/django/xwjy/test1/install/axfund-django* /etc/systemd/system/
@@ -143,9 +134,13 @@ Then, go to admin page of the service, change following:
 2. make sure the heepay return IP is right
 3. make sure the heepay return port is right
 4. provide an email for support and save the change
+5. run sudo crontab -e, to add following cronjob
+*/3 * * * * curl -v http://localhost/account/cron/update_receive/
+*/5 * * * * curl -v http://localhost/account/cron/order_batch_process/
 
 You can look at the wallet log
 tail -f xwjy/qb/debug.log
+
 
 
 -----
