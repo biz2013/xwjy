@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  {% include 'html/include/common_header.html' %}
+</head>
+
+<body>
+  <!-- menu section -->
+  {% include "html/include/topmenu.html" %}
+  <!-- body section -->
+  {% load mathfilters %}
+  <script language="JavaScript">
+    function show_order_info(orderid, units, unit_price, unit_price_currency) {
+      $("#id_units_confirm").text(units);
+      $("#id_units_price_confirm").text(unit_price + ' ' + unit_price_currency);
+      $("#id_total_amount_confirm").text('' + (parseFloat(units) * parseFloat(unit_price)).toFixed(2) + ' ' + unit_price_currency);
+      $("#id_order_id_confirm").val(orderid);
+    }
+
+    function popup_cancel_confirm_window(orderid, units, unit_price, amount) {
+      $("#txt_id_order_id_cancel_model").val(orderid);
+      $("#tb_id_order_id").text(orderid);
+      $("#tb_id_available_units").text(units)
+      $("#tb_id_unit_price").text(unit_price)
+      $("#tb_id_available_amount").text(amount)
+      $("#cancel-modal").modal({backdrop: "static"});
+
+    }
+  </script>
+  <div class="container">
+    {% include "html/include/balance_banner.html" %}
+    <div class="well">
+      <div class="row">
+        {% if messages %}
+           {% for message in messages %}
+        {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+        <div id="div_message" class="text-danger">{{ message }}</div>
+        {% else %}
+        <div id="div_message" class="text-success">{{ message }}</div>
+        {% endif %}
+           {% endfor %}
+        {% endif %}
+        {% if buyorders %}
+        <h4>给我的买单</h4>
+        <table class="table ">
+          <tr>
+            <th>购买数量</th>
+            <th>单价(CYN)</th>
+            <th>总额(CYN)</th>
+            <th></th>
+            <!--<td>更改时间</td>-->
+          </tr>
+          {% for order in buyorders %}
+          <tr>
+            <td>{{ order.total_units }}</td>
+            <td>{{ order.unit_price }}</td>
+            <td>{{ order.total_units|mul:order.unit_price }}</td>
+            <!--<td>{{ order.lastmodified_at }}</td>-->
+            <td>{% if order.status == 'PAID' %}
+              <button class="btn btn-primary" data-toggle="modal" data-target="#payment-confirm-modal" onclick="show_order_info({{ order.order_id}}, {{ order.total_units}},{{ order.unit_price }}, '{{ order.unit_price_currency}}')">确认</button> {% else %}等待付款 {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+        {% endif %}
+      </div>
+      <div class="row">
+        <table class="table table-condensed">
+          <tr>
+            <th>
+              <h4>我的卖单</h4>
+            </th>
+            <th><button type="button" class="btn btn-primary" id="btn-sell-order">添加卖单</button></th>
+          </tr>
+        </table>
+        <table class="table table-striped table-condensed">
+          <tr>
+            <th>数量</th>
+            <th>单价(CNY)</th>
+            <th>总额(CNY)</th>
+            <th></th>
+            <!--<th>更改时间</th>-->
+          </tr>
+          {% if sellorders %}
+          {% for order in sellorders %}
+          {% if order.order_type == 'BUY' or order.available_units > 0 %}
+          <tr>
+            <td>{% if order.order_type == 'SELL' %}{{ order.available_units }}{% else %}{{ order.total_units }}{% endif %}</td>
+            <td>{{ order.unit_price }}</td>
+            <td>{% if order.order_type == 'SELL' %}{{ order.available_units|mul:order.unit_price }}{% else %}{{ order.total_units|mul:order.unit_price }}{% endif %}</td>
+            <td>{% if order.order_type == 'SELL' %}
+                   {% if order.status == 'LOCKED' %}锁定
+                   {% else %}<button class="btn btn-primary" type="button" onclick="popup_cancel_confirm_window('{{ order.order_id }}', {{ order.available_units }}, {{ order.unit_price }}, {{ order.available_units|mul:order.unit_price }})">取消</button>
+                   {% endif %}
+                {% else %}
+                   {% if order.status == 'PAID' %}<button class="btn btn-primary" data-toggle="modal" data-target="#payment-confirm-modal" onclick="show_order_info('{{ order.order_id}}', '{{ order.total_units}}','{{ order.unit_price }}', '{{ order.unit_price_currency}}')">确认</button>
+                   {% else %}锁定
+                   {% endif %}
+                {% endif %}</td>
+              <!--<td>{{ order.lastmodified_at }}</td>-->
+          </tr>
+          {% endif %}
+          {% endfor %} {% else %}
+          <tr>
+            <td>暂时没有活跃的卖单</td>
+            <td>
+          </tr>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+    <!-- popup window for confirm payment of purchase -->
+    <form id="payment-confirm-modal" tabindex="-1" class="modal fade" role="dialog" action="/mysellorder/confirm_payment/" aria-labelledby="confirm-form-label" aria-hidden="true" method='post'>
+      {% csrf_token %}
+      <input type="hidden" id="id_order_id_confirm" name="order_id" value=""/>
+      <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 id="confirm-form-label">确认付款</h4>
+          </div>
+          <div class="modal-body">
+            <div id="div_purchase_content" class="form-group">
+              <table class="table">
+                <tr>
+                  <td><label class="control-label">数量</label></td>
+                  <td><label class="control-label" id="id_units_confirm">&nbsp;</label>
+                </tr>
+                <tr>
+                  <td><label class="control-label">单价</label></td>
+                  <td><label class="control-label" id="id_units_price_confirm">&nbsp;</label>
+                </tr>
+                <tr>
+                  <td><label class="control-label">总额</label></td>
+                  <td><label class="control-label" id="id_total_amount_confirm">&nbsp;</label>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-default" data-dismiss="submit">确认</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">撤销</button>
+          </div>
+        </div>
+      </div>
+    </form>
+    <!-- popup window for purchase -->
+    <script language="JavaScript">
+    function create_sell_order() {
+      units = $("#id_quantity").val();
+      price = $("#id_unit_price").val();
+      var available_units = $("#id_available_units").val();
+
+      if ( !units ) {
+        $("#error-message-sell-modal").text("请输入正确的出售数量");
+        return;
+      }
+
+      if ( price && isNaN(price) ) {
+        $("#error-message-sell-modal").text("请输入正确的单价");
+        return;
+      }
+
+      if (parseFloat(units) - parseFloat(available_units) > 0) {
+        $("#error-message-sell-modal").text("出售数量必须小于现有可用余额:" + available_units);
+        return;
+      }
+
+      var per_trans_limit = $("#id_per_transaction_limit").val();
+      if (per_trans_limit) {
+        if (parseFloat(units) - parseFloat(per_trans_limit) > 0) {
+           $("#error-message-sell-modal").text("每笔交易不可超过" + per_trans_limit + "单元");
+           return;
+         }
+      }
+
+      if (parseFloat(units) < 0.00000001) {
+        $("#error-message-sell-modal").text("请输入出售数量，最少0.00000001单元");
+        return;
+      }
+      if (parseFloat(price) < 0.01) {
+        $("#error-message-sell-modal").text("请输入单价, 至少是一分钱");
+        return;
+      }
+
+      var total_amount = (parseFloat(units) * parseFloat(price)).toFixed(2);
+      $("#txt_id_total_amount").val(""+total_amount);
+
+      $("#id_request_source").val("sellorder");
+      $("#sell-modal").submit();
+    }
+
+    function show_total_amount(units, price) {
+      if ( units && price ) {
+        var total_amount = (parseFloat(units) * parseFloat(price)).toFixed(2);
+        $("#total_amount").text(total_amount);
+        $("#txt_id_total_amount").val(""+total_amount);
+      }
+    }
+    </script>
+    <form id="sell-modal" tabindex="-1" class="modal fade" role="dialog" action="/mysellorder/" aria-labelledby="purchase-form-label" aria-hidden="true" method='post'>
+      {% csrf_token %}
+      <input type="hidden" id="id_available_units" name="available_units" value="{{ useraccountInfo.available_balance  }}" />
+      <input type="hidden" id="id_per_transaction_limit" name="per_transaction_limit" value="{{ settings.per_transaction_limit  }}" />
+      <input type="hidden" id="id_request_source" name="request_source" value="" />
+      <input type="hidden" id="id_unit_price_currency" name="unit_price_currency" value="CYN"/>
+      <input type="hidden" id="id_crypto" name="crypto" value="AXFund" />
+      <input type="hidden" id="txt_id_total_amount" name="total_amount" value=""/>
+      <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 id="purchase-form-label">出售美基金</h4>
+          </div>
+          <div class="modal-body">
+            <div id="div_id_quantity" class="form-group">
+            <div class="text-danger" id="error-message-sell-modal"></div>
+            </div>
+            <div id="div_id_quantity" class="form-group">
+              <label for="id_quantitiy" class="control-label">数量</label><span class="asteriskField">*</span> </label>
+              <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" onkeyup="show_total_amount(this.value, $('#id_unit_price').val())" /> </div>
+            </div>
+            <div id="div_id_quantity" class="form-group">
+              <label for="id_unit_price" class="control-label">单价(CYN)</label><span class="asteriskField">*</span> </label>
+              <div class="controls "> <input class="textinput textInput form-control" id="id_unit_price" maxlength="10" name="unit_price" type="text" onkeyup="show_total_amount($('#id_quantity').val(), this.value)"/> </div>
+            </div>
+            <div id="div_id_total" class="form-group">
+              <label class="control-label">总额</label><div id="total_amount"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-dismiss="submit" onclick="create_sell_order()">确认</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">撤销</button>
+          </div>
+        </div>
+      </div>
+    </form>
+    <!-- popup window to confirm cancel the order -->
+    <form id="cancel-modal" tabindex="-1" class="modal fade" role="dialog" action="/mysellorder/cancel" aria-labelledby="cancel-form-lable" aria-hidden="true" method='post'>
+      {% csrf_token %}
+      <input type="hidden" id="txt_id_order_id_cancel_model" name="order_id" value=""/>
+      <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 id="cancel-form-lable">取消美基金买单</h4>
+          </div>
+          <div class="text-danger" id="error-message-cancel-modal"></div>
+          <div class="modal-body">
+            <div id="div_id_quantity" class="form-group">
+              <table class="table">
+                <tr>
+                  <th>卖单号</th>
+                  <th>余量</th>
+                  <th>单价(CNY)</th>
+                  <th>余额(CNY)</th>
+                </tr>
+                <tr>
+                  <td><div id="tb_id_order_id"></div></td>
+                  <td><div id="tb_id_available_units"></div></td>
+                  <td><div id="tb_id_unit_price"></div></td>
+                  <td><div id="tb_id_available_amount"></div></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary" data-dismiss="submit">确认</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">返回</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+  <!-- footer section-->
+  {% include 'html/include/footer.html' %}
+  <script language="JavaScript">
+$(document).ready(function(){
+    $("#btn-sell-order").click(function(){
+        $("#sell-modal").modal({backdrop: "static"});
+    });
+    $("#sell-modal").on('hide.bs.modal', function () {
+        $("id_request_source").val("");
+    });
+});
+</script>
+</body>
+<script>
+</script>
+
+</html>

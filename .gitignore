@@ -49,3 +49,5 @@ test1/django
 dj2env/*
 
 coinExchange/.vscode/*
+
+test1/sql/init_data_chi_local\.json

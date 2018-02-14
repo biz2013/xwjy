@@ -55,7 +55,7 @@ ROOT_URLCONF = 'coinExchange.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [ BASE_DIR + '/templates/' ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -76,11 +76,20 @@ WSGI_APPLICATION = 'coinExchange.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'mydb',
+        'USER': 'mydbuser',
+        'PASSWORD': 'aaaaaa',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'TEST':{
+           'CHARSET': 'UTF8',
+           },
+      'OPTIONS': {
+        'init_command': 'SET default_storage_engine=INNODB',
+      }
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
@@ -118,4 +127,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
+REPOSITORY_ROOT = os.path.dirname(BASE_DIR)
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/1.6/howto/static-files/
+
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(REPOSITORY_ROOT, 'static/')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+    os.path.join(BASE_DIR, "uploads"),
+]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(REPOSITORY_ROOT, 'media/')

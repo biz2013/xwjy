@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  {% include 'html/include/common_header.html' %}
+</head>
+<body>
+  <!-- menu section -->
+  {% include "html/include/topmenu.html" %}
+  <!-- body section -->
+  {% load mathfilters %}
+  <script language="JavaScript">
+    function show_order_info(orderid, units, unit_price, unit_price_currency) {
+      $("#id_units_confirm").text(units);
+      $("#id_units_price_confirm").text(unit_price + ' ' + unit_price_currency);
+      $("#id_total_amount_confirm").text(parseFloat(units * unit_price).toFixed(2) + ' ' + unit_price_currency);
+      $("#id_order_id_confirm").val(orderid);
+    }
+  </script>
+  <div class="container">
+    <h6>锁定余额: {{ axfund.locked_balance }} 可用余额: {{ axfund.available_balance }} 总余额：{{ axfund.balance}} </h6>
+    <div class="well">
+      <div class="row">
+        {% if buyorders %}
+        <h4>我的交易</h4>
+        <table class="table ">
+          <tr>
+            <td>订单号</td>
+            <td>更改时间</td>
+            <td>订单类型</td>
+            <td>交易方</td>
+            <td>数量</td>
+            <td>总额</td>
+            <td>状态</td>
+          </tr>
+          {% for order in orders %}
+          <tr>
+            <td>{{ order.order_id }}</td>
+            <td>{{ order.lastmodified_at }}</td>
+            <td>{{ order.order_type }}</td>
+            <td>{{ order.total_units}}</td>
+            <td>{{ order.total_units|mul:order.unit_price }}&nbsp;{{ order.unit_price_currency }}</td>
+            <td>{{ order.status }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <footer class="container">
+    <div class="row" style="text-align: center;">
+      美基金团队版权所有2017&copy
+    </div>
+  </footer>
+</body>
+<script>
+</script>
+
+</html>

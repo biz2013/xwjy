@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+{% include 'html/include/common_header.html' %}
+</head>
+<body>
+  <!-- menu section -->
+  {% include "html/include/topmenu.html" %}
+  <!-- body section -->
+	<div class="container">
+		<div class="well">
+			<div class="row">
+				<div style="text-align:center">
+					<h1>美基金场外交易平台</h1>
+					<p>及时。保密。安全</p>
+					<p><a id="splash-register-link" class="register-link btn btn-success btn-lg" href="/registration/"><i class="fa fa-check-square-o"></i>&nbsp;免费注册</a>
+          <p>如果您已经注册，请<a id="id_login_link" href="/accounts/login/">登录</a></p>
+				</div>
+			</div>
+		</div>
+		<hr/>
+	</div>
+  <!-- footer section-->
+  {% include 'html/include/footer.html' %}
+
+</body>
+
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  {% include 'html/include/common_header.html' %}
+</head>
+
+<body>
+  <!-- menu section -->
+  {% include "html/include/topmenu.html" %}
+  <!-- body section -->
+  {% load mathfilters %}
+  <div class="container">
+    {% include "html/include/balance_banner.html" %}
+    <div class="well">
+      <div class="row">
+        <!--<h3>我的交易历史</h3>-->
+        {% load tz %}
+        {% timezone "Asia/Taipei" %}
+        {% if transactions %}
+        <h4>完成的交易</h4>
+        <table class="table stripped">
+          <tr>
+            <th>类型</th>
+            <th>进账</th>
+            <th>出账</th>
+            <th>时间</th>
+            <!--<th>锁定余额</th>
+            <th>可用余额</th>
+            <td>更改时间</td>-->
+          </tr>
+          {% for trans in transactions %}
+          {% if trans.trans_type != 'CANCEL SELL ORDER' and trans.trans_type != 'CANCEL BUY ORDER' %}
+          <tr>
+            <td>{{ trans.trans_type_display }}</td>
+            <td>{% if trans.balance_update_type == 'CREDIT' %}{{ trans.units }}{% endif %}</td>
+            <td>{% if trans.balance_update_type == 'DEBT' %}-{{ trans.units }}{% endif %}</td>
+            <td>{{ trans.lastupdated_at|date:"m-d" }} {{ trans.lastupdated_at|time:"H:i:s" }}</td>
+            <!--<td>{{ trans.availables_balance }}</td>-->
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </table>
+        {% endif %}
+        {% endtimezone %}
+      </div>
+    </div>
+  </div>
+  <!-- footer section-->
+  {% include 'html/include/footer.html' %}
+</body>
+<script>
+</script>
+
+</html>

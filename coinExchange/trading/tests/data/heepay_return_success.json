@@ -1,0 +1,16 @@
+{
+	"return_code": "SUCCESS",
+	"return_msg": "执行完成",
+	"result_code": "SUCCESS",
+	"result_msg": "下单申请成功",
+	"app_id": "hyq17121610000800000911220E16AB0",
+	"out_trade_no": "__ORDER_ID__",
+	"hy_bill_no": "180106205200425221000081699",
+	"hy_pay_id": "jrd972",
+	"subject": "购买1.000000CNY",
+	"total_fee": "1",
+	"api_account_mode": "Account",
+	"hy_url": "https://wallet.heepay.com/p/p05m3a6d68d96w002hnu",
+	"to_account": "__SELLER_ACCOUNT__",
+	"sign": "__SIGN__"
+}
