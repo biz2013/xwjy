@@ -1,0 +1,132 @@
+[
+  {
+    "model": "users.sitesettings",
+    "pk": "1",
+    "fields":{
+      "support": "",
+      "heepay_notify_url_host": "localhost",
+      "heepay_notify_url_port": 8000,
+      "heepay_return_url_host":"localhost",
+      "heepay_return_url_port": 8000,
+      "heepay_app_id" : "hyq17121610000800000911220E16AB0",
+      "heepay_app_key" : "4AE4583FD4D240559F80ED39",
+      "heepay_expire_in_sec" : 90,
+      "axfd_path": "/home/ubuntu/workspace/xwjy/smwy/src/axfd",
+      "axfd_datadir": "/home/ubuntu/workspace/xwjy/qb",
+      "axfd_account_name": "",
+      "axfd_list_trans_count": 1000
+    }
+  },
+  {
+    "model": "users.cryptocurrency",
+    "pk": "AXFund",
+    "fields":{
+      "name":"美基金",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
+   {
+     "model": "auth.user",
+     "pk": 1,
+     "fields":{
+       "username":"admin",
+       "first_name": "",
+       "last_name": "",
+       "email":"tttzhang2000@yahoo.com",
+       "is_superuser": 1,
+       "is_staff": 1,
+       "is_active":1,
+       "date_joined": "2017-12-17T21:14:00+08:00"
+     }
+   },
+   {
+     "model": "users.wallet",
+     "pk": 1,
+     "fields":{
+       "name":"AXFundWallet",
+       "cryptocurrency": "AXFund",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by": 1
+     }
+   },
+   {
+     "model": "users.paymentprovider",
+     "pk": "weixin",
+     "fields" : {
+       "name" : "微信支付",
+       "config_json" : "",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by" : 1
+     }
+   },
+   {
+     "model": "users.paymentprovider",
+     "pk": "alipay",
+     "fields" : {
+       "name" : "支付宝",
+       "config_json" : "",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by" : 1
+     }
+   },
+   {
+     "model": "users.paymentprovider",
+     "pk": "heepay",
+     "fields" : {
+       "name" : "汇钱包",
+       "config_json" : "",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by" : 1
+     }
+   },
+   {
+     "model": "users.userwallet",
+     "pk": "1",
+     "fields":{
+       "user": null,
+       "wallet": 1,
+       "wallet_addr":"ANG53xNLvM4YkjHCeiaLMgobMZv3i6hT5m",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by": 1
+     }
+   },
+   {
+     "model": "users.userwallet",
+     "pk": "2",
+     "fields":{
+       "user": null,
+       "wallet": 1,
+       "wallet_addr":"ARBNHx31uYkhbiqnMmjsZdcH16BZieg9jo",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by": 1
+     }
+   },
+   {
+     "model": "users.userwallet",
+     "pk": "3",
+     "fields":{
+       "user": null,
+       "wallet": 1,
+       "wallet_addr":"AcinEAwDsYgUDHeZijSDD7AHYNuDdqBn5j",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by": 1
+     }
+   }
+ ]

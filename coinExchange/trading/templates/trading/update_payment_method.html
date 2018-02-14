@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  <!-- Latest compiled and minified CSS -->
+  <!--<link rel="stylesheet" href="/static/css/bootstrap.3.3.7.min.css">-->
+  <link rel='stylesheet' href='/static/css/bootstrap.3.3.7.min.css'>
+
+  <!-- jQuery library -->
+  <script src="/static/scripts/jquery.3.2.1.min.js"></script>
+
+  <!-- Latest compiled JavaScript -->
+  <script src="/static/scripts/bootstrap.3.3.7.min.js"></script>
+  <script>
+    function bs_input_file() {
+	$(".input-file").before(
+		function() {
+			if ( ! $(this).prev().hasClass('input-ghost') ) {
+				var element = $("<input type='file' class='input-ghost' style='visibility:hidden; height:0'>");
+				element.attr("name",$(this).attr("name"));
+				element.change(function(){
+					element.next(element).find('input').val((element.val()).split('\\').pop());
+				});
+				$(this).find("button.btn-choose").click(function(){
+					element.click();
+				});
+				$(this).find("button.btn-reset").click(function(){
+					element.val(null);
+					$(this).parents(".input-file").find('input').val('');
+				});
+				$(this).find('input').css("cursor","pointer");
+				$(this).find('input').mousedown(function() {
+					$(this).parents('.input-file').prev().click();
+					return false;
+				});
+				return element;
+			}
+		}
+	);
+}
+$(function() {
+	bs_input_file();
+});
+
+  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>美基金朋友圈交易站</title>
+</head>
+
+<body>
+  <!-- menu section -->
+  {% include "html/include/topmenu.html" %}
+  <!-- body section -->
+  <div class="container">
+    <div class="well">
+      <div class="row">
+        <div class="col-md-4 col-md-offset-4">
+          <h4>添加,修改付款方式</h4>
+          {% if messages %}
+          {% for message in messages %}
+          {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+          <div id="div_message" class="text-danger">{{ message }}</div>
+          {% else %}
+          <div id="div_message" class="text-success">{{ message }}</div>
+          {% endif %}
+          {% endfor %}
+          {% else %}
+          <div id="div_message" class="text-danger"></div>
+          {% endif %}
+          <form id="frm_paymentmethod" action="/accounts/paymentmethods/" method="post">
+            {% csrf_token %}
+            <input type="hidden" id="txt_payment_method_id" name="payment_method_id" value=""/>
+            <div class="form-group"> <label for="id_username" class="control-label  requiredField">支付方式<span class="asteriskField">*</span> </label>
+            <div class="controls ">
+              <script language='JavaScript'>
+              class PaymentMethod {
+                constructor(record_id, provider_code, account, qrcode_image) {
+                this.record_id = record_id;
+                this.provider_code = provider_code;
+                this.account = account;
+                this.qrcode_image = qrcode_image;
+               }
+              }
+              var payment_methods = {};
+              {% if user_payment_methods %}
+                 {% for payment_method in user_payment_methods %}
+                   var item = new PaymentMethod({{ payment_method.user_payment_method_id}},
+                       '{{ payment_method.provider_code }}',
+                       '{{ payment_method.account_at_provider}}',
+                       '{{ payment_method.provider_qrcode_image }}');
+                    payment_methods['{{ payment_method.provider_code }}']= item;
+                 {% endfor %}
+              {% endif %}
+              function select_user_payment_method(provider_code) {
+                 if (provider_code in payment_methods) {
+                    $("#txt_id_account_at_provider").val(payment_methods[provider_code].account);
+                    $("#txt_payment_method_id").val(payment_methods[provider_code].record_id)
+                 }
+              }
+
+              function save_payment_method() {
+                if ($("#sel_id_payment_provider").val() == "请选择支付方式"){
+                  $("#div_message").text("请您选择支付方式");
+                  return;
+                }
+                if ($("#txt_id_account_at_provider").val() == "") {
+                  $("#div_message").text("请您输入您的账号");
+                  return;
+                }
+
+                $("#frm_paymentmethod").submit();
+              }
+              </script>
+              <select class="form-control" id="sel_id_payment_provider" name="payment_provider" onchange="select_user_payment_method(this.value)">
+                   <option>请选择支付方式</option>
+                {% if payment_providers %}
+                   {% for provider in payment_providers %}
+                   {% if provider.code == 'heepay' %}
+                   <option value="{{ provider.code }}">{{ provider.name }}</option>
+                   {% endif %}
+                   {% endfor %}
+                {% endif %}
+              </select>
+            </div>
+          </div>
+          <div id="div_id_account_at_provider" class="form-group"> <label for="id_payment_account" class="control-label  requiredField">账号<span class="asteriskField">*</span> </label>
+            <div class="controls "> <input class="textinput textInput form-control" id="txt_id_account_at_provider" name="account" type="text"/> </div>
+          </div>
+          <!--<div id="div_id_qrcode_image" class="form-group"> <label for="id_" class="control-label  requiredField">支付账户二维码<span class="asteriskField">*</span> </label></div>-->
+            <!-- COMPONENT START -->
+            <!--<div class="form-group">
+              <div class="input-group input-file" name="Fichier1">
+                <input type="text" class="form-control" placeholder='选择二维码图像文件...' />
+                <span class="input-group-btn">
+              		<button class="btn btn-default btn-choose" type="button">选择</button>
+                    <button type="reset" class="btn btn-danger">清除</button>
+            	</span>
+              </div>
+            </div>-->
+            <!-- COMPONENT END -->
+            <div class="form-group">
+              <button type="button" class="btn btn-primary pull-left" onclick="save_payment_method()">确认</button>
+              <a href='/accounts/accountinfo/' class="btn btn-default pull-right">取消</a>
+            </div>
+        </form>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <footer class="container">
+    <div class="row" style="text-align: center;">
+      美基金团队版权所有2017&copy
+    </div>
+  </footer>
+</body>
+
+</html>

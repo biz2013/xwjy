@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  {% include 'html/include/common_header.html' %}
+  <script language="JavaScript">
+     function redeem() {
+       {% if useraccountInfo %}
+       var available_units = {{ useraccountInfo.available_balance }};
+       {% else %}
+       var available_units = 0.0;
+       {% endif %}
+       amount = $("#txt_id_quantity").val();
+       if (isNaN(amount)) {
+         $("#div_id_error_msg").text("请输入正确的提币数量");
+         return;
+       }
+       amount_val = parseFloat(amount).toFixed(8);
+       if (amount_val > available_units) {
+         $("#div_id_error_msg").text("您的提币数量大于您现有的基金可使用余额，请从新输入提币数量");
+         return;
+       }
+
+       $("#redeem-modal").submit();
+
+     }
+  </script>
+</head>
+
+<body>
+  <!-- menu section -->
+  {% include "html/include/topmenu.html" %}
+  <!-- body section -->
+  {% load mathfilters %}
+  <div class="container">
+    {% include "html/include/balance_banner.html" %}
+    <div class="well">
+      <div class="row">
+        <h3>美基金钱包地址</h3>
+        {% if messages %}
+           {% for message in messages %}
+        {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+        <div id="div_message" class="text-danger">{{ message }}</div>
+        {% else %}
+        <div id="div_message" class="text-success">{{ message }}</div>
+        {% endif %}
+           {% endfor %}
+        {% endif %}
+        <table class="table table-condensed">
+          <tr>
+            <td><lable class="control-label">充币地址</label>
+            <td>{{ useraccountInfo.receiving_address }}</td>
+          </tr>
+          <tr>
+            <td><label class="control-label">提币地址</label></td>
+            <td>{% if useraccountInfo.externaladdress %}
+              <a href="/accounts/external_address/?id={{ useraccountInfo.externaladdress.id }}">{{ useraccountInfo.externaladdress.alias }}</a>
+              &nbsp;&nbsp;&nbsp;<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#redeem-modal">提币</button></td>
+              {% else %}
+              <a href="/accounts/external_address/" class="btn btn-primary">添加</a></td>
+              {% endif %}
+          </tr>
+        </table>
+      </div>
+      <div class="row">
+        <h3>付款方式</h3>
+        <table class="table table-condensed">
+          <tr>
+            <th>支付公司</th>
+            <th>账户信息</th>
+            <th><a class="btn btn-primary" href="/accounts/paymentmethods/">更新</a></th>
+          </tr>
+          {% for paymentmethod in useraccountInfo.paymentmethods %}
+          <tr>
+            <td>{{ paymentmethod.provider_name }}</td>
+            <td>{{ paymentmethod.account_at_provider }}</td>
+            <td></td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+    <!-- popup window for confirm payment of purchase -->
+    <form id="redeem-modal" tabindex="-1" class="modal fade" role="dialog" action="/accounts/redeem/" aria-labelledby="lockfund-form-label" aria-hidden="true" method='post'>
+      {% csrf_token %}
+      <input type="hidden" id="id_toaddress" name="toaddress" value = "{{ useraccountInfo.externaladdress.address }}"/>
+      <input type="hidden" name="crypto" value="AXFund"/>
+      <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 id="lockfund-form-label">提取美基金</h4>
+          </div>
+          <div class="modal-body">
+            <div id="div_id_error_msg" class="text-danger"></div>
+            <div id="div_purchase_content" class="form-group">
+              <div id="div_id_quantity" class="form-group">
+                <label for="lbl_id_quantity" class="control-label">数量</label><span class="asteriskField">*</span> </label>
+                <div class="controls "> <input class="textinput textInput form-control" id="txt_id_quantity" maxlength="16" name="quantity" type="text" /> </div>
+              </div>
+              <div id="div_id_to" class="form-group">
+                <label for="lbl_id_to" class="control-label">提币地址:</label>
+                <div class="controls "><label class="control-label">{{ useraccountInfo.externaladdress.alias }} </label></div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary pull-left" data-dismiss="submit" onclick='redeem();'>确认</button>
+            <button type="button" class="btn btn-default pull-right" data-dismiss="modal">撤销</button>
+          </div>
+        </div>
+    </form>
+  </div>
+  <!-- footer section-->
+  {% include 'html/include/footer.html' %}
+</body>
+</html>
