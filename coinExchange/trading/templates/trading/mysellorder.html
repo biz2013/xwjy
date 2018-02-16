@@ -2,12 +2,12 @@
 <html lang="en-us">
 
 <head>
-  {% include 'html/include/common_header.html' %}
+  {% include 'include/common_header.html' %}
 </head>
 
 <body>
   <!-- menu section -->
-  {% include "html/include/topmenu.html" %}
+  {% include "include/topmenu.html" %}
   <!-- body section -->
   {% load mathfilters %}
   <script language="JavaScript">
@@ -29,7 +29,7 @@
     }
   </script>
   <div class="container">
-    {% include "html/include/balance_banner.html" %}
+    {% include "include/balance_banner.html" %}
     <div class="well">
       <div class="row">
         {% if messages %}
@@ -277,7 +277,7 @@
     </form>
   </div>
   <!-- footer section-->
-  {% include 'html/include/footer.html' %}
+  {% include 'include/footer.html' %}
   <script language="JavaScript">
 $(document).ready(function(){
     $("#btn-sell-order").click(function(){

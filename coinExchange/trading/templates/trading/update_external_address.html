@@ -2,19 +2,19 @@
 <html lang="en-us">
 
 <head>
-  {% include 'html/include/common_header.html' %}
+  {% include 'include/common_header.html' %}
 </head>
 
 <body>
   <!-- menu section -->
-  {% include "html/include/topmenu.html" %}
+  {% include "include/topmenu.html" %}
   <!-- body section -->
   <div class="container">
     <div class="row">
       <div class="col-md-6 col-md-offset-3">
         <div id="update-external_address-body">
           <h2>添加／更改提币地址</h2>
-          <form method="post" class="paper-form" action="/accounts/external_address/" method="post">
+          <form method="post" class="paper-form" action="/trading/accounts/external_address/" method="post">
             {% csrf_token %}
             <input type="hidden" name="id" value="{{ user_external_address.id }}"/>
             <input type="hidden" name="crypto" value="{{ user_external_address.crypto }}"/>
@@ -35,7 +35,7 @@
               <div class="controls "> <input class="textinput textInput form-control" id="txt_id_alias" name="alias" type="text" value="{{ user_external_address.alias}}"/> </div>
             </div>
             <p>
-              <button class="btn btn-success pull-left" id="btn_id_update" type="submit">更新</button>&nbsp;<a href="/accounts/accountinfo/" class="btn btn-default pull-right" id="btn_id_cancel">撤销</a>
+              <button class="btn btn-success pull-left" id="btn_id_update" type="submit">更新</button>&nbsp;<a href="{% url 'accountinfo' %}" class="btn btn-default pull-right" id="btn_id_cancel">撤销</a>
             </p>
           </form>
         </div>
@@ -43,7 +43,7 @@
     </div>
   </div>
   <!-- footer section-->
-  {% include 'html/include/footer.html' %}
+  {% include 'include/footer.html' %}
 </body>
 
 </html>

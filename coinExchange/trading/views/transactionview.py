@@ -36,8 +36,6 @@ def create_trans_list_item(transaction, crypto):
 @login_required
 def listusertransactions(request):
     try:
-       if not request.user.is_authenticated():
-          return render(request, 'login.html', { 'next' : '/transhistory/'})
        username = request.user.username
        userId = request.user.id
        trans = ordermanager.get_user_transactions(userId, 'AXFund')
@@ -49,7 +47,7 @@ def listusertransactions(request):
            else:
                transactions.append(create_trans_list_item(tran, 'AXFund'))
        accountinfo = useraccountinfomanager.get_user_accountInfo(request.user, 'AXFund', True)
-       return render(request, 'html/translist.html', {
+       return render(request, 'trading/translist.html', {
                 'pending_trans': pending_trans,
                 'transactions': transactions,
                 'useraccountInfo': accountinfo})
@@ -57,5 +55,5 @@ def listusertransactions(request):
     except Exception as e:
        error_msg = '出售美基金遇到错误: {0}'.format(sys.exc_info()[0])
        logger.exception(error_msg)
-       return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
+       return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))

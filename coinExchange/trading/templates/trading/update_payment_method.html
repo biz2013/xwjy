@@ -50,7 +50,7 @@ $(function() {
 
 <body>
   <!-- menu section -->
-  {% include "html/include/topmenu.html" %}
+  {% include "include/topmenu.html" %}
   <!-- body section -->
   <div class="container">
     <div class="well">
@@ -68,7 +68,7 @@ $(function() {
           {% else %}
           <div id="div_message" class="text-danger"></div>
           {% endif %}
-          <form id="frm_paymentmethod" action="/accounts/paymentmethods/" method="post">
+          <form id="frm_paymentmethod" action="/trading/accounts/paymentmethods/" method="post">
             {% csrf_token %}
             <input type="hidden" id="txt_payment_method_id" name="payment_method_id" value=""/>
             <div class="form-group"> <label for="id_username" class="control-label  requiredField">支付方式<span class="asteriskField">*</span> </label>
@@ -141,7 +141,7 @@ $(function() {
             <!-- COMPONENT END -->
             <div class="form-group">
               <button type="button" class="btn btn-primary pull-left" onclick="save_payment_method()">确认</button>
-              <a href='/accounts/accountinfo/' class="btn btn-default pull-right">取消</a>
+              <a href="{% url 'accountinfo' %}" class="btn btn-default pull-right">取消</a>
             </div>
         </form>
       </div>

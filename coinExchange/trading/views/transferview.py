@@ -2,4 +2,4 @@
 from django.shortcuts import render, redirect
 
 def transfer(request):
-    return render(request, 'html/myaccount.html')
+    return render(request, 'trading/myaccount.html')

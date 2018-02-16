@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'trading.apps.TradingConfig'
+    'trading.apps.TradingConfig',
+    'mathfilters',
 ]
 
 MIDDLEWARE = [
@@ -141,3 +142,71 @@ STATICFILES_DIRS = [
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(REPOSITORY_ROOT, 'media/')
+
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'axfundnoreply@gmail.com'
+EMAIL_HOST_PASSWORD = 'axTrade@123'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s %(module)s %(name)s %(process)d %(thread)d %(levelname)s %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'siteTimeRotateFile': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': 'site.log',
+            'when': 'D',
+            'interval': 1,
+            'backupCount': 30,
+            'encoding': None,
+            'delay': False,
+            'utc': False,
+            'formatter': 'verbose'
+        },
+        'console': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        }
+    },
+    'loggers': {
+        # The catch-all logger for messages in the site hierarchy. loggers for 'site', 'site.registration' all go here.
+        'site': {
+            'handlers': ['siteTimeRotateFile', 'console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        # TODO: add django.server, django.template, django.db.backends and other django framework component logging.
+        'django': {
+            'handlers': ['console', 'siteTimeRotateFile'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['console', 'siteTimeRotateFile'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
+
+# Redirect to home URL after login (Default redirects to /accounts/profile/)
+LOGIN_REDIRECT_URL = '/'

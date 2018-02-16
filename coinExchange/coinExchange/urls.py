@@ -19,7 +19,6 @@ from django.conf import settings
 from django.contrib.auth import views as auth_views
 from django.conf.urls.static import static
 
-
 urlpatterns = [
     path('trading/', include('trading.urls')),
     re_path(r'^admin/', admin.site.urls),
