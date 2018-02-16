@@ -13,9 +13,13 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
+#BASE_DIR = os.path.join( os.path.dirname(os.path.abspath(__file__)), os.pardir)
+currentDir = os.path.dirname(os.path.abspath(__file__))
+parentDir = os.path.join(currentDir, os.pardir)
+print('cur dir: ' + currentDir)
+print('parent dir: ' + parentDir)
+BASE_DIR = os.path.join( parentDir, os.pardir)
+print('base dir: ' + BASE_DIR)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
@@ -37,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    #'coinExchange.trading.apps.TradingConfig',
     'trading.apps.TradingConfig',
     'mathfilters',
 ]
@@ -137,7 +142,6 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(REPOSITORY_ROOT, 'static/')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
-    os.path.join(BASE_DIR, "uploads"),
 ]
 
 MEDIA_URL = '/media/'
