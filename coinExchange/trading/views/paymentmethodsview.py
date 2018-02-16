@@ -27,12 +27,10 @@ def payment_method(request):
     # TO DO: pass down request.user to controller.
 
     try:
-       if not request.user.is_authenticated():
-          return render(request, 'login.html', { 'next' : '/accounts/accountinfo/'})
        if request.method == 'GET':
            payment_providers = userpaymentmethodmanager.get_payment_providers()
            user_payment_methods = userpaymentmethodmanager.get_user_payment_methods(request.user.id)
-           return render(request, 'html/update_payment_method.html',
+           return render(request, 'trading/update_payment_method.html',
               {'user_payment_methods':user_payment_methods,
                'payment_providers': payment_providers})
        else:
@@ -59,5 +57,5 @@ def payment_method(request):
     except Exception as e:
        error_msg = 'sell_axfund hit exception'
        logger.exception(error_msg)
-       return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
+       return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))

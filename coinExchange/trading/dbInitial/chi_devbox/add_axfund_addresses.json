@@ -1,0 +1,33 @@
+[{
+  "model": "trading.userwallet",
+  "pk": "1",
+  "fields":{
+    "user": null,
+    "wallet": 1,
+    "wallet_addr":"ANG53xNLvM4YkjHCeiaLMgobMZv3i6hT5m",
+    "created_at": "2017-12-17T21:14:00+08:00",
+    "lastupdated_at": "2017-12-17T21:14:00+08:00"
+  }
+},
+{
+  "model": "trading.userwallet",
+  "pk": "2",
+  "fields":{
+    "user": null,
+    "wallet": 1,
+    "wallet_addr":"ARBNHx31uYkhbiqnMmjsZdcH16BZieg9jo",
+    "created_at": "2017-12-17T21:14:00+08:00",
+    "lastupdated_at": "2017-12-17T21:14:00+08:00"
+  }
+},
+{
+  "model": "trading.userwallet",
+  "pk": "3",
+  "fields":{
+    "user": null,
+    "wallet": 1,
+    "wallet_addr":"AcinEAwDsYgUDHeZijSDD7AHYNuDdqBn5j",
+    "created_at": "2017-12-17T21:14:00+08:00",
+    "lastupdated_at": "2017-12-17T21:14:00+08:00"
+  }
+}]

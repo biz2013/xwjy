@@ -28,14 +28,11 @@ logger = logging.getLogger("site.purchaseview")
 def show_active_sell_orders(request):
     try:
        logger.debug("get show show_active_sell_orders request")
-
-       if not request.user.is_authenticated():
-           return render(request, 'login.html', { 'next' : '/purchase/'})
        username = request.user.username
        status = None
        sellorders = ordermanager.get_all_open_seller_order_exclude_user(request.user.id)
        accountinfo = useraccountinfomanager.get_user_accountInfo(request.user, 'AXFund')
-       return render(request, 'html/purchase.html', {'sellorders': sellorders,
+       return render(request, 'trading/purchase.html', {'sellorders': sellorders,
                 REQ_KEY_USERNAME: username,
                 'useraccountInfo': accountinfo,
                 'previous_call_status' : status})
@@ -43,14 +40,12 @@ def show_active_sell_orders(request):
     except Exception as e:
        error_msg = '显示现有卖单出现错误: {0}'.format(sys.exc_info()[0])
        logger.exception(e)
-       return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
+       return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
 
 @login_required
 def show_purchase_input(request):
     try:
-        if not request.user.is_authenticated():
-           return render(request, 'login.html', { 'next' : '/purchase/'})
         username = request.user.username
         userid = request.user.id
         useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
@@ -79,7 +74,7 @@ def show_purchase_input(request):
            total_units, 0,
            0.0, 'AXFund',
            '','','BUY')
-        return render(request, 'html/input_purchase.html',
+        return render(request, 'trading/input_purchase.html',
                {'username': username,
                 'buyorder': buyorder,
                 'owner_user_id': owner_user_id,
@@ -91,7 +86,7 @@ def show_purchase_input(request):
     except Exception as e:
        error_msg = '显示买单出现错误: {0}'.format(sys.exc_info()[0])
        logger.exception(e)
-       return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
+       return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
 
 def send_payment_request_to_heepay(sitesettings, buyorder_id, amount):
@@ -144,9 +139,6 @@ def generate_payment_qrcode(payment_provider,payment_provider_response_json,
 def create_purchase_order(request):
     try:
         logger.debug('create_purchase_order()...')
-        if not request.user.is_authenticated():
-            logger.error("user session is not valid.  Go to logout")
-            return render(request, 'login.html', { 'next': '/purchase/'})
         username = request.user.username
         userid = request.user.id
         logger.info("Begin process user input for creating purchase order")
@@ -193,7 +185,7 @@ def create_purchase_order(request):
                                 username):
 
                     qrcode_file = generate_payment_qrcode('heepay', json_response, settings.MEDIA_ROOT)
-                    return render(request, 'html/purchase_heepay_qrcode.html',
+                    return render(request, 'trading/purchase_heepay_qrcode.html',
                          { 'total_units' : quantity, 'unit_price': unit_price,
                            'total_amount': total_amount,
                            'heepay_qrcode_file' : qrcode_file })
@@ -206,5 +198,5 @@ def create_purchase_order(request):
     except Exception as e:
         error_msg = '创建买单遇到错误: {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
-        return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
+        return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))

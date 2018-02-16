@@ -13,10 +13,12 @@ from trading.controller.axfd_utils import *
 from trading.controller import redeemmanager
 
 from trading.models import *
+from trading.config import context_processor
 from trading.views import errorpageview
 from trading.views.models.redeemitem import *
 import logging,json, math
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseBadRequest
 
 # logger for user registration
 logger = logging.getLogger("site.redeemview")
@@ -24,8 +26,6 @@ logger = logging.getLogger("site.redeemview")
 @login_required(login_url='/accounts/login/')
 def redeem(request):
     try:
-       if not request.user.is_authenticated():
-          return render(request, 'login.html', { 'next' : '/accounts/accountinfo/'})
        if request.method=='POST':
            userid = request.user.id
            toaddr = request.POST['toaddress']
@@ -56,9 +56,9 @@ def redeem(request):
               operation_comment)
            return redirect('accountinfo')
        else:
-           return HttpBadRequestResponse('The method can not be GET for redeem')
+           return HttpResponseBadRequest('The method can not be GET for redeem')
     except Exception as e:
        error_msg = '提币遇到错误: {0}'.format(sys.exc_info()[0])
        logger.exception(error_msg)
-       return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
+       return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))

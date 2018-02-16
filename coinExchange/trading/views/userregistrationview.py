@@ -26,6 +26,7 @@ from django.core.mail import EmailMessage
 from django.http import HttpResponse
 
 from trading.models import *
+from django.contrib.auth.models import User
 from trading.views.models.registration import SignUpForm
 
 import logging,json
@@ -54,8 +55,10 @@ def registration(request):
                 user_wallet.user = user
                 user_wallet.save()
 
-            rlogger.info('User register complete') 
+            rlogger.info('User created in db, but deactive') 
+
             current_site = get_current_site(request)
+
             mail_subject = '请激活您的美基金账户.'
             message = render_to_string('registration/user_active_email.html', {
                 'user': user,
@@ -63,6 +66,7 @@ def registration(request):
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': account_activation_token.make_token(user),
             })
+
             to_email = form.cleaned_data.get('email')
 
             rlogger.info('Email to {0}'.format(to_email))
@@ -81,10 +85,15 @@ def registration(request):
 
 def activate_user_registration(request, uidb64, token):
     try:
-        uid = force_text(urlsafe_base64_decode(uidb64))
+
+        # Given uidb64 is a bytes object, so its string form is like b'MTY', we need to remove b and ' to make decoding works.
+        uid = force_text(urlsafe_base64_decode(uidb64[2:-1]))
+
         user = User.objects.get(pk=uid)
-    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist) as e:
         user = None
+        rlogger.error('fail to activate user registration, uidb64: {0}, token: {1}, exception: {2}'.format(uidb64, token, e))
+
     if user is not None and account_activation_token.check_token(user, token):
         user.is_active = True
         user.save()

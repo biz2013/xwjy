@@ -35,8 +35,6 @@ def read_order_input(request):
 @login_required
 def sell_axfund(request):
     try:
-       if not request.user.is_authenticated():
-          return render(request, 'login.html', { 'next' : '/mysellorder/'})
        accountinfo = useraccountinfomanager.get_user_accountInfo(request.user, 'AXFund')
        if len(accountinfo.paymentmethods) == 0:
            messages.error(request, '请先注册支付方式再挂卖单')
@@ -60,21 +58,19 @@ def sell_axfund(request):
        if request.method == 'POST':
            return redirect('sellorder')
        else:
-           return render(request, 'html/mysellorder.html',
+           return render(request, 'trading/mysellorder.html',
                {'sellorders': sellorders,
                 'useraccountInfo': accountinfo})
 
     except Exception as e:
        error_msg = '出售美基金遇到错误: {0}'.format(sys.exc_info()[0])
        logger.exception(error_msg)
-       return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
+       return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
 
 @login_required
 def confirm_payment(request):
     try:
-       if not request.user.is_authenticated():
-          return render(request, 'login.html', { 'next_action' : '/mysellorder/'})
        order_id = request.POST['order_id']
        ordermanager.confirm_purchase_order(order_id, request.user.username)
        messages.success(request,'确认付款，交易完成')
@@ -82,14 +78,12 @@ def confirm_payment(request):
     except Exception as e:
        error_msg = '确认付款遇到错误: {0}'.format(sys.exc_info()[0])
        logger.exception(error_msg)
-       return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
+       return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
 
 @login_required
 def cancel_sell_order(request):
     try:
-       if not request.user.is_authenticated():
-          return render(request, 'login.html', { 'next_action' : '/mysellorder/'})
        username = request.user.username
        userId = request.user.id
        if request.method == 'POST':
@@ -107,5 +101,5 @@ def cancel_sell_order(request):
     except Exception as e:
        error_msg = '撤销美基金卖单遇到错误: {0}'.format(sys.exc_info()[0])
        logger.exception(error_msg)
-       return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
+       return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))

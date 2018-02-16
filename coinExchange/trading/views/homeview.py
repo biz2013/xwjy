@@ -12,9 +12,7 @@ logger = logging.getLogger("site.homepage")
 @login_required
 def home(request):
     """Show the home page."""
-    logger.info("visit home...")
-    if not request.user.is_authenticated():
-       return render(request, 'html/index.html', {})
+    logger.info("visit home..." + request.user)
     return redirect('accountinfo')
 
 

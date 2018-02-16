@@ -71,7 +71,7 @@ def heepay_confirm_payment(request):
         error_msg = 'Confirmation processing hit exception: {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
         if request.method == 'GET':
-            return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
+            return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
                '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
         else:
             return HttpResponse(content='error')

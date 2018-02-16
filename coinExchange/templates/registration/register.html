@@ -87,10 +87,10 @@
         </form>
       </div>
       <p class="col-sm-offset-2 col-sm-6">已经注册？
-        <a href="/accounts/login/">登录</a>
+        <a href="{% url 'login' %}">登录</a>
       </p>
       <p class="col-sm-offset-2 col-sm-6">忘记密码？
-        <a href="/accounts/password_reset/">重设密码</a>
+        <a href="{% url 'password_reset' %}">重设密码</a>
       </p>
     </div>
   </div>

@@ -20,14 +20,12 @@ logger = logging.getLogger("site.accountinfo")
 @login_required
 def accountinfo(request):
     try:
-       if not request.user.is_authenticated():
-           return render(request, 'login.html', { 'next': '/accounts/accountinfo/'})
        useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
        request.session[REQ_KEY_USERACCOUNTINFO] = useraccountInfo.tojson()
-       return render(request, 'html/myaccount.html', {'useraccountInfo': useraccountInfo,
+       return render(request, 'trading/myaccount.html', {'useraccountInfo': useraccountInfo,
                      REQ_KEY_USERNAME: request.user.username})
     except Exception as e:
        error_msg = '用户主页显示遇到错误: {0}'.format(sys.exc_info()[0])
        logger.exception(error_msg)
-       return errorpage.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
+       return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
