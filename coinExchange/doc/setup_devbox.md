@@ -14,7 +14,13 @@ sudo apt-get install python3-pip
 Create virtual env
 ```
 cd /{PATH}/coinExchange/
+# on AWS 16.04 Ubuntu, this pip uses python 2.7, and need additional
+# install for pip itself
 pip install --upgrade virtualenv
+
+# if you want to use python3 installer, use the following
+#pip3 install --upgrade virtualenv
+
 virtualenv -p python3 dj2env
 source dj2env/bin/activate   (deactivate)
 python -V
@@ -40,7 +46,8 @@ TODO, change to one stop install: pip install -r requirements/dev.txt
 Install client libraries for python:
 ```
 sudo apt-get install python3-dev libmysqlclient-dev
-pip install mysqlclient
+# without sudo following installation failed
+sudo pip install mysqlclient
 
 pip install --upgrade Pillow
 pip install django-mathfilters
@@ -50,11 +57,11 @@ Set up qrcode tools:
 ```
 sudo apt-get install libzbar-dev
 sudo apt install qrencode
-pip install zbar
-pip install qrtools
+sudo pip install zbar
+sudo pip install qrtools
 ```
 
-????? need? pip install zbar ????
+
 
 ????? need? create folder for payment qrcode images
 cd ~/projects/xwjy/coinExchange/
