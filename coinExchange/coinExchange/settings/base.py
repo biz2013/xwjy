@@ -16,10 +16,10 @@ import os
 #BASE_DIR = os.path.join( os.path.dirname(os.path.abspath(__file__)), os.pardir)
 currentDir = os.path.dirname(os.path.abspath(__file__))
 parentDir = os.path.join(currentDir, os.pardir)
-print('cur dir: ' + currentDir)
-print('parent dir: ' + parentDir)
+# print('cur dir: ' + currentDir)
+# print('parent dir: ' + parentDir)
 BASE_DIR = os.path.join( parentDir, os.pardir)
-print('base dir: ' + BASE_DIR)
+# print('base dir: ' + BASE_DIR)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #'coinExchange.trading.apps.TradingConfig',
     'trading.apps.TradingConfig',
     'mathfilters',
 ]
