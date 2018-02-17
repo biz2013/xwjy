@@ -46,8 +46,7 @@ TODO, change to one stop install: pip install -r requirements/dev.txt
 Install client libraries for python:
 ```
 sudo apt-get install python3-dev libmysqlclient-dev
-# without sudo following installation failed
-sudo pip install mysqlclient
+pip install mysqlclient
 
 pip install --upgrade Pillow
 pip install django-mathfilters
