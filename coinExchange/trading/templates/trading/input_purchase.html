@@ -74,7 +74,7 @@
             {% endif %}
                {% endfor %}
             {% endif %}
-             <form id="create_purchase" tabindex="-1" role="dialog" action="/purchase/createorder2/" method="post">
+             <form id="create_purchase" tabindex="-1" role="dialog" action="/trading/purchase/createorder2/" method="post">
                {% csrf_token %}
                <input type="hidden" id="id_available_units" name="available_units" value = "{{ available_units_for_purchase }}"/>
                <input type="hidden" name="owner_user_id" value="{{ owner_user_id }}"/>

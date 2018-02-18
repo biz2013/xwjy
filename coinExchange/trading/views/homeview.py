@@ -12,7 +12,7 @@ logger = logging.getLogger("site.homepage")
 @login_required
 def home(request):
     """Show the home page."""
-    logger.info("visit home..." + request.user)
+    logger.info("visit home..." + request.user.username)
     return redirect('accountinfo')
 
 

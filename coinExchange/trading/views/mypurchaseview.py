@@ -103,8 +103,8 @@ def send_payment_request_to_heepay(sitesettings, buyorder_id, amount):
               seller_account, buyer_account))
     json_payload = heepay.create_heepay_payload('wallet.pay.apply',
          buyorder_id,
-         sitesettings.heepay_app_id.encode('ascii'),
-         sitesettings.heepay_app_key.encode('ascii'),
+         sitesettings.heepay_app_id,
+         sitesettings.heepay_app_key,
          '127.0.0.1', amount,
          seller_account,
          buyer_account,
