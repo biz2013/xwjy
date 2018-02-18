@@ -60,7 +60,7 @@ class HeePayManager(object):
        return json.dumps(jsonobj,ensure_ascii=False)
 
    def send_inquiry_request(self, payload):
-       conn = client.HTTPSConnection('wallet.heepay.com')
+       conn = http.client.HTTPSConnection('wallet.heepay.com')
        pay_url = '/Api/v1/PayQuery'
        logger.info('the payload is {0}'.format(payload))
        headers = {"Content-Type": "application/json",
@@ -70,7 +70,7 @@ class HeePayManager(object):
        return response.status, response.reason, response.read()
 
    def send_buy_apply_request(self, payload):
-       conn = client.HTTPSConnection('wallet.heepay.com')
+       conn = http.client.HTTPSConnection('wallet.heepay.com')
        pay_url = '/Api/v1/PayApply'
        logger.info('the payload is {0}'.format(payload))
        headers = {"Content-Type": "application/json",
