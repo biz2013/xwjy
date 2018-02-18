@@ -65,7 +65,7 @@ class HeePayManager(object):
        logger.info('the payload is {0}'.format(payload))
        headers = {"Content-Type": "application/json",
                "charset": "UTF-8"}
-       conn.request('POST', pay_url, payload, headers)
+       conn.request('POST', pay_url, payload.encode('utf-8'), headers)
        response = conn.getresponse()
        return response.status, response.reason, response.read()
 
@@ -75,7 +75,7 @@ class HeePayManager(object):
        logger.info('the payload is {0}'.format(payload))
        headers = {"Content-Type": "application/json",
                "charset": "UTF-8"}
-       conn.request('POST', pay_url, payload, headers)
+       conn.request('POST', pay_url, payload.encode('utf-8'), headers)
        response = conn.getresponse()
        return response.status, response.reason, response.read()
 

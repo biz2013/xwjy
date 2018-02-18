@@ -9,6 +9,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 
 # this is for test UI. A fake one
+from trading.config import context_processor
 from trading.controller.global_constants import *
 from trading.controller.global_utils import *
 from trading.controller.heepaymanager import *
