@@ -8,3 +8,12 @@ https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mys
 ## Install wsgi module
 http://modwsgi.readthedocs.io/en/develop/user-guides/quick-installation-guide.html
 
+## Install Current Trading Machine
+Before WSGI is finished, you need to do the following
+Assume you git clone under ~/workspace.
+1. sudo copy ~/workspace/xwjy/coinExchange/setup/axfund* /etc/systemd/system
+2. sudo service start axfund-django.service.  This start the website
+3. cd ~/workspace/xwjy/smwy/src/
+4. tar xvzf axfd.tar.gz .
+5. ./axfd -datadir=../../qb & <-- run at background
+6. create following cronjob:
