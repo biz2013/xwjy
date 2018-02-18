@@ -53,14 +53,14 @@ class HeePayManager(object):
                       wallet_action, frmt_date,
                       app_key)
        logger.info('content to be signed: {0}'.format(content_to_signed))
-       m.update(content_to_signed)
+       m.update(content_to_signed.encode('utf-8'))
        signed_str = m.hexdigest()
        jsonobj['sign'] =  signed_str.upper()
 
        return json.dumps(jsonobj,ensure_ascii=False)
 
    def send_inquiry_request(self, payload):
-       conn = httplib.HTTPSConnection('wallet.heepay.com')
+       conn = client.HTTPSConnection('wallet.heepay.com')
        pay_url = '/Api/v1/PayQuery'
        logger.info('the payload is {0}'.format(payload))
        headers = {"Content-Type": "application/json",
@@ -70,7 +70,7 @@ class HeePayManager(object):
        return response.status, response.reason, response.read()
 
    def send_buy_apply_request(self, payload):
-       conn = httplib.HTTPSConnection('wallet.heepay.com')
+       conn = client.HTTPSConnection('wallet.heepay.com')
        pay_url = '/Api/v1/PayApply'
        logger.info('the payload is {0}'.format(payload))
        headers = {"Content-Type": "application/json",
