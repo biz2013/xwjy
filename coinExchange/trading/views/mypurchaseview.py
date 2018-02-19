@@ -171,7 +171,7 @@ def create_purchase_order(request):
                     raise
                 owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
                 useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
-                redirect('purchase')
+                return redirect('purchase')
             if buyorderid is None:
                raise ValueError('Failed to get purchase order id')
 
