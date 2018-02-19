@@ -33,26 +33,27 @@ def handle_paying_order(order, order_timeout, appId, appkey):
             logger.error('purchase order {0}: transaction id{1} : no payment bill no yet its status is PAYING'.format(order.order_id, trans.id))
             return;
 
+        payment_status = 'UNKNOWN'
+        heepay = HeePayManager()
+        if trans.payment_status != 'SUCCESS':
+            logger.info('purchase order {0}: transaction id{1} : expired, payment_status: {2}. Query heepay for status...'.format(order.order_id, trans.id, trans.payment_status))
+            json_response = heepay.get_payment_status(order.order_id,
+                                   trans.payment_bill_no, appId, appkey)
+            payment_status = json_response['trade_status'].upper()
+            logger.info('purchase order {0}: transaction id{1} : expired, queried payment_status: {2}. Query heepay '.format(order.order_id, trans.id, payment_status))
+            if payment_status in ['PAYSUCCESS','SUCCESS']:
+                ordermanager.update_order_with_heepay_notification(json_response, 'admin')
+                return
         timediff = timezone.now() - order.lastupdated_at
         if int(timediff.total_seconds()) > order_timeout:
-            heepay = HeePayManager()
-            if trans.payment_status != 'SUCCESS':
-                logger.info('purchase order {0}: transaction id{1} : expired, payment_status: {2}. Query heepay for status...'.format(order.order_id, trans.id, trans.payment_status))
-                json_response = heepay.get_payment_status(order.order_id,
-                                   trans.payment_bill_no, appId, appkey)
-                payment_status = json_response['trade_status']
-                logger.info('purchase order {0}: transaction id{1} : expired, queried payment_status: {2}. Query heepay '.format(order.order_id, trans.id, payment_status))
-
-                if payment_status in ['PAYSUCCESS','SUCCESS']:
-                    ordermanager.update_order_with_heepay_notification(json_response, 'admin')
-                if payment_status in ['EXPIREDINVALID','DEVCLOSE','USERABANDON','UNKNOWN']:
-                    ordermanager.cancel_purchase_order(order,
+            if payment_status in ['EXPIREDINVALID','DEVCLOSE','USERABANDON','UNKNOWN']:
+                ordermanager.cancel_purchase_order(order,
                       'FAILED', payment_status, 'admin')
-                else:
-                    heepay.cancel_payment(order.order_id, trans.payment_bill_no, appId,
+            else:
+                heepay.cancel_payment(order.order_id, trans.payment_bill_no, appId,
                                            appkey)
-                    ordermanager.cancel_purchase_order(order,
-                      'CANCELLED', payment_status, 'admin')
+                ordermanager.cancel_purchase_order(order,
+                      'FAILED', payment_status, 'admin')
         else:
             logger.info("The order {0} is not expired, skip for now".format(order.order_id)) 
     except Exception as e:
