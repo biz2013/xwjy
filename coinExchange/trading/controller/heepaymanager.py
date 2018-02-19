@@ -111,7 +111,7 @@ class HeePayManager(object):
        content = content.encode('utf-8')
        m = hashlib.md5()
        logger.info('the content to be verified with signature: {0}'.format(content))
-       m.update(content.encode('utf-8'))
+       m.update(content)
        signed_str = m.hexdigest().upper()
        return signed_str
 
@@ -153,6 +153,8 @@ class HeePayManager(object):
 
        payload = json.dumps(jsonobj,ensure_ascii=False)
        status, reason, message = self.send_inquiry_request(payload)
+       logger.info("query payment status {0} {1} return status {2} message {3}".format(order_id, hy_bill_no, status, message))
+
        if status != 200:
            logger.error("Calling heepay failed with {0}:{1} {2}".format(status, reason, message))
            return 'UNKNOWN'

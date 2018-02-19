@@ -138,10 +138,11 @@ print('REPOSITORY_ROOT is ' + REPOSITORY_ROOT)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+STATIC_ROOT = os.path.join(REPOSITORY_ROOT, 'static/')
 
 print('STATIC ROOT: ' + STATIC_ROOT)
 STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
     os.path.join(BASE_DIR, "trading", "static"),
 ]
 

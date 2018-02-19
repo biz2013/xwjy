@@ -53,6 +53,8 @@ def handle_paying_order(order, order_timeout, appId, appkey):
                                            appkey)
                     ordermanager.cancel_purchase_order(order,
                       'CANCELLED', payment_status, 'admin')
+        else:
+            logger.info("The order {0} is not expired, skip for now".format(order.order_id)) 
     except Exception as e:
         error_msg = 'handle_paying_order hit eception {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
