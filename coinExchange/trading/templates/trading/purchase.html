@@ -60,8 +60,8 @@
             <tr>
               <!--<td>{{ order.lastmodified_at }}</td>-->
               <td>{{ order.available_units }}</td>
-              <td>{{ order.unit_price}}</td>
-              <td>{{ order.available_units|mul:order.unit_price }}</td>
+              <td>{{ order.unit_price|floatformat:2}}</td>
+              <td>{{ order.available_units|mul:order.unit_price|floatformat:2 }}</td>
               {% if order.status == 'LOCKED' %}
               <td>被锁定</td>
               {% else %}
