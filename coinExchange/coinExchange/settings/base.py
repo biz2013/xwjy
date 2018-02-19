@@ -16,10 +16,10 @@ import os
 #BASE_DIR = os.path.join( os.path.dirname(os.path.abspath(__file__)), os.pardir)
 currentDir = os.path.dirname(os.path.abspath(__file__))
 parentDir = os.path.join(currentDir, os.pardir)
-print('cur dir: ' + currentDir)
-print('parent dir: ' + parentDir)
+#print('cur dir: ' + currentDir)
+#print('parent dir: ' + parentDir)
 BASE_DIR = os.path.abspath(os.path.join( parentDir, os.pardir))
-print('base dir: ' + BASE_DIR)
+#print('base dir: ' + BASE_DIR)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
@@ -133,23 +133,19 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 REPOSITORY_ROOT = os.path.dirname(BASE_DIR)
-print('REPOSITORY_ROOT is ' + REPOSITORY_ROOT)
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(REPOSITORY_ROOT, 'static/')
 
-print('STATIC ROOT: ' + STATIC_ROOT)
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
     os.path.join(BASE_DIR, "trading", "static"),
 ]
 
-print('static file dir: ' + STATICFILES_DIRS[0])
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
-print('MEDIA_ROOT: ' + MEDIA_ROOT)
 
 #EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
