@@ -184,12 +184,14 @@ def create_purchase_order(buyorder, reference_order_id,
         buyorder.unit_price_currency, buyorder.total_units,
         buyorder.unit_price)
     order = None
+    logger.debug('create_purchase_order(): {0}'.format(operation_comment))
     with transaction.atomic():
         userwallet = UserWallet.objects.select_for_update().get(
               user__id=buyorder.owner_user_id,
               wallet__cryptocurrency = crypto_currency)
         reference_order = Order.objects.select_for_update().get(pk=reference_order_id)
         if reference_order.status != 'PARTIALFILLED' and reference_order.status != 'OPEN':
+            logger.error('create_purchase_order(): reference_order {0} with status {1}: raise SELLORDER_NOT_OPEN'.format(reference_order_id, reference_order.status))
             raise ValueError('SELLORDER_NOT_OPEN')
         if buyorder.total_units > reference_order.units_available_to_trade:
             logger.error('sell order %s has %f to trade, buyer buy %f units' % (
