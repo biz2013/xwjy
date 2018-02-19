@@ -53,7 +53,7 @@ def handle_paying_order(order, order_timeout, appId, appkey):
                 heepay.cancel_payment(order.order_id, trans.payment_bill_no, appId,
                                            appkey)
                 ordermanager.cancel_purchase_order(order,
-                      'FAILED', payment_status, 'admin')
+                      'CANCELLED', payment_status, 'admin')
         else:
             logger.info("The order {0} is not expired, skip for now".format(order.order_id)) 
     except Exception as e:
