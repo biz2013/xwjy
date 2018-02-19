@@ -8,7 +8,7 @@ import pytz
 import datetime as dt
 import hashlib
 import shutil
-import qrtools
+import qrcode
 import logging
 
 logger = logging.getLogger("site.heepaymanager")
@@ -67,7 +67,7 @@ class HeePayManager(object):
                "charset": "UTF-8"}
        conn.request('POST', pay_url, payload.encode('utf-8'), headers)
        response = conn.getresponse()
-       return response.status, response.reason, response.read()
+       return response.status, response.reason, response.read().decode('utf-8')
 
    def send_buy_apply_request(self, payload):
        conn = http.client.HTTPSConnection('wallet.heepay.com')
@@ -77,7 +77,7 @@ class HeePayManager(object):
                "charset": "UTF-8"}
        conn.request('POST', pay_url, payload.encode('utf-8'), headers)
        response = conn.getresponse()
-       return response.status, response.reason, response.read()
+       return response.status, response.reason, response.read().decode('utf-8')
 
 
    def generate_heepay_qrcode(self, heepay_response_json, media_root):
@@ -87,11 +87,17 @@ class HeePayManager(object):
        )
        dst = os.path.join(media_root, 'qrcode', qrcode_filename)
        content = heepay_response_json['hy_url'].encode('utf8')
-       logger.info('generate qrcode for {0} refers to hy_bill_no {1}'.format(
-           content, heepay_response_json['hy_bill_no']))
-       myQR = qrtools.QR(data=content, pixel_size=6)
-       myQR.encode(dst)
-       #shutil.move(myQR.filename, dst)
+       logger.info('generate qrcode for {0} refers to hy_bill_no {1} into path {2}'.format(
+           content, heepay_response_json['hy_bill_no'], dst))
+       myQR = qrcode.QRCode(
+               version = 1,
+               error_correction = qrcode.constants.ERROR_CORRECT_H,
+               box_size = 6,
+               border = 2,
+              )
+       myQR.add_data(content)
+       img = myQR.make_image()
+       img.save(dst)
        img_path = os.path.join('qrcode', qrcode_filename)
        return img_path
 
@@ -105,7 +111,7 @@ class HeePayManager(object):
        content = content.encode('utf-8')
        m = hashlib.md5()
        logger.info('the content to be verified with signature: {0}'.format(content))
-       m.update(content)
+       m.update(content.encode('utf-8'))
        signed_str = m.hexdigest().upper()
        return signed_str
 
@@ -141,7 +147,7 @@ class HeePayManager(object):
                       'wallet.pay.query', frmt_date,
                       app_key)
        logger.info('get_payment_status(): content to be signed: {0}'.format(content_to_signed))
-       m.update(content_to_signed)
+       m.update(content_to_signed.encode('utf-8'))
        signed_str = m.hexdigest()
        jsonobj['sign'] =  signed_str.upper()
 
