@@ -6,6 +6,7 @@ import logging,json
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
 
 # this is for test UI. A fake one
 from trading.config import context_processor
@@ -90,10 +91,10 @@ def show_purchase_input(request):
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
 
 def send_payment_request_to_heepay(sitesettings, buyorder_id, amount):
-    notify_url = 'http://{0}:{1}/heepay/confirm_payment/'.format(
+    notify_url = settings.HEEPAY_NOTIFY_URL_FORMAT.format(
            sitesettings.heepay_notify_url_host,
            sitesettings.heepay_notify_url_port)
-    return_url = 'http://{0}:{1}/heepay/confirm_payment/'.format(
+    return_url = settings.HEEPAY_RETURN_URL_FORMAT.format(
            sitesettings.heepay_return_url_host,
            sitesettings.heepay_return_url_port)
     heepay = HeePayManager()
