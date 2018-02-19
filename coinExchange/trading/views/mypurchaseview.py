@@ -56,6 +56,9 @@ def show_purchase_input(request):
         if len(useraccountInfo.paymentmethods[0].account_at_provider) == 0:
             messages.error(request, '请先注册支付账号再购买')
             return redirect('accountinfo')
+        if "owner_user_id" not in request.POST:
+            messages.warn("回到主页再进行操作")
+            return redirect('accountinfo')
         owner_user_id = request.POST["owner_user_id"]
         reference_order_id = request.POST["reference_order_id"]
         owner_login = request.POST["owner_login"]
