@@ -25,6 +25,7 @@ def create_wallet_address(request):
         axfd_bin_path = sitesettings.axfd_path
         axfd_datadir = sitesettings.axfd_datadir
         wallet_account_name = sitesettings.axfd_account_name
+        axfd_passphrase = sitesettings.axfd_passphrase
         axfd_tool = AXFundUtility(axfd_bin_path, axfd_datadir,
                 wallet_account_name)
         config_json = json.loads(sitesettings.config_json)
@@ -40,6 +41,8 @@ def create_wallet_address(request):
             logger.info("There are still {0} address left.  Not creating new addresses".format(unassigned_count))
             return HttpResponse('OK --- No change')
 
+        logger.info("Unlock wallet before generating address")
+        axfd_tool.unlock_wallet(axfd_passphrase, 15)
         new_addresses = []
         for i in range(0, batch_size - unassigned_count):
             new_addresses.append(axfd_tool.create_wallet_address())
