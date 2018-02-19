@@ -285,7 +285,6 @@ def update_purchase_transaction(purchase_trans, trade_status, trade_msg):
     if trade_status in normal_status:
         purchase_trans.payment_methodstatus = normal_status[trade_status]
     elif trade_status in bad_status:
-        logger.info("trade status is {0} for purchase_trans of order {1}, will be set to FAILED".format(trade_status, purchase_trans.reference_order.order_id))
         purchase_trans.payment_status = bad_status[trade_status]
         purchase_trans.comment = trade_msg
         buyorder = purchase_trans.reference_order
