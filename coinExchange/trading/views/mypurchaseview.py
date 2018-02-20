@@ -6,6 +6,7 @@ import logging,json
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
 
 # this is for test UI. A fake one
 from trading.config import context_processor
@@ -55,6 +56,9 @@ def show_purchase_input(request):
         if len(useraccountInfo.paymentmethods[0].account_at_provider) == 0:
             messages.error(request, '请先注册支付账号再购买')
             return redirect('accountinfo')
+        if "owner_user_id" not in request.POST:
+            messages.warn("回到主页再进行操作")
+            return redirect('accountinfo')
         owner_user_id = request.POST["owner_user_id"]
         reference_order_id = request.POST["reference_order_id"]
         owner_login = request.POST["owner_login"]
@@ -90,10 +94,10 @@ def show_purchase_input(request):
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
 
 def send_payment_request_to_heepay(sitesettings, buyorder_id, amount):
-    notify_url = 'http://{0}:{1}/heepay/confirm_payment/'.format(
+    notify_url = settings.HEEPAY_NOTIFY_URL_FORMAT.format(
            sitesettings.heepay_notify_url_host,
            sitesettings.heepay_notify_url_port)
-    return_url = 'http://{0}:{1}/heepay/confirm_payment/'.format(
+    return_url = settings.HEEPAY_RETURN_URL_FORMAT.format(
            sitesettings.heepay_return_url_host,
            sitesettings.heepay_return_url_port)
     heepay = HeePayManager()
@@ -103,8 +107,8 @@ def send_payment_request_to_heepay(sitesettings, buyorder_id, amount):
               seller_account, buyer_account))
     json_payload = heepay.create_heepay_payload('wallet.pay.apply',
          buyorder_id,
-         sitesettings.heepay_app_id.encode('ascii'),
-         sitesettings.heepay_app_key.encode('ascii'),
+         sitesettings.heepay_app_id,
+         sitesettings.heepay_app_key,
          '127.0.0.1', amount,
          seller_account,
          buyer_account,
@@ -167,7 +171,7 @@ def create_purchase_order(request):
                     raise
                 owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
                 useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
-                redirect('purchase')
+                return redirect('purchase')
             if buyorderid is None:
                raise ValueError('Failed to get purchase order id')
 

@@ -25,7 +25,7 @@
           $("#form_create_purchase_order").submit();
       }
       </script>
-      <form id="form_create_purchase_order" action="/purchase/createorder1/" method="post">
+      <form id="form_create_purchase_order" action="/trading/purchase/createorder1/" method="post">
         {% csrf_token %}
         <input type="hidden" name="username" value="{{ username }}"/>
         <input type="hidden" id="reference_order_id" name="reference_order_id" value=""/>
@@ -37,6 +37,15 @@
       <div class="row">
         <div class="offset2 col-md-6">
           <h3>现有卖单</h3>
+            {% if messages %}
+               {% for message in messages %}
+            {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+            <div id="div_message" class="text-danger">{{ message }}</div>
+            {% else %}
+            <div id="div_message" class="text-success">{{ message }}</div>
+            {% endif %}
+               {% endfor %}
+            {% endif %}
           <table class="table table-striped table-condensed">
             <tr>
               <!--<th>卖出时间</th>-->
@@ -51,8 +60,8 @@
             <tr>
               <!--<td>{{ order.lastmodified_at }}</td>-->
               <td>{{ order.available_units }}</td>
-              <td>{{ order.unit_price}}</td>
-              <td>{{ order.available_units|mul:order.unit_price }}</td>
+              <td>{{ order.unit_price|floatformat:2}}</td>
+              <td>{{ order.available_units|mul:order.unit_price|floatformat:2 }}</td>
               {% if order.status == 'LOCKED' %}
               <td>被锁定</td>
               {% else %}
@@ -72,7 +81,7 @@
       </div>
     </div>
     <!-- popup window for confirm payment of purchase -->
-    <form id="buy-modal" tabindex="-1" class="modal fade" role="dialog" action="/mysellorder/confirm_payment/" aria-labelledby="lockfund-form-label" aria-hidden="true" method='post'>
+    <form id="buy-modal" tabindex="-1" class="modal fade" role="dialog" action="/trading/mysellorder/confirm_payment/" aria-labelledby="lockfund-form-label" aria-hidden="true" method='post'>
       {% csrf_token %}
       <input type="hidden" id="id_username" name="username" value = "{{ username }}"/>
       <div class="modal-dialog">
@@ -107,7 +116,7 @@
         </div>
     </form>
     <!-- popup window for purchase -->
-    <form id="buy-modal" tabindex="-1" class="modal fade" role="dialog" action="/mysellorder/" aria-labelledby="lockfund-form-label" aria-hidden="true" method='post'>
+    <form id="buy-modal" tabindex="-1" class="modal fade" role="dialog" action="/trading/mysellorder/" aria-labelledby="lockfund-form-label" aria-hidden="true" method='post'>
       {% csrf_token %}
       <input type="hidden" id="id_action" name="action" value="create_order" />
       <input type="hidden" id="id_username" name="username" value = "{{ username }}"/>
