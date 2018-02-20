@@ -55,9 +55,10 @@ pip install django-mathfilters
 Set up qrcode tools:
 ```
 sudo apt-get install libzbar-dev
-sudo apt install qrencode
-sudo pip install zbar
-sudo pip install qrtools
+#sudo apt install qrencode
+sudo apt install qrcode
+#sudo pip install zbar
+#sudo pip install qrtools
 ```
 
 
