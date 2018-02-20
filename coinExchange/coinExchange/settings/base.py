@@ -16,10 +16,10 @@ import os
 #BASE_DIR = os.path.join( os.path.dirname(os.path.abspath(__file__)), os.pardir)
 currentDir = os.path.dirname(os.path.abspath(__file__))
 parentDir = os.path.join(currentDir, os.pardir)
-# print('cur dir: ' + currentDir)
-# print('parent dir: ' + parentDir)
-BASE_DIR = os.path.join( parentDir, os.pardir)
-# print('base dir: ' + BASE_DIR)
+#print('cur dir: ' + currentDir)
+#print('parent dir: ' + parentDir)
+BASE_DIR = os.path.abspath(os.path.join( parentDir, os.pardir))
+#print('base dir: ' + BASE_DIR)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
@@ -132,20 +132,20 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
-REPOSITORY_ROOT = os.path.dirname(BASE_DIR)
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = '/static/'
-#STATIC_ROOT = os.path.join(REPOSITORY_ROOT, 'static/')
+
 STATIC_ROOT = "/var/www/coinexchange/static/"
+
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
+    os.path.join(BASE_DIR, "trading", "static"),
 ]
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(REPOSITORY_ROOT, 'media/')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
 #EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
@@ -175,9 +175,7 @@ LOGGING = {
         'siteTimeRotateFile': {
             'level': 'DEBUG',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            #'filename': 'logs/site.log',
             'filename': os.path.join(BASE_DIR, "logs/site.log"),
-            #'filename': '/home/chi/workspace/python/projects/xwjy/coinExchange/logs/site.log',
             'when': 'D',
             'interval': 1,
             'backupCount': 30,
@@ -216,3 +214,8 @@ LOGGING = {
 
 # Redirect to home URL after login (Default redirects to /accounts/profile/)
 LOGIN_REDIRECT_URL = '/'
+
+# format for construct the url for heepay return and notify
+HEEPAY_NOTIFY_URL_FORMAT='http://{0}:{1}/trading/heepay/confirm_payment/'
+HEEPAY_RETURN_URL_FORMAT='http://{0}:{1}/trading/heepay/confirm_payment/'
+

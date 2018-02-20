@@ -1,0 +1,34 @@
+[Unit]
+Description=AXFund offline trading service
+After=network.target
+
+
+[Service]
+Type=simple
+
+# Preferably configure a non-privileged user
+Group=ubuntu
+User=ubuntu
+
+# The path to the puma application root
+# Also replace the "<WD>" place holders below with this path.
+WorkingDirectory=/home/ubuntu/workspace/xwjy/coinExchange/
+
+# Helpful for debugging socket activation, etc.
+# Environment=PUMA_DEBUG=1
+
+# The command to start Puma. This variant uses a binstub generated via
+# `bundle binstubs puma --path ./sbin` in the WorkingDirectory
+# (replace "<WD>" below)
+#ExecStart=/home/ubuntu/workspace/xwjy/coinExchange/j2env/bin/python manage.py runserver --settings=coinExchange.settings.dev 0.0.0.0:80
+ExecStart=/etc/systemd/system/axfund-django_start.sh
+ExecStop=/bin/pkill -f manage.py
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+# Delay 5 seconds to avoid excessive restarts
+RestartSec=5
+# Wait 30 seconds after signalling stop, then force stop service
+TimeoutStopSec=30
+[Install]
+WantedBy=single-user.target
+

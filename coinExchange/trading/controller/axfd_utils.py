@@ -18,7 +18,7 @@ class AXFundUtility(object):
            [self.axfd_path, '-datadir=%s'%(self.axfd_datadir),
             'listtransactions', self.axfd_account, str(lookback_count)])
         #logger.info("listtransaction return: {0}".format(result_str))
-        return json.loads(result_str)
+        return json.loads(result_str.decode('utf-8'))
 
     def send_fund(self, src_account, dst, amount, comment, lookback_count):
         logger.info('{0} {1} {2} {3} {4} \'{5}\''.format(
@@ -28,6 +28,7 @@ class AXFundUtility(object):
         result_str = subprocess.check_output(
            [self.axfd_path, '-datadir=%s'%(self.axfd_datadir), 'sendtoaddress',
             dst, str(amount), '\"{0}\"'.format(comment)])
+        result_str = result_str.decode('utf-8')
         logger.info("send to address return transaction id {0}".format(
             result_str))
         transactions = self.listtransactions(lookback_count)
@@ -56,4 +57,4 @@ class AXFundUtility(object):
 
         result_str = result_str.rstrip()
         logger.info("Wallet address {0} created".format(result_str))
-        return result_str
+        return result_str.decode('utf-8')

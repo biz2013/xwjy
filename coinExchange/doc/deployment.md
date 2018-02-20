@@ -233,5 +233,14 @@ hostname -I
   718  tail -f /var/log/apache2/error.log 
   719  sudo chmod 777 /var/www/site.log
   720  tail -f /var/log/apache2/error.log 
-
 ```
+
+## Start Wallet
+
+1. sudo copy ~/workspace/xwjy/coinExchange/setup/axfund* /etc/systemd/system
+2. sudo service start axfund-django.service.  This start the website
+3. cd ~/workspace/xwjy/smwy/src/
+4. tar xvzf axfd.tar.gz .
+5. ./axfd -datadir=../../qb & <-- run at background
+6. create following cronjob:
+

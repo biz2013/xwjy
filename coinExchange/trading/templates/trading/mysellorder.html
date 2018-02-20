@@ -43,7 +43,7 @@
         {% endif %}
         {% if buyorders %}
         <h4>给我的买单</h4>
-        <table class="table ">
+        <table class="table table-stripe">
           <tr>
             <th>购买数量</th>
             <th>单价(CYN)</th>
@@ -54,8 +54,8 @@
           {% for order in buyorders %}
           <tr>
             <td>{{ order.total_units }}</td>
-            <td>{{ order.unit_price }}</td>
-            <td>{{ order.total_units|mul:order.unit_price }}</td>
+            <td>{{ order.unit_price|floatformat:2 }}</td>
+            <td>{{ order.total_units|mul:order.unit_price|floatformat:2 }}</td>
             <!--<td>{{ order.lastmodified_at }}</td>-->
             <td>{% if order.status == 'PAID' %}
               <button class="btn btn-primary" data-toggle="modal" data-target="#payment-confirm-modal" onclick="show_order_info({{ order.order_id}}, {{ order.total_units}},{{ order.unit_price }}, '{{ order.unit_price_currency}}')">确认</button> {% else %}等待付款 {% endif %}
@@ -66,7 +66,7 @@
         {% endif %}
       </div>
       <div class="row">
-        <table class="table table-condensed">
+        <table class="table table-condensed table-striped">
           <tr>
             <th>
               <h4>我的卖单</h4>
@@ -88,7 +88,7 @@
           <tr>
             <td>{% if order.order_type == 'SELL' %}{{ order.available_units }}{% else %}{{ order.total_units }}{% endif %}</td>
             <td>{{ order.unit_price }}</td>
-            <td>{% if order.order_type == 'SELL' %}{{ order.available_units|mul:order.unit_price }}{% else %}{{ order.total_units|mul:order.unit_price }}{% endif %}</td>
+            <td>{% if order.order_type == 'SELL' %}{{ order.available_units|mul:order.unit_price|floatformat:2 }}{% else %}{{ order.total_units|mul:order.unit_price|floatformat:2 }}{% endif %}</td>
             <td>{% if order.order_type == 'SELL' %}
                    {% if order.status == 'LOCKED' %}锁定
                    {% else %}<button class="btn btn-primary" type="button" onclick="popup_cancel_confirm_window('{{ order.order_id }}', {{ order.available_units }}, {{ order.unit_price }}, {{ order.available_units|mul:order.unit_price }})">取消</button>
@@ -111,7 +111,7 @@
       </div>
     </div>
     <!-- popup window for confirm payment of purchase -->
-    <form id="payment-confirm-modal" tabindex="-1" class="modal fade" role="dialog" action="/mysellorder/confirm_payment/" aria-labelledby="confirm-form-label" aria-hidden="true" method='post'>
+    <form id="payment-confirm-modal" tabindex="-1" class="modal fade" role="dialog" action="/trading/mysellorder/confirm_payment/" aria-labelledby="confirm-form-label" aria-hidden="true" method='post'>
       {% csrf_token %}
       <input type="hidden" id="id_order_id_confirm" name="order_id" value=""/>
       <div class="modal-dialog">
@@ -200,7 +200,7 @@
       }
     }
     </script>
-    <form id="sell-modal" tabindex="-1" class="modal fade" role="dialog" action="/mysellorder/" aria-labelledby="purchase-form-label" aria-hidden="true" method='post'>
+    <form id="sell-modal" tabindex="-1" class="modal fade" role="dialog" action="/trading/mysellorder/" aria-labelledby="purchase-form-label" aria-hidden="true" method='post'>
       {% csrf_token %}
       <input type="hidden" id="id_available_units" name="available_units" value="{{ useraccountInfo.available_balance  }}" />
       <input type="hidden" id="id_per_transaction_limit" name="per_transaction_limit" value="{{ settings.per_transaction_limit  }}" />
@@ -239,7 +239,7 @@
       </div>
     </form>
     <!-- popup window to confirm cancel the order -->
-    <form id="cancel-modal" tabindex="-1" class="modal fade" role="dialog" action="/mysellorder/cancel" aria-labelledby="cancel-form-lable" aria-hidden="true" method='post'>
+    <form id="cancel-modal" tabindex="-1" class="modal fade" role="dialog" action="/trading/mysellorder/cancel" aria-labelledby="cancel-form-lable" aria-hidden="true" method='post'>
       {% csrf_token %}
       <input type="hidden" id="txt_id_order_id_cancel_model" name="order_id" value=""/>
       <div class="modal-dialog">
