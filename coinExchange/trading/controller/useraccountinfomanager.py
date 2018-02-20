@@ -393,9 +393,9 @@ def get_user_accountInfo(user, crypto, load_balance_only=False):
                     method.provider.name,method.account_at_provider,
                     method.provider_qrcode_image))
     userInfo = UserAccountInfo(user.username, user.id,
-          balance,
-          locked_balance,
-          available_balance,
+          round(balance,8),
+          round(locked_balance,8),
+          round(available_balance,8),
           receiving_addr,
           externaladdr,
           payment_methods)
