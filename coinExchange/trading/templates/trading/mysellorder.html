@@ -88,7 +88,7 @@
           <tr>
             <td>{% if order.order_type == 'SELL' %}{{ order.available_units }}{% else %}{{ order.total_units }}{% endif %}</td>
             <td>{{ order.unit_price }}</td>
-            <td>{% if order.order_type == 'SELL' %}{{ order.available_units|mul:order.unit_price }}{% else %}{{ order.total_units|mul:order.unit_price }}{% endif %}</td>
+            <td>{% if order.order_type == 'SELL' %}{{ order.available_units|mul:order.unit_price|floatformat:2 }}{% else %}{{ order.total_units|mul:order.unit_price|floatformat:2 }}{% endif %}</td>
             <td>{% if order.order_type == 'SELL' %}
                    {% if order.status == 'LOCKED' %}锁定
                    {% else %}<button class="btn btn-primary" type="button" onclick="popup_cancel_confirm_window('{{ order.order_id }}', {{ order.available_units }}, {{ order.unit_price }}, {{ order.available_units|mul:order.unit_price }})">取消</button>
