@@ -138,7 +138,8 @@ REPOSITORY_ROOT = os.path.dirname(BASE_DIR)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(REPOSITORY_ROOT, 'static/')
+#STATIC_ROOT = os.path.join(REPOSITORY_ROOT, 'static/')
+STATIC_ROOT = "/var/www/coinexchange/static/"
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
@@ -174,7 +175,9 @@ LOGGING = {
         'siteTimeRotateFile': {
             'level': 'DEBUG',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': 'site.log',
+            #'filename': 'logs/site.log',
+            'filename': os.path.join(BASE_DIR, "logs/site.log"),
+            #'filename': '/home/chi/workspace/python/projects/xwjy/coinExchange/logs/site.log',
             'when': 'D',
             'interval': 1,
             'backupCount': 30,
