@@ -56,7 +56,7 @@ Set up qrcode tools:
 ```
 sudo apt-get install libzbar-dev
 #sudo apt install qrencode
-sudo apt install qrcode
+pip install qrcode
 #sudo pip install zbar
 #sudo pip install qrtools
 ```
