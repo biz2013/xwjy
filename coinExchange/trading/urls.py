@@ -48,3 +48,5 @@ urlpatterns = [
     re_path(r'^registration/$',userregistrationview.registration, name="user_registration"),
     re_path(r'^activate/(?P<uidb64>b\'[0-9A-Za-z_\-]+\')/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', userregistrationview.activate_user_registration, name='activate_user_registration'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
