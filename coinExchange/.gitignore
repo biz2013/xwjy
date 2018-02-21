@@ -1,2 +1,3 @@
-deploy/*
+deploy/mod_wsgi-4.5.24/*
+logs/*.log
 
