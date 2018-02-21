@@ -116,6 +116,7 @@ sudo vi /etc/apache2/sites-available/000-default.conf
     WSGIScriptAlias / /home/chi/workspace/python/projects/xwjy/coinExchange/coinExchange/wsgi.py
     
     Alias /static/ /var/www/coinexchange/static/
+    Alias /media/ /var/www/coinexchange/media/
 
     <Directory /home/chi/workspace/python/projects/xwjy/coinExchange/coinExchange>
     <Files wsgi.py>
@@ -126,6 +127,10 @@ sudo vi /etc/apache2/sites-available/000-default.conf
     <Directory /home/chi/workspace/python/projects/xwjy/coinExchange/coinExchange>
     Order allow,deny
     Allow from all
+    </Directory>
+
+    <Directory /var/www/coinexchange/media>
+    Require all granted
     </Directory>
 
     <Directory /var/www/coinexchange/static>
@@ -139,15 +144,20 @@ sudo vi /etc/apache2/sites-available/000-default.conf
 </VirtualHost>
 ```
 
-
 ## Prepare static files
 
 Collect static files to a common place.
 ```
-mkdir -p /var/www/coinexchange/static  (STATIC_ROOT)
+sudo mkdir -p /var/www/coinexchange/static  (STATIC_ROOT)
 sudo chown -R {user}:{usergroup} (ex: chi:chi) /var/www/coinexchange/static
 python manage.py collectstatic
 sudo chown -R root:root /var/www/coinexchange/static
+```
+
+## Prepare media folders
+
+```
+sudo mkdir -p /var/www/coinexchange/media  (MEDIA_ROOT)
 ```
 
 ## Prepare logging
@@ -162,7 +172,7 @@ Follow this doc to write env variables, currently we don't have any environment 
 
 /etc/apache2/envvars
 
-# How to test wsgi config before deploying?
+## How to test wsgi config before deploying?
 
 Leverage mod_wsgi-express:
 doc: 
@@ -171,6 +181,7 @@ https://pypi.python.org/pypi/mod_wsgi
 
 mod_wsgi-express start-server coinExchange/wsgi.py
 
+## Other useful commands
 ```
 sudo apt-get update
 sudo apt-get install apache2
@@ -179,60 +190,22 @@ sudo ufw status
 sudo ufw allow 'Apache Full'
 sudo ufw status
 sudo systemctl status apache2
-hostname -I
-  668  ls
-  669  cd workspace/
-  670  ls
-  671  mkdir tmp
-  672  cd tmp/
-  673  tar xvfz ~/Downloads/mod_wsgi-4.5.24.tar.gz 
-  674  cd mod_wsgi-4.5.24/
-  675  ls
-  676  ./configure 
-  677  make
-  678  sudo make install
-  679  vi /etc/apache2/apache2.conf 
-  680  sudo vi /etc/apache2/apache2.conf 
-  681  apachectl restart
-  682  ls /etc/apache2/mods-available/
-  683  sudo apt-get install apache2-utils libexpat1 ssl-cert
-  684  sudo apt-get install libapache2-mod-wsgi
-  685  sudo /etc/init.d/apache2 restart
-  686  sudo nano /etc/apache2/conf-available/wsgi.conf
-  687  ls /etc/apache2/conf-available/
-  688  sudo nano  /var/www/html/test_wsgi.py
-  689  sudo a2enconf wsgi
-  690  service apache2 reload
-  691  cd ..
-  692  less /etc/apache2/sites-available/000-default.conf 
-  693  sudo vi /etc/apache2/sites-available/000-default.conf 
-  694  sudo apache2ctl configtest
-  695  sudo systemctl restart apache2
-  696  hostname -I
-  697  sudo vi /etc/apache2/sites-available/000-default.conf 
-  698  sudo apache2ctl configtest
-  699  sudo systemctl restart apache2
-  700  ls /etc/apache2/
-  701  less /etc/apache2/ports.conf 
-  702  less /etc/apache2/apache2.conf 
-  703  ls /var/log/apache2/
-  704  less /var/log/apache2/error.log 
-  705  less /var/log/apache2/access.log 
-  706  less /var/log/apache2/other_vhosts_access.log 
-  707  ls -al
-  708  ls -al /var/log/apache2/
-  709  less /var/log/apache2/error.log 
-  710  tail /var/log/apache2/error.log 
-  711  sudo chmod 755 /var/www/site.log
-  712  touch /var/www/site.log
-  713  sudo touch /var/www/site.log
-  714  sudo chmod 755 /var/www/site.log
-  715  tail -f /var/log/apache2/error.log 
-  716  sudo ls -al /var/www/
-  717  sudo ls -al /var/www/html/
-  718  tail -f /var/log/apache2/error.log 
-  719  sudo chmod 777 /var/www/site.log
-  720  tail -f /var/log/apache2/error.log 
+
+vi /etc/apache2/apache2.conf 
+apachectl restart
+ls /etc/apache2/mods-available/
+sudo apt-get install apache2-utils libexpat1 ssl-cert
+sudo apt-get install libapache2-mod-wsgi
+
+less /etc/apache2/sites-available/000-default.conf 
+sudo vi /etc/apache2/sites-available/000-default.conf 
+sudo apache2ctl configtest
+sudo systemctl restart apache2
+
+less /etc/apache2/ports.conf
+less /var/log/apache2/access.log 
+less /var/log/apache2/other_vhosts_access.log 
+
 ```
 
 ## Start Wallet
