@@ -10,6 +10,7 @@ https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mys
 ```
 sudo apt-get update
 sudo apt-get install apache2
+sudo apt-get install apache2-dev
 sudo ufw app list   (check and adjust UFW firewall to allow web traffic)
 sudo ufw status
 sudo ufw allow 'Apache Full'
@@ -42,7 +43,7 @@ Libraries have been installed in:
 
 ```
 // Add below line to apache config: /etc/apache2/apache2.conf
-LoadModule wsgi_module modules/mod_wsgi.so
+LoadModule wsgi_module /usr/lib/apache2/modules/mod_wsgi.so
 
 ServerName server_domain_or_IP (ex: 192.168.1.252)
 ```
@@ -217,3 +218,15 @@ less /var/log/apache2/other_vhosts_access.log
 5. ./axfd -datadir=../../qb & <-- run at background
 6. create following cronjob:
 
+*/3 * * * * curl -v http://localhost/trading/account/cron/update_receive/
+*/5 * * * * curl -v http://localhost/trading/account/cron/order_batch_process/
+* 8 * * * curl -v http://localhost/trading/account/cron/generate_address/
+
+sudo systemctl stop axfund-django.service
+/etc/systemd/system/axfund-django_start.sh
+``` 
+cd /home/ubuntu/workspace/xwjy/coinExchange/     # Working dir
+source dj2env/bin/activate
+sudo dj2env/bin/python manage.py runserver --settings=coinExchange.settings.dev 0.0.0.0:80
+
+```
