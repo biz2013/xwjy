@@ -151,14 +151,16 @@ Collect static files to a common place.
 ```
 sudo mkdir -p /var/www/coinexchange/static  (STATIC_ROOT)
 sudo chown -R {user}:{usergroup} (ex: chi:chi) /var/www/coinexchange/static
-python manage.py collectstatic
+python manage.py collectstatic --settings=coinExchange.settings.production
 sudo chown -R root:root /var/www/coinexchange/static
 ```
 
 ## Prepare media folders
 
 ```
-sudo mkdir -p /var/www/coinexchange/media  (MEDIA_ROOT)
+sudo mkdir -p /var/www/coinexchange/media/qrcode  (MEDIA_ROOT)
+sudo chown -R www-data:www-data /var/www/coinexchange/media
+sudo chmod 755 -R /var/www/coinexchange/media
 ```
 
 ## Prepare logging
