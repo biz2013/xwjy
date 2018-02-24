@@ -132,12 +132,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
-REPOSITORY_ROOT = os.path.dirname(BASE_DIR)
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(REPOSITORY_ROOT, 'static/')
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
@@ -175,7 +173,7 @@ LOGGING = {
         'siteTimeRotateFile': {
             'level': 'DEBUG',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': 'site.log',
+            'filename': os.path.join(BASE_DIR, "logs/site.log"),
             'when': 'D',
             'interval': 1,
             'backupCount': 30,
