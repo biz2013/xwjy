@@ -106,3 +106,13 @@ or
 export DJANGO_SETTINGS_MODULE=coinExchange.settings.dev
 python manage.py runserver
 ```
+
+# Testing
+Before you run the test, go to mysql and run the following to give access rights of the test db to the default user.
+```
+GRANT ALL PRIVILEGES ON test_mydb.* TO 'mydbuser'@'localhost' IDENTIFIED BY 'aaaaaa';
+```
+Then, you need to run the following way.  This will put test to site_test.log under xwjy/coinExchange
+```
+python manage.py test trading.tests.<test file>[.testclass[.test_function]] --settings=coinExchange.settings.test
+```
