@@ -5,11 +5,11 @@ from django.test import TestCase, TransactionTestCase
 from django.test import Client
 from django.contrib.auth.models import User
 
-from users.models import *
+from trading.models import *
 
-from controller import redeemmanager
-from controller.axfd_utils import *
-from views import redeemview
+from trading.controller import redeemmanager
+from trading.controller.axfd_utils import *
+from trading.views import redeemview
 
 class TestRedeem(TransactionTestCase):
     fixtures = ['fixture_test_redeem.json']
@@ -21,7 +21,7 @@ class TestRedeem(TransactionTestCase):
           'quantity': '20.0',
           'crypto': 'AXFund'
          }
-        response = c.post('/accounts/redeem/', redeem_req, follow=True)
-        print 'test_redeem_no_account_address(): return {0}'.format(response.content)
+        response = c.post('/trading/accounts/redeem/', redeem_req, follow=True)
+        print('test_redeem_no_account_address(): return {0}'.format(response.content.decode('utf-8')))
 
-        self.assertTrue('您的提币地址属于交易平台注入地址，请修改您的提币地址' in response.content)
+        self.assertTrue('您的提币地址属于交易平台注入地址，请修改您的提币地址'.encode('utf-8') in response.content)
