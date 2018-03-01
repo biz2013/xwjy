@@ -43,7 +43,30 @@ sudo apt-get install libtiff5-dev libjpeg8-dev zlib1g-dev libfreetype6-dev liblc
 
 TODO, change to one stop install: pip install -r requirements/dev.txt
 
-Install client libraries for python:
+For MAC, you need to do the following to install mysqlclient under python3's virtualenv.
+```
+brew install mysql-connector-c
+which mysql_config
+```
+Then edit mysql_config, change the following
+```
+# Create options 
+libs="-L$pkglibdir"
+libs="$libs -l 
+```
+to 
+```
+# Create options 
+libs="-L$pkglibdir"
+libs="$libs -lmysqlclient -lssl -lcrypto"
+```
+Then, run
+```
+brew info openssl
+pip3 install mysqlclient
+```
+
+Install client libraries for python on Ubuntu:
 ```
 sudo apt-get install python3-dev libmysqlclient-dev
 pip install mysqlclient
