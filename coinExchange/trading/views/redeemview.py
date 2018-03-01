@@ -43,6 +43,7 @@ def redeem(request):
            wallet_account_name = sitesettings.axfd_account_name
            axfd_account = sitesettings.axfd_account_name
            lookback_count = sitesettings.axfd_list_trans_count
+           logger.info('[{0}] about to withdraw currency'.format(request.user.username))
            axfd_tool = AXFundUtility(axfd_bin_path, axfd_datadir,
                 wallet_account_name)
            axfd_tool.unlock_wallet(axfd_passphrase, 15)
@@ -58,7 +59,7 @@ def redeem(request):
        else:
            return HttpResponseBadRequest('The method can not be GET for redeem')
     except Exception as e:
-       error_msg = '提币遇到错误: {0}'.format(sys.exc_info()[0])
+       error_msg = '[{0}] 提币遇到错误: {1}'.format(request.user.username, sys.exc_info()[0])
        logger.exception(error_msg)
        return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))

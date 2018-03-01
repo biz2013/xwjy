@@ -30,10 +30,20 @@ def check_send_to_address(crypto, address):
 def redeem(command, operator, txid, fee, operation_comment):
     if not check_send_to_address(command.crypto, command.toaddress):
         raise ValueError("提币地址不可以是交易平台注入地址");
+    logger.info('[{0}][txid: {1}] about to create DB record for redeem: amount {2} fee {3} to {4}'.format(
+              operator, txid, command.amount, fee, command.toaddress)
+    )
     operatorObj = User.objects.get(username=operator)
     with transaction.atomic():
-        userwallet = UserWallet.objects.get(user__username=operator,
+        userwallet = UserWallet.objects.select_for_update().get(
+             user__username=operator,
              wallet__cryptocurrency__currency_code=command.crypto)
+        balance_begin = userwallet.balance
+        locked_begin = userwallet.locked_balance
+        available_begin = userwallet.available_balance
+        logger.info('[{0}][txid: {1}] before create redeem record, userwallet {2} has balance: {3} locked: {4} available: {5}'.format(
+               operator, txid, balance_begin, locked_begin, available_begin))
+        
         userwallet_trans = UserWalletTransaction.objects.create(
           user_wallet = userwallet,
           reference_order = None,
@@ -63,6 +73,8 @@ def redeem(command, operator, txid, fee, operation_comment):
           lastupdated_by = operatorObj
         )
 
+        userwallet.locked_balance = locked_begin + command.amount + fee
+        userwallet.available_balance = available_begin - command.amount - fee
         UserWallet.objects.filter(id=userwallet.id).update(
           locked_balance = F('locked_balance') + command.amount + fee,
           available_balance = F('available_balance') - command.amount - fee,
