@@ -1,6 +1,6 @@
 [
   {
-    "model": "users.sitesettings",
+    "model": "trading.sitesettings",
     "pk": "1",
     "fields":{
       "support": "",
@@ -18,7 +18,7 @@
     }
   },
   {
-    "model": "users.cryptocurrency",
+    "model": "trading.cryptocurrency",
     "pk": "AXFund",
     "fields":{
       "name":"美基金",
@@ -43,7 +43,7 @@
      }
    },
    {
-     "model": "users.wallet",
+     "model": "trading.wallet",
      "pk": 1,
      "fields":{
        "name":"AXFundWallet",
@@ -55,7 +55,7 @@
      }
    },
    {
-     "model": "users.paymentprovider",
+     "model": "trading.paymentprovider",
      "pk": "weixin",
      "fields" : {
        "name" : "微信支付",
@@ -67,7 +67,7 @@
      }
    },
    {
-     "model": "users.paymentprovider",
+     "model": "trading.paymentprovider",
      "pk": "alipay",
      "fields" : {
        "name" : "支付宝",
@@ -79,7 +79,7 @@
      }
    },
    {
-     "model": "users.paymentprovider",
+     "model": "trading.paymentprovider",
      "pk": "heepay",
      "fields" : {
        "name" : "汇钱包",
@@ -116,13 +116,14 @@
      }
    },
    {
-     "model": "users.userwallet",
+     "model": "trading.userwallet",
      "pk": "1",
      "fields":{
        "user": 2,
        "wallet": 1,
        "wallet_addr":"ANG53xNLvM4YkjHCeiaLMgobMZv3i6hT5m",
        "balance" : 100,
+       "available_balance" : 100,
        "created_at": "2017-12-17T21:14:00+08:00",
        "lastupdated_at": "2017-12-17T21:14:00+08:00",
        "created_by": 1,
@@ -130,7 +131,7 @@
      }
    },
    {
-     "model": "users.userwallet",
+     "model": "trading.userwallet",
      "pk": "2",
      "fields":{
        "user": null,
@@ -143,7 +144,7 @@
      }
    },
    {
-     "model": "users.userwallet",
+     "model": "trading.userwallet",
      "pk": "3",
      "fields":{
        "user": null,
@@ -156,7 +157,7 @@
      }
    },
    {
-    "model": "users.userexternalwalletaddress",
+    "model": "trading.userexternalwalletaddress",
     "pk": "1",
     "fields" : {
         "address" :  "AcinEAwDsYgUDHeZijSDD7AHYNuDdqBn5j",
