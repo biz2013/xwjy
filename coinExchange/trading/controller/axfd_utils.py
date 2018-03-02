@@ -48,7 +48,7 @@ class AXFundUtility(object):
         raise ValueError("Not redeem transaction for txid {0}".format(result_str))
 
     def unlock_wallet(self, timeout_in_sec):
-        self.unlock_wallet_impl(axfd_passphrase, timeout_in_sec)
+        self.unlock_wallet_impl(self.axfd_passphrase, timeout_in_sec)
 
     def unlock_wallet_impl(self, passphrase, timeout_in_sec):
         logger.info("unlock wallet ...")
