@@ -31,33 +31,32 @@ def redeem(request):
            toaddr = request.POST['toaddress']
            amount = float(request.POST['quantity'])
            crypto = request.POST['crypto']
+           logger.info('[{0}] redeem request: amount{1} toaddress {2} crypto {3}'.format(
+                request.user.username, amount, toaddr, crypto))
            if not redeemmanager.check_send_to_address(crypto, toaddr):
-               logger.info("Failed the address check")
+               logger.info('[{0}] redeem request: Failed the address check'.format(request.user.username))
                messages.error(request, "您的提币地址属于交易平台注入地址，请修改您的提币地址")
                return redirect('accountinfo')
-           logger.info("Pass the address check")
-           sitesettings = context_processor.settings(request)['settings']
-           axfd_bin_path = sitesettings.axfd_path
-           axfd_datadir = sitesettings.axfd_datadir
-           axfd_passphrase = sitesettings.axfd_passphrase
-           wallet_account_name = sitesettings.axfd_account_name
-           axfd_account = sitesettings.axfd_account_name
-           lookback_count = sitesettings.axfd_list_trans_count
-           logger.info('[{0}] about to withdraw currency'.format(request.user.username))
-           axfd_tool = AXFundUtility(axfd_bin_path, axfd_datadir,
-                wallet_account_name)
-           axfd_tool.unlock_wallet(axfd_passphrase, 15)
-           operation_comment = 'UserId:{0},redeem:{1},to:{2}'.format(
-               userid, amount, toaddr)
-           trx = axfd_tool.send_fund(axfd_account, toaddr, amount,
-                   operation_comment,lookback_count)
+           logger.info('[{0}] redeem request: Pass the address check'.format(request.user.username))
            redeem_cmd = RedeemItem(userid, toaddr, amount, crypto)
-           redeemmanager.redeem(redeem_cmd,request.user.username,
-              trx['txid'], math.fabs(trx['fee']),
-              operation_comment)
+
+           sitesettings = context_processor.settings(request)['settings']
+           axfd_tool = AXFundUtility(sitesettings)
+
+           redeemmanager.redeem(redeem_cmd,request.user.username, axfd_tool)
            return redirect('accountinfo')
        else:
            return HttpResponseBadRequest('The method can not be GET for redeem')
+    except ValueError as ve:
+       if ve.args[0].startswith(VE_REDEEM_EXCEED_LIMIT) or ve.args[0].startswith("Illegal Balance"):
+           logger.error(ve.args[0])
+           messages.error(request,"您的提币数量大于您现有的基金可使用余额，请从新输入提币数量")
+           return redirect('accountinfo')
+       elif ve.args[0].startswith(VE_ILLEGAL_BALANCE):
+           logger.error(ve.args[0])
+           messages.error(request,"请检查您的余额是否正确再尝试提币")
+           return redirect('accountinfo')    
+              
     except Exception as e:
        error_msg = '[{0}] 提币遇到错误: {1}'.format(request.user.username, sys.exc_info()[0])
        logger.exception(error_msg)
