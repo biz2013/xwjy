@@ -11,9 +11,9 @@ class AXFundUtility(object):
         self.axfd_lookback_count = settings.axfd_list_trans_count
 
     def listtransactions(self):
-        return self.listtransactions(self.axfd_lookback_count)
+        return self.listtransactions_impl(self.axfd_lookback_count)
 
-    def listtransactions(self, lookback_count):
+    def listtransactions_impl(self, lookback_count):
         logger.info('{0} {1} {2} {3} {4}'.format(
             self.axfd_path, '-datadir=%s'%(self.axfd_datadir),
             'listtransactions', self.axfd_account, lookback_count
@@ -25,9 +25,9 @@ class AXFundUtility(object):
         return json.loads(result_str.decode('utf-8'))
 
     def send_fund(self, dst, amount, comment):
-        return self.send_fund(self.axfd_account, dst, amount, comment, self.axfd_lookback_count)
+        return self.send_fund_impl(self.axfd_account, dst, amount, comment, self.axfd_lookback_count)
 
-    def send_fund(self, src_account, dst, amount, comment, lookback_count):
+    def send_fund_impl(self, src_account, dst, amount, comment, lookback_count):
         logger.info('{0} {1} {2} {3} {4} \'{5}\''.format(
             self.axfd_path, '-datadir=%s'%(self.axfd_datadir), 'sendtoaddress',
             dst, str(amount), comment
@@ -38,7 +38,7 @@ class AXFundUtility(object):
         result_str = result_str.decode('utf-8')
         logger.info("send to address return transaction id {0}".format(
             result_str))
-        transactions = self.listtransactions(lookback_count)
+        transactions = self.listtransactions()
         for trans in transactions:
             # if accidentally send money to address in the same accounts
             # you can see two trans have the same txid. so need to check
@@ -48,9 +48,9 @@ class AXFundUtility(object):
         raise ValueError("Not redeem transaction for txid {0}".format(result_str))
 
     def unlock_wallet(self, timeout_in_sec):
-        self.unlock_wallet(axfd_passphrase, timeout_in_sec)
+        self.unlock_wallet_impl(axfd_passphrase, timeout_in_sec)
 
-    def unlock_wallet(self, passphrase, timeout_in_sec):
+    def unlock_wallet_impl(self, passphrase, timeout_in_sec):
         logger.info("unlock wallet ...")
         subprocess.check_output(
            [self.axfd_path, '-datadir=%s'%(self.axfd_datadir), 'walletpassphrase',
