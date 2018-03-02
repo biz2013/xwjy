@@ -48,7 +48,7 @@ def redeem(request):
        else:
            return HttpResponseBadRequest('The method can not be GET for redeem')
     except ValueError as ve:
-       if ve.args[0].startswith(VE_REDEEM_EXCEED_LIMIT) or ve.args[0].startswith("Illegal Balance"):
+       if ve.args[0].startswith(VE_REDEEM_EXCEED_LIMIT):
            logger.error(ve.args[0])
            messages.error(request,"您的提币数量大于您现有的基金可使用余额，请从新输入提币数量")
            return redirect('accountinfo')

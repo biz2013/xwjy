@@ -47,7 +47,7 @@ def redeem(command, operator, axfd_tool):
         #
         # Now first check whether balance exceed available amount
         #
-        if command.amount - userwallet.locked_balance < 0:
+        if command.amount - userwallet.available_balance > 0:
             errMsg = '{0}: [{1}] try to redeem {2} from userwallet [{3}] which has available balance of {4}'.format(
                        VE_REDEEM_EXCEED_LIMIT, operator, command.amount, userwallet.id, userwallet.available_balance)
             raise ValueError(errMsg)
@@ -70,6 +70,8 @@ def redeem(command, operator, axfd_tool):
         trx = axfd_tool.send_fund(command.toaddress, command.amount, operation_comment)
         txid = trx['txid']
         fee = math.fabs(trx['fee'])
+
+        logger.info("passed the redeem coins")
 
         userwallet_trans = UserWalletTransaction.objects.create(
           user_wallet = userwallet,
