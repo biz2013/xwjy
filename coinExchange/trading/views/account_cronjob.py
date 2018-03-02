@@ -29,15 +29,10 @@ def update_account_with_receiving_fund(request):
           logger.error(message)
           return HttpResponseForbidden()
        sitesettings = context_processor.settings(request)['settings']
-       axfd_bin_path = sitesettings.axfd_path
-       axfd_datadir = sitesettings.axfd_datadir
-       wallet_account_name = sitesettings.axfd_account_name
-       lookback_count = sitesettings.axfd_list_trans_count
        min_trx_confirmation = sitesettings.min_trx_confirmation
-       axfd_tool = AXFundUtility(axfd_bin_path, axfd_datadir,
-            wallet_account_name)
+       axfd_tool = AXFundUtility(sitesettings)
        # get all past 10000 transactions in wallet
-       trans = axfd_tool.listtransactions(lookback_count)
+       trans = axfd_tool.listtransactions()
 
        useraccountinfomanager.update_account_balance_with_wallet_trx(
             'AXFund', trans, min_trx_confirmation)
