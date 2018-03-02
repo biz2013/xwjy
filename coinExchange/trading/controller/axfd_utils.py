@@ -3,14 +3,6 @@ import json, subprocess, logging
 logger = logging.getLogger("site.axf_util")
 
 class AXFundUtility(object):
-    def __init__(self, axfd_path_val, axfd_datadir_val, axfd_account_val):
-        self.axfd_path = axfd_path_val
-        self.axfd_datadir = axfd_datadir_val
-        self.axfd_account = axfd_account_val
-        self.axfd_account = ''
-        self.axfd_passphrase = ''
-        self.axfd_lookback_count = 1000000
-
     def __init__(self, settings):
         self.axfd_path = settings.axfd_path
         self.axfd_datadir = settings.axfd_datadir
