@@ -7,7 +7,19 @@ class AXFundUtility(object):
         self.axfd_path = axfd_path_val
         self.axfd_datadir = axfd_datadir_val
         self.axfd_account = axfd_account_val
+        self.axfd_account = ''
+        self.axfd_passphrase = ''
+        self.axfd_lookback_count = 1000000
 
+    def __init__(self, settings):
+        self.axfd_path = settings.axfd_path
+        self.axfd_datadir = settings.axfd_datadir
+        self.axfd_account = settings.axfd_account_name
+        self.axfd_passphrase = settings.axfd_passphrase
+        self.axfd_lookback_count = settings.axfd_list_trans_count
+
+    def listtransactions(self):
+        return self.listtransactions(self.axfd_lookback_count)
 
     def listtransactions(self, lookback_count):
         logger.info('{0} {1} {2} {3} {4}'.format(
@@ -19,6 +31,9 @@ class AXFundUtility(object):
             'listtransactions', self.axfd_account, str(lookback_count)])
         #logger.info("listtransaction return: {0}".format(result_str))
         return json.loads(result_str.decode('utf-8'))
+
+    def send_fund(self, dst, amount, comment):
+        return self.send_fund(self.axfd_account, dst, amount, comment, self.axfd_lookback_count)
 
     def send_fund(self, src_account, dst, amount, comment, lookback_count):
         logger.info('{0} {1} {2} {3} {4} \'{5}\''.format(
@@ -38,9 +53,12 @@ class AXFundUtility(object):
             # category field
             if trans['txid'] == result_str.rstrip() and trans['category'] == 'send':
                 return trans
-        raise ValueError("Not transaction for redeem {0}".format(result_str))
+        raise ValueError("Not redeem transaction for txid {0}".format(result_str))
 
-    def unlock_wallet(self, passphrase, timeout_in_sec):
+    def unlock_wallet(self, timeout_in_sec):
+        self.unlock_wallet_internal(axfd_passphrase, timeout_in_sec)
+
+    def unlock_wallet_internal(self, passphrase, timeout_in_sec):
         logger.info("unlock wallet ...")
         subprocess.check_output(
            [self.axfd_path, '-datadir=%s'%(self.axfd_datadir), 'walletpassphrase',
