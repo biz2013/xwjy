@@ -1,0 +1,16 @@
+    {
+        "account" : "",
+        "address" : "redeem_test_address",
+        "category" : "send",
+        "amount" : -20.00000000,
+        "fee" : -0.00010000,
+        "confirmations" : 1,
+        "blockhash" : "5604c6c2f16551c28f72789c0db52e49b757916f4dd2512107275ea6733558c0",
+        "blockindex" : 2,
+        "blocktime" : 1515368384,
+        "txid" : "aaaaabbbbbccccc",
+        "time" : 1515368309,
+        "timereceived" : 1515368309,
+        "comment" : "\"UserId:2,redeem:1.0,to:AUrVL9fGbxYumrAvLVxBT2AUnTDa52RX89\""
+    }
+

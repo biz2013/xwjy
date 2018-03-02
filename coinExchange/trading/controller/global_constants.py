@@ -8,6 +8,9 @@ REQ_KEY_USERNAME = 'username'
 REQ_KEY_USERID = 'userid'
 REQ_KEY_USERACCOUNTINFO = 'useraccountinfo'
 
+# Value Error Name
+VE_REDEEM_EXCEED_LIMIT='Redeem Exceed Limit'
+VE_ILLEGAL_BALANCE='Illegal Balance'
 
 #
 # These are error level constants tha help us handle
