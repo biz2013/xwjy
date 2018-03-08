@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+{% include 'include/common_header.html' %}
+</head>
+<body>
+  <!-- menu section -->
+  {% include "include/wallettopmenu.html" %}
+  <!-- body section -->
+	<div class="container">
+		<div class="well">
+			<div class="row">
+				<div style="text-align:center">
+					<h3>美基金场外交易平台</h3>
+					<p class="text-danger large">{{ error_msg }}</p>
+				</div>
+			</div>
+		</div>
+		<hr/>
+	</div>
+  <!-- footer section-->
+  {% include 'include/footer.html' %}
+
+</body>
+
+</html>
