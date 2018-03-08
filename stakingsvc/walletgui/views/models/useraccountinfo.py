@@ -9,6 +9,7 @@ class UserAccountInfo(object):
         self.receiving_address = receiving_address
         self.external_addresses = external_addresses
         self.paymentmethods = paymentmethods
+        self.generated = self.balance - self.total_deposit - self.total_withdraw
     def tojson(self):
         json_str = {}
         json_str['username'] = self.username
