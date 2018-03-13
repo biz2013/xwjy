@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+{% include 'include/common_header.html' %}
+</head>
+<body>
+  <!-- menu section -->
+  {% include "include/wallettopmenu.html" %}
+  <!-- body section -->
+	<div class="container">
+		<div class="well">
+       <div class="row">
+         <div class="modal-body">
+           <h2>购买投资基金</h2>
+           <div id="div_id_quantity" class="form-group">
+             <label for="id_amount" class="control-label">购买总量(CNY)</label><span class="asteriskField">*</span> </label>
+             <div class="controls "> <input class="textinput textInput form-control" id="id_txt_amount" maxlength="16" name="amount" type="text" /> </div>
+           </div>
+         </div>
+         <div class="modal-footer">
+           <button type="submit" class="btn btn-primary pull-left">提交</button>
+           <button type="button" class="btn btn-default pull-right">撤销</button>
+         </div>
+      </div>
+		</div>
+		<hr/>
+	</div>
+  <!-- footer section-->
+  {% include 'include/footer.html' %}
+
+</body>
+
+</html>
