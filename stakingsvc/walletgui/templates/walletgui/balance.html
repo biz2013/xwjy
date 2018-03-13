@@ -14,23 +14,28 @@
           <table>
           <tr>
              <th>账户余额</th>
-             <th>增长余额</th>
-           </tr>
-           <tr>
              <td>{{ account.balance }}</td>
-             <td>{{ account.generated }}</td>
            </tr>
            <tr>
-             <td><a id="btn-deposit" class="btn btn-success btn-lg" href="/walletgui/deposit/">购买</a>&nbsp;</td>
-             <td><a id="btn-redeem" class="btn btn-success btn-lg" href="/walletgui/redeem/">提现</a>&nbsp;</td>
+             <td colspan="2">&nbsp;</td>
            </tr>
            <tr>
-             <td><a id="btn-deposit" class="btn btn-success btn-lg" href="/walletgui/transfer/">转币</a>&nbsp;</td>
-             <td><a id="btn-redeem" class="btn btn-success btn-lg" href="/walletgui/transhistory/">历史</a>&nbsp;</td>
+             <td><a id="btn-purchase" class="btn btn-success" href="/walletgui/purchase/">购买</a>&nbsp;</td>
+             <td><a id="btn-redeem" class="btn btn-success" href="/walletgui/redeem/">提现</a>&nbsp;</td>
            </tr>
            <tr>
-             <td><a id="btn-deposit" class="btn btn-success btn-lg" href="/walletgui/backup/">钱包备份</a>&nbsp;</td>
-             <td><a id="btn-redeem" class="btn btn-success btn-lg" href="/walletgui/paymentmethod/">付款信息</a>&nbsp;</td>
+             <td colspan="2">&nbsp;</td>
+           </tr>
+           <tr>
+             <td><a id="btn-deposit" class="btn btn-success" href="/walletgui/transfer/">转币</a>&nbsp;</td>
+             <td><a id="btn-redeem" class="btn btn-success" href="/walletgui/transhistory/">历史</a>&nbsp;</td>
+           </tr>
+           <tr>
+             <td colspan="2">&nbsp;</td>
+           </tr>
+           <tr>
+             <td><a id="btn-deposit" class="btn btn-success" href="/walletgui/backup/">钱包备份</a>&nbsp;</td>
+             <td><a id="btn-redeem" class="btn btn-success" href="/walletgui/paymentmethod/">付款信息</a>&nbsp;</td>
            </tr>
          </table>
         </div>
