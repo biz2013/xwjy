@@ -18,11 +18,15 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
-from walletgui.views import balanceview, purchaseview
+from walletgui.views import balanceview, purchaseview, redeemview
+from walletgui.views import transferview, transhistoryview
 
 urlpatterns = [
     re_path(r'^$', balanceview.balance, name='balance'),
     re_path(r'^purchase/$', purchaseview.show, name='show_purchase'),
+    re_path(r'^redeem/$', redeemview.show, name='show_redeem'),
+    re_path(r'^transfer/$', transferview.show, name='show_transfer'),
+    re_path(r'^transhistory/$', transhistoryview.show, name='show_transhistory'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

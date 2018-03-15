@@ -11,7 +11,7 @@
 		<div class="well">
        <div class="row">
          <div class="modal-body">
-           <h2>投资基金提现</h2>
+           <h2>投资基金转账</h2>
            <div id="div_id_quantity" class="form-group">
              <table>
                <tr>
@@ -19,7 +19,9 @@
                  <td>{{ account.balance }}</td>
                </tr>
              </table>
-             <label for="id_amount" class="control-label">提现总额(CNY)</label><span class="asteriskField">*</span> </label>
+             <label for="id_address" class="control-label">转账地址</label><span class="asteriskField">*</span> </label>
+             <div class="controls "> <input class="textinput textInput form-control" id="id_txt_address" maxlength="16" name="amount" type="text" /> </div>
+             <label for="id_amount" class="control-label">转账总额(CNY)</label><span class="asteriskField">*</span> </label>
              <div class="controls "> <input class="textinput textInput form-control" id="id_txt_amount" maxlength="16" name="amount" type="text" /> </div>
            </div>
          </div>
