@@ -9,6 +9,7 @@ class TestRedeem(TransactionTestCase):
     fixtures = ['fixture_test_tradeapi.json']
 
     def validate_success_prepurchase_response(self, resp_json):
+
         return False
 
     def purchase(self):
