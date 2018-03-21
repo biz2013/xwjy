@@ -3,9 +3,9 @@
 
 import json
 
-class TradeRequest(Object):
+class PrepurchaseRequest(Object):
 
-   def createPrePurchaseReques(self, apiKey, secret_key, order_id, total_fee, client_ip,
+   def __init__(self, apiKey, secret_key, order_id, total_fee, client_ip,
            subject='人民币充值', attached='', notify_url='', return_url=''):
        self.method = 'wallet.trade.buy'
        self.apiKey = apiKey
