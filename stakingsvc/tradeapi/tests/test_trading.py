@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase, TransactionTestCase
 from django.test import Client
-from .traderequest import *
+from tradeapi.data.traderequest import *
 
 import json
 
@@ -23,7 +23,8 @@ class TestPrepurchase(TransactionTestCase):
                 notify_url='http://testurl',
                 return_url='http://retururl')
         c = Client()
-        response = c.post('/tradeapi/prepurchase/', {'a':'b'}, follow=True)
+        response = c.post('/tradeapi/prepurchase/', request.getPayload(),
+                          content_type='application/json')
         print('response is ' + json.dumps(response.json()))
         resp_json = json.loads(response.content)
         self.assertTrue(self.validate_success_prepurchase_response(resp_json))

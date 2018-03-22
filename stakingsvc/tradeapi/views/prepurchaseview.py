@@ -16,6 +16,8 @@ logger = logging.getLogger("tradeapi.prepurchase")
 #@login_required
 def prepurchase(request):
     try:
+        request_json= json.loads(request.body)
+        
         response_data = {}
         response_data['return_code'] = 'SUCCESS1'
         print('prepurchase ...')
