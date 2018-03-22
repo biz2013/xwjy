@@ -1,9 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import json
+import json, time, pytz, datetime as dt
+import hashlib
 
-class PrepurchaseRequest(Object):
+
+class PrepurchaseRequest(object):
 
    def __init__(self, apiKey, secret_key, order_id, total_fee, client_ip,
            subject='人民币充值', attached='', notify_url='', return_url=''):
@@ -19,15 +21,17 @@ class PrepurchaseRequest(Object):
        self.notify_url= notify_url
 
    def __sign(self, json):
-       sorted_keys = json.keys().sort()
-       int count = 0
+       sorted_keys = sorted(json.keys())
+       count = 0
        str_to_be_signed = ""
        for key in sorted_keys:
            if count > 0:
                str_to_be_signed = '&' + str_to_be_signed
            str_to_be_signed = '{0}{1}={2}'.format(str_to_be_signed, key, json[key])
+           count = count + 1
        m = hashlib.md5()
-       return m.update(content_to_signed.encode('utf-8')).hexdigest().upper()
+       m.update(str_to_be_signed.encode('utf-8'))
+       return m.hexdigest().upper()
 
    def getPayload(self):
        jsonobj = {}
@@ -48,9 +52,9 @@ class PrepurchaseRequest(Object):
        biz_content_json['api_account_mode']= 'Account'
 
        biz_content_json['client_ip'] = self.client_ip
-       if self.notify_url is not None and len(notify_url) > 0:
-          biz_content_json['notify_url' = notify_url
-       if return_url is not None and len(return_url) > 0:
+       if self.notify_url is not None and len(self.notify_url) > 0:
+          biz_content_json['notify_url'] = self.notify_url
+       if self.return_url is not None and len(self.return_url) > 0:
           biz_content_json['return_url'] = self.return_url
        jsonobj['biz_content'] = json.dumps(biz_content_json, ensure_ascii=False)
 

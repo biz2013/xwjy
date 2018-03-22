@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'walletgui.apps.WalletguiConfig',
     'tradeapi.apps.TradeapiConfig',
+    'tradeapi.tests',
 ]
 
 MIDDLEWARE = [
