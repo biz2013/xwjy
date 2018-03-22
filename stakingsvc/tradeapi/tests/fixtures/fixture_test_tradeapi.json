@@ -5,7 +5,7 @@
     "fields":{
       "heepay_app_id" : "hyq17121610000800000911220E16AB0",
       "heepay_app_key" : "4AE4583FD4D240559F80ED39",
-      "axfd_list_trans_count": 1000
+      "axfd_passphrase": "12345"
     }
   },
   {
