@@ -25,6 +25,7 @@ class TestPrepurchase(TransactionTestCase):
         c = Client()
         response = c.post('/tradeapi/prepurchase/', request.getPayload(),
                           content_type='application/json')
+
         print('response is ' + json.dumps(response.json()))
         resp_json = json.loads(response.content)
         self.assertTrue(self.validate_success_prepurchase_response(resp_json))
