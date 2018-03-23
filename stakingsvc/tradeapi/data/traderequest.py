@@ -35,8 +35,8 @@ class PrepurchaseRequest(object):
 
        biz_content_json = json.loads(json_input['biz_content'])
        return cls(json_input['api_key'], '', biz_content_json['out_trade_no'],
-           biz_content_json['total_fee'],
-           biz_content_json['clientip'],
+           float(biz_content_json['total_fee']),
+           biz_content_json['client_ip'],
            biz_content_json['subject'],
            attached = biz_content_json.get('attached', None),
            notify_url= biz_content_json.get('notify_url', None),
@@ -56,7 +56,7 @@ class PrepurchaseRequest(object):
            str_to_be_signed = '{0}{1}={2}'.format(str_to_be_signed, key, json[key])
            count = count + 1
        m = hashlib.md5()
-       m.update(str_to_be_signed.encode('utf-8'))
+       m.update(str_to_be_signed)
        return m.hexdigest().upper()
 
    def __get_biz_content_json(self):
@@ -76,8 +76,9 @@ class PrepurchaseRequest(object):
 
    def validate(self, secret_key):
        signed = self.__sign(self.__get_biz_content_json())
+       print('origin sign={0}'.format(signed))
        return signed == self.sign
-       
+
    def getPayload(self):
        jsonobj = {}
        jsonobj['method'] = self.method
@@ -94,4 +95,4 @@ class PrepurchaseRequest(object):
        jsonobj['biz_content'] = json.dumps(biz_content_json, ensure_ascii=False)
        jsonobj['sign'] =  self.__sign(biz_content_json)
 
-       return json.dumps(jsonobj,ensure_ascii=False)
+       return json.dumps(jsonobj, ensure_ascii=False)

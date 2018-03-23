@@ -8,6 +8,7 @@ from django.http import JsonResponse
 # this is for test UI. A fake one
 from walletgui.views import errorpageview
 from walletgui.controller.global_constants import *
+from tradeapi.data.traderequest import *
 
 import logging,json
 
@@ -16,10 +17,11 @@ logger = logging.getLogger("tradeapi.prepurchase")
 #@login_required
 def prepurchase(request):
     try:
-        request_json= json.loads(request.body)
-        
+        print('receive request {0}'.format(request.body.decode('utf-8')))
+        request_json= json.loads(request.body.decode('utf-8'))
+        request_obj = PrepurchaseRequest.parseFromJson(request_json)
         response_data = {}
-        response_data['return_code'] = 'SUCCESS1'
+        response_data['return_code'] = 'SUCCESS' if request_obj.validate('test_secret_key') else 'FAILED'
         print('prepurchase ...')
         return JsonResponse(response_data)
     except Exception as e:
