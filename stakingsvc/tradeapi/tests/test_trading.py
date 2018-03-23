@@ -23,7 +23,9 @@ class TestPrepurchase(TransactionTestCase):
                 notify_url='http://testurl',
                 return_url='http://retururl')
         c = Client()
-        response = c.post('/tradeapi/prepurchase/', request.getPayload(),
+        request_str = request.getPayload()
+        print('send request {0}', request_str)
+        response = c.post('/tradeapi/prepurchase/', request_str,
                           content_type='application/json')
 
         print('response is ' + json.dumps(response.json()))
