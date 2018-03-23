@@ -18,7 +18,7 @@ logger = logging.getLogger("tradeapi.prepurchase")
 def prepurchase(request):
     try:
         print('receive request {0}'.format(request.body.decode('utf-8')))
-        request_json= json.loads(request.body.decode('utf-8'))
+        request_json= json.loads(request.body)
         request_obj = PrepurchaseRequest.parseFromJson(request_json)
         response_data = {}
         response_data['return_code'] = 'SUCCESS' if request_obj.validate('test_secret_key') else 'FAILED'

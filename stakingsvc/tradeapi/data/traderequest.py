@@ -52,18 +52,19 @@ class PrepurchaseRequest(object):
        str_to_be_signed = ""
        for key in sorted_keys:
            if count > 0:
-               str_to_be_signed = '&' + str_to_be_signed
+               str_to_be_signed = str_to_be_signed + '&'
            str_to_be_signed = '{0}{1}={2}'.format(str_to_be_signed, key, json[key])
            count = count + 1
        m = hashlib.md5()
-       m.update(str_to_be_signed)
+       print("str to be signed {0}".format(str_to_be_signed))
+       m.update(str_to_be_signed.encode('utf-8'))
        return m.hexdigest().upper()
 
    def __get_biz_content_json(self):
        biz_content_json = {}
        biz_content_json['out_trade_no'] = self.order_id
        biz_content_json['subject'] = self.subject
-       amount_str = str(int(round(self.total_fee, 2)*100))
+       amount_str = str(round(self.total_fee,2))
        biz_content_json['total_fee'] = amount_str
        biz_content_json['api_account_mode']= 'Account'
 
