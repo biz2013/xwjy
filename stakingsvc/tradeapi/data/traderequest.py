@@ -26,6 +26,7 @@ class PrepurchaseRequest(object):
        self.notify_url= notify_url
        self.timestamp = timestamp
        self.sign = sign
+       self.meta_option = None
 
    @classmethod
    def parseFromJson(cls, json_input):
@@ -67,8 +68,9 @@ class PrepurchaseRequest(object):
        amount_str = str(round(self.total_fee,2))
        biz_content_json['total_fee'] = amount_str
        biz_content_json['api_account_mode']= 'Account'
-
        biz_content_json['client_ip'] = self.client_ip
+       if self.meta_option is not None and len(self.meta_option) > 0:
+           biz_content_json['meta_option'] = self.meta_option
        if self.notify_url is not None and len(self.notify_url) > 0:
           biz_content_json['notify_url'] = self.notify_url
        if self.return_url is not None and len(self.return_url) > 0:

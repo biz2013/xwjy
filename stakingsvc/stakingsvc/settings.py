@@ -135,3 +135,4 @@ STATICFILES_DIRS = [
 ]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+TRADE_EXCHANGE_API_URL = http://52.13.206.16/trade/v1/api/
