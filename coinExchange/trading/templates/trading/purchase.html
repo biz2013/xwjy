@@ -14,13 +14,14 @@
     <div class="well">
       <script language="JavaScript">
       function create_purchase_order(sell_order_id, sell_order_owner_userid,
-          owner_login,
-         locked_in_unit_price, available_units_for_purchase) {
+          owner_login, locked_in_unit_price, available_units_for_purchase,
+          sub_type) {
           $("#reference_order_id").val(sell_order_id);
           $("#owner_user_id").val(sell_order_owner_userid);
           $("#owner_login").val(owner_login);
           $("#locked_in_unit_price").val(locked_in_unit_price);
           $("#available_units_for_purchase").val(available_units_for_purchase);
+          $("#sub_type").val(sub_type);
 
           $("#form_create_purchase_order").submit();
       }
@@ -33,6 +34,7 @@
         <input type="hidden" id="owner_login" name="owner_login" value=""/>
         <input type="hidden" id="locked_in_unit_price" name="locked_in_unit_price" value=""/>
         <input type="hidden" id="available_units_for_purchase" name="available_units_for_purchase" value=""/>
+        <input type="hidden" id="sub_type" name="sub_type" value=""/>
       </form>
       <div class="row">
         <div class="offset2 col-md-6">
@@ -65,7 +67,7 @@
               {% if order.status == 'LOCKED' %}
               <td>被锁定</td>
               {% else %}
-              <td><button type="button" class="btn btn-primary" onclick="create_purchase_order('{{ order.order_id }}', '{{ order.owner_user_id }}', '{{ order.owner_login }}','{{ order.unit_price }}', '{{ order.available_units }}')">购买</button></td>
+              <td><button type="button" class="btn btn-primary" onclick="create_purchase_order('{{ order.order_id }}', '{{ order.owner_user_id }}', '{{ order.owner_login }}','{{ order.unit_price }}', '{{ order.available_units }}', '{{ order.sub_type }}')">购买</button></td>
               {% endif %}
             </tr>
             {% endif %}
