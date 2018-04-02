@@ -1,5 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
+import sys
+sys.path.append('../stakingsvc/')
 from django.test import TestCase, TransactionTestCase
 from django.test import Client
 from tradeapi.data.traderequest import *
@@ -18,6 +21,7 @@ class TestPrepurchase(TransactionTestCase):
         request = PrepurchaseRequest('testapi_key', 'test_secret_key',
                 '20180320222600_123', # order id
                 0.05, # total fee
+                'heepay', '12738456',
                 '127.0.0.1', #client ip
                 attached='userid:1',
                 notify_url='http://testurl',
