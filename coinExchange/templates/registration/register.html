@@ -1,0 +1,99 @@
+{% extends "base_generic.html" %} {% block content %}
+
+<script>
+    $(document).ready(
+      function() {
+        $('#email').on('change',
+          function(e) {
+            $('#username').val(
+              $('#email').val()
+            );
+          }
+        );
+      }
+    );
+</script>
+
+<!-- body section -->
+<div class="container">
+
+  <div class="row">
+    {% if form.errors %}
+    <div class="alert alert-danger alert-dismissable fade in">
+      <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+      {{ form.errors }}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="row">
+    <!-- <div class="offset2 col-md-6"> -->
+      <div id="register-body">
+
+        <div class="row">
+          <h2 class="col-sm-offset-2 col-sm-8">注册美基金场外交易账号</h2>
+          <p class="col-sm-offset-2 col-sm-8">开设账号，开始买卖美基金</p>
+        </div>
+
+        <form method="post" class="form-horizontal">
+          {% csrf_token %}
+
+          <div class="form-group">
+            <label class="control-label col-sm-2 hidden" for="username">用户名:</label>
+            <div class="col-sm-6">
+              <input id="username" type="form-control" class="form-control hidden" placeholder="请设置用户名" name="username">
+                 <!-- {% if form.username.help_text %}
+              <small style="color: grey">{{ form.username.help_text }}</small>
+              {% endif %}  -->
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-sm-2 requiredField" for="email">邮箱:</label>
+            <div class="col-sm-6">
+              <input type="email" class="form-control" id="email" placeholder="请设置用户邮箱，可用于找回密码" name="email">
+              <!-- {% if form.email.help_text %}
+              <small style="color: grey">{{ form.email.help_text }}</small>
+              {% endif %} -->
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-sm-2 requiredField" for="password1">密码:</label>
+            <div class="col-sm-6">
+              <input type="password" class="form-control" id="password1" placeholder="请设置登录密码" name="password1"> 
+              <!-- {% if form.password1.help_text %}
+              <small style="color: grey">{{ form.password1.help_text }}</small>
+              {% endif %} -->
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-sm-2 requiredField" for="password2">重复密码:</label>
+            <div class="col-sm-6">
+              <input type="password" class="form-control" id="password2" placeholder="请确认登录密码" name="password2"> 
+              <!-- {% if form.password2.help_text %}
+              <small style="color: grey">{{ form.password2.help_text }}</small>
+              {% endif %} -->
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-6">
+              <button type="submit" class="btn btn-primary">注册</button>
+            </div>
+          </div>
+
+        </form>
+      </div>
+      <p class="col-sm-offset-2 col-sm-6">已经注册？
+        <a href="{% url 'login' %}">登录</a>
+      </p>
+      <p class="col-sm-offset-2 col-sm-6">忘记密码？
+        <a href="{% url 'password_reset' %}">重设密码</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
