@@ -174,17 +174,33 @@ def get_sellorder_seller_payment_methods(sell_order_id):
     return payment_methods
 
 def create_purchase_order(buyorder, reference_order_id,
-         seller_payment_provider, operator):
-    operatorObj = User.objects.get(username=operator)
+         seller_payment_provider, operator, 
+         is_api_call = False, api_call_order_id = ''):
+
     frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
     buyorder.order_id = frmt_date
-    crypto_currency = Cryptocurrency.objects.get(pk=buyorder.crypto)
-    operation_comment = 'User {0} open buy order {1} with total {2}{3}({4}x@{5})'.format(
+    operation_comment = ''
+    if not is_api_call:
+        operation_comment = 'User {0} open buy order {1} with total {2}{3}({4}x@{5})'.format(
         buyorder.owner_user_id, buyorder.order_id, buyorder.total_amount,
         buyorder.unit_price_currency, buyorder.total_units,
         buyorder.unit_price)
+    else:
+        operation_comment = 'API call out_order_no: {0} create buy order {1} with total {2}{3}({4}x@{5})'.format(
+        buyorder.owner_user_id, buyorder.order_id, buyorder.total_amount,
+        buyorder.unit_price_currency, buyorder.total_units,
+        buyorder.unit_price)
+
+    logger.info('create_purchase_order(): {0}'.format(operation_comment))
+
+    # TODO: more validation
+    if is_api_call and not api_call_order_id:
+        logger.error("create_purchase_order(): api call has not out_order_no")
+        raise ValueError('INVALID_PARAM_API_CALL_ORDER_ID')
+    
+    operatorObj = User.objects.get(username=operator)
+    crypto_currency = Cryptocurrency.objects.get(pk=buyorder.crypto)
     order = None
-    logger.debug('create_purchase_order(): {0}'.format(operation_comment))
     with transaction.atomic():
         userwallet = UserWallet.objects.select_for_update().get(
               user__id=buyorder.owner_user_id,
@@ -202,6 +218,7 @@ def create_purchase_order(buyorder, reference_order_id,
         logger.info('before creating purchase order {0}, userwallet {1} has balance:{2} available_balance:{3} locked_balance: {4}'.format(
            frmt_date, userwallet.id, userwallet.balance, userwallet.available_balance, userwallet.locked_balance
         ))
+
         order = Order.objects.create(
             order_id = buyorder.order_id,
             user= User.objects.get(pk=buyorder.owner_user_id),
@@ -211,12 +228,14 @@ def create_purchase_order(buyorder, reference_order_id,
             reference_order= reference_order,
             cryptocurrency= crypto_currency,
             order_type='BUY',
-            sub_type='BUY_ON_ASK',
+            sub_type='BUY_ON_ASK' if not is_api_call else 'ALL_ALL_NOTHING',
+            order_source = 'TRADESITE' if not is_api_call else 'API',
             units = buyorder.total_units,
             unit_price = buyorder.unit_price,
             unit_price_currency = buyorder.unit_price_currency,
             total_amount = buyorder.total_amount,
-            status = 'OPEN')
+            status = 'OPEN',
+            api_call_reference_order_id = api_call_order_id if is_api_call else None)
         logger.info("purchase order {0} created".format(order.order_id))
         userwallet_trans = UserWalletTransaction.objects.create(
           user_wallet = userwallet,

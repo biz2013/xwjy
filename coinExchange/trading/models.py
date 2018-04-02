@@ -92,6 +92,32 @@ class Wallet(models.Model):
    lastupdated_at = models.DateTimeField(auto_now=True)
    lastupdated_by = models.ForeignKey(User, related_name='Wallet_lastupdated_by', on_delete=models.SET_NULL, null=True)
 
+class APIUserAccount(models.Model):
+   ACCOUNT_STATUS =(('OPEN', 'Open'),
+        ('ACTIVE', 'Active'),
+        ('PENDING', 'Pending'),
+        ('SUSPENDED', 'Suspended'),
+        ('CLOSED', 'Closed'))
+   user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+   accountNo = models.CharField(max_length=32)
+   apiKey = models.CharField(max_length=128)
+   secretKey = models.CharField(max_length=128)
+   status = models.CharField(max_length=32, choices=ACCOUNT_STATUS)
+   created_at = models.DateTimeField(auto_now_add=True)
+   created_by = models.ForeignKey(User, related_name='UserWallet_created_by', on_delete=models.SET_NULL, null=True)
+   lastupdated_at = models.DateTimeField(auto_now=True)
+   lastupdated_by = models.ForeignKey(User, related_name='UserWallet_lastupdated_by', on_delete=models.SET_NULL, null=True)
+
+class APIUserExternalWalletAddress(models.Model):
+   apiAccount = models.OneToOneField(APIUserAccount, on_delete=models.CASCADE)
+   cryptocurrency = models.ForeignKey('Cryptocurrency', on_delete=models.CASCADE)
+   address = models.CharField(max_length=128)
+   alias = models.CharField(max_length=32, null=True)
+   created_at = models.DateTimeField(auto_now_add=True)
+   created_by = models.ForeignKey(User, related_name='APIUserExternalWalletAddress_created_by', on_delete=models.SET_NULL, null=True)
+   lastupdated_at = models.DateTimeField(auto_now=True)
+   lastupdated_by = models.ForeignKey(User, related_name='APIUserExternalWalletAddress_lastupdated_by', on_delete=models.SET_NULL, null=True)
+
 class UserWallet(models.Model):
    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
    wallet = models.ForeignKey('Wallet', on_delete=models.CASCADE)
@@ -189,8 +215,10 @@ class Order(models.Model):
    ORDER_TYPE = (('BUY','Buy'),('SELL','Sell'),('REDEEM','Redeem'))
 
    #buy_on_ask and sell_on_bid are for future automatic trading for the games
-   SUBORDER_TYPE = (('OPEN','Open'), ('BUY_ON_ASK', 'Buy_on_ask'), ('SELL_ON_BID', 'Sell_on_bid'))
+   SUBORDER_TYPE = (('OPEN','Open'), ('BUY_ON_ASK', 'Buy_on_ask'), ('SELL_ON_BID', 'Sell_on_bid'), 
+                    ('API_ALL_OR_NOTHING', 'API_All_or_nothing'))
 
+   ORDER_SOURCE_TYPE = (('TRADESITE', 'TradeSite'), ('API', 'API'))
    # These are not necessarily final, but I think so far we need these
    ORDER_STATUS = (('OPEN','Open'),('CANCELLED','Cancelled'), ('FILLED','Filled'),
             ('PAYING','Paying'), ('PAID','Paid'), ('FAILED', 'Failed'),
@@ -210,6 +238,7 @@ class Order(models.Model):
 
    order_type = models.CharField(max_length=32, choices=ORDER_TYPE)
    sub_type = models.CharField(max_length=32, default='OPEN', choices=SUBORDER_TYPE)
+   order_source = models.CharField(max_length=32, choices= ORDER_SOURCE_TYPE, default='TRADESITE')
    units = models.FloatField()
    unit_price = models.FloatField()
    unit_price_currency = models.CharField(max_length = 8, choices=CURRENCY, default='CYN')
@@ -225,6 +254,9 @@ class Order(models.Model):
    # the total amount of original units x unit price, used by
    # purchase order. To the two decimal places
    total_amount = models.FloatField(default = 0.0)
+
+   # the out_order_no in api call that associated with this order
+   api_call_reference_order_id = models.CharField(max_length=64, null=True)
    status = models.CharField(max_length=32, choices=ORDER_STATUS)
 
    created_at = models.DateTimeField(auto_now_add=True)
