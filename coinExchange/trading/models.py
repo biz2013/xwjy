@@ -104,9 +104,9 @@ class APIUserAccount(models.Model):
    secretKey = models.CharField(max_length=128)
    status = models.CharField(max_length=32, choices=ACCOUNT_STATUS)
    created_at = models.DateTimeField(auto_now_add=True)
-   created_by = models.ForeignKey(User, related_name='UserWallet_created_by', on_delete=models.SET_NULL, null=True)
+   created_by = models.ForeignKey(User, related_name='APIUserAccount_created_by', on_delete=models.SET_NULL, null=True)
    lastupdated_at = models.DateTimeField(auto_now=True)
-   lastupdated_by = models.ForeignKey(User, related_name='UserWallet_lastupdated_by', on_delete=models.SET_NULL, null=True)
+   lastupdated_by = models.ForeignKey(User, related_name='APIUserAccount_lastupdated_by', on_delete=models.SET_NULL, null=True)
 
 class APIUserExternalWalletAddress(models.Model):
    apiAccount = models.OneToOneField(APIUserAccount, on_delete=models.CASCADE)
