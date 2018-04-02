@@ -10,7 +10,7 @@ class TradeExchangeManager(object):
             wallet = UserWallet.objects.get(
                  user = order.user,
                  provider__code = payment_provider)
-            return payment_provider, wallet.account_at_provider
+            return wallet.account_at_provider
         except UserWallet.DoesNotExist:
             logger.error('order {0} does not have the required payment provider {1}'.format(
                 order.order_id, payment_provider)
@@ -49,7 +49,7 @@ class TradeExchangeManager(object):
             seller_payment_provider = buyer_payment_provider
             seller_payment_account = ''
             try:
-                seller_payment_provider, seller_payment_account = get_order_owner_account_at_payment_provider(
+                seller_payment_account = self.get_order_owner_account_at_payment_provider(
                     sell_order, buyer_payment_provider):
             except ValueError as ve:
                 logger.warn('Cannot find the seller\'s dedicated account in payment provider {0}, move to the next order'.format(buyer_payment_provider))
@@ -78,7 +78,9 @@ class TradeExchangeManager(object):
                 logger.warn('Failed to create api buy order for sell order {0}, move to the next candidate'.format(sell_order.order_id))
                 continue
             
-            
+            return buyorder, seller_payment_account
+
+        raise ValueError('NOT_SELL_ORDER_FOUND')    
     
 
     def post_sell_order(self):

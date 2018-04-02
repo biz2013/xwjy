@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import sys
+sys.path.append('../stakingsvc/')
+
 from django.conf import settings
 from django.db.models import Q
 from django.http import JsonResponse
@@ -9,11 +11,12 @@ from trading.config import context_processor
 #from django.contrib.auth.decorators import login_required
 
 # this is for test UI. A fake one
+from tradeex.client.apiclient import APIClient
 from trading.views import errorpageview
 from trading.controller.global_constants import *
 from trading.controller.ordermanager import *
-from trading.data.traderequest import *
 from tradeapi.utils import *
+from tradeapi.data.traderequest import *
 
 import logging,json
 
@@ -46,19 +49,29 @@ def prepurchase(request):
         api_user = APIUserManager.getUserByAPIKey(request_obj['api_key'])
         validate_request(request_obj, api_user)
         tradex = TradeExchange()
-        order, userpaymentmethods = tradex.find_order_to_buy(request_obj)
-        heepay_request = HeepayRequest.create(request_obj, api_user,
-              order.order_id,
-              settings.PAYMENT_CALLBACK_HOST,
-              settings.PAYMENT_CALLBACK_PORT,
-              payment_provider_manager.get_callback_url(
-                         request_obj.payment_provider)
-            )
-        api_client = PaymentAPICallClient(
-                      payment_provider_manager.get_purchase_url(
-                            request_obj.payment_provider)
-                     )
+        order, userpaymentmethods = tradex.purchase_by_cash_amount(api_user,
+           'AXFund', request_obj.total_fee, 'CNY',
+           request_obj.payment_provider, 
+           request_obj.payment_account,
+           True, request_obj.out_trade_no)
+        
+        notify_url = settings.HEEPAY_NOTIFY_URL_FORMAT.format(
+           sitesettings.heepay_notify_url_host,
+           sitesettings.heepay_notify_url_port)
+        return_url = settings.HEEPAY_RETURN_URL_FORMAT.format(
+           sitesettings.heepay_return_url_host,
+           sitesettings.heepay_return_url_port)
+ 
+        request_factory = HeepayAPIRequestFactory(
+            "1.0", request_obj.apiKey, request_obj.secret_key)
 
+        heepay_request = request_factory.create_payload(
+            order.order_id, request_obj.total_fee,  
+            request_obj.buyer_account, seller_account, async_notify_url, sync_notify_url,
+            None)
+        
+        # TODO: hard coded right now
+        api_client = APIClient('https://wallet.heepay.com/Api/v1/PayApply')
         response_json = api_client.sendRequest(heepay_request)
         heepay_response = HeepayResponse.parseFromJson(response_json)
 
