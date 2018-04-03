@@ -12,15 +12,16 @@ from trading.config import context_processor
 
 # this is for test UI. A fake one
 from tradeex.client.apiclient import APIClient
+from tradeex.controllers.apiusermanager import APIUserManager
 from trading.views import errorpageview
 from trading.controller.global_constants import *
 from trading.controller.ordermanager import *
 from tradeapi.utils import *
 from tradeapi.data.traderequest import PurchaseAPIRequest
-
+from tradeapi.data.purchaseapiresponse import PurchaseAPIResponse
 import logging,json
 
-logger = logging.getLogger("tradeapi.prepurchase")
+logger = logging.getLogger("tradeex.api")
 
 # in case in the future we need to reconstruct the
 # response from trade exchange.  For now, it is
@@ -41,12 +42,14 @@ def validate_request(request_obj, api_user_info):
     return True
 
 def prepurchase(request):
+    request_obj = None
+    api_user = None
     try:
-        logger.debug('receive request from: {0}'.format(request.get_host()))
+        logger.info('receive request from: {0}'.format(request.get_host()))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
         request_json= json.loads(request.body)
         request_obj = PurchaseAPIRequest.parseFromJson(request_json)
-        api_user = APIUserManager.get_user_by_apikey(request_obj['api_key'])
+        api_user = APIUserManager.get_api_user_by_apikey(request_obj.apikey)
         validate_request(request_obj, api_user)
         tradex = TradeExchange()
         order, userpaymentmethods = tradex.purchase_by_cash_amount(api_user,
@@ -78,12 +81,23 @@ def prepurchase(request):
         return JsonResponse(create_prepurchase_response(heepay_response, order))
     #TODO: should handle different error here.
     # what if network issue, what if the return is 30x, 40x, 50x
-    except Exception as e:
-       error_msg = 'prepurchase()遇到错误: {0}'.format(sys.exc_info()[0])
-       logger.exception(error_msg)
-       #TODO: we should always return json with error message.
-       return HttpResponseServerError('系统处理充值请求时出现系统错误')
+    except ValueError as ve:
+        resp = create_error_purchase_response(
+            request_obj, api_user,
+            create_return_msg_from_valueError(ve.args[0]),
+            create_result_msg_from_valueError(ve.args[0]),
+            '')
 
+        return JsonResponse(resp.to_json())
+
+    except Exception as e:
+        error_msg = 'prepurchase()遇到错误: {0}'.format(sys.exc_info()[0])
+        logger.exception(error_msg)
+        resp = create_error_purchase_response(
+            request_obj, api_user,
+            '系统错误', '系统错误',''
+        )
+        return JsonResponse(resp.to_json())
 
 def selltoken(request):
     try:
@@ -155,3 +169,26 @@ def query_order_status(request) :
        #TODO: we should always return json with error message.
        return HttpResponseServerError('系统处理查询请求时出现系统错误')
     
+
+def create_return_msg_from_valueError(valueError):
+    return '参数错误'
+
+def create_result_msg_from_valueError(valueError):
+    return '参数错误'
+
+def create_error_purchase_response(request_obj, api_user, return_msg, result_msg, trx_bill_no):
+    kwargs = {}
+    if request_obj.subject:
+        kwargs['subject'] = request_obj.subject
+    if request_obj.attach:
+        kwargs['attach'] = request_obj.attach
+    kwargs['total_fee'] = request_obj.total_fee
+    return PurchaseAPIResponse(
+        request_obj.apikey if request_obj else '',
+        api_user.secretKey if api_user else '',
+        'FAIL', return_msg, 'FAIL', result_msg,
+        request_obj.out_trade_no,
+        trx_bill_no, **kwargs)
+        #subject = request_obj.subject,
+        #attach = request_obj.subject,
+        #total_fee = request_obj.total_fee)

@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from tradeex.models import *
+from tradeex.models import APIUserAccount
 
 logger = logging.getLogger("tradeex.apiusermanager")
 
 class APIUserManager(object):
     @staticmethod
-    def get_api_user_by_apikey(self, apikey):
+    def get_api_user_by_apikey(apikey):
         try:
             return APIUserAccount.objects.get(apiKey=apikey)
         except APIUserAccount.DoesNotExist:
