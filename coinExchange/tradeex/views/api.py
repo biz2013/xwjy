@@ -13,6 +13,7 @@ from trading.config import context_processor
 # this is for test UI. A fake one
 from tradeex.client.apiclient import APIClient
 from tradeex.controllers.apiusermanager import APIUserManager
+from tradeex.controllers.tradex import TradeExchangeManager
 from trading.views import errorpageview
 from trading.controller.global_constants import *
 from trading.controller.ordermanager import *
@@ -51,13 +52,14 @@ def prepurchase(request):
         request_obj = PurchaseAPIRequest.parseFromJson(request_json)
         api_user = APIUserManager.get_api_user_by_apikey(request_obj.apikey)
         validate_request(request_obj, api_user)
-        tradex = TradeExchange()
+        tradex = TradeExchangeManager()
         order, userpaymentmethods = tradex.purchase_by_cash_amount(api_user,
            'AXFund', request_obj.total_fee, 'CNY',
            request_obj.payment_provider, 
            request_obj.payment_account,
            True, request_obj.out_trade_no)
         
+        sitesettings = context_processor.settings(request)['settings']
         notify_url = settings.HEEPAY_NOTIFY_URL_FORMAT.format(
            sitesettings.heepay_notify_url_host,
            sitesettings.heepay_notify_url_port)
