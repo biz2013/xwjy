@@ -16,7 +16,7 @@ from trading.views import errorpageview
 from trading.controller.global_constants import *
 from trading.controller.ordermanager import *
 from tradeapi.utils import *
-from tradeapi.data.traderequest import *
+from tradeapi.data.traderequest import PurchaseAPIRequest
 
 import logging,json
 
@@ -45,8 +45,8 @@ def prepurchase(request):
         logger.debug('receive request from: {0}'.format(request.get_host()))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
         request_json= json.loads(request.body)
-        request_obj = PrepurchaseRequest.parseFromJson(request_json)
-        api_user = APIUserManager.getUserByAPIKey(request_obj['api_key'])
+        request_obj = PurchaseAPIRequest.parseFromJson(request_json)
+        api_user = APIUserManager.get_user_by_apikey(request_obj['api_key'])
         validate_request(request_obj, api_user)
         tradex = TradeExchange()
         order, userpaymentmethods = tradex.purchase_by_cash_amount(api_user,

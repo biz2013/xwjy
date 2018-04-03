@@ -1,7 +1,7 @@
 [
   {
     "model": "trading.sitesettings",
-    "pk": "1",
+    "pk": 1,
     "fields":{
       "support": "",
       "heepay_notify_url_host": "localhost",
@@ -46,41 +46,13 @@
        "username":"admin",
        "first_name": "",
        "last_name": "",
-       "email":"tttzhang2000@yahoo.com",
+       "email":"admin@yahoo.com",
        "is_superuser": 1,
        "is_staff": 1,
        "is_active":1,
        "date_joined": "2017-12-17T21:14:00+08:00"
      }
    },
-   {
-    "model": "auth.user",
-    "pk": 2,
-    "fields":{
-      "username":"tradex_api_user1",
-      "first_name": "",
-      "last_name": "",
-      "email":"tttzhang2000@yahoo.com",
-      "is_superuser": 0,
-      "is_staff": 0,
-      "is_active":1,
-      "date_joined": "2017-12-17T21:14:00+08:00"
-    }
-  },
-  {
-    "model": "auth.user",
-    "pk": 3,
-    "fields":{
-      "username":"tradex_api_user2",
-      "first_name": "",
-      "last_name": "",
-      "email":"tttzhang2000@yahoo.com",
-      "is_superuser": 0,
-      "is_staff": 0,
-      "is_active":1,
-      "date_joined": "2017-12-17T21:14:00+08:00"
-    }
-  },
   {
      "model": "trading.wallet",
      "pk": 1,
@@ -168,6 +140,34 @@
      }
    },
    {
+    "model": "auth.user",
+    "pk": 4,
+    "fields":{
+      "username":"tradex_api_user1",
+      "first_name": "",
+      "last_name": "",
+      "email":"tttzhang2000@yahoo.com",
+      "is_superuser": 0,
+      "is_staff": 0,
+      "is_active":1,
+      "date_joined": "2017-12-17T21:14:00+08:00"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 5,
+    "fields":{
+      "username":"tradex_api_user2",
+      "first_name": "",
+      "last_name": "",
+      "email":"yingzhou61@yahoo.com",
+      "is_superuser": 0,
+      "is_staff": 0,
+      "is_active":1,
+      "date_joined": "2017-12-17T21:14:00+08:00"
+    }
+  },
+   {
      "model": "trading.userwallet",
      "pk": "1",
      "fields":{
@@ -229,6 +229,34 @@
        "user": 2,
        "wallet": 1,
        "wallet_addr":"ANG53xNLvM4YkjHCeiaLMgobMZv3i6hT5m",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by": 1
+     }
+   },
+   {
+     "model": "tradeex.apiuseraccount",
+     "pk": "test_api_key1",
+     "fields": {
+       "user" : 2,
+       "accountNo": "1000-0000-0001",
+       "secretKey" : "user_secret_1",
+       "status" : "ACTIVE",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by": 1
+     }
+   },
+   {
+     "model": "tradeex.apiuserexternalwalletaddress",
+     "pk": 1,
+     "fields": {
+       "api_account": "test_api_key1",
+       "cryptocurrency": "CNY",
+       "address": "cny_test_address",
+       "alias": "first_test",
        "created_at": "2017-12-17T21:14:00+08:00",
        "lastupdated_at": "2017-12-17T21:14:00+08:00",
        "created_by": 1,
