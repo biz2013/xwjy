@@ -20,7 +20,7 @@ class TestPrepurchase(TransactionTestCase):
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
         return True
 
-    def test_bad_purchase_api_key(self):
+    def test_purchase_user_not_found_api_key(self):
         request = PurchaseAPIRequest('api_key_not_exist', 'secrete_not_exist',
                 '20180320222600_123', # order id
                 0.05, # total fee
@@ -41,5 +41,31 @@ class TestPrepurchase(TransactionTestCase):
         resp_json = json.loads(response.content)
         self.assertEqual(resp_json['return_code'], 'FAIL')
         self.assertEqual(resp_json['return_msg'], '参数错误')
+        #TODO: show user not found?
+    
+    def test_purchase_no_fitting_order(self):
+        create_no_fitting_order()
+        request = PurchaseAPIRequest('test_api_key1', 'user_secret_1',
+                'order_no_order', # order id
+                100, # total fee
+                'heepay', '12738456',
+                '127.0.0.1', #client ip
+                attach='userid:1',
+                notify_url='http://testurl',
+                return_url='http://retururl')
+        c = Client()
+        request_str = request.getPayload()
+        print('send request {0}'.format(request_str))
+        response = c.post('/tradeex/purchasetoken/', request_str,
+                          content_type='application/json')
+
+        print('response is {0}'.format(json.dumps(json.loads(response.content), ensure_ascii=False)))
+
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content)
+        self.assertEqual(resp_json['return_code'], 'FAIL')
+        self.assertEqual(resp_json['return_msg'], '系统问题')
+        #TODO: show user not found?
+        
 
 
