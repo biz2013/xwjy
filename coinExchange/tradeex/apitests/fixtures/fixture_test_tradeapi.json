@@ -167,7 +167,60 @@
       "date_joined": "2017-12-17T21:14:00+08:00"
     }
   },
-   {
+  {
+    "model": "trading.userpaymentmethod",
+    "pk": 1,
+    "fields": {
+      "user": 2,
+      "provider": "heepay",
+      "account_at_provider": "taozhang12345",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
+  {
+    "model": "trading.userpaymentmethod",
+    "pk": 2,
+    "fields": {
+      "user": 3,
+      "provider": "heepay",
+      "account_at_provider": "yingzhou12345",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
+  {
+    "model": "trading.userpaymentmethod",
+    "pk": 3,
+    "fields": {
+      "user": 3,
+      "provider": "heepay",
+      "account_at_provider": "api_user1_12345",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
+  {
+    "model": "trading.userpaymentmethod",
+    "pk": 4,
+    "fields": {
+      "user": 3,
+      "provider": "heepay",
+      "account_at_provider": "api_user2_12345",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
+
+  {
      "model": "trading.userwallet",
      "pk": 1,
      "fields":{
