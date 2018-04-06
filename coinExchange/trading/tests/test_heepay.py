@@ -5,9 +5,9 @@ from django.test import TestCase, TransactionTestCase
 from django.test import Client
 from django.contrib.auth.models import User
 
-from users.models import *
+from trading.models import *
 
-from controller.heepaymanager import HeePayManager
+from trading.controller.heepaymanager import HeePayManager
 
 class HeePayManagerTestCase(TestCase):
     """

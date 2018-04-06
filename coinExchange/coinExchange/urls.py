@@ -20,8 +20,8 @@ from django.contrib.auth import views as auth_views
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('trading/', include('trading.urls')),
-    path('tradeex/', include('tradeex.urls')),
+    re_path(r'^trading/', include('trading.urls')),
+    re_path(r'^tradeex/', include('tradeex.urls')),
     re_path(r'^admin/', admin.site.urls),
     re_path(r'^accounts/', include('django.contrib.auth.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

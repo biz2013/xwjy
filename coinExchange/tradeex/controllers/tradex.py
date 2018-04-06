@@ -24,13 +24,13 @@ class TradeExchangeManager(object):
         
     def get_qualified_orders_to_buy(self, crypto, amount, currency):
         # query all the orders that best fit the buy order
-        return qualify_orders = Order.filter( Q(status='OPEN') & 
+        return Order.filter( Q(status='OPEN') & 
                Q(order_type='SELL') & Q(sub_type != 'ALL_OR_NOTHING') &
                Q(total_amount > amount) & Q(unit_currency=currency) &
                Q(cryptocurrency=crypto)).order_by('total_amount', -'createdat')
 
     def purchase_by_cash_amount(self, api_user_id, crypto, amount, currency, 
-        buyer_payment_provider, buyer_payment_account, is_api_call=True, api_call_order_id):
+        buyer_payment_provider, buyer_payment_account, api_call_order_id, is_api_call=True):
         qualify_orders = self.get_qualified_orders_to_buy(crypto, amount, currency)
         for sell_order in qualify_orders:
             order_item = OrderItem('', # order_id empty for purchase
@@ -38,7 +38,7 @@ class TradeExchangeManager(object):
                '',  # no need for user login of the order
                sell_order.unit_price,
                sell_order.unit_price_currency,
-               round(amount / sell_order.unit_price, 8)
+               round(amount / sell_order.unit_price, 8),
                0,  # no need for available_units
                amount,
                crypto,
@@ -50,7 +50,7 @@ class TradeExchangeManager(object):
             seller_payment_account = ''
             try:
                 seller_payment_account = self.get_order_owner_account_at_payment_provider(
-                    sell_order, buyer_payment_provider):
+                    sell_order, buyer_payment_provider)
             except ValueError as ve:
                 logger.warn('Cannot find the seller\'s dedicated account in payment provider {0}, move to the next order'.format(buyer_payment_provider))
                 continue
@@ -92,5 +92,5 @@ class TradeExchangeManager(object):
     def cancel_order(self):
         pass
     
-    def query_order_status(self)
+    def query_order_status(self):
         pass

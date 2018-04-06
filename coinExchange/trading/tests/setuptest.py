@@ -4,19 +4,18 @@ from django.test import TestCase, TransactionTestCase
 from django.test import Client
 from django.contrib.auth.models import User
 
-from users.models import *
+from trading.models import *
 
-from controller.heepaymanager import HeePayManager
-from views.models.orderitem import OrderItem
-from views.models.userpaymentmethodview import UserPaymentMethodView
-from controller import ordermanager, loginmanager
-from controller import userpaymentmethodmanager
-from controller.global_utils import *
-
-from test1.forms import *
+from trading.controller.heepaymanager import HeePayManager
+from trading.views.models.orderitem import OrderItem
+from trading.views.models.userpaymentmethodview import UserPaymentMethodView
+from trading.views.models.registration import SignUpForm
+from trading.controller import ordermanager, loginmanager
+from trading.controller import userpaymentmethodmanager
+from trading.controller.global_utils import *
 
 import sys, io, traceback, time, json, copy
-from mock import Mock, MagicMock, patch, mock
+from unittest.mock import Mock, MagicMock, patch
 from calendar import timegm
 from datetime import datetime as dt
 
