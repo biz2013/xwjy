@@ -6,7 +6,7 @@ sys.path.append('../stakingsvc/')
 from django.test import TestCase, TransactionTestCase
 from django.test import Client
 from tradeapi.data.traderequest import PurchaseAPIRequest
-
+from tradeex.apitests.tradingutils import *
 import json
 
 # Create your tests here.
@@ -43,11 +43,21 @@ class TestPrepurchase(TransactionTestCase):
         self.assertEqual(resp_json['return_msg'], '参数错误')
         #TODO: show user not found?
     
+    def create_no_fitting_order(self):
+        print('create_no_fitting_order()')
+        resp = create_axfund_sell_order('tttzhang2000@yahoo.com', 'user@123', 100, 0.5, 'CNY')
+        self.assertEqual(200, resp.status_code, "Create order of 100 units should return 200")
+        self.assertTrue('系统遇到问题'.encode('utf-8') in resp.content, 'Create order of 100 units hit issue')
+        resp = create_axfund_sell_order('yingzhou61@yahoo.ca', 'user@123', 200, 0.3, 'CNY')
+        self.assertEqual(200, resp.status_code, "Create order of 200 units should return 200")
+        self.assertTrue('系统遇到问题'.encode('utf-8') in resp.content, 'Create order of 200 units hit issue')
+
+
     def test_purchase_no_fitting_order(self):
-        create_no_fitting_order()
+        self.create_no_fitting_order()
         request = PurchaseAPIRequest('test_api_key1', 'user_secret_1',
                 'order_no_order', # order id
-                100, # total fee
+                620, # total fee
                 'heepay', '12738456',
                 '127.0.0.1', #client ip
                 attach='userid:1',
