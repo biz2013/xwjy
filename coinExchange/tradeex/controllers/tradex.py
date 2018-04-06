@@ -1,22 +1,23 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
-from trading.models import Order
+from django.db.models import Q
+from trading.views.models.orderitem import *
+from trading.models import *
 from trading.controller import ordermanager
 
 class TradeExchangeManager(object):
     def get_order_owner_account_at_payment_provider(self, order, payment_provider):
         try:
-            wallet = UserWallet.objects.get(
+            payment_method = UserPaymentMethod.objects.get(
                  user = order.user,
                  provider__code = payment_provider)
-            return wallet.account_at_provider
-        except UserWallet.DoesNotExist:
+            return payment_method.account_at_provider
+        except UserPaymentMethod.DoesNotExist:
             logger.error('order {0} does not have the required payment provider {1}'.format(
                 order.order_id, payment_provider)
             )
             raise ValueError('REQUIRED_ACCOUNT_NOT_FOUND')
-        except UserWallet.MultipleObjectsReturned:
+        except UserPaymentMethod.MultipleObjectsReturned:
             logger.info('order {0} owner {1} has multiple accounts with payment provider {2}'.format(
                 order.order_id, order.user.id, payment_provider)
             )
@@ -24,10 +25,9 @@ class TradeExchangeManager(object):
         
     def get_qualified_orders_to_buy(self, crypto, amount, currency):
         # query all the orders that best fit the buy order
-        return Order.objects.filter( Q(status='OPEN') & 
-               Q(order_type='SELL') & Q(sub_type != 'ALL_OR_NOTHING') &
-               Q(total_amount > amount) & Q(unit_currency=currency) &
-               Q(cryptocurrency=crypto)).order_by('total_amount', -'createdat')
+        return Order.objects.filter(Q(status='OPEN') & Q(order_type='SELL') &
+               ~Q(sub_type='ALL_OR_NOTHING') & Q(total_amount__gt=amount) & 
+               Q(unit_price_currency=currency) & Q(cryptocurrency=crypto)).order_by('total_amount', '-created_at')
 
     def purchase_by_cash_amount(self, api_user_id, crypto, amount, currency, 
         buyer_payment_provider, buyer_payment_account, api_call_order_id, is_api_call=True):
@@ -59,8 +59,8 @@ class TradeExchangeManager(object):
             try:
                 buyorder = ordermanager.create_purchase_order(order_item, sell_order.order_id, 
                     buyer_payment_provider, 'admin', 
-                    True, # is_api_call = True
-                    api_call_order_id
+                    api_call_order_id,
+                    True # is_api_call = True
                 )
             except ValueError as ve:
                 if ve.args[0] == 'SELLORDER_NOT_OPEN':
