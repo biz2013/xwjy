@@ -4,22 +4,22 @@ from django.test import TestCase, TransactionTestCase
 from django.test import Client
 from django.contrib.auth.models import User
 
-from mock import Mock, MagicMock, patch
-from controller import axfd_utils, useraccountinfomanager, loginmanager
-from users.models import *
-from test1.forms import *
-from setuptest import *
+from trading.controller import axfd_utils, useraccountinfomanager
+from trading.models import *
+#from trading.forms import *
+from trading.tests.setuptest import *
+from unittest.mock import Mock, MagicMock, patch
 import datetime as dt
 import sys, traceback, time, json, math
 
-test_data1 = json.load(open('tests/data/trx_test_data1.json'))
-test_data2 = json.load(open('tests/data/trx_test_data2.json'))
+test_data1 = json.load(open('trading/tests/data/trx_test_data1.json'))
+test_data2 = json.load(open('trading/tests/data/trx_test_data2.json'))
 class AccountCronJobTestCase(TransactionTestCase):
     fixtures = ['fixture_for_tests.json']
 
     def setUp(self):
         try:
-            User.objects.get(username='taozhang')
+            User.objects.get(username='tttzhang2000@yahoo.com')
         except User.DoesNotExist:
             setup_test()
 
@@ -49,7 +49,7 @@ class AccountCronJobTestCase(TransactionTestCase):
         #    instance = mock.return_value
         #    instance.method.return_value = test_data
         c = Client()
-        response = c.get('/account/cron/update_receive/')
+        response = c.get('/trading/account/cron/update_receive/')
         self.assertEqual(200, response.status_code)
 
         user1_wallet = UserWallet.objects.get(user__username='taozhang',

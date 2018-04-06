@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 from django.db import transaction
 from django.db.models import Q
-from users.models import *
+from trading.models import *
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 
-from test1.forms import *
+#from trading.forms import *
 import logging,json
 
 # logger for user registration

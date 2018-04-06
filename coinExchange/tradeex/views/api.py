@@ -57,7 +57,7 @@ def prepurchase(request):
            'AXFund', request_obj.total_fee, 'CNY',
            request_obj.payment_provider, 
            request_obj.payment_account,
-           True, request_obj.out_trade_no)
+           request_obj.out_trade_no, True)
         
         sitesettings = context_processor.settings(request)['settings']
         notify_url = settings.HEEPAY_NOTIFY_URL_FORMAT.format(
