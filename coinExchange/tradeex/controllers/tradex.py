@@ -5,21 +5,25 @@ from trading.views.models.orderitem import *
 from trading.models import *
 from trading.controller import ordermanager
 
+import logging
+
+logger = logging.getLogger("tradeex.tradeexchangemanager")
+
 class TradeExchangeManager(object):
-    def get_order_owner_account_at_payment_provider(self, order, payment_provider):
+    def get_order_owner_account_at_payment_provider(self, order, payment_provider, api_call_order_id):
         try:
             payment_method = UserPaymentMethod.objects.get(
                  user = order.user,
                  provider__code = payment_provider)
             return payment_method.account_at_provider
         except UserPaymentMethod.DoesNotExist:
-            logger.error('order {0} does not have the required payment provider {1}'.format(
-                order.order_id, payment_provider)
+            logger.error('get_order_owner_account_at_payment_provider(): [out_trade_no:{0}] order {1} does not have the required payment provider {2}'.format(
+                api_call_order_id, order.order_id, payment_provider)
             )
-            raise ValueError('REQUIRED_ACCOUNT_NOT_FOUND')
+            raise ValueError('PAYMENT_ACCOUNT_NOT_FOUND')
         except UserPaymentMethod.MultipleObjectsReturned:
-            logger.info('order {0} owner {1} has multiple accounts with payment provider {2}'.format(
-                order.order_id, order.user.id, payment_provider)
+            logger.info('get_order_owner_account_at_payment_provider(): [out_trade_no:{0}] order {1} owner {2} has multiple accounts with payment provider {3}'.format(
+                api_call_order_id, order.order_id, order.user.id, payment_provider)
             )
             raise ValueError('TOO_MANY_ACCOUNTS_AT_PROVIDER')
         
@@ -31,7 +35,18 @@ class TradeExchangeManager(object):
 
     def purchase_by_cash_amount(self, api_user_id, crypto, amount, currency, 
         buyer_payment_provider, buyer_payment_account, api_call_order_id, is_api_call=True):
+        logger.info("purchase_by_cash_amount(api_user:{0}, crypto {1}, amount {2}{3}, from account {4}:{5}, out_trade_no:{6})".format(
+            api_user_id,  crypto, amount, currency, buyer_payment_provider, 
+            buyer_payment_account, api_call_order_id,
+        ))
+
         qualify_orders = self.get_qualified_orders_to_buy(crypto, amount, currency)
+        if qualify_orders:
+            logger.info("purchase_by_cash_amount(): [out_trade_no {0}] Find {1} qualified sell orders to buy from".format(
+                api_call_order_id, len(qualify_orders)))
+        else:
+            raise ValueError('NOT_SELL_ORDER_FOUND')    
+
         for sell_order in qualify_orders:
             order_item = OrderItem('', # order_id empty for purchase
                api_user_id, 
@@ -50,37 +65,47 @@ class TradeExchangeManager(object):
             seller_payment_account = ''
             try:
                 seller_payment_account = self.get_order_owner_account_at_payment_provider(
-                    sell_order, buyer_payment_provider)
+                    sell_order, buyer_payment_provider, api_call_order_id)
+                logger.info("purchase_by_cash_amount(): [out_trade_no:{0}] get target sell order {1}'s payment account {2}:{3}".format(
+                    api_call_order_id, sell_order.order_id, buyer_payment_provider, seller_payment_account
+                ))
             except ValueError as ve:
-                logger.warn('Cannot find the seller\'s dedicated account in payment provider {0}, move to the next order'.format(buyer_payment_provider))
+                logger.warn('purchase_by_cash_amount(): [out_trade_no:{0}] Cannot find the seller\'s dedicated account in payment provider {1}, move to the next order'.format(
+                    api_call_order_id, buyer_payment_provider))
                 continue
             
-            buyorder = None
+            buyorder_id = None
             try:
-                buyorder = ordermanager.create_purchase_order(order_item, sell_order.order_id, 
+                buyorder_id = ordermanager.create_purchase_order(order_item, sell_order.order_id, 
                     buyer_payment_provider, 'admin', 
-                    api_call_order_id,
-                    True # is_api_call = True
+                    True, # is_api_call = True
+                    api_call_order_id
                 )
             except ValueError as ve:
                 if ve.args[0] == 'SELLORDER_NOT_OPEN':
-                    logger.warn('This sell order {0} was locked, move to the next'.format(sell_order.order_id))
+                    logger.warn('purchase_by_cash_amount(): [out_trade_no:{0}] This sell order {1} was locked, move to the next'.format(
+                        api_call_order_id, sell_order.order_id))
                 elif ve.args[0] == 'BUY_EXCEED_AVAILABLE_UNITS':
-                    logger.error('This sell order {0}\'s total amount {1} is less than the purchase amount {2}, this SHOULD NOT HAPPEN, move to the next'.format(
-                        sell_order.order_id, sell_order.total_amount, amount) )
+                    logger.error('purchase_by_cash_amount(): [out_trade_no:{0}] This sell order {1}\'s total amount {2} is less than the purchase amount {3}, this SHOULD NOT HAPPEN, move to the next'.format(
+                        api_call_order_id, sell_order.order_id, sell_order.total_amount, amount) )
                 else:
-                    logger.error('Hit error {0} when trying to buy from sell order {0}'.format(
-                        sell_order.order_id
+                    logger.error('purchase_by_cash_amount(): [out_trade_no:{0}] Hit error {1} when trying to buy from sell order {2}'.format(
+                        api_call_order_id, sell_order.order_id, ve.args[0]
                     ))
                 continue
         
-            if not buyorder:
-                logger.warn('Failed to create api buy order for sell order {0}, move to the next candidate'.format(sell_order.order_id))
+            if not buyorder_id:
+                logger.warn('purchase_by_cash_amount(): [out_trade_no:{0}] Sell order {1} cannot be secured, move to the next candidate'.format(
+                    api_call_order_id, sell_order.order_id))
                 continue
             
-            return buyorder, seller_payment_account
+            return buyorder_id, seller_payment_account
 
-        raise ValueError('NOT_SELL_ORDER_FOUND')    
+        if qualify_orders:
+            logger.error("purchase_by_cash_amount(): [out_trade_no:{0}] None of the qualified sell order could be secured for purchase.".format(
+                api_call_order_id
+            ))
+        raise ValueError('NOT_SELL_ORDER_CAN_BE_LOCKED')    
     
 
     def post_sell_order(self):

@@ -78,6 +78,29 @@ class TestPrepurchase(TransactionTestCase):
         for order in Order.objects.all():
             print('order {0} order_type {1} sub_type {2}'.format(order.order_id, order.order_type, order.sub_type))
 
+    def create_fitting_order(self, amount):
+        print('create_fitting_order({0})'.format(amount))
+        self.validate_user_info('tttzhang2000@yahoo.com')
+        resp = create_axfund_sell_order('tttzhang2000@yahoo.com', 'user@123', 200, 0.5, 'CNY')
+        self.assertEqual(200, resp.status_code, "Create order of 200 units should return 200")
+        self.assertFalse('系统遇到问题'.encode('utf-8') in resp.content,'Create order of 200*0.5 units hit issue')
+
+        self.validate_user_info('yingzhou61@yahoo.ca')
+        resp = create_axfund_sell_order('yingzhou61@yahoo.ca', 'user@123', 200, 0.4, 'CNY')
+        self.assertEqual(200, resp.status_code, "Create order of 200*0.4 units should return 200")
+        self.assertFalse('系统遇到问题'.encode('utf-8') in resp.content, 'Create order of 200*0.4 units hit issue')
+
+        resp = create_axfund_sell_order('yingzhou61@yahoo.ca', 'user@123', 150, 0.4, 'CNY')
+        self.assertEqual(200, resp.status_code, "Create order of 150*0.4 units should return 200")
+        self.assertFalse('系统遇到问题'.encode('utf-8') in resp.content, 'Create order of 150*0.4 units hit issue')
+
+        resp = create_axfund_sell_order('tttzhang2000@yahoo.com', 'user@123', 156, 0.4, 'CNY')
+        self.assertEqual(200, resp.status_code, "Create order of 156*0.4 units should return 200")
+        self.assertFalse('系统遇到问题'.encode('utf-8') in resp.content,'Create order of 156*0.5 units hit issue')
+
+        for order in Order.objects.all():
+            print('matching order {0} order_type {1} sub_type {2}'.format(order.order_id, order.order_type, order.sub_type))
+
     def test_purchase_no_fitting_order(self):
         self.create_no_fitting_order()
         request = PurchaseAPIRequest('test_api_key1', 'user_secret_1',
@@ -99,8 +122,29 @@ class TestPrepurchase(TransactionTestCase):
         self.assertEqual(200, response.status_code)
         resp_json = json.loads(response.content)
         self.assertEqual(resp_json['return_code'], 'FAIL')
-        self.assertEqual(resp_json['return_msg'], '系统问题')
+        self.assertEqual(resp_json['return_msg'], '数据错误:通知系统服务')
         #TODO: show user not found?
         
+    def test_purchase_order_succeed(self):
+        self.create_fitting_order(62)
+        request = PurchaseAPIRequest('test_api_key1', 'user_secret_1',
+                'order_match', # order id
+                62, # total fee
+                'heepay', '12738456',
+                '127.0.0.1', #client ip
+                attach='userid:1',
+                notify_url='http://testurl',
+                return_url='http://retururl')
+        c = Client()
+        request_str = request.getPayload()
+        print('send request {0}'.format(request_str))
+        response = c.post('/tradeex/purchasetoken/', request_str,
+                          content_type='application/json')
+
+        print('response is {0}'.format(json.dumps(json.loads(response.content), ensure_ascii=False)))
+
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content)
+        self.assertEqual(resp_json['return_code'], 'SUCCESS')
 
 
