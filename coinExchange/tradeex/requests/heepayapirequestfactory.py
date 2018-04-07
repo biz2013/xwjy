@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+import time, hashlib
 from trading.config import context_processor
 from trading.controller.global_constants import *
 from trading.controller.global_utils import *
@@ -43,22 +43,22 @@ class HeepayAPIRequestFactory(object):
         biz_content_json['client_ip'] = '127.0.0.1'
 
         # TODO: for now,we don't put buyer account
-        biz_conetnt_json['to_account'] = seller_account
+        biz_content_json['to_account'] = seller_account
         if async_notify_url:
             biz_content_json['notify_url'] = async_notify_url
-        if sync_return_url:
-            biz_content_json['return_url'] = sync_return_url
+        if sync_notify_url:
+            biz_content_json['return_url'] = sync_notify_url
 
         if kwargs:
-            for key, value in kwargs.iteritems():
-                    if key == 'subject':
-                        biz_content_json['subject'] = value
-                    elif key == 'client_ip':
-                        biz_content_json['client_ip'] = value
-                    elif key == 'api_account_mode':
-                        biz_content_json['api_account_mode'] = value
-                
-       return biz_content_json
+            for key, value in kwargs.items():
+                if key == 'subject':
+                    biz_content_json['subject'] = value
+                elif key == 'client_ip':
+                    biz_content_json['client_ip'] = value
+                elif key == 'api_account_mode':
+                    biz_content_json['api_account_mode'] = value
+            
+        return biz_content_json
 
 
     def create_payload(self, order_id, amount,  
@@ -67,31 +67,31 @@ class HeepayAPIRequestFactory(object):
         if not order_id:
             raise ValueError('INVALID_PARAM_ORDER_ID_REQUIRED')
             
-        int heepayAmount = int(round(amoun, 2) * 100)
+        heepayAmount = int(round(amount, 2) * 100)
         if heepayAmount < 1:
             raise ValueError('INVALID_PARAM_AMOUNT_TOO_SMALL_FOR_HEEPAY')
 
         if not seller_account:
             raise ValueError('INVALID_PARAM_SELLER_ACCOUNT_REQUIRED')
 
-       jsonobj = {}
-       jsonobj['method'] = 'wallet.pay.apply'
-       jsonobj['version'] = self.version
-       jsonobj['app_id']= self.api_key
-       jsonobj['charset'] = self.charset_type
-       jsonobj['sign_type'] = self.sign_type
+        jsonobj = {}
+        jsonobj['method'] = 'wallet.pay.apply'
+        jsonobj['version'] = self.version
+        jsonobj['app_id']= self.api_key
+        jsonobj['charset'] = self.charset_type
+        jsonobj['sign_type'] = self.sign_type
 
-       epoch_now = time.time()
-       frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S")
-       #frmt_date = '20171218094803'
-       jsonobj['timestamp'] = frmt_date
+        epoch_now = time.time()
+        frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S")
+        #frmt_date = '20171218094803'
+        jsonobj['timestamp'] = frmt_date
 
-       biz_content_json = self.__get_biz_content_json(rder_id, amount,  
-            buyer_account, seller_account, async_notify_url, sync_notify_url,
-            kwargs)
-       jsonobj['biz_content'] = json.dumps(biz_content_json, ensure_ascii=False)
-       jsonobj['sign'] =  self.__sign(biz_content_json)
+        biz_content_json = self.__get_biz_content_json(order_id, amount,  
+                buyer_account, seller_account, async_notify_url, sync_notify_url,
+                kwargs = kwargs)
+        jsonobj['biz_content'] = json.dumps(biz_content_json, ensure_ascii=False)
+        jsonobj['sign'] =  self.__sign(biz_content_json)
 
-       return json.dumps(jsonobj,ensure_ascii=False)
+        return json.dumps(jsonobj,ensure_ascii=False)
 
  

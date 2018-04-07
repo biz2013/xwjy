@@ -14,6 +14,7 @@ from trading.config import context_processor
 from tradeex.client.apiclient import APIClient
 from tradeex.controllers.apiusermanager import APIUserManager
 from tradeex.controllers.tradex import TradeExchangeManager
+from tradeex.requests.heepayapirequestfactory import *
 from trading.views import errorpageview
 from trading.controller.global_constants import *
 from trading.controller.ordermanager import *
@@ -51,9 +52,12 @@ def prepurchase(request):
         request_json= json.loads(request.body)
         request_obj = PurchaseAPIRequest.parseFromJson(request_json)
         api_user = APIUserManager.get_api_user_by_apikey(request_obj.apikey)
+        logger.info('prepurchase(): [out_trade_no:{0}] find out api user id is {1}'.format(
+            request_obj.out_trade_no, api_user.user.id
+        ))
         validate_request(request_obj, api_user)
         tradex = TradeExchangeManager()
-        order, userpaymentmethods = tradex.purchase_by_cash_amount(api_user,
+        orderId, seller_payment_account = tradex.purchase_by_cash_amount(api_user.user.id,
            'AXFund', request_obj.total_fee, 'CNY',
            request_obj.payment_provider, 
            request_obj.payment_account,
@@ -68,22 +72,24 @@ def prepurchase(request):
            sitesettings.heepay_return_url_port)
  
         request_factory = HeepayAPIRequestFactory(
-            "1.0", request_obj.apiKey, request_obj.secret_key)
+            "1.0", request_obj.apikey, request_obj.secret_key)
 
         heepay_request = request_factory.create_payload(
-            order.order_id, request_obj.total_fee,  
-            request_obj.buyer_account, seller_account, async_notify_url, sync_notify_url,
-            None)
+            orderId, request_obj.total_fee,  
+            request_obj.payment_account, seller_payment_account, notify_url, return_url,
+            nothing='nothing')
         
         # TODO: hard coded right now
         api_client = APIClient('https://wallet.heepay.com/Api/v1/PayApply')
-        response_json = api_client.sendRequest(heepay_request)
+        response_json = api_client.send_json_request(heepay_request)
         heepay_response = HeepayResponse.parseFromJson(response_json)
 
         return JsonResponse(create_prepurchase_response(heepay_response, order))
     #TODO: should handle different error here.
     # what if network issue, what if the return is 30x, 40x, 50x
     except ValueError as ve:
+        logger.error("prepurchase(): [out_trade_no:{0}] hit value error {1}".format(
+            request_obj.out_trade_no, ve.args[0]))
         resp = create_error_purchase_response(
             request_obj, api_user,
             create_return_msg_from_valueError(ve.args[0]),
@@ -173,10 +179,22 @@ def query_order_status(request) :
     
 
 def create_return_msg_from_valueError(valueError):
-    return '参数错误'
+    msg_map= {
+        'PAYMENT_ACCOUNT_NOT_FOUND':'数据错误:通知系统服务',
+        'TOO_MANY_ACCOUNTS_AT_PROVIDER': '数据错误:通知系统服务',
+        'NOT_SELL_ORDER_FOUND':'数据错误:通知系统服务',
+        'NOT_SELL_ORDER_CAN_BE_LOCKED':'数据错误:通知系统服务'
+    }
+    return msg_map[valueError] if valueError in msg_map else '系统错误:通知系统服务'
 
 def create_result_msg_from_valueError(valueError):
-    return '参数错误'
+    msg_map= {
+        'PAYMENT_ACCOUNT_NOT_FOUND':'数据错误:通知系统服务',
+        'TOO_MANY_ACCOUNTS_AT_PROVIDER': '数据错误:通知系统服务',
+        'NOT_SELL_ORDER_FOUND':'数据错误:通知系统服务',
+        'NOT_SELL_ORDER_CAN_BE_LOCKED':'数据错误:通知系统服务'
+    }
+    return msg_map[valueError] if valueError in msg_map else '系统错误:通知系统服务'
 
 def create_error_purchase_response(request_obj, api_user, return_msg, result_msg, trx_bill_no):
     kwargs = {}
