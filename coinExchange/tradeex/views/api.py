@@ -82,6 +82,9 @@ def prepurchase(request):
         # TODO: hard coded right now
         api_client = APIClient('https://wallet.heepay.com/Api/v1/PayApply')
         response_json = api_client.send_json_request(heepay_request)
+        logger.info("prepurchase(): [out_trade_no:{0}] heepay reply: {1}".format(
+            request_obj.out_trade_no, json.dumps(response_json)
+        ))
         heepay_response = HeepayResponse.parseFromJson(response_json)
 
         return JsonResponse(create_prepurchase_response(heepay_response, order))

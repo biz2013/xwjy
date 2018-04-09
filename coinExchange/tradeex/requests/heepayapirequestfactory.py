@@ -26,6 +26,7 @@ class HeepayAPIRequestFactory(object):
                 str_to_be_signed = str_to_be_signed + '&'
             str_to_be_signed = '{0}{1}={2}'.format(str_to_be_signed, key, json[key])
             count = count + 1
+        str_to_be_signed = str_to_be_signed + '&key=' + self.api_secret
         m = hashlib.md5()
         print("str to be signed {0}".format(str_to_be_signed))
         m.update(str_to_be_signed.encode('utf-8'))
@@ -90,7 +91,7 @@ class HeepayAPIRequestFactory(object):
                 buyer_account, seller_account, async_notify_url, sync_notify_url,
                 kwargs = kwargs)
         jsonobj['biz_content'] = json.dumps(biz_content_json, ensure_ascii=False)
-        jsonobj['sign'] =  self.__sign(biz_content_json)
+        jsonobj['sign'] =  self.__sign(jsonobj)
 
         return json.dumps(jsonobj,ensure_ascii=False)
 
