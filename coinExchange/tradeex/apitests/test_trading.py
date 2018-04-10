@@ -103,7 +103,7 @@ class TestPrepurchase(TransactionTestCase):
 
     def test_purchase_no_fitting_order(self):
         self.create_no_fitting_order()
-        request = PurchaseAPIRequest('test_api_key1', 'user_secret_1',
+        request = PurchaseAPIRequest('hyq17121610000800000911220E16AB0', '4AE4583FD4D240559F80ED39',
                 'order_no_order', # order id
                 620, # total fee
                 'heepay', '12738456',
@@ -127,7 +127,7 @@ class TestPrepurchase(TransactionTestCase):
         
     def test_purchase_order_succeed(self):
         self.create_fitting_order(62)
-        request = PurchaseAPIRequest('test_api_key1', 'user_secret_1',
+        request = PurchaseAPIRequest('hyq17121610000800000911220E16AB0', '4AE4583FD4D240559F80ED39',
                 'order_match', # order id
                 62, # total fee
                 'heepay', '12738456',

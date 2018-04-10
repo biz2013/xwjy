@@ -14,7 +14,8 @@ from trading.config import context_processor
 from tradeex.client.apiclient import APIClient
 from tradeex.controllers.apiusermanager import APIUserManager
 from tradeex.controllers.tradex import TradeExchangeManager
-from tradeex.requests.heepayapirequestfactory import *
+from tradeex.requests.heepayapirequestfactory import HeepayAPIRequestFactory
+from tradeex.responses.heepayresponse import HeepayResponse
 from trading.views import errorpageview
 from trading.controller.global_constants import *
 from trading.controller.ordermanager import *
@@ -36,12 +37,9 @@ def create_prepurchase_response(respons_json, purchase_order):
 # the sign of the request, then, based on request type, validate
 # whether request has meaningful data
 def validate_request(request_obj, api_user_info):
-    # find the secret key based on the user apiKey
-
-    # validate sign
-
-    # validate request data
-    return True
+    logger.info("validate_request: request parsed is {0}".format(request_obj.getPayload()))
+    if not request_obj.is_valid(api_user_info.secretKey):
+        raise ValueError('purchase request has invalid signature')
 
 def prepurchase(request):
     request_obj = None
@@ -52,8 +50,8 @@ def prepurchase(request):
         request_json= json.loads(request.body)
         request_obj = PurchaseAPIRequest.parseFromJson(request_json)
         api_user = APIUserManager.get_api_user_by_apikey(request_obj.apikey)
-        logger.info('prepurchase(): [out_trade_no:{0}] find out api user id is {1}'.format(
-            request_obj.out_trade_no, api_user.user.id
+        logger.info('prepurchase(): [out_trade_no:{0}] find out api user id is {1}, key {2}'.format(
+            request_obj.out_trade_no, api_user.user.id, api_user.secretKey
         ))
         validate_request(request_obj, api_user)
         tradex = TradeExchangeManager()
@@ -70,9 +68,9 @@ def prepurchase(request):
         return_url = settings.HEEPAY_RETURN_URL_FORMAT.format(
            sitesettings.heepay_return_url_host,
            sitesettings.heepay_return_url_port)
- 
+
         request_factory = HeepayAPIRequestFactory(
-            "1.0", request_obj.apikey, request_obj.secret_key)
+            "1.0", request_obj.apikey, api_user.secretKey)
 
         heepay_request = request_factory.create_payload(
             orderId, request_obj.total_fee,  
@@ -83,9 +81,9 @@ def prepurchase(request):
         api_client = APIClient('https://wallet.heepay.com/Api/v1/PayApply')
         response_json = api_client.send_json_request(heepay_request)
         logger.info("prepurchase(): [out_trade_no:{0}] heepay reply: {1}".format(
-            request_obj.out_trade_no, json.dumps(response_json)
+            request_obj.out_trade_no, json.dumps(response_json, ensure_ascii=False)
         ))
-        heepay_response = HeepayResponse.parseFromJson(response_json)
+        heepay_response = HeepayResponse.parseFromJson(response_json, api_user.secretKey)
 
         return JsonResponse(create_prepurchase_response(heepay_response, order))
     #TODO: should handle different error here.
