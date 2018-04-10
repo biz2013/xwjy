@@ -322,11 +322,11 @@
   },
   {
      "model": "tradeex.apiuseraccount",
-     "pk": "test_api_key1",
+     "pk": "hyq17121610000800000911220E16AB0",
      "fields": {
        "user" : 2,
        "accountNo": "1000-0000-0001",
-       "secretKey" : "user_secret_1",
+       "secretKey" : "4AE4583FD4D240559F80ED39",
        "status" : "ACTIVE",
        "created_at": "2017-12-17T21:14:00+08:00",
        "lastupdated_at": "2017-12-17T21:14:00+08:00",
@@ -338,7 +338,7 @@
      "model": "tradeex.apiuserexternalwalletaddress",
      "pk": 1,
      "fields": {
-       "api_account": "test_api_key1",
+       "api_account": "hyq17121610000800000911220E16AB0",
        "cryptocurrency": "CNY",
        "address": "cny_test_address",
        "alias": "first_test",
