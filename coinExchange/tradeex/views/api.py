@@ -19,6 +19,7 @@ from tradeex.responses.heepayresponse import HeepayResponse
 from trading.views import errorpageview
 from trading.controller.global_constants import *
 from trading.controller.ordermanager import *
+from trading.controller.heepaymanager import *
 from tradeapi.utils import *
 from tradeapi.data.traderequest import PurchaseAPIRequest
 from tradeapi.data.purchaseapiresponse import PurchaseAPIResponse
@@ -72,17 +73,31 @@ def prepurchase(request):
         request_factory = HeepayAPIRequestFactory(
             "1.0", request_obj.apikey, api_user.secretKey)
 
-        heepay_request = request_factory.create_payload(
-            orderId, request_obj.total_fee,  
-            request_obj.payment_account, seller_payment_account, notify_url, return_url,
-            nothing='nothing')
+        #heepay_request = request_factory.create_payload(
+        #    orderId, request_obj.total_fee,  
+        #    request_obj.payment_account, seller_payment_account, notify_url, return_url,
+        #    nothing='nothing')
         
+        heepay = HeePayManager()
+        json_payload = heepay.create_heepay_payload('wallet.pay.apply', orderId, request_obj.apikey, 
+            api_user.secretKey, "127.0.0.1", float(request_obj.total_fee)/100.0,
+            seller_payment_account, request_obj.payment_account, 
+            notify_url, return_url)
+        status, reason, message = heepay.send_buy_apply_request(json_payload)
+        response_json = json.loads(message) if status == 200 else None
+        if not response_json:
+            raise ValueError('Request to heepay failed with {0}:{1}-{2}'.format(
+                status, reason, message
+            ))
+
         # TODO: hard coded right now
-        api_client = APIClient('https://wallet.heepay.com/Api/v1/PayApply')
-        response_json = api_client.send_json_request(heepay_request)
+        #api_client = APIClient('https://wallet.heepay.com/api/v1/payapply')
+        #response_json = api_client.send_json_request(heepay_request)
         logger.info("prepurchase(): [out_trade_no:{0}] heepay reply: {1}".format(
             request_obj.out_trade_no, json.dumps(response_json, ensure_ascii=False)
         ))
+
+        
         heepay_response = HeepayResponse.parseFromJson(response_json, api_user.secretKey)
 
         return JsonResponse(create_prepurchase_response(heepay_response, order))

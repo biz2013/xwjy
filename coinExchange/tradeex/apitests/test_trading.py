@@ -125,6 +125,36 @@ class TestPrepurchase(TransactionTestCase):
         self.assertEqual(resp_json['return_msg'], '数据错误:通知系统服务')
         #TODO: show user not found?
         
+    def test_purchase_order_succeed_bad_payment_acct(self):
+        self.create_fitting_order(62)
+        # update the tttzhang2000@yahoo.com's heepay account into bad account, since this user's order
+        # is selected for the purchase, this update will failed the test.
+        updated = UserPaymentMethod.objects.filter(user__username='tttzhang2000@yahoo.com').filter(provider__code='heepay').update(account_at_provider='bad_user_account')
+        self.assertTrue(updated, 'change tttzhang2000@yahoo.com\'s heepay account should be successful')
+        request = PurchaseAPIRequest('hyq17121610000800000911220E16AB0', '4AE4583FD4D240559F80ED39',
+                'order_match', # order id
+                62, # total fee
+                'heepay', '12738456',
+                '127.0.0.1', #client ip
+                attach='userid:1',
+                notify_url='http://testurl',
+                return_url='http://retururl')
+        c = Client()
+        request_str = request.getPayload()
+        print('send request {0}'.format(request_str))
+        response = c.post('/tradeex/purchasetoken/', request_str,
+                          content_type='application/json')
+        self.assertTrue(UserPaymentMethod.objects.filter(user__username='tttzhang2000@yahoo.com').filter(provider__code='heepay').update(account_at_provider='18600701961'),
+              'recover tttzhang2000@yahoo.com\'s heepay account should be successful')
+
+        print('response is {0}'.format(json.dumps(json.loads(response.content), ensure_ascii=False)))
+
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content)
+        self.assertEqual(resp_json['return_code'], 'FAIL')
+        self.assertEqual(resp_json['return_msg'], "收钱方账号不存在")
+
+
     def test_purchase_order_succeed(self):
         self.create_fitting_order(62)
         request = PurchaseAPIRequest('hyq17121610000800000911220E16AB0', '4AE4583FD4D240559F80ED39',
@@ -140,7 +170,6 @@ class TestPrepurchase(TransactionTestCase):
         print('send request {0}'.format(request_str))
         response = c.post('/tradeex/purchasetoken/', request_str,
                           content_type='application/json')
-
         print('response is {0}'.format(json.dumps(json.loads(response.content), ensure_ascii=False)))
 
         self.assertEqual(200, response.status_code)
