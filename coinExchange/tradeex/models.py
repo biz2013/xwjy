@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from trading.models import Cryptocurrency,PaymentProvider
+from trading.models import Cryptocurrency,PaymentProvider,Order
 
 # Create your models here.
 
@@ -38,11 +38,13 @@ class APIUserTransaction(models.Model):
         ('PAIDSUCCESS','PaidSuccess'),
         ('SUCCESS','Success'),
         ('SYSTEMERROR', 'SystemError'),
-        ('USERCANCELLED', 'UserCancelled')
+        ('USERCANCELLED', 'UserCancelled'),
+        ('EXPIRED', 'Expired')
     )
     transactionId = models.CharField(max_length=128, primary_key=True)
     api_user = models.ForeignKey(APIUserAccount, on_delete=models.CASCADE)
     payment_provider = models.ForeignKey(PaymentProvider, on_delete=models.CASCADE)
+    reference_order = models.ForeignKey(Order, on_delete=models.CASCADE, null=True)
     payment_account = models.CharField(max_length=32, null=True)
     action = models.CharField(max_length=32)
     client_ip = models.CharField(max_length=20, null=True)
@@ -51,8 +53,9 @@ class APIUserTransaction(models.Model):
     attach = models.CharField(max_length=1024, null=True)
     request_timestamp = models.CharField(max_length=32, null=True)
     original_request = models.CharField(max_length=2048)
-    payment_provider_last_notify = models.CharField(max_length=4096)
+    payment_provider_last_notify = models.CharField(max_length=4096, null=True, default=None)
     payment_provider_last_notified_at = models.DateTimeField(auto_now_add=False, null=True)
+    expire_in_sec = models.IntegerField(default=600)
     status = models.CharField(max_length=32, choices=TRADE_STATUS)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, related_name='APIUserTransaction_created_by', on_delete=models.SET_NULL, null=True)

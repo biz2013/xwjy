@@ -128,6 +128,7 @@ class TestPrepurchase(TransactionTestCase):
         request = PurchaseAPIRequest('hyq17121610000800000911220E16AB0', '4AE4583FD4D240559F80ED39',
                 'order_no_order', # order id
                 620, # total fee
+                10, # expire_minute
                 'heepay', '12738456',
                 '127.0.0.1', #client ip
                 attach='userid:1',
@@ -156,6 +157,7 @@ class TestPrepurchase(TransactionTestCase):
         request = PurchaseAPIRequest('hyq17121610000800000911220E16AB0', '4AE4583FD4D240559F80ED39',
                 'order_match', # order id
                 62, # total fee
+                10, # expire_minute
                 'heepay', '12738456',
                 '127.0.0.1', #client ip
                 attach='userid:1',
@@ -184,6 +186,7 @@ class TestPrepurchase(TransactionTestCase):
         request = PurchaseAPIRequest('hyq17121610000800000911220E16AB0', '4AE4583FD4D240559F80ED39',
                 'order_match', # order id
                 62, # total fee
+                10, # expire_minute
                 'heepay', '12738456',
                 '127.0.0.1', #client ip
                 attach='userid:1',

@@ -6,6 +6,8 @@ from trading.models import *
 from trading.controller import ordermanager
 
 import logging
+import datetime as dt
+import pytz
 
 logger = logging.getLogger("tradeex.tradeexchangemanager")
 
@@ -52,6 +54,7 @@ class TradeExchangeManager(object):
         else:
             raise ValueError('NOT_SELL_ORDER_FOUND')    
 
+
         for sell_order in qualify_orders:
             order_item = OrderItem('', # order_id empty for purchase
                api_user_id, 
@@ -81,9 +84,12 @@ class TradeExchangeManager(object):
             
             buyorder_id = None
             try:
+                api_trans_id = 'API_TX_{0}'.format(
+                    dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
+                )
                 buyorder_id = ordermanager.create_purchase_order(order_item, sell_order.order_id, 
                     buyer_payment_provider, 'admin', 
-                    api_user, request_obj
+                    api_user, request_obj, api_trans_id
                 )
             except ValueError as ve:
                 if ve.args[0] == 'SELLORDER_NOT_OPEN':
@@ -103,7 +109,7 @@ class TradeExchangeManager(object):
                     api_call_order_id, sell_order.order_id))
                 continue
             
-            return buyorder_id, seller_payment_account
+            return api_trans_id, buyorder_id, seller_payment_account
 
         if qualify_orders:
             logger.error("purchase_by_cash_amount(): [out_trade_no:{0}] None of the qualified sell order could be secured for purchase.".format(

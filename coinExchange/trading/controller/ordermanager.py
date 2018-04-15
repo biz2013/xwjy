@@ -175,11 +175,12 @@ def get_sellorder_seller_payment_methods(sell_order_id):
 
 def create_purchase_order(buyorder, reference_order_id,
          seller_payment_provider, operator, 
-         api_user = None,  api_purchase_request = None):
+         api_user = None,  api_purchase_request = None,
+         api_trans_id = None):
 
     frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
     buyorder.order_id = frmt_date
-    is_api_call = api_user and api_purchase_request
+    is_api_call = api_user and api_purchase_request and api_trans_id
     api_call_order_id = api_purchase_request.out_trade_no
     operation_comment = ''
     if not is_api_call:
@@ -260,8 +261,10 @@ def create_purchase_order(buyorder, reference_order_id,
 
         if is_api_call:
             api_trans = APIUserTransaction.objects.create(
+                transactionId = api_trans_id,
                 api_user = api_user,
                 payment_provider = PaymentProvider.objects.get(code= api_purchase_request.payment_provider),
+                reference_order = order,
                 payment_account = api_purchase_request.payment_account,
                 action = api_purchase_request.method,
                 client_ip = api_purchase_request.client_ip,
