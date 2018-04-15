@@ -30,9 +30,24 @@ logger = logging.getLogger("tradeex.api")
 # in case in the future we need to reconstruct the
 # response from trade exchange.  For now, it is
 # just straight return
-def create_prepurchase_response(respons_json, purchase_order):
-    return response_json
+def create_prepurchase_response_from_heepay(heepay_response, api_user, api_trans_id):
+    
+    response = PurchaseAPIResponse(
+        api_user.apiKey, api_user.secretKey,
+        heepay_response.return_code, 
+        heepay_response.return_msg, 
+        heepay_response.result_code,
+        heepay_response.result_msg,
+        heepay_response.out_trade_no,
+        heepay_response.hy_bill_no,
+        subject = heepay_response.subject,
+        attach = heepay_response.attach,
+        total_received = heepay_response.total_fee,
+        payment_url = heepay_response.hy_url,
+        reference_id = api_trans_id
+    )
 
+    return response.to_json()       
 
 # This will find user's account, use its secret key to check
 # the sign of the request, then, based on request type, validate
@@ -56,7 +71,7 @@ def prepurchase(request):
         ))
         validate_request(request_obj, api_user)
         tradex = TradeExchangeManager()
-        orderId, seller_payment_account = tradex.purchase_by_cash_amount(api_user,
+        api_trans_id, buyorder_id, seller_payment_account = tradex.purchase_by_cash_amount(api_user,
            request_obj, 'AXFund',  True)
         
         sitesettings = context_processor.settings(request)['settings']
@@ -76,7 +91,7 @@ def prepurchase(request):
         #    nothing='nothing')
         
         heepay = HeePayManager()
-        json_payload = heepay.create_heepay_payload('wallet.pay.apply', orderId, request_obj.apikey, 
+        json_payload = heepay.create_heepay_payload('wallet.pay.apply', buyorder_id, request_obj.apikey, 
             api_user.secretKey, "127.0.0.1", float(request_obj.total_fee)/100.0,
             seller_payment_account, request_obj.payment_account, 
             notify_url, return_url)
@@ -97,7 +112,10 @@ def prepurchase(request):
         
         heepay_response = HeepayResponse.parseFromJson(response_json, api_user.secretKey)
 
-        return JsonResponse(create_prepurchase_response(heepay_response, orderId))
+        if request_obj.payment_provider == 'heepay':
+            return JsonResponse(create_prepurchase_response_from_heepay(heepay_response, api_user,api_trans_id))
+        else:
+            raise ValueError("payment provider {0} is not supported".format(request_obj.payment_provider))
     #TODO: should handle different error here.
     # what if network issue, what if the return is 30x, 40x, 50x
     except ValueError as ve:
