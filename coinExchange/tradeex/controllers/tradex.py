@@ -33,8 +33,13 @@ class TradeExchangeManager(object):
                ~Q(sub_type='ALL_OR_NOTHING') & Q(total_amount__gt=amount) & 
                Q(unit_price_currency=currency) & Q(cryptocurrency=crypto)).order_by('total_amount', '-created_at')
 
-    def purchase_by_cash_amount(self, api_user_id, crypto, amount, currency, 
-        buyer_payment_provider, buyer_payment_account, api_call_order_id, is_api_call=True):
+    def purchase_by_cash_amount(self, api_user, request_obj, crypto, is_api_call=True):
+        api_user_id = api_user.user.id
+        amount = request_obj.total_fee
+        currency = 'CNY'
+        buyer_payment_provider = request_obj.payment_provider
+        buyer_payment_account =  request_obj.payment_account
+        api_call_order_id =  request_obj.out_trade_no
         logger.info("purchase_by_cash_amount(api_user:{0}, crypto {1}, amount {2}{3}, from account {4}:{5}, out_trade_no:{6})".format(
             api_user_id,  crypto, amount, currency, buyer_payment_provider, 
             buyer_payment_account, api_call_order_id,
@@ -78,8 +83,7 @@ class TradeExchangeManager(object):
             try:
                 buyorder_id = ordermanager.create_purchase_order(order_item, sell_order.order_id, 
                     buyer_payment_provider, 'admin', 
-                    True, # is_api_call = True
-                    api_call_order_id
+                    api_user, request_obj
                 )
             except ValueError as ve:
                 if ve.args[0] == 'SELLORDER_NOT_OPEN':

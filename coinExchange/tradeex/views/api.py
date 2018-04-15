@@ -56,11 +56,8 @@ def prepurchase(request):
         ))
         validate_request(request_obj, api_user)
         tradex = TradeExchangeManager()
-        orderId, seller_payment_account = tradex.purchase_by_cash_amount(api_user.user.id,
-           'AXFund', request_obj.total_fee, 'CNY',
-           request_obj.payment_provider, 
-           request_obj.payment_account,
-           request_obj.out_trade_no, True)
+        orderId, seller_payment_account = tradex.purchase_by_cash_amount(api_user,
+           request_obj, 'AXFund',  True)
         
         sitesettings = context_processor.settings(request)['settings']
         notify_url = settings.HEEPAY_NOTIFY_URL_FORMAT.format(
@@ -100,7 +97,7 @@ def prepurchase(request):
         
         heepay_response = HeepayResponse.parseFromJson(response_json, api_user.secretKey)
 
-        return JsonResponse(create_prepurchase_response(heepay_response, order))
+        return JsonResponse(create_prepurchase_response(heepay_response, orderId))
     #TODO: should handle different error here.
     # what if network issue, what if the return is 30x, 40x, 50x
     except ValueError as ve:

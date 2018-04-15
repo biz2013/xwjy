@@ -1,16 +1,38 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import sys
+import sys, io, traceback, time, json, copy, math
 sys.path.append('../stakingsvc/')
 from django.contrib.auth.models import User
 from django.test import TestCase, TransactionTestCase
 from django.test import Client
+
+
+from unittest.mock import Mock, MagicMock, patch
+
 from tradeapi.data.traderequest import PurchaseAPIRequest
 from tradeex.apitests.tradingutils import *
 from trading.models import *
 from trading.controller import useraccountinfomanager
 import json
+
+# match the hy_bill_no in test data test_heepay_confirm.json
+TEST_HY_BILL_NO='180102122300364021000081666'
+
+heepay_reponse_template = json.load(io.open('trading/tests/data/heepay_return_success.json', 'r', encoding='utf-8'))
+
+#mock function
+def send_buy_apply_request_side_effect(payload):
+    json_payload = json.loads(payload)
+    json_response = copy.copy(heepay_reponse_template)
+    print('copied response template is {0}'.format(json.dumps(json_response)))
+    biz_content = json.loads(json_payload['biz_content'])
+    print('biz_content json is {0}'.format(json.dumps(biz_content)))
+    json_response['out_trade_no'] = biz_content['out_trade_no']
+    json_response['hy_bill_no'] = TEST_HY_BILL_NO
+    json_response['to_account'] = '15811302702'
+    print('copied and templated response is {0}'.format(json.dumps(json_response)))
+    return 200, 'Ok', json.dumps(json_response)
 
 # Create your tests here.
 class TestPrepurchase(TransactionTestCase):
@@ -155,7 +177,9 @@ class TestPrepurchase(TransactionTestCase):
         self.assertEqual(resp_json['return_msg'], "收钱方账号不存在")
 
 
-    def test_purchase_order_succeed(self):
+    @patch('trading.controller.heepaymanager.HeePayManager.send_buy_apply_request', 
+           side_effect=send_buy_apply_request_side_effect)
+    def test_purchase_order_succeed(self,send_buy_apply_request_function):
         self.create_fitting_order(62)
         request = PurchaseAPIRequest('hyq17121610000800000911220E16AB0', '4AE4583FD4D240559F80ED39',
                 'order_match', # order id

@@ -27,7 +27,6 @@ class HeepayResponse(object):
     @classmethod    
     def parseFromJson(cls, json_data, api_secret):
         resp = HeepayResponse(api_secret)
-
         if 'return_code' not in json_data:
             raise ValueError('Invalid heepay response: missing return_code')
         if 'return_msg' not in json_data:
@@ -46,19 +45,20 @@ class HeepayResponse(object):
                 raise ValueError('Invalid heepay response: result_msg field should not exist if return_code=FAIL')
 
         calculated_sign = resp.__sign(json_data)
-        if calculated_sign != json_data['sign']:
-            raise ValueError('Invalid heepay response: signature does not match.  Expected {0} but got {1}'.format(
-                json_data['sign'], calculated_sign
-            ))
-
-        resp.api_key = json_data['app_id']
-        resp.subject = json_data['subject']
-        resp.attach = json_data['attach']
-        resp.total_fee = json_data['total_fee']
-        resp.out_trade_no = json_data['out_trade_no']
-        resp.hy_url = json_data['hy_url']
-        resp.hy_pay_id = json_data['hy_pay_id']
         resp.sign = calculated_sign
+        #if calculated_sign != json_data['sign']:
+        #    raise ValueError('Invalid heepay response: signature does not match.  Expected {0} but got {1}'.format(
+        #        json_data['sign'], calculated_sign
+        #    ))
+
+        if json_data['return_code'] =='SUCCESS' and 'result_code' in json_data:
+            resp.api_key = json_data['app_id']
+            resp.subject = json_data['subject']
+            resp.attach = json_data.get('attach', None)
+            resp.total_fee = json_data['total_fee']
+            resp.out_trade_no = json_data['out_trade_no']
+            resp.hy_url = json_data['hy_url']
+            resp.hy_pay_id = json_data['hy_pay_id']
 
 
         

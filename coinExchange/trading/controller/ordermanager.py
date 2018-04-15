@@ -9,7 +9,7 @@ from calendar import timegm
 from django.db import transaction
 from django.db.models import F, Q, Count
 from django.contrib.auth.models import User
-
+from tradeex.models import *
 from trading.models import *
 from trading.views.models.orderitem import OrderItem
 from trading.views.models.userpaymentmethodview import *
@@ -175,10 +175,12 @@ def get_sellorder_seller_payment_methods(sell_order_id):
 
 def create_purchase_order(buyorder, reference_order_id,
          seller_payment_provider, operator, 
-         is_api_call = False, api_call_order_id = ''):
+         api_user = None,  api_purchase_request = None):
 
     frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
     buyorder.order_id = frmt_date
+    is_api_call = api_user and api_purchase_request
+    api_call_order_id = api_purchase_request.out_trade_no
     operation_comment = ''
     if not is_api_call:
         operation_comment = 'User {0} open buy order {1} with total {2}{3}({4}x@{5})'.format(
@@ -255,6 +257,26 @@ def create_purchase_order(buyorder, reference_order_id,
         logger.info('userwallet transaction {0} for purchase order {1} userwallet{2} created'.format(
             userwallet_trans.id, order.order_id, userwallet.id
         ))
+
+        if is_api_call:
+            api_trans = APIUserTransaction.objects.create(
+                api_user = api_user,
+                payment_provider = PaymentProvider.objects.get(code= api_purchase_request.payment_provider),
+                payment_account = api_purchase_request.payment_account,
+                action = api_purchase_request.method,
+                client_ip = api_purchase_request.client_ip,
+                subject = api_purchase_request.subject,
+                total_fee = api_purchase_request.total_fee,
+                attach = api_purchase_request.attach,
+                request_timestamp = api_purchase_request.timestamp,
+                original_request = api_purchase_request.original_json_request,
+                payment_provider_last_notify = '',
+                payment_provider_last_notified_at = None,
+                status = 'UNKNOWN',
+                created_by = operatorObj,
+                lastupdated_by= operatorObj
+            )
+
         reference_order.status = 'LOCKED'
         reference_order.units_locked = reference_order.units_locked + buyorder.total_units
         reference_order.units_available_to_trade = reference_order.units_available_to_trade - buyorder.total_units
