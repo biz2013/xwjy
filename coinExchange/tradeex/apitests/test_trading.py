@@ -49,6 +49,7 @@ class TestPrepurchase(TransactionTestCase):
         request = PurchaseAPIRequest('api_key_not_exist', 'secrete_not_exist',
                 '20180320222600_123', # order id
                 0.05, # total fee
+                10, # expire_minute
                 'heepay', '12738456',
                 '127.0.0.1', #client ip
                 attach='userid:1',
@@ -60,12 +61,10 @@ class TestPrepurchase(TransactionTestCase):
         response = c.post('/tradeex/purchasetoken/', request_str,
                           content_type='application/json')
 
-        print('response is {0}'.format(json.dumps(json.loads(response.content), ensure_ascii=False)))
-
         self.assertEqual(200, response.status_code)
         resp_json = json.loads(response.content)
         self.assertEqual(resp_json['return_code'], 'FAIL')
-        self.assertEqual(resp_json['return_msg'], '参数错误')
+        self.assertEqual(resp_json['return_msg'], '系统错误:通知系统服务')
         #TODO: show user not found?
 
     def validate_user_info(self, username):

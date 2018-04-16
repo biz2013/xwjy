@@ -18,7 +18,7 @@ class HeepayResponse(object):
         self.out_trade_no = None
         self.hy_url = None
         self.hy_pay_id = None
-        self.hy_bill_non = None
+        self.hy_bill_no = None
 
     def __sign(self, json):
         sorted_keys = sorted(json.keys())
@@ -78,8 +78,3 @@ class HeepayResponse(object):
             resp.hy_bill_no = json_data['hy_bill_no']
 
         return resp
-
-
-        
-            
-            
