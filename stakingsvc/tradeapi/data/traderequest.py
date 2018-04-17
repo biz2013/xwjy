@@ -11,11 +11,11 @@ logger = logging.getLogger("tradeapi.purchaserequest")
 
 class PurchaseAPIRequest(object):
 
-    def __init__(self, apikey, secret_key, out_trade_no, total_fee, 
-            payment_provider, payment_account, client_ip,
+    def __init__(self, apikey, secret_key, out_trade_no, total_fee,
+            expire_minute, payment_provider, payment_account, client_ip, 
             subject='人民币充值', attach=None, notify_url=None, return_url=None,
             version='1.0', charset='utf-8', sign_type='MD5', timestamp=0,
-            sign = ''):
+            sign = '', original_json_request = None):
         self.version = version
         self.charset = charset
         self.sign_type = sign_type
@@ -25,6 +25,7 @@ class PurchaseAPIRequest(object):
         self.out_trade_no = out_trade_no
         self.total_fee = total_fee
         self.client_ip = client_ip
+        self.expire_minute = expire_minute
         self.payment_provider = payment_provider
         self.payment_account = payment_account
         self.subject = subject
@@ -34,6 +35,7 @@ class PurchaseAPIRequest(object):
         self.timestamp = timestamp
         self.sign = sign
         self.meta_option = None
+        self.original_json_request = original_json_request
 
     @classmethod
     def parseFromJson(cls, json_input):
@@ -44,6 +46,7 @@ class PurchaseAPIRequest(object):
         biz_content_json = json.loads(json_input['biz_content'])
         return PurchaseAPIRequest(json_input['api_key'], '', biz_content_json['out_trade_no'],
             int(biz_content_json['total_fee']),
+            biz_content_json['expire_minute'],
             biz_content_json['payment_provider'],
             biz_content_json['payment_account'],
             biz_content_json['client_ip'],
@@ -55,14 +58,15 @@ class PurchaseAPIRequest(object):
             charset = json_input['charset'],
             sign_type = json_input['sign_type'],
             timestamp = biz_content_json.get('timestamp', 0),
-            sign = json_input['sign'])
+            sign = json_input['sign'],
+            original_json_request = json_input)
 
     def __get_biz_content_json(self):
         biz_content_json = {}
         biz_content_json['out_trade_no'] = self.out_trade_no
         biz_content_json['subject'] = self.subject
-        amount_str = str(round(self.total_fee,2))
-        biz_content_json['total_fee'] = amount_str
+        biz_content_json['total_fee'] = self.total_fee
+        biz_content_json['expire_minute'] = self.expire_minute
         biz_content_json['api_account_mode']= 'Account'
         biz_content_json['client_ip'] = self.client_ip
         biz_content_json['payment_provider'] = self.payment_provider

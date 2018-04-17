@@ -21,3 +21,11 @@ ERR_CRITICAL_IRRECOVERABLE='ERR_CRITICAL_IRRECOVERABLE'
 
 # heepay url
 HEEPAYREGISTRY='https://wallet.heepay.com/Account/Register?returnUrl=%s'
+
+
+PAYMENT_NORMAL_STATUS = {'Not Started': 'NOTSTARTED','PaySuccess':'PAYSUCCESS',
+         'Starting':'STARTING', 'Unknown':'UNKNOWN'
+         }
+PAYMENT_BAD_STATUS = { 'ExpiredInvalid': 'EXPIREDINVALID',
+         'UserAbandon':'USERABANDON', 'DevClose':'DEVCLOSE',
+         'Failure':'FAILURE'}

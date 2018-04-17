@@ -4,6 +4,7 @@ import time
 import datetime as dt
 import pytz
 import logging
+import json
 from calendar import timegm
 
 from django.db import transaction
@@ -11,6 +12,7 @@ from django.db.models import F, Q, Count
 from django.contrib.auth.models import User
 from tradeex.models import *
 from trading.models import *
+from trading.controller.global_constants import *
 from trading.views.models.orderitem import OrderItem
 from trading.views.models.userpaymentmethodview import *
 
@@ -262,6 +264,7 @@ def create_purchase_order(buyorder, reference_order_id,
         if is_api_call:
             api_trans = APIUserTransaction.objects.create(
                 transactionId = api_trans_id,
+                ai_out_trade_no = api_purchase_request.out_trade_no,
                 api_user = api_user,
                 payment_provider = PaymentProvider.objects.get(code= api_purchase_request.payment_provider),
                 reference_order = order,
@@ -275,6 +278,7 @@ def create_purchase_order(buyorder, reference_order_id,
                 original_request = api_purchase_request.original_json_request,
                 payment_provider_last_notify = '',
                 payment_provider_last_notified_at = None,
+                expire_in_sec=api_purchase_request.expire_minute * 60,
                 status = 'UNKNOWN',
                 created_by = operatorObj,
                 lastupdated_by= operatorObj
@@ -295,6 +299,7 @@ def create_purchase_order(buyorder, reference_order_id,
 
 def lock_trans_of_purchase_order(orderid, bill_no):
     try:
+        # TODO: is this needed?
         purchase_trans = UserWalletTransaction.objects.select_for_update().get(
               reference_order__order_id=orderid)
         logger.info("--- trans: orderid {0}, pay bill: {1} status {2} trans_type {3} inside call of {4},{5}".format(
@@ -344,7 +349,7 @@ def update_purchase_transaction(purchase_trans, trade_status, trade_msg):
         purchase_trans.status = 'PROCESSED'
     purchase_trans.save()
 
-def update_order_with_heepay_notification(notify_json, operator):
+def update_order_with_heepay_notification(notify_json, operator, api_trans=None):
     logger.info('update_order_with_heepay_notification(with hy_bill_no {0} out_trade_no {1}'.format(
         notify_json['hy_bill_no'], notify_json['out_trade_no']
     ))
@@ -358,8 +363,21 @@ def update_order_with_heepay_notification(notify_json, operator):
             logger.info("The transaction has been processed.  Nothing to do")
             return
 
-        if notify_json['trade_status'] != 'Success':
-            update_purchase_transaction(purchase_trans, notify_json['trade_status'])
+        if api_trans:
+            api_trans.payment_provider_last_notify = json.dumps(notify_json, ensure_ascii=False)
+            api_trans.payment_provider_last_notified_at = dt.now()
+
+            payment_status = notify_json['trade_status']
+            if payment_status == 'Success':
+                api_trans.trade_status = 'PAIDSUCCESS'
+            elif payment_status in PAYMENT_NORMAL_STATUS:                    
+                api_trans.trade_status = 'INPROGRESS' if payment_status != 'UNKNOWN' else 'UNKNOWN'
+            else:
+                api_trans.trade_status = 'PAYFAILED'
+            api_trans.save()
+
+        if payment_status != 'Success':
+            update_purchase_transaction(purchase_trans, payment_status)
             return
 
         # get original buy order

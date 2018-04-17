@@ -125,6 +125,13 @@ class TradeExchangeManager(object):
             ))
         raise ValueError('NOT_SELL_ORDER_CAN_BE_LOCKED')    
     
+    def handle_payment_notificiation(self, payment_provider, notification, api_trans):
+        if payment_provider != 'heepay':
+            raise ValueError('handle_payment_notificiation(): {0} is not supported')
+        
+        ordermanager.update_order_with_heepay_notification(notification.original_json, 'admin', api_trans)     
+        api_trans.refresh_from_db()
+        if api_trans.trade_status == 'PAYFAILED':
 
     def post_sell_order(self):
         pass
