@@ -16,6 +16,8 @@ from tradeex.controllers.apiusermanager import APIUserManager
 from tradeex.controllers.tradex import TradeExchangeManager
 from tradeex.requests.heepayapirequestfactory import HeepayAPIRequestFactory
 from tradeex.responses.heepayresponse import HeepayResponse
+from tradeex.utils import *
+
 from trading.views import errorpageview
 from trading.controller.global_constants import *
 from trading.controller.ordermanager import *
@@ -81,6 +83,9 @@ def prepurchase(request):
         return_url = settings.HEEPAY_RETURN_URL_FORMAT.format(
            sitesettings.heepay_return_url_host,
            sitesettings.heepay_return_url_port)
+        
+        heepay_api_key = sitesettings.heepay_app_id
+        heepay_api_secret = sitesettings.heepay_app_key
 
         request_factory = HeepayAPIRequestFactory(
             "1.0", request_obj.apikey, api_user.secretKey)
@@ -91,8 +96,8 @@ def prepurchase(request):
         #    nothing='nothing')
         
         heepay = HeePayManager()
-        json_payload = heepay.create_heepay_payload('wallet.pay.apply', buyorder_id, request_obj.apikey, 
-            api_user.secretKey, "127.0.0.1", float(request_obj.total_fee)/100.0,
+        json_payload = heepay.create_heepay_payload('wallet.pay.apply', buyorder_id, heepay_api_key, 
+            heepay_api_secret, "127.0.0.1", float(request_obj.total_fee)/100.0,
             seller_payment_account, request_obj.payment_account, 
             notify_url, return_url)
         status, reason, message = heepay.send_buy_apply_request(json_payload)
@@ -109,10 +114,9 @@ def prepurchase(request):
             request_obj.out_trade_no, json.dumps(response_json, ensure_ascii=False)
         ))
 
-        
-        heepay_response = HeepayResponse.parseFromJson(response_json, api_user.secretKey)
-
         if request_obj.payment_provider == 'heepay':
+            heepay_response = HeepayResponse.parseFromJson(response_json, heepay_api_secret)
+
             return JsonResponse(create_prepurchase_response_from_heepay(heepay_response, api_user,api_trans_id))
         else:
             raise ValueError("payment provider {0} is not supported".format(request_obj.payment_provider))
@@ -207,25 +211,7 @@ def query_order_status(request) :
        logger.exception(error_msg)
        #TODO: we should always return json with error message.
        return HttpResponseServerError('系统处理查询请求时出现系统错误')
-    
 
-def create_return_msg_from_valueError(valueError):
-    msg_map= {
-        'PAYMENT_ACCOUNT_NOT_FOUND':'数据错误:通知系统服务',
-        'TOO_MANY_ACCOUNTS_AT_PROVIDER': '数据错误:通知系统服务',
-        'NOT_SELL_ORDER_FOUND':'数据错误:通知系统服务',
-        'NOT_SELL_ORDER_CAN_BE_LOCKED':'数据错误:通知系统服务'
-    }
-    return msg_map[valueError] if valueError in msg_map else '系统错误:通知系统服务'
-
-def create_result_msg_from_valueError(valueError):
-    msg_map= {
-        'PAYMENT_ACCOUNT_NOT_FOUND':'数据错误:通知系统服务',
-        'TOO_MANY_ACCOUNTS_AT_PROVIDER': '数据错误:通知系统服务',
-        'NOT_SELL_ORDER_FOUND':'数据错误:通知系统服务',
-        'NOT_SELL_ORDER_CAN_BE_LOCKED':'数据错误:通知系统服务'
-    }
-    return msg_map[valueError] if valueError in msg_map else '系统错误:通知系统服务'
 
 def create_error_purchase_response(request_obj, api_user, return_msg, result_msg, trx_bill_no):
     kwargs = {}
@@ -240,6 +226,3 @@ def create_error_purchase_response(request_obj, api_user, return_msg, result_msg
         'FAIL', return_msg, 'FAIL', result_msg,
         request_obj.out_trade_no,
         trx_bill_no, **kwargs)
-        #subject = request_obj.subject,
-        #attach = request_obj.subject,
-        #total_fee = request_obj.total_fee)

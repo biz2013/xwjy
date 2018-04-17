@@ -3,6 +3,7 @@
 from django.db.models import Q
 from trading.views.models.orderitem import *
 from trading.models import *
+from tradeex.models import *
 from trading.controller import ordermanager
 
 import logging
@@ -34,6 +35,13 @@ class TradeExchangeManager(object):
         return Order.objects.filter(Q(status='OPEN') & Q(order_type='SELL') &
                ~Q(sub_type='ALL_OR_NOTHING') & Q(total_amount__gt=amount) & 
                Q(unit_price_currency=currency) & Q(cryptocurrency=crypto)).order_by('total_amount', '-created_at')
+
+    # after issue payment command, payment provider will return a bill no, and we need to
+    # record that with the api transaction
+    def update_api_trans_with_bill_no(self, api_trans_id, payment_bill_no):
+        return APIUserTransaction.objects.filter(transactionId = api_trans_id).update(
+                reference_bill_no = payment_bill_no
+                )
 
     def purchase_by_cash_amount(self, api_user, request_obj, crypto, is_api_call=True):
         api_user_id = api_user.user.id

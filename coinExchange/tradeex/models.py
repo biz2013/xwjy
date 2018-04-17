@@ -45,6 +45,7 @@ class APIUserTransaction(models.Model):
     api_user = models.ForeignKey(APIUserAccount, on_delete=models.CASCADE)
     payment_provider = models.ForeignKey(PaymentProvider, on_delete=models.CASCADE)
     reference_order = models.ForeignKey(Order, on_delete=models.CASCADE, null=True)
+    reference_bill_no = models.CharField(max_length=64, null=True)
     payment_account = models.CharField(max_length=32, null=True)
     action = models.CharField(max_length=32)
     client_ip = models.CharField(max_length=20, null=True)
