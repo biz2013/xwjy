@@ -31,17 +31,29 @@ class APIUserExternalWalletAddress(models.Model):
     lastupdated_by = models.ForeignKey(User, related_name='APIUserExternalWalletAddress_lastupdated_by', on_delete=models.SET_NULL, null=True)
 
 class APIUserTransaction(models.Model):
+    PAYMENT_STATUS=(
+        ('UNKNOWN', 'Unknown'),
+        ('NOTSTARTED', 'Not Started'),
+        ('STARTING', 'Starting'),
+        ('PAYSUCCESS','PaySuccess'),
+        ('SUCCESS','Success'),
+        ('EXPIREDINVALID','ExpiredInvalid'),
+        ('USERABANDON', 'UserAbandon'),
+        ('DEVCLOSE', 'DevClose'),
+        ('FAILURE', 'Failure')
+    )
     TRADE_STATUS=(
         ('UNKNOWN', 'Unknown'),
-        ('NOTSTATED', 'NotStarted'),
         ('INPROGRESS', 'InProgress'),
         ('PAIDSUCCESS','PaidSuccess'),
         ('SUCCESS','Success'),
+        ('PAYFAILED', 'Pay Failed')
         ('SYSTEMERROR', 'SystemError'),
         ('USERCANCELLED', 'UserCancelled'),
         ('EXPIRED', 'Expired')
     )
     transactionId = models.CharField(max_length=128, primary_key=True)
+    api_out_trade_no = models.CharField(max_length=128, default='')
     api_user = models.ForeignKey(APIUserAccount, on_delete=models.CASCADE)
     payment_provider = models.ForeignKey(PaymentProvider, on_delete=models.CASCADE)
     reference_order = models.ForeignKey(Order, on_delete=models.CASCADE, null=True)
@@ -57,7 +69,8 @@ class APIUserTransaction(models.Model):
     payment_provider_last_notify = models.CharField(max_length=4096, null=True, default=None)
     payment_provider_last_notified_at = models.DateTimeField(auto_now_add=False, null=True)
     expire_in_sec = models.IntegerField(default=600)
-    status = models.CharField(max_length=32, choices=TRADE_STATUS)
+    payment_status = models.CharField(max_length=32, choices=PAYMENT_STATUS, default='UNKNOWN')
+    trade_status = models.CharField(max_length=32, choices=TRADE_STATUS, default='UNKNOWN')
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, related_name='APIUserTransaction_created_by', on_delete=models.SET_NULL, null=True)
     lastupdated_at = models.DateTimeField(auto_now=True)

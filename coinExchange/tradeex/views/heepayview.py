@@ -7,7 +7,8 @@ from django.http import JsonResponse
 from trading.config import context_processor
 from tradeex.utils import *
 from tradeex.responses.heepaynotify import *
-from tradeex.controllers.tradex import *
+from tradeex.controllers.tradex import TradeExchangeManager
+from tradeex.controllers.apiusermanager import APIUserTransactionManager
 from trading.controller.heepaymanager import *
 
 sys.path.append('../stakingsvc/')
@@ -32,8 +33,12 @@ def heepay_notification(request):
     heepay_notify = HeepayNotification.parseFromJson(notify_json, sitesettings.heepay_app_key)
     tradeex = TradeExchangeManager()
     api_user = None
+    api_trans = None
     try:
-        resp, api_user = tradeex.handle_payment_notificiation('heepay', heepay_notify)
+        api_trans = APIUserTransactionManager.get_trans_by_reference_order(heepay_notify.out_trade_no)
+        api_user = api_trans.user
+        tradeex.handle_payment_notificiation('heepay', heepay_notify, api_trans)
+        api_trans.refresh_from_db()
         return JsonResponse(resp.to_json())
 
     except ValueError as ve:
@@ -43,8 +48,8 @@ def heepay_notification(request):
             api_user,
             create_return_msg_from_valueError(ve.args[0]),
             create_result_msg_from_valueError(ve.args[0]),
-            heepay_notify.out_trade_no if heepay_notify else '',
-            heepay_notify.trx_bill_no if heepay_notify else ''
+            api_trans.out_trade_no if api_trans else '',
+            api_trans.transactionId if api_trans else ''
         )
 
         return JsonResponse(resp.to_json())
@@ -54,8 +59,8 @@ def heepay_notification(request):
         resp = create_error_notification_response(
             api_user, 
             '系统错误', '系统错误',
-            heepay_notify.out_trade_no if heepay_notify else '',
-            heepay_notify.trx_bill_no if heepay_notify else ''
+            api_trans.out_trade_no if api_trans else '',
+            api_trans.transactionId if api_trans else ''
         )
         return JsonResponse(resp.to_json())        
 

@@ -32,7 +32,7 @@ logger = logging.getLogger("tradeex.api")
 # in case in the future we need to reconstruct the
 # response from trade exchange.  For now, it is
 # just straight return
-def create_prepurchase_response_from_heepay(heepay_response, api_user, api_trans_id):
+def create_prepurchase_response_from_heepay(heepay_response, api_user, api_trans_id, api_out_trade_no):
     
     response = PurchaseAPIResponse(
         api_user.apiKey, api_user.secretKey,
@@ -40,7 +40,7 @@ def create_prepurchase_response_from_heepay(heepay_response, api_user, api_trans
         heepay_response.return_msg, 
         heepay_response.result_code,
         heepay_response.result_msg,
-        heepay_response.out_trade_no,
+        api_out_trade_no,
         heepay_response.hy_bill_no,
         subject = heepay_response.subject,
         attach = heepay_response.attach,
