@@ -26,8 +26,7 @@ def create_wallet_address(request):
         axfd_datadir = sitesettings.axfd_datadir
         wallet_account_name = sitesettings.axfd_account_name
         axfd_passphrase = sitesettings.axfd_passphrase
-        axfd_tool = AXFundUtility(axfd_bin_path, axfd_datadir,
-                wallet_account_name)
+        axfd_tool = AXFundUtility(sitesettings)
         config_json = json.loads(sitesettings.config_json)
         batch_size = 20
         if 'wallet_address_batch_size' in config_json:

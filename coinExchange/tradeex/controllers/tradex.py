@@ -131,7 +131,8 @@ class TradeExchangeManager(object):
         
         ordermanager.update_order_with_heepay_notification(notification.original_json, 'admin', api_trans)     
         api_trans.refresh_from_db()
-        if api_trans.trade_status == 'PAYFAILED':
+        return api_trans
+
 
     def post_sell_order(self):
         pass
