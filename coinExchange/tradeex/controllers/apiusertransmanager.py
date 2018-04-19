@@ -5,7 +5,7 @@ import sys, logging
 import datetime as dt
 
 from tradeex.models import APIUserTransaction
-from trading.modles import User
+from trading.models import User
 
 logger = logging.getLogger("tradeex.apiusertransmanager")
 

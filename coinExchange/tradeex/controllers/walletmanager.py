@@ -22,9 +22,4 @@ class WalletManager(object):
             raise ValueError('CRYPTO_WALLET_NOTFOUND')
         except Wallet.MultipleObjectsReturned:
             logger.error('create_fund_util({0}): there are more than one wallets'.format(crypto))
-            raise ValueError('CRYPTO_WALLET_NOT_UNIQUE')
-            
-    @staticmethod
-    def get_userwallet    
-
-    
+            raise ValueError('CRYPTO_WALLET_NOT_UNIQUE')    
