@@ -8,12 +8,12 @@ from django.http import JsonResponse, HttpResponse
 from trading.config import context_processor
 from tradeex.utils import *
 from tradeex.responses.heepaynotify import *
+from tradeex.client.apiclient import APIClient
 from tradeex.controllers.tradex import TradeExchangeManager
-from tradeex.controllers.apiusermanager import APIUserTransactionManager
-from traddex.controllers.waletmanager import WalletManager
+from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
+from tradeex.controllers.walletmanager import WalletManager
 from trading.controller.heepaymanager import *
-from tradeapi.data.purchase_notify import PurchaseAPIResponse
-
+from tradeapi.data.purchase_notify import PurchaseAPINotify
 
 logger = logging.getLogger("tradeex.heepayview")
 
@@ -42,13 +42,13 @@ def heepay_notification(request):
         api_user = api_trans.api_user
         external_crypto_addr = APIUserManager.get_api_user_external_crypto_addr(api_user.user.id, 'CNY')
         updated_api_trans = tradeex.handle_payment_notificiation('heepay', heepay_notify, api_trans)
-        if api_trans.trade_status='INPROGRESS':
+        if api_trans.trade_status=='INPROGRESS':
             # do nothing if payment provider is in progress
             return HttpResponse(content='ok')
-        elif api_trans.trade_status='PAIDSUCCESS':
+        elif api_trans.trade_status=='PAIDSUCCESS':
             amount = float(api_trans.total_fee) / 100.0
             comment = 'amount:{0},trxId:{1},out_trade_no:{2}'.format(amount, api_trans.transactionId, api_trans.out_trade_no)
-            crypto_util.send(external_cpypto_addr, amount, comment)
+            crypto_util.send(external_crypto_addr, amount, comment)
             # send success response
             resp_content = 'OK'
             if api_trans.notify_url:
@@ -101,12 +101,5 @@ def create_api_notification(api_trans):
             attach = api_trans.attach
         )
 
-def create_error_notification_response(api_user, return_msg, result_msg, out_trade_no, trx_bill_no):
-    return PurchaseAPIResponse(
-        api_user.apiKey if api_user else '',
-        api_user.secretKey if api_user else '',
-        'FAIL', return_msg, 'FAIL', result_msg,
-        out_trade_no,
-        trx_bill_no, {})
 
     
