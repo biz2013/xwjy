@@ -3,6 +3,7 @@
 
 import logging
 from tradeex.models import APIUserAccount
+from trading.models import UserExternalWalletAddress
 
 logger = logging.getLogger("tradeex.apiusermanager")
 
@@ -18,4 +19,16 @@ class APIUserManager(object):
             logger.error("Multiple account has the same apikey {0}".format(apikey))
             raise ValueError('MORE_THAN_ONE_USER_WITH_API_KEY')
 
-        
+    @staticmethod
+    def get_api_user_external_crypto_addr(userId, crypto):
+        try:
+            externalobj = UserExternalWalletAddress.objects.get(user__id = userId, cryptocurrency__code = crypto)
+            return externalobj.address
+        except UserExternalWalletAddress.DoesNotExist:
+            logger.error("get_api_user_external_crypto_addr: Failed to find external address for user {0} crypto {1}".format(userId, crypto))
+            raise ValueError('USER_EXTERNALADDR_NOT_FOUND')
+        except UserExternalWalletAddress.MultipleObjectsReturned:
+            logger.error("get_api_user_external_crypto_addr: Multiple address for user {0} crypto {1}".format(userId, crypto))
+            raise ValueError('MORE_THAN_ONE_USER_EXTERNALADDR')
+            
+

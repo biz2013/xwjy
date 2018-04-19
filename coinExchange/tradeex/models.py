@@ -47,7 +47,7 @@ class APIUserTransaction(models.Model):
         ('INPROGRESS', 'InProgress'),
         ('PAIDSUCCESS','PaidSuccess'),
         ('SUCCESS','Success'),
-        ('PAYFAILED', 'Pay Failed')
+        ('PAYFAILED', 'Pay Failed'),
         ('SYSTEMERROR', 'SystemError'),
         ('USERCANCELLED', 'UserCancelled'),
         ('EXPIRED', 'Expired')
@@ -71,6 +71,11 @@ class APIUserTransaction(models.Model):
     expire_in_sec = models.IntegerField(default=600)
     payment_status = models.CharField(max_length=32, choices=PAYMENT_STATUS, default='UNKNOWN')
     trade_status = models.CharField(max_length=32, choices=TRADE_STATUS, default='UNKNOWN')
+    notify_url = models.CharField(max_length=1024, null=True)
+    return_url = models.CharField(max_length=1024, null=True)
+    last_notify = models.CharField(max_length=2048, null=True)
+    last_notify_response = models.CharField(max_length=16, null=True)
+    last_notified_at = models.DateTimeField(auto_now_add=False, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, related_name='APIUserTransaction_created_by', on_delete=models.SET_NULL, null=True)
     lastupdated_at = models.DateTimeField(auto_now=True)

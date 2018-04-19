@@ -5,7 +5,7 @@ import json, subprocess, logging
 
 logger = logging.getLogger("tradeex.cnyd_utils")
 
-class CNYDUtility(object):
+class CryptoUtility(object):
     def __init__(self, settings):
         self.cnyd_path = settings['bin_path']
         self.cnyd_datadir = settings['datadir']
