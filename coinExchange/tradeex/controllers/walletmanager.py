@@ -24,6 +24,7 @@ class WalletManager(object):
             logger.error('create_fund_util({0}): there are more than one wallets'.format(crypto))
             raise ValueError('CRYPTO_WALLET_NOT_UNIQUE')
             
-        
+    @staticmethod
+    def get_userwallet    
 
     

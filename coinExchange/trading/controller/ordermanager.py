@@ -368,9 +368,16 @@ def update_order_with_heepay_notification(notify_json, operator, api_trans=None)
         if api_trans:
             api_trans.payment_provider_last_notify = json.dumps(notify_json, ensure_ascii=False)
             api_trans.payment_provider_last_notified_at = dt.now()
-
+            if notify_json.get('from_account', None):
+                api_trans.from_account = notify_json['from_account']
+            if notify_json.get('to_account', None):
+                api_trans.to_account = notify_json['to_account']
+            if notify_json.get('attach', None):
+                api_trans.attach = notify_json['attach']
             payment_status = notify_json['trade_status']
             if payment_status == 'Success':
+                #update real fee if payment had succeeded
+                api_trans.real_fee = notify_json['real_fee']
                 api_trans.trade_status = 'PAIDSUCCESS'
             elif payment_status in PAYMENT_NORMAL_STATUS:                    
                 api_trans.trade_status = 'INPROGRESS' if payment_status != 'UNKNOWN' else 'UNKNOWN'
