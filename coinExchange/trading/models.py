@@ -209,6 +209,7 @@ class Order(models.Model):
 
    # payment provider picked by purchase order, purchase order only
    selected_payment_provider = models.ForeignKey('PaymentProvider', on_delete=models.SET_NULL, null=True)
+   account_at_selected_payment_provider = models.CharField(max_length=64, null=True)
 
    order_type = models.CharField(max_length=32, choices=ORDER_TYPE)
    sub_type = models.CharField(max_length=32, default='OPEN', choices=SUBORDER_TYPE)

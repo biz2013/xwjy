@@ -36,6 +36,37 @@ class TradeExchangeManager(object):
                ~Q(sub_type='ALL_OR_NOTHING') & Q(total_amount__gt=amount) & 
                Q(unit_price_currency=currency) & Q(cryptocurrency=crypto)).order_by('total_amount', '-created_at')
 
+    def get_active_sell_orders(self, crypto, currency):
+        return Order.objects.filter(Q(status='OPEM') & Q(order_type='BUY') &
+                Q(unit_price_currency=currency) & Q(cryptocurrency=crypto)).order_by('total_amount', '-created_at')
+
+    def decide_sell_price(self, orders):
+        min_price_normal_order = 1000000.0
+        min_price_api_order = 1000000.0
+        max_price_normal_order = 0.0
+        suggested_price = 0.0
+        for order in orders:
+            if (order.order_source == 'TRADESITE'):
+                if order.unit_price - min_price_normal_order < 0:
+                    min_price_normal_order = order.unit_price
+                if order.unit_price - max_price_normal_order > 0:
+                    max_price_normal_order = order.unit_price
+            elif (order.order_source == 'API' and order.unit_price - min_price_normal_order < 0):
+                min_price_api_order = order.unit_price
+
+        if min_price_normal_order < min_price_api_order:
+            suggested_price = max([0.05, min_price_normal_order * .95])
+        else:
+            if min_price_api_order < max_price_normal_order:
+                suggested_price = max([0.05, min_price_api_order + 0.01, min_price_api_order * 1.005])
+            else:
+                suggested_price = max([0.05, min([min_price_api_order - 0.01, min_price_api_order * 0.995])])
+        
+        return suggested_price
+                
+
+
+
     # after issue payment command, payment provider will return a bill no, and we need to
     # record that with the api transaction
     def update_api_trans_with_bill_no(self, api_trans_id, payment_bill_no):
@@ -134,8 +165,31 @@ class TradeExchangeManager(object):
         return api_trans
 
 
-    def post_sell_order(self):
-        pass
+    def post_sell_order(self, request_obj, api_user):
+        current_sell_orders = self.get_active_sell_orders('AXFund', 'CNY')
+        unit_price = self.decide_sell_price(current_sell_orders)
+        api_trans_id = 'API_TX_{0}'.format(
+                dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
+        )
+        order_item = OrderItem('', # order_id empty for purchase
+               api_user.user.id, 
+               '',  # no need for user login of the order
+               unit_price,
+               'CNY',
+               round(reqeust_obj.total_fee / unit_price, 8),
+               0,  # no need for available_units
+               reqeust_obj.total_fee,
+               'AXFund',
+               '', # no need for lastmodified_at
+               '', # no need for status
+               'BUY',
+               sub_type='ALL_OR_NOTHING',
+               selected_payment_provider= request_obj.payment_provider,
+               account_at_payment_provider = request_obj.payment_account,
+               order_source = 'API') # order type is buy
+        order_id = ordermanager.create_sell_order(order, 'admin', api_user, request_obj, api_trans_id)
+        return api_trans_id, order_id
+
     
     def confirm_order(self):
         pass
