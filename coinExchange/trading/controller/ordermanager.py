@@ -29,7 +29,8 @@ def get_seller_buyer_payment_accounts(buyorder_id, payment_provider):
     buyer_payment_method = UserPaymentMethod.objects.get(user__id=buyorder.user.id, provider__code = payment_provider)
     return seller_payment_method.account_at_provider, buyer_payment_method.account_at_provider
 
-def create_sell_order(order, operator):
+def create_sell_order(order, operator, api_user = None,  api_purchase_request = None,
+         api_trans_id = None):
     userobj = User.objects.get(id = order.owner_user_id)
     operatorObj = User.objects.get(username = operator)
     crypto = Cryptocurrency.objects.get(currency_code = order.crypto)
@@ -53,8 +54,11 @@ def create_sell_order(order, operator):
            lastupdated_by = operatorObj,
            reference_order=None,
            cryptocurrency= crypto,
-           order_type='SELL',
-           sub_type = 'OPEN',
+           order_type= order.order_type,
+           sub_type = order.sub_type,
+           order_source = order.order_source,
+           selected_payment_provider = order.selected_payment_provider,
+           account_at_selected_payment_provider = order.account_at_selected_payment_provider,
            units = order.total_units,
            unit_price = order.unit_price,
            unit_price_currency = order.unit_price_currency,
@@ -66,8 +70,9 @@ def create_sell_order(order, operator):
         userwallet.locked_balance = userwallet.locked_balance + order.total_units
         userwallet.available_balance = userwallet.available_balance - order.total_units
         userwallet.save()
-        logger.info('Created sell order {0}, units {1} user\'s wallet: balance:{2} available_balance:{3} locked_balance: {4}'.format(
-           orderRecord.order_id, orderRecord.units, userwallet.balance, userwallet.available_balance, userwallet.locked_balance
+        logger.info('Created {5} sell order {0}, units {1} user\'s wallet: balance:{2} available_balance:{3} locked_balance: {4}'.format(
+           orderRecord.order_id, orderRecord.units, userwallet.balance, userwallet.available_balance, 
+           userwallet.locked_balance, order.order_source
         ))
         return orderRecord.order_id
 

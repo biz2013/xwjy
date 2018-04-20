@@ -25,7 +25,7 @@ urlpatterns = [
     re_path(r'^heepayreply/$', heepayview.heepay_notification, name='heepay_notification'),
     #re_path(r'^cancelorder/$', api.cancelorder, name='cancelorder'),
     #re_path(r'^checkorderstatus/$', api.checkorderstatus, name='checkorderstatus'),
-    #re_path(r'^selltoken/$', api.selltoken, name='selltoken'),
+    re_path(r'^selltoken/$', api.selltoken, name='selltoken'),
     #re_path(r'^register/$', api.register, name='register'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from tradeapi.data.purchaseapiresponse import PurchaseAPIResponse
+from tradeapi.data.tradeapiresponse import TradeAPIResponse
 
 def create_return_msg_from_valueError(valueError):
     msg_map= {

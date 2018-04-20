@@ -23,8 +23,8 @@ from trading.controller.global_constants import *
 from trading.controller.ordermanager import *
 from trading.controller.heepaymanager import *
 from tradeapi.utils import *
-from tradeapi.data.traderequest import PurchaseAPIRequest
-from tradeapi.data.purchaseapiresponse import PurchaseAPIResponse
+from tradeapi.data.tradeapirequest import TradeAPIRequest
+from tradeapi.data.tradeapiresponse import TradeAPIResponse
 import logging,json
 
 logger = logging.getLogger("tradeex.api")
@@ -34,7 +34,7 @@ logger = logging.getLogger("tradeex.api")
 # just straight return
 def create_prepurchase_response_from_heepay(heepay_response, api_user, api_trans_id, api_out_trade_no):
     
-    response = PurchaseAPIResponse(
+    response = TradeAPIResponse(
         api_user.apiKey, api_user.secretKey,
         heepay_response.return_code, 
         heepay_response.return_msg, 
@@ -51,13 +51,30 @@ def create_prepurchase_response_from_heepay(heepay_response, api_user, api_trans
 
     return response.to_json()       
 
+def create_selltoken_response(request_obj, api_trans):
+    response = TradeAPIResponse(
+        api_trans.api_user.apiKey, api_trans.api_user.secretKey,
+        'SUCCESS',  '挂卖单成功',
+        'SUCCESS',  '挂卖单成功',
+        api_trans.out_trade_no,
+        api_trans.transactionId,
+        subject = api_trans.subject if api_trans.subject else None,
+        attach = api_trans.attach if api_trans.attach else None,
+        total_received = api_trans.total_fee,
+        payment_url = None,
+        reference_id = api_trans.transactionId
+    )
+    
 # This will find user's account, use its secret key to check
 # the sign of the request, then, based on request type, validate
 # whether request has meaningful data
-def validate_request(request_obj, api_user_info):
+def validate_request(request_obj, api_user_info, expected_method):
     logger.info("validate_request: request parsed is {0}".format(request_obj.getPayload()))
     if not request_obj.is_valid(api_user_info.secretKey):
-        raise ValueError('purchase request has invalid signature')
+        raise ValueError('Request has invalid signature')
+    if request_obj.method == expected_method:
+        raise ValueError('Request has invalid method: expected {0}, actual {1}'.format(
+            expected_method, request_obj.method))
 
 def prepurchase(request):
     request_obj = None
@@ -66,12 +83,12 @@ def prepurchase(request):
         logger.info('receive request from: {0}'.format(request.get_host()))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
         request_json= json.loads(request.body)
-        request_obj = PurchaseAPIRequest.parseFromJson(request_json)
+        request_obj = TradeAPIRequest.parseFromJson(request_json)
         api_user = APIUserManager.get_api_user_by_apikey(request_obj.apikey)
         logger.info('prepurchase(): [out_trade_no:{0}] find out api user id is {1}, key {2}'.format(
             request_obj.out_trade_no, api_user.user.id, api_user.secretKey
         ))
-        validate_request(request_obj, api_user)
+        validate_request(request_obj, api_user, 'wallet.trade.buy')
         tradex = TradeExchangeManager()
         api_trans_id, buyorder_id, seller_payment_account = tradex.purchase_by_cash_amount(api_user,
            request_obj, 'AXFund',  True)
@@ -133,7 +150,7 @@ def prepurchase(request):
 
         return JsonResponse(resp.to_json())
 
-    except Exception as e:
+    except:
         error_msg = 'prepurchase()遇到错误: {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
         resp = create_error_purchase_response(
@@ -144,39 +161,26 @@ def prepurchase(request):
 
 def selltoken(request):
     try:
-        logger.debug('receive request from: {0}'.format(request.get_host()))
+        logger.info('receive request from: {0}'.format(request.get_host()))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
         request_json= json.loads(request.body)
-        request_obj = PrepurchaseRequest.parseFromJson(request_json)
-        api_user = APIUserManager.getUserByAPIKey(request_obj['api_key'])
-        validate_request(request_obj, api_user)
-        tradex = TradeExchange()
-        order = tradex.find_order_to_buy()
-        heepay_request = HeepayRequest.create(request_obj, api_user,
-              order.order_id,
-              settings.PAYMENT_CALLBACK_HOST,
-              settings.PAYMENT_CALLBACK_PORT,
-              payment_provider_manager.get_callback_url(
-                         request_obj.payment_provider)
-            )
-        api_client = PaymentAPICallClient(
-                      payment_provider_manager.get_purchase_url(
-                            request_obj.payment_provider)
-                     )
+        request_obj = TradeAPIRequest.parseFromJson(request_json)
+        api_user = APIUserManager.get_api_user_by_apikey(request_obj.apikey)
+        logger.info('selltoken(): [out_trade_no:{0}] find out api user id is {1}, key {2}'.format(
+            request_obj.out_trade_no, api_user.user.id, api_user.secretKey
+        ))
+        validate_request(request_obj, api_user, 'wallet.trade.sell')
+        tradex = TradeExchangeManager()
+        api_trans, sell_orderId = tradex.post_sell_order(request_obj, api_user)
 
-        response_json = api_client.sendRequest(heepay_request)
-        heepay_response = HeepayResponse.parseFromJson(response_json)
-
-        return JsonResponse(create_prepurchase_response(heepay_response, order))
+        return JsonResponse(create_selltoken_response(request_obj, api_trans))
     #TODO: should handle different error here.
     # what if network issue, what if the return is 30x, 40x, 50x
     except Exception as e:
-       error_msg = 'prepurchase()遇到错误: {0}'.format(sys.exc_info()[0])
+       error_msg = 'selltoken()遇到错误: {0}'.format(sys.exc_info()[0])
        logger.exception(error_msg)
        #TODO: we should always return json with error message.
-       return HttpResponseServerError('系统处理充值请求时出现系统错误')
-
-
+       return HttpResponseServerError('系统处理提现请求时出现系统错误')
 
 def query_order_status(request) :
     try:
