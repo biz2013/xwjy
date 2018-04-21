@@ -23,6 +23,10 @@
       return;
     }
 
+    if (availabe_units - units_val > 0.00000001 && $("#id_order_sub_type") == "ALL_OR_NOTHING") {
+      $("#div_id_error").text("卖方要求买方一次性全部购买，请提高购买数量");
+      return;
+    }
     unit_price = parseFloat($("#id_unit_price").val());
     total_amount = (units_val * unit_price).toFixed(2);
     $("#id_total_amount").val(total_amount);
@@ -81,6 +85,9 @@
                <input type="hidden" name="reference_order_id" value="{{ reference_order_id }}"/>
                <input type="hidden" id="id_unit_price" name="unit_price" value="{{ buyorder.unit_price }}" />
                <input type="hidden" name="crypto" value="AXFund"/>
+               <input type="hidden" name="order_sub_type" id="id_order_sub_type" value="{{ buyorder.sub_type }}"/>
+               <input type="input" name="seller_payment_provider" value="{{ buyorder.selected_payment_provider }}"/>
+               <input type="input" name="seller_payment_provider_account" value="{{ buyorder.account_at_selected_payment_provider }}"/>
                <input type="hidden" id="id_total_amount" name="total_amount" value="{% if buyorder.total_units > 0 %}{{ buyorder.total_units }}{% endif %}"/>
                <div class="form_group">
                  <div id="div_id_error" class="text-danger"></div>
@@ -99,7 +106,10 @@
                </div>
                <div id="div_id_quantity" class="form-group"> <label for="id_quantity" class="control-label">购买数量</label><span class="asteriskField">*</span>
                  <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" onkeyup="show_total_cost(this.value, {{ buyorder.unit_price }})" /> </div>
-               </div>
+                </div>
+                {% if buyorder.sub_type == "ALL_OR_NOTHING" %}
+                 <div class="controls"><label for="id_all_or_nothing" class="control-label">卖方要求全部购买</label></div>
+                {% endif %}
                  <div id="div_id_payment_method" class="form-group"> <label for="lbl_id_payment_method" class="control-label">付款方式</label><span class="asteriskField">*</span>
                    <!--<div class="controls "> <select class="select select-input form-control" id="id_payment_method" onchange="javascript: $('#img_payment_qrcode').attr('src',this.value);">-->
                    <div class="controls "> <select class="select select-input form-control" id="id_seller_payment_method" name="seller_payment_provider">
@@ -112,10 +122,10 @@
                      </select>
                    </div>
                  </div>
-                 <div class="form-group">
+                <div class="form-group">
                    <button type="button" class="btn btn-primary" onclick="submit_order()">购买</button>
                    <button type="button" class="btn btn-default" onclick="goback()">撤销</button>
-                 </div>
+                </div>
            </form>
           </div>
         </div>
@@ -125,7 +135,4 @@
   <!-- footer section-->
   {% include 'include/footer.html' %}
 </body>
-<script>
-</script>
-
 </html>

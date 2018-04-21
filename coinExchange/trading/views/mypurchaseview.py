@@ -68,7 +68,15 @@ def show_purchase_input(request):
         if 'quantity' in request.POST:
            total_units = float(request.POST['quantity'])
         available_units = float(request.POST["available_units_for_purchase"])
-        owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
+        seller_payment_provider = request.POST["seller_payment_provider"]
+        seller_payment_provider_account = request.POST["seller_payment_provider_account"]
+        
+        owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id) if not seller_payment_provider else [
+            UserPaymentMethodView(0,
+                0, seller_payment_provider,
+                # TODO: the name of the seller payment provider should come from DB
+                '汇钱包', seller_payment_provider_account,
+                '')]
         #for method in owner_payment_methods:
         #    print ("provider %s has image %s" % (method.provider.name, method.provider_qrcode_image))
         buyorder = OrderItem(
@@ -78,7 +86,7 @@ def show_purchase_input(request):
            unit_price,'CYN',
            total_units, 0,
            0.0, 'AXFund',
-           '','','BUY')
+           '','','BUY', sub_type = order_sub_type)
         return render(request, 'trading/input_purchase.html',
                {'username': username,
                 'buyorder': buyorder,
@@ -103,10 +111,12 @@ def send_payment_request_to_heepay(sitesettings, buyorder_id, amount):
            sitesettings.heepay_return_url_host,
            sitesettings.heepay_return_url_port)
     heepay = HeePayManager()
+        
     seller_account, buyer_account = ordermanager.get_seller_buyer_payment_accounts(
                 buyorder_id, 'heepay')
     logger.info('find seller account {0} and buyer account {1} with provider heepay'.format(
               seller_account, buyer_account))
+        
     json_payload = heepay.create_heepay_payload('wallet.pay.apply',
          buyorder_id,
          sitesettings.heepay_app_id,
