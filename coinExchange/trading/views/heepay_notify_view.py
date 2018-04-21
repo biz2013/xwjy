@@ -7,6 +7,8 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
+from tradeex.client.apiclient import APIClient
+from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from trading.config import context_processor
 from trading.controller.global_constants import *
 from trading.controller.heepaymanager import *
@@ -47,7 +49,32 @@ def heepay_confirm_payment(request):
                 error_msg = 'Receive notification with unsupported trade_status %s' % trade_status
                 logger.error(error_msg)
                 return HttpResponse(content='error')
-            ordermanager.update_order_with_heepay_notification(json_data, 'admin')
+            
+            api_trans = get_sell_order_associated_api_trans(json_data['out_order_no'])
+            ordermanager.update_order_with_heepay_notification(json_data, 'admin', api_trans=api_trans)
+            if api_trans:
+                api_trans.refresh_from_db()
+                if api_trans.trade_status=='PAIDSUCCESS':
+                    # TODO: make transaction to debt user cny fund wallet to cut over 
+                    # CNY
+                    # send success response
+                    resp_content = 'OK'
+                    if api_trans.notify_url:
+                        notify = create_api_notification(api_trans)
+                        api_client = APIClient(api_trans.notify_url)
+                        notify_resp = api_client.send_json_request(notify.to_json, response_format='text')
+                        # update notify situation
+                        comment = 'NOTIFYSUCCESS' if notify_resp.upper() == 'OK' else 'NOTIFYFAILED: {0}'.format(notify_resp)
+                        if api_trans:
+                            APIUserTransactionManager.update_notification_status(
+                                api_trans.transactionId, 
+                                json.dumps(notify.to_json(), ensure_ascii = False), 
+                                notify_resp, comment)
+                        if notify_resp.upper() != 'OK':
+                            resp_content='error'
+            return HttpResponse(content=resp_content)
+
+
             return HttpResponse(content='OK')
         else:
             logger.info("Receive sync payment notification")
@@ -76,3 +103,22 @@ def heepay_confirm_payment(request):
                '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
         else:
             return HttpResponse(content='error')
+
+# TODO: consolidte this
+def create_api_notification(api_trans):
+        return PurchaseAPIResponse(
+            '1.0',
+            api_trans.api_user.apiKey,
+            api_trans.api_user.secretKey,
+            api_trans.api_out_trade_no,
+            api_trans.transactionId,
+            api_trans.payment_provider.name,
+            api_trans.subject,
+            api_trans.total_fee,
+            api_trans.trade_status,
+            api_trans.real_fee,
+            api_trans.payment_provider_last_notified_at.strftime('yyyyMMddHHmmss') if api_trans.payment_provider_last_notified_at else None,
+            from_account=api_trans.from_account,
+            to_account = api_trans.to_account,
+            attach = api_trans.attach
+        )
