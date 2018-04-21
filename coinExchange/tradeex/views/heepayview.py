@@ -60,7 +60,7 @@ def heepay_notification(request):
                 if api_trans:
                     APIUserTransactionManager.update_notification_status(
                         api_trans.transactionId, 
-                        json_dumps(notify.to_json(), ensure_ascii = False), 
+                        json.dumps(notify.to_json(), ensure_ascii = False), 
                         notify_resp, comment)
                 if notify_resp.upper() != 'OK':
                     resp_content='error'

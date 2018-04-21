@@ -403,6 +403,27 @@ def update_purchase_transaction(purchase_trans, trade_status, trade_msg):
         purchase_trans.status = 'PROCESSED'
     purchase_trans.save()
 
+def get_sell_order_associated_api_trans(buy_order_id):
+    order = Orders.objects.get(order_id = buy_order_id)
+    if order.order_type != 'BUY':
+        raise ValueError('UNEXPECTED_BUY_ORDER')
+    
+    if order.reference_order.order_source == 'API':
+        try:
+            return APIUserTransaction.objects.get(referenc_order__order_id= order.reference_order.order_id)
+        except APIUserTransaction.DoesNotExist:
+            logger.error('get_sell_order_associated_api_trans(): sell order {0}\'s associated api transaction could not be found'.format(
+                order.reference_order.order_id
+            ))
+            raise ValueError('API_TRANS_SHOULD_HAVE_EXISTED')
+        except APIUserTransaction.MultipleObjectsReturned:
+            logger.error('get_sell_order_associated_api_trans(): sell order {0} has more than one associated api transaction'.format(
+                order.reference_order.order_id
+            ))
+            raise ValueError('TOO_MANY_ASSOCIATED_API_TRANS')
+    else:
+        return None
+
 def update_order_with_heepay_notification(notify_json, operator, api_trans=None):
     logger.info('update_order_with_heepay_notification(with hy_bill_no {0} out_trade_no {1}'.format(
         notify_json['hy_bill_no'], notify_json['out_trade_no']
@@ -416,14 +437,29 @@ def update_order_with_heepay_notification(notify_json, operator, api_trans=None)
         if purchase_trans.status == 'PROCESSED':
             logger.info("The transaction has been processed.  Nothing to do")
             return
+        
+        if buyorder.reference_order.order_source == 'API':
 
+        # get original buy order
+        buyorder = Order.objects.select_for_update().get(
+            pk = notify_json['out_trade_no'])
+        buyorder.status = 'PAID'
+        buyorder.lastupdated_by = operatorObj
+        buyorder.save()
+        
         if api_trans:
             api_trans.payment_provider_last_notify = json.dumps(notify_json, ensure_ascii=False)
             api_trans.payment_provider_last_notified_at = dt.now()
-            if notify_json.get('from_account', None):
-                api_trans.from_account = notify_json['from_account']
-            if notify_json.get('to_account', None):
-                api_trans.to_account = notify_json['to_account']
+            if api_trans.method == 'wallet.trade.buy':
+                if notify_json.get('from_account', None):
+                    api_trans.from_account = notify_json['from_account']
+                if notify_json.get('to_account', None):
+                    api_trans.to_account = notify_json['to_account']
+            elif api_trans.method == 'wallet.trade.sell':
+                if notify_json.get('from_account', None):
+                    api_trans.to_account = notify_json['from_account']
+                if notify_json.get('to_account', None):
+                    api_trans.from_account = notify_json['to_account']
             if notify_json.get('attach', None):
                 api_trans.attach = notify_json['attach']
             payment_status = notify_json['trade_status']
@@ -440,13 +476,6 @@ def update_order_with_heepay_notification(notify_json, operator, api_trans=None)
         if payment_status != 'Success':
             update_purchase_transaction(purchase_trans, payment_status)
             return
-
-        # get original buy order
-        buyorder = Order.objects.select_for_update().get(
-            pk = notify_json['out_trade_no'])
-        buyorder.status = 'PAID'
-        buyorder.lastupdated_by = operatorObj
-        buyorder.save()
 
         # release lock at the last moment
         purchase_trans.payment_status = 'SUCCESS'
