@@ -190,7 +190,7 @@ class Order(models.Model):
 
    #buy_on_ask and sell_on_bid are for future automatic trading for the games
    SUBORDER_TYPE = (('OPEN','Open'), ('BUY_ON_ASK', 'Buy_on_ask'), ('SELL_ON_BID', 'Sell_on_bid'), 
-                    ('API_ALL_OR_NOTHING', 'API_All_or_nothing'))
+                    ('ALL_OR_NOTHING', 'All_or_nothing'))
 
    ORDER_SOURCE_TYPE = (('TRADESITE', 'TradeSite'), ('API', 'API'))
    # These are not necessarily final, but I think so far we need these

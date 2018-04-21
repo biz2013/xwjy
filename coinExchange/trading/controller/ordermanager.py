@@ -24,12 +24,16 @@ def get_user_payment_account(user_id, payment_provider_code):
 def get_seller_buyer_payment_accounts(buyorder_id, payment_provider):
     buyorder = Order.objects.get(pk=buyorder_id)
     sellorder = Order.objects.get(pk=buyorder.reference_order.order_id)
-    logger.info("seller {0} buyer {1} payment_provider {2}".format(sellorder.user.id, buyorder.user.id, payment_provider))
-    seller_payment_method = UserPaymentMethod.objects.get(user__id=sellorder.user.id, provider__code = payment_provider)
+    seller_account = None
+    if sellorder.selected_payment_provider:
+        seller_account = sellorder.account_at_payment_provider
+    else:
+        seller_payment_method = UserPaymentMethod.objects.get(user__id=sellorder.user.id, provider__code = payment_provider)
+        seller_account = seller_payment_method.account_at_provider
     buyer_payment_method = UserPaymentMethod.objects.get(user__id=buyorder.user.id, provider__code = payment_provider)
-    return seller_payment_method.account_at_provider, buyer_payment_method.account_at_provider
+    return seller_account, buyer_payment_method.account_at_provider
 
-def create_sell_order(order, operator, api_user = None,  api_purchase_request = None,
+def create_sell_order(order, operator, api_user = None,  api_redeem_request = None,
          api_trans_id = None):
     userobj = User.objects.get(id = order.owner_user_id)
     operatorObj = User.objects.get(username = operator)
@@ -67,6 +71,30 @@ def create_sell_order(order, operator, api_user = None,  api_purchase_request = 
            total_amount = order.total_amount,
            status = 'OPEN')
         logger.info("order {0} created".format(orderRecord.order_id))
+        if api_trans_id:
+            api_trans = APIUserTransaction.objects.create(
+                transactionId = api_trans_id,
+                ai_out_trade_no = api_redeem_request.out_trade_no,
+                api_user = api_user,
+                payment_provider = PaymentProvider.objects.get(code= api_redeem_request.payment_provider),
+                reference_order = order,
+                payment_account = api_redeem_request.payment_account,
+                action = api_redeem_request.method,
+                client_ip = api_redeem_request.client_ip,
+                subject = api_redeem_request.subject,
+                total_fee = api_redeem_request.total_fee,
+                attach = api_redeem_request.attach,
+                request_timestamp = api_redeem_request.timestamp,
+                original_request = api_redeem_request.original_json_request,
+                payment_provider_last_notify = '',
+                payment_provider_last_notified_at = None,
+                notify_url = api_redeem_request.notify_url,
+                return_url = api_redeem_request.return_url,
+                expire_in_sec=api_redeem_request.expire_minute * 60,
+                status = 'UNKNOWN',
+                created_by = operatorObj,
+                lastupdated_by= operatorObj
+            )            
         userwallet.locked_balance = userwallet.locked_balance + order.total_units
         userwallet.available_balance = userwallet.available_balance - order.total_units
         userwallet.save()
@@ -118,7 +146,10 @@ def get_all_open_seller_order_exclude_user(user_id):
                                 order.units, order.units_available_to_trade,
                                 order.total_amount,
                                 order.cryptocurrency.currency_code,
-                                order.lastupdated_at, order.status, order.order_type))
+                                order.lastupdated_at, order.status, order.order_type,
+                                sub_type= order.sub_type,
+                                selected_payment_provider=order.selected_payment_provider,
+                                account_at_payment_provider=order.account_at_payment_provider))
     return orders
 
 def get_sell_transactions_by_user(userid):
@@ -205,7 +236,7 @@ def create_purchase_order(buyorder, reference_order_id,
 
     # TODO: more validation
     if is_api_call and not api_call_order_id:
-        logger.error("create_purchase_order(): api call has not out_order_no")
+        logger.error("create_purchase_order(): api call has no out_order_no")
         raise ValueError('INVALID_PARAM_API_CALL_ORDER_ID')
     
     operatorObj = User.objects.get(username=operator)
@@ -225,6 +256,22 @@ def create_purchase_order(buyorder, reference_order_id,
                       reference_order.units_available_to_trade,
                       buyorder.total_units))
             raise ValueError('BUY_EXCEED_AVAILABLE_UNITS')
+
+        # if the target sell order is requires all or nothing then we have to 
+        # make sure the difference between purchase amount and is the same
+        if reference_order.order_type == 'ALL_OR_NOTHING':
+            if reference_order.total_units != reference_order.units_available_to_trade:
+                logger.error('ALL_OR_NOTHING sell order %s\'s total unit(%f) and available units(%f) does not match' % (
+                    reference_order.order_id, reference_order.total_units,
+                    reference_order.units_available_to_trade
+                ))
+                raise ValueError('ALL_OR_NOTHING_ORDER_INVALID_TOTAL_UNITS')
+            if reference_order.units_available_to_trade -  buyorder.total_units > 0.00000001:
+                logger.error('Purchase amount %f does not match ALL_OR_NOTHING sell order %s\'s total unit(%f)' % (
+                    buyorder.total_units, reference_order.order_id, reference_order.total_units
+                ))
+                raise ValueError('ALL_OR_NOTHING_ORDER_PURCHASE_AMOUNT_NOT_ENOUGH')
+
         logger.info('before creating purchase order {0}, userwallet {1} has balance:{2} available_balance:{3} locked_balance: {4}'.format(
            frmt_date, userwallet.id, userwallet.balance, userwallet.available_balance, userwallet.locked_balance
         ))
