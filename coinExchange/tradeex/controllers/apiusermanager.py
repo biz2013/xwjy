@@ -25,8 +25,8 @@ class APIUserManager(object):
             externalobj = UserExternalWalletAddress.objects.get(user__id = userId, cryptocurrency__code = crypto)
             return externalobj.address
         except UserExternalWalletAddress.DoesNotExist:
-            logger.error("get_api_user_external_crypto_addr: Failed to find external address for user {0} crypto {1}".format(userId, crypto))
-            raise ValueError('USER_EXTERNALADDR_NOT_FOUND')
+            logger.warn("get_api_user_external_crypto_addr: Failed to find external address for user {0} crypto {1}".format(userId, crypto))
+            return None
         except UserExternalWalletAddress.MultipleObjectsReturned:
             logger.error("get_api_user_external_crypto_addr: Multiple address for user {0} crypto {1}".format(userId, crypto))
             raise ValueError('MORE_THAN_ONE_USER_EXTERNALADDR')

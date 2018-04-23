@@ -48,7 +48,7 @@ class CryptoUtility(object):
             # category field
             if trans['txid'] == result_str.rstrip() and trans['category'] == 'send':
                 return trans
-        raise ValueError("Not redeem transaction for txid {0}".format(result_str))
+        raise ValueError("No redeem transaction for txid {0}".format(result_str))
 
     def unlock_wallet(self, timeout_in_sec):
         self.unlock_wallet_impl(self.cnyd_passphrase, timeout_in_sec)

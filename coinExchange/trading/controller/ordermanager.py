@@ -11,6 +11,8 @@ from django.db import transaction
 from django.db.models import F, Q, Count
 from django.contrib.auth.models import User
 from tradeex.models import *
+from traddex.utils import *
+from traddex.controllers.apiusertransmanager import APIUserTransactionManager
 from trading.models import *
 from trading.controller.global_constants import *
 from trading.views.models.orderitem import OrderItem
@@ -44,6 +46,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
         order.unit_price_currency, order.total_units,
         order.unit_price)
     logger.info(operation_comment)
+    
     with transaction.atomic():
         userwallet = UserWallet.objects.select_for_update().get(
                 user__id=order.owner_user_id,
@@ -72,6 +75,16 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
            status = 'OPEN')
         logger.info("order {0} created".format(orderRecord.order_id))
         if api_trans_id:
+            user_cny_wallet = UserWallet.objects.select_for_update().get(user__id = userObj.id, wallet__cryptocurrency__currency_code ='CNY')
+            total_fee_in_units = round(float(api_redeem_request.total_fee)/100.0,8)
+            if user_cny_wallet.available_balance < total_fee_in_units :
+                logger.error("user {0} does not have enough CNY in wallet: available {1} to be sold {2}".format(
+                  userObj.username, user_cny_wallet.available_balance, total_fee_in_units 
+                ))
+                raise ValueError('NOT_ENOUGH_CNY_TO_SELL')
+            user_cny_wallet.available_balance = user_cny_wallet.available_balance - total_fee_in_units
+            user_cny_wallet.locked_balance = user_cny_wallet.locked_balance + total_fee_in_units
+            user_cny_wallet.save()
             api_trans = APIUserTransaction.objects.create(
                 transactionId = api_trans_id,
                 ai_out_trade_no = api_redeem_request.out_trade_no,
@@ -94,7 +107,8 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
                 status = 'UNKNOWN',
                 created_by = operatorObj,
                 lastupdated_by= operatorObj
-            )            
+            )
+            
         userwallet.locked_balance = userwallet.locked_balance + order.total_units
         userwallet.available_balance = userwallet.available_balance - order.total_units
         userwallet.save()
@@ -108,11 +122,13 @@ def cancel_purchase_order(order, final_status, payment_status,
                          operator):
     operatorObj = User.objects.get(username = operator)
     with transaction.atomic():
+
         sell_order = Order.objects.select_for_update().get(pk=order.reference_order.order_id)
         sell_order.units_locked = sell_order.units_locked - order.units
         sell_order.units_available_to_trade = sell_order.units_available_to_trade + order.units
         sell_order.status = 'OPEN'
         sell_order.lastupdated_by = operatorObj
+
         updated = UserWalletTransaction.objects.filter(
                reference_order__order_id= order.order_id,
                status = 'PENDING').update(
@@ -132,6 +148,21 @@ def cancel_purchase_order(order, final_status, payment_status,
         )
         if not updated:
             logger.error("cancel_purchase_order(): did not find order {0} to update, maybe someone changed its status from PAYING already".format(order_id))
+        
+        api_trans = APIUserTransactionManager.get_trans_by_reference_order(order.order_id)
+        if not api_trans:
+            api_trans = APIUserTransactionManager.get_trans_by_reference_order(sell_order.order_id)
+        if api_trans:
+            api_trans.payment_status = payment_status
+            if final_status == 'CANCELLED' and payment_status == 'UNKNOWN':
+                api_trans.trade_status = 'ExpiredInvalid'
+            else:
+                timediff = timezone.now() - api_trans.created_at
+                if timediff > api_trans.timeout_in_sec:
+                    api_trans.trade_status = 'ExpiredInvalid'
+                else:
+                    api_trans.trade_status = 'UserAbandon'
+            api_trans.save()
 
         # release lock
         sell_order.save()
@@ -463,14 +494,7 @@ def update_order_with_heepay_notification(notify_json, operator, api_trans=None)
             if notify_json.get('attach', None):
                 api_trans.attach = notify_json['attach']
             payment_status = notify_json['trade_status']
-            if payment_status == 'Success':
-                #update real fee if payment had succeeded
-                api_trans.real_fee = notify_json['real_fee']
-                api_trans.trade_status = 'PAIDSUCCESS'
-            elif payment_status in PAYMENT_NORMAL_STATUS:                    
-                api_trans.trade_status = 'INPROGRESS' if payment_status != 'UNKNOWN' else 'UNKNOWN'
-            else:
-                api_trans.trade_status = 'PAYFAILED'
+            api_trans.trade_status = heepay_status_to_trade_status(payment_status)
             api_trans.save()
 
         if payment_status != 'Success':
@@ -524,6 +548,10 @@ def confirm_purchase_order(order_id, operator):
         sell_order_fulfill_comment = 'deliver on buyer order {0}, with {1} units on payment bill no {2}'.format(
              buyorder.order_id, buyorder.units, purchase_trans.payment_bill_no
         )
+
+        api_trans = APIUserTransaction.objects.get(reference_order__order_id = buyorder.order_id) if buyorder.order_source =='API' 
+            else ( APIUserTransaction.objects.get(reference_order__order_id = sell_order.order_id if sell_order.order_source == 'API'
+                    else None) 
         seller_userwallet_trans = UserWalletTransaction.objects.create(
           user_wallet = seller_user_wallet,
           balance_begin = seller_user_wallet.balance,
@@ -580,6 +608,12 @@ def confirm_purchase_order(order_id, operator):
         seller_user_wallet.user_wallet_trans_id = seller_userwallet_trans.id
         seller_user_wallet.lastupdated_by = operatorObj
         seller_user_wallet.save()
+
+        if api_trans:
+            if api_trans.trade_status != 'Success' and api_trans.trade_status != 'PaidSuccess':
+                api_trans.payment_status = 'Success'
+                api_trans.trade_status = 'PaidSuccess'
+                api_trans.save()
 
         # release lock at the last moment
         purchase_trans.save()

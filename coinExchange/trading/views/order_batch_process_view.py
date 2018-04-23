@@ -9,6 +9,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 
 # this is for test UI. A fake one
+from traddex.controllers.apiusertransmanager import APIUserTransactionManager
 from trading.config import context_processor
 from trading.controller.global_constants import *
 from trading.controller.global_utils import *
@@ -90,12 +91,26 @@ def order_batch_process(request):
         appKey = sitesettings.heepay_app_key
         orders = backend_order_processor.get_unfilled_purchase_orders()
         for order in orders:
+            api_trans = None
+            if order.order_source == 'API':
+                api_trans = APIUserTransactionManager.get_trans_by_reference_order(order.order_id)
+            elif order.reference_order.order_source == 'API':
+                api_trans = APIUserTransactionManager.get_trans_by_reference_order(order.reference_order.order_id)
+
+            old_trade_status = api_trans.trade_status if api_trans else None
             if order.status == 'PAYING':
                 handle_paying_order(order, sell_order_timeout, appId, appKey)
             elif order.status == 'PAID':
                 handle_paid_order(order, confirmation_timeout)
             elif order.status == 'OPEN':
                 handle_open_order(order, sell_order_timeout)
+            if api_trans:
+                api_trans.refresh_from_db()
+                if api_trans.trade_status == 'PaidSuccess' and api_trans.trade_status != old_trade_status:
+                    APIUserTransactionManager.on_trans_paid_succss(api_trans)
+                if api_trans.trade_status in ['ExpiredInvald', 'UserAbandon', 'DevClose'] and api_trans.trade_status != old_trade_status:
+                    APIUserTransactionManager.on_trans_cancelled(api_trans)
+                    
         return HttpResponse(content='OK')
     except Exception as e:
         error_msg = 'order_batch_process hit eception {0}'.format(sys.exc_info()[0])
