@@ -5,7 +5,8 @@ sys.path.append('../stakingsvc/')
 
 from django.conf import settings
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseServerError
+from django.utils import timezone
 
 from trading.config import context_processor
 #from django.contrib.auth.decorators import login_required
@@ -14,13 +15,15 @@ from trading.config import context_processor
 from tradeex.client.apiclient import APIClient
 from tradeex.controllers.apiusermanager import APIUserManager
 from tradeex.controllers.tradex import TradeExchangeManager
+from tradeex.controllers.crypto_utils import CryptoUtility
 from tradeex.requests.heepayapirequestfactory import HeepayAPIRequestFactory
 from tradeex.responses.heepayresponse import HeepayResponse
 from tradeex.utils import *
 
 from trading.views import errorpageview
+from trading.config import context_processor
 from trading.controller.global_constants import *
-from trading.controller.ordermanager import *
+from trading.controller import ordermanager
 from trading.controller.heepaymanager import *
 from tradeapi.utils import *
 from tradeapi.data.tradeapirequest import TradeAPIRequest
@@ -134,7 +137,8 @@ def prepurchase(request):
         if request_obj.payment_provider == 'heepay':
             heepay_response = HeepayResponse.parseFromJson(response_json, heepay_api_secret)
 
-            return JsonResponse(create_prepurchase_response_from_heepay(heepay_response, api_user,api_trans_id))
+            return JsonResponse(create_prepurchase_response_from_heepay(
+                heepay_response, api_user,api_trans_id, request_obj.out_trade_no))
         else:
             raise ValueError("payment provider {0} is not supported".format(request_obj.payment_provider))
     #TODO: should handle different error here.
@@ -142,7 +146,7 @@ def prepurchase(request):
     except ValueError as ve:
         logger.error("prepurchase(): [out_trade_no:{0}] hit value error {1}".format(
             request_obj.out_trade_no, ve.args[0]))
-        resp = create_error_purchase_response(
+        resp = create_error_trade_response(
             request_obj, api_user,
             create_return_msg_from_valueError(ve.args[0]),
             create_result_msg_from_valueError(ve.args[0]),
@@ -153,7 +157,7 @@ def prepurchase(request):
     except:
         error_msg = 'prepurchase()遇到错误: {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
-        resp = create_error_purchase_response(
+        resp = create_error_trade_response(
             request_obj, api_user,
             '系统错误', '系统错误',''
         )
@@ -176,57 +180,152 @@ def selltoken(request):
         return JsonResponse(create_selltoken_response(request_obj, api_trans))
     #TODO: should handle different error here.
     # what if network issue, what if the return is 30x, 40x, 50x
-    except Exception as e:
-       error_msg = 'selltoken()遇到错误: {0}'.format(sys.exc_info()[0])
-       logger.exception(error_msg)
-       #TODO: we should always return json with error message.
-       return HttpResponseServerError('系统处理提现请求时出现系统错误')
+    except :
+        error_msg = 'selltoken()遇到错误: {0}'.format(sys.exc_info()[0])
+        logger.exception(error_msg)
+        resp = create_error_trade_response(
+            request_obj, api_user,
+            '系统错误', '系统错误',''
+        )
+        return JsonResponse(resp.to_json())
 
 def query_order_status(request) :
     try:
         logger.debug('receive request from: {0}'.format(request.get_host()))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
         request_json= json.loads(request.body)
-        request_obj = PrepurchaseRequest.parseFromJson(request_json)
-        api_user = APIUserManager.getUserByAPIKey(request_obj['api_key'])
-        validate_request(request_obj, api_user)
-        tradex = TradeExchange()
-        order = tradex.find_order_to_buy()
-        heepay_request = HeepayRequest.create(request_obj, api_user,
-              order.order_id,
-              settings.PAYMENT_CALLBACK_HOST,
-              settings.PAYMENT_CALLBACK_PORT,
-              payment_provider_manager.get_callback_url(
-                         request_obj.payment_provider)
-            )
-        api_client = PaymentAPICallClient(
-                      payment_provider_manager.get_purchase_url(
-                            request_obj.payment_provider)
-                     )
+        request_obj = TradeAPIRequest.parseFromJson(request_json)
+        api_user = APIUserManager.get_api_user_by_apikey(request_obj['api_key'])
+        validate_request(request_obj, api_user, 'wallet.trade.query')
+        tradeex = TradeExchangeManager()
+        api_trans = tradeex.find_transaction(request_obj.trx_bill_no)
+        sitesettings = context_processor.settings(request)['settings']
+        appId = sitesettings.heepay_app_id
+        appKey = sitesettings.heepay_app_key
 
-        response_json = api_client.sendRequest(heepay_request)
-        heepay_response = HeepayResponse.parseFromJson(response_json)
+        # if trade status is alreadu in failed state, just return the status
+        if api_trans.trade_status in ['ExpiredInvalid', 'DevClose','UserAbandon']:
+            return JsonResponse(create_query_status_response(api_trans, api_user).to_json())
+            
+        if api_trans.payment_status in ['Unknow','NotStart','PaySuccess']:
+            if api_trans.payment_provider != 'heepay':
+                logger.error('query_order_status(): found unsupported payment provider {0}'.format(
+                    api_trans.payment_provider))
+                raise ValueError('PAYMENT_PROVIDER_NOT_SUPPORTED')
+            logger.info('api trans id {0}, reference_order {1}: payment_status: {2}. Query heepay for status...'.format(
+                api_trans.transactionId, api_trans.reference_order.order_id,
+                api_trans.payment_status))
+            heepay = HeePayManager()
+            json_response = heepay.get_payment_status(api_trans.reference_order.order_id,
+                                   api_trans.reference_bill_no, appId, appKey)
+            ordermanager.update_order_with_heepay_notification(json_response, 'admin', api_trans)
+            api_trans.refresh_from_db()
 
-        return JsonResponse(create_prepurchase_response(heepay_response, order))
+        return JsonResponse(create_query_status_response(api_trans, api_user).to_json())
     #TODO: should handle different error here.
     # what if network issue, what if the return is 30x, 40x, 50x
-    except Exception as e:
-       error_msg = 'prepurchase()遇到错误: {0}'.format(sys.exc_info()[0])
-       logger.exception(error_msg)
-       #TODO: we should always return json with error message.
-       return HttpResponseServerError('系统处理查询请求时出现系统错误')
+    except:
+        error_msg = 'query_order_status()遇到错误: {0}'.format(sys.exc_info()[0])
+        logger.exception(error_msg)
+        resp = create_error_trade_response(
+            request_obj, api_user,
+            '系统错误', '系统错误',''
+        )
+        return JsonResponse(resp.to_json())
 
+def cancel_order(requet):
+    try:
+        logger.debug('receive request from: {0}'.format(request.get_host()))
+        logger.info('receive request {0}'.format(request.body.decode('utf-8')))
+        request_json= json.loads(request.body)
+        request_obj = TradeAPIRequest.parseFromJson(request_json)
+        api_user = APIUserManager.get_api_user_by_apikey(request_obj['api_key'])
+        validate_request(request_obj, api_user, 'wallet.trade.cancel')
+        tradeex = TradeExchangeManager()
+        api_trans = tradeex.find_transaction(request_obj.trx_bill_no)
+        sitesettings = context_processor.settings(request)['settings']
+        appId = sitesettings.heepay_app_id
+        appKey = sitesettings.heepay_app_key
 
-def create_error_purchase_response(request_obj, api_user, return_msg, result_msg, trx_bill_no):
+        # if trade status is alreadu in failed state, just return the status
+        if api_trans.trade_status in ['ExpiredInvalid', 'DevClose','UserAbandon','PaidSuccess','PaidSuccess']:
+            return JsonResponse(create_cancel_response(api_trans, api_user).to_json())
+            
+        if api_trans.payment_status in ['Unknow','NotStart','PaySuccess']:
+            if api_trans.payment_provider != 'heepay':
+                logger.error('query_order_status(): found unsupported payment provider {0}'.format(
+                    api_trans.payment_provider))
+                raise ValueError('PAYMENT_PROVIDER_NOT_SUPPORTED')
+            logger.info('api trans id {0}, reference_order {1}: payment_status: {2}. Query heepay for status...'.format(
+                api_trans.transactionId, api_trans.reference_order.order_id,
+                api_trans.payment_status))
+            heepay = HeePayManager()
+            json_response = heepay.get_payment_status(api_trans.reference_order.order_id,
+                                   api_trans.reference_bill_no, appId, appKey)
+            ordermanager.update_order_with_heepay_notification(json_response, 'admin', api_trans)
+            api_trans.refresh_from_db()
+            if api_trans.payment_status in ['Unknow','NotStart']:
+                APIUserTransactionManager.abandon_trans(api_trans)
+                api_trans.refresh_from_db()
+        return JsonResponse(create_query_status_response(api_trans, api_user).to_json())
+    #TODO: should handle different error here.
+    # what if network issue, what if the return is 30x, 40x, 50x
+    except:
+        error_msg = 'query_order_status()遇到错误: {0}'.format(sys.exc_info()[0])
+        logger.exception(error_msg)
+        resp = create_error_trade_response(
+            request_obj, api_user,
+            '系统错误', '系统错误',''
+        )
+        return JsonResponse(resp.to_json())
+    
+def create_error_trade_response(request_obj, api_user, return_msg, result_msg, trx_bill_no):
     kwargs = {}
     if request_obj.subject:
         kwargs['subject'] = request_obj.subject
     if request_obj.attach:
         kwargs['attach'] = request_obj.attach
     kwargs['total_fee'] = request_obj.total_fee
-    return PurchaseAPIResponse(
+    return TradeAPIResponse(
         request_obj.apikey if request_obj else '',
         api_user.secretKey if api_user else '',
         'FAIL', return_msg, 'FAIL', result_msg,
         request_obj.out_trade_no,
         trx_bill_no, **kwargs)
+
+
+def create_query_status_response(api_trans, api_user):
+    return TradeAPIResponse(
+        api_user.apiKey,
+        api_user.secretKey,
+        'SUCCESS', '查询成功',
+        'SUCCESS', '查询成功',
+        api_trans.out_trade_no,
+        api_trans.reference_bill_no,
+        subject = api_trans.subject,
+        attach = api_trans.attach,
+        total_fee = api_trans.total_fee,
+        trade_status = api_trans.trade_status
+    )
+
+def create_cancel_response(api_trans, api_user):
+    return_code = 'SUCCESS'
+    return_msg = '撤单成功'
+    result_code = 'SUCCESS'
+    result_msg = '撤单成功'
+    if api_trans.trade_status in ['PaidSuccess', 'Success']:
+        return_code = result_code = 'FAIL'
+        return_msg = result_msg = '订单已支付'
+    elif api_trans.trade_status != 'UserAbandon'
+        result_msg = return_msg = '订单已经失败'
+
+    return TradeAPIResponse(
+        api_user.apiKey,
+        api_user.secretKey,
+        return_code, return_msg,
+        result_code, result_msg,
+        api_trans.out_trade_no,
+        api_trans.reference_bill_no,
+        trade_status = api_trans.trade_status
+    )
+    

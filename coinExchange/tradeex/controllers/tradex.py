@@ -40,6 +40,9 @@ class TradeExchangeManager(object):
         return Order.objects.filter(Q(status='OPEM') & Q(order_type='BUY') &
                 Q(unit_price_currency=currency) & Q(cryptocurrency=crypto)).order_by('total_amount', '-created_at')
 
+    def find_transaction(self, trx_bill_no):
+        return APIUserTransaction.objects.get(pk=trx_bill_no)
+
     def decide_sell_price(self, orders):
         min_price_normal_order = 1000000.0
         min_price_api_order = 1000000.0
@@ -197,5 +200,17 @@ class TradeExchangeManager(object):
     def cancel_order(self):
         pass
     
-    def query_order_status(self):
-        pass
+    def query_order_status(self, out_trade_no, trx_bill_no):
+        try:
+            return APIUserTransaction.objects.get(transactionId=trx_bill_no, out_trade_no=out_trade_no)
+        except APIUserTransaction.DoesNotExist:
+            logger.error('query_order_status(out_trade_no={0},trx_bill_no={1}) could not be found'.format(
+                out_trade_no, trx_bill_no
+            ))
+            raise ValueError('API_TRANS_NOT_FOUND')
+        except APIUserTransaction.MultipleObjectsReturned:
+            logger.error('query_order_status(out_trade_no={0},trx_bill_no={1}) found too many'.format(
+                out_trade_no, trx_bill_no
+            ))
+            raise ValueError('API_TRANS_NOT_FOUND')
+            

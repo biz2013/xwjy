@@ -306,6 +306,21 @@
      "lastupdated_by": 1
    }
  },
+{
+  "model": "trading.userwallet",
+  "pk": 7,
+  "fields":{
+    "user": 1,
+    "wallet": 2,
+    "wallet_addr":"ANG53xNLvM4YkjHCeiaLMgobMZv3i6hT--",
+    "balance" : 1000000,
+    "available_balance" : 1000000,
+    "created_at": "2017-12-17T21:14:00+08:00",
+    "lastupdated_at": "2017-12-17T21:14:00+08:00",
+    "created_by": 1,
+    "lastupdated_by": 1
+  }
+},
  {
     "model": "trading.userexternalwalletaddress",
     "pk": "1",
