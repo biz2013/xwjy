@@ -316,7 +316,7 @@ def create_cancel_response(api_trans, api_user):
     if api_trans.trade_status in ['PaidSuccess', 'Success']:
         return_code = result_code = 'FAIL'
         return_msg = result_msg = '订单已支付'
-    elif api_trans.trade_status != 'UserAbandon'
+    elif api_trans.trade_status != 'UserAbandon':
         result_msg = return_msg = '订单已经失败'
 
     return TradeAPIResponse(

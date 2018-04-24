@@ -11,8 +11,8 @@ from django.db import transaction
 from django.db.models import F, Q, Count
 from django.contrib.auth.models import User
 from tradeex.models import *
-from traddex.utils import *
-from traddex.controllers.apiusertransmanager import APIUserTransactionManager
+from tradeex.utils import *
+from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from trading.models import *
 from trading.controller.global_constants import *
 from trading.views.models.orderitem import OrderItem
@@ -470,32 +470,31 @@ def update_order_with_heepay_notification(notify_json, operator, api_trans=None)
             return
         
         if buyorder.reference_order.order_source == 'API':
-
-        # get original buy order
-        buyorder = Order.objects.select_for_update().get(
-            pk = notify_json['out_trade_no'])
-        buyorder.status = 'PAID'
-        buyorder.lastupdated_by = operatorObj
-        buyorder.save()
-        
-        if api_trans:
-            api_trans.payment_provider_last_notify = json.dumps(notify_json, ensure_ascii=False)
-            api_trans.payment_provider_last_notified_at = dt.now()
-            if api_trans.method == 'wallet.trade.buy':
-                if notify_json.get('from_account', None):
-                    api_trans.from_account = notify_json['from_account']
-                if notify_json.get('to_account', None):
-                    api_trans.to_account = notify_json['to_account']
-            elif api_trans.method == 'wallet.trade.sell':
-                if notify_json.get('from_account', None):
-                    api_trans.to_account = notify_json['from_account']
-                if notify_json.get('to_account', None):
-                    api_trans.from_account = notify_json['to_account']
-            if notify_json.get('attach', None):
-                api_trans.attach = notify_json['attach']
-            payment_status = notify_json['trade_status']
-            api_trans.trade_status = heepay_status_to_trade_status(payment_status)
-            api_trans.save()
+            # get original buy order
+            buyorder = Order.objects.select_for_update().get(
+                pk = notify_json['out_trade_no'])
+            buyorder.status = 'PAID'
+            buyorder.lastupdated_by = operatorObj
+            buyorder.save()
+            
+            if api_trans:
+                api_trans.payment_provider_last_notify = json.dumps(notify_json, ensure_ascii=False)
+                api_trans.payment_provider_last_notified_at = dt.now()
+                if api_trans.method == 'wallet.trade.buy':
+                    if notify_json.get('from_account', None):
+                        api_trans.from_account = notify_json['from_account']
+                    if notify_json.get('to_account', None):
+                        api_trans.to_account = notify_json['to_account']
+                elif api_trans.method == 'wallet.trade.sell':
+                    if notify_json.get('from_account', None):
+                        api_trans.to_account = notify_json['from_account']
+                    if notify_json.get('to_account', None):
+                        api_trans.from_account = notify_json['to_account']
+                if notify_json.get('attach', None):
+                    api_trans.attach = notify_json['attach']
+                payment_status = notify_json['trade_status']
+                api_trans.trade_status = heepay_status_to_trade_status(payment_status)
+                api_trans.save()
 
         if payment_status != 'Success':
             update_purchase_transaction(purchase_trans, payment_status)
@@ -549,9 +548,11 @@ def confirm_purchase_order(order_id, operator):
              buyorder.order_id, buyorder.units, purchase_trans.payment_bill_no
         )
 
-        api_trans = APIUserTransaction.objects.get(reference_order__order_id = buyorder.order_id) if buyorder.order_source =='API' 
-            else ( APIUserTransaction.objects.get(reference_order__order_id = sell_order.order_id if sell_order.order_source == 'API'
-                    else None) 
+        api_trans = None
+        if buyorder.order_source =='API':
+            api_trans = APIUserTransaction.objects.get(reference_order__order_id = buyorder.order_id)
+        elif sell_order.order_source == 'API':
+            api_trans = APIUserTransaction.objects.get(reference_order__order_id = sell_order.order_id) 
         seller_userwallet_trans = UserWalletTransaction.objects.create(
           user_wallet = seller_user_wallet,
           balance_begin = seller_user_wallet.balance,

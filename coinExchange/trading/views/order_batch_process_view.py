@@ -9,7 +9,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 
 # this is for test UI. A fake one
-from traddex.controllers.apiusertransmanager import APIUserTransactionManager
+from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from trading.config import context_processor
 from trading.controller.global_constants import *
 from trading.controller.global_utils import *
@@ -108,7 +108,11 @@ def order_batch_process(request):
                 api_trans.refresh_from_db()
                 if api_trans.trade_status == 'PaidSuccess' and api_trans.trade_status != old_trade_status:
                     APIUserTransactionManager.on_trans_paid_succss(api_trans)
-                if api_trans.trade_status in ['ExpiredInvald', 'UserAbandon', 'DevClose'] and api_trans.trade_status != old_trade_status:
+                    api_trans.refresh_from_db()
+                    if api_trans.trade_status == 'Success':
+                        APIUserTransactionManager.on_found_success_purchase_trans(api_trans)
+
+                elif api_trans.trade_status in ['ExpiredInvald', 'UserAbandon', 'DevClose'] and api_trans.trade_status != old_trade_status:
                     APIUserTransactionManager.on_trans_cancelled(api_trans)
                     
         return HttpResponse(content='OK')

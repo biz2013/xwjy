@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import sys
+sys.path.append('../stakingsvc/')
 
 from tradeapi.data.tradeapiresponse import TradeAPIResponse
 

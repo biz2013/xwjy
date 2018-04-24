@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import logging, json
+import logging, json, sys
+sys.path.append('../stakingsvc/')
+
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
@@ -15,6 +17,7 @@ from trading.controller.heepaymanager import *
 from trading.controller import ordermanager
 from trading.views import errorpageview
 
+from tradeapi.data.tradeapiresponse import TradeAPIResponse
 logger = logging.getLogger("site.heepay_confirm")
 
 def get_payment_confirmation_json(request, app_key):
@@ -50,31 +53,19 @@ def heepay_confirm_payment(request):
                 logger.error(error_msg)
                 return HttpResponse(content='error')
             
-            api_trans = get_sell_order_associated_api_trans(json_data['out_order_no'])
+            api_trans = ordermanager.get_sell_order_associated_api_trans(json_data['out_order_no'])
+            old_trade_status = api_trans.trade_status if api_trans else None
+
             ordermanager.update_order_with_heepay_notification(json_data, 'admin', api_trans=api_trans)
             if api_trans:
                 api_trans.refresh_from_db()
-                if api_trans.trade_status=='PAIDSUCCESS':
-                    # TODO: make transaction to debt user cny fund wallet to cut over 
-                    # CNY
-                    # send success response
-                    resp_content = 'OK'
-                    if api_trans.notify_url:
-                        notify = create_api_notification(api_trans)
-                        api_client = APIClient(api_trans.notify_url)
-                        notify_resp = api_client.send_json_request(notify.to_json, response_format='text')
-                        # update notify situation
-                        comment = 'NOTIFYSUCCESS' if notify_resp.upper() == 'OK' else 'NOTIFYFAILED: {0}'.format(notify_resp)
-                        if api_trans:
-                            APIUserTransactionManager.update_notification_status(
-                                api_trans.transactionId, 
-                                json.dumps(notify.to_json(), ensure_ascii = False), 
-                                notify_resp, comment)
-                        if notify_resp.upper() != 'OK':
-                            resp_content='error'
-            return HttpResponse(content=resp_content)
-
-
+                if api_trans.trade_status == 'PaidSuccess' and api_trans.trade_status != old_trade_status:
+                    APIUserTransactionManager.on_trans_paid_succss(api_trans)
+                    api_trans.refresh_from_db()
+                    if api_trans.trade_status == 'Success':
+                        APIUserTransactionManager.on_found_success_purchase_trans(api_trans)
+                elif api_trans.trade_status in ['ExpiredInvald', 'UserAbandon', 'DevClose'] and api_trans.trade_status != old_trade_status:
+                    APIUserTransactionManager.on_trans_cancelled(api_trans)
             return HttpResponse(content='OK')
         else:
             logger.info("Receive sync payment notification")
@@ -106,7 +97,7 @@ def heepay_confirm_payment(request):
 
 # TODO: consolidte this
 def create_api_notification(api_trans):
-        return PurchaseAPIResponse(
+        return TradeAPIResponse(
             '1.0',
             api_trans.api_user.apiKey,
             api_trans.api_user.secretKey,
