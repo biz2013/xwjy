@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+{% include 'include/common_header.html' %}
+</head>
+<body>
+  <!-- menu section -->
+  {% include "include/wallettopmenu.html" %}
+  <!-- body section -->
+	<div class="container">
+		<div class="well">
+       <div class="row">
+        <div>
+          <table>
+          <tr>
+             <th>账户余额</th>
+             <td>{{ account.balance }}</td>
+           </tr>
+           <tr>
+              <th>存币地址</th>
+              <td>{{ account.receiving_address }}</td>
+           </tr>
+           <tr>
+             <td colspan="2">&nbsp;</td>
+           </tr>
+           <tr>
+             <td><a id="btn-purchase" class="btn btn-success" href="/walletgui/purchase/">购买</a>&nbsp;</td>
+             <td><a id="btn-redeem" class="btn btn-success" href="/walletgui/redeem/">提现</a>&nbsp;</td>
+           </tr>
+           <tr>
+             <td colspan="2">&nbsp;</td>
+           </tr>
+           <tr>
+             <td><a id="btn-deposit" class="btn btn-success" href="/walletgui/transfer/">转币</a>&nbsp;</td>
+             <td><a id="btn-redeem" class="btn btn-success" href="/walletgui/transhistory/">历史</a>&nbsp;</td>
+           </tr>
+           <tr>
+             <td colspan="2">&nbsp;</td>
+           </tr>
+           <tr>
+             <td><a id="btn-deposit" class="btn btn-success" href="/walletgui/backup/">钱包备份</a>&nbsp;</td>
+             <td><a id="btn-redeem" class="btn btn-success" href="/walletgui/paymentmethod/">付款信息</a>&nbsp;</td>
+           </tr>
+         </table>
+        </div>
+      </div>
+		</div>
+		<hr/>
+	</div>
+  <!-- footer section-->
+  {% include 'include/footer.html' %}
+
+</body>
+
+</html>
