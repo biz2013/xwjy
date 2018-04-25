@@ -75,7 +75,7 @@ def validate_request(request_obj, api_user_info, expected_method):
     logger.info("validate_request: request parsed is {0}".format(request_obj.getPayload()))
     if not request_obj.is_valid(api_user_info.secretKey):
         raise ValueError('Request has invalid signature')
-    if request_obj.method == expected_method:
+    if request_obj.method != expected_method:
         raise ValueError('Request has invalid method: expected {0}, actual {1}'.format(
             expected_method, request_obj.method))
 

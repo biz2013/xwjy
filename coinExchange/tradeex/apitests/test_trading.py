@@ -69,7 +69,7 @@ class TestPrepurchase(TransactionTestCase):
 
     def validate_user_info(self, username):
         wallet_count = len(UserWallet.objects.all())
-        self.assertTrue(wallet_count==6, "There should be 4 user wallets but have {0}".format(wallet_count))
+        self.assertTrue(wallet_count==7, "There should be 7 user wallets but have {0}".format(wallet_count))
         for wallet in UserWallet.objects.all():
             print('wallet {0}, user {1} {2}, balance {3}, address {4}, coin {5}'.format(
                 wallet.id, wallet.user.id, wallet.user.username, wallet.balance, wallet.wallet_addr,
