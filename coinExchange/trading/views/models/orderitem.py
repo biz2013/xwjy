@@ -17,6 +17,7 @@ class OrderItem(object):
        self.lastmodified_at = lastmodified_at
        self.status = status
        self.order_type = order_type
+       self.sub_type = sub_type
        self.selected_payment_provider = selected_payment_provider
        self.account_at_payment_provider = account_at_payment_provider
        self.order_source = order_source

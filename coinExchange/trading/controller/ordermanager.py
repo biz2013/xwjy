@@ -65,7 +65,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
            sub_type = order.sub_type,
            order_source = order.order_source,
            selected_payment_provider = order.selected_payment_provider,
-           account_at_selected_payment_provider = order.account_at_selected_payment_provider,
+           account_at_selected_payment_provider = order.account_at_payment_provider,
            units = order.total_units,
            unit_price = order.unit_price,
            unit_price_currency = order.unit_price_currency,
@@ -87,7 +87,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
             user_cny_wallet.save()
             api_trans = APIUserTransaction.objects.create(
                 transactionId = api_trans_id,
-                ai_out_trade_no = api_redeem_request.out_trade_no,
+                api_out_trade_no = api_redeem_request.out_trade_no,
                 api_user = api_user,
                 payment_provider = PaymentProvider.objects.get(code= api_redeem_request.payment_provider),
                 reference_order = order,
@@ -104,7 +104,6 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
                 notify_url = api_redeem_request.notify_url,
                 return_url = api_redeem_request.return_url,
                 expire_in_sec=api_redeem_request.expire_minute * 60,
-                status = 'UNKNOWN',
                 created_by = operatorObj,
                 lastupdated_by= operatorObj
             )
@@ -347,7 +346,7 @@ def create_purchase_order(buyorder, reference_order_id,
         if is_api_call:
             api_trans = APIUserTransaction.objects.create(
                 transactionId = api_trans_id,
-                ai_out_trade_no = api_purchase_request.out_trade_no,
+                api_out_trade_no = api_purchase_request.out_trade_no,
                 api_user = api_user,
                 payment_provider = PaymentProvider.objects.get(code= api_purchase_request.payment_provider),
                 reference_order = order,
@@ -364,7 +363,6 @@ def create_purchase_order(buyorder, reference_order_id,
                 notify_url = api_purchase_request.notify_url,
                 return_url = api_purchase_request.return_url,
                 expire_in_sec=api_purchase_request.expire_minute * 60,
-                status = 'UNKNOWN',
                 created_by = operatorObj,
                 lastupdated_by= operatorObj
             )
