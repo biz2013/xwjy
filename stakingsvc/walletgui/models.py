@@ -214,7 +214,7 @@ class Order(models.Model):
    lastupdated_by = models.ForeignKey(User, related_name='Order_lastupdated_by', on_delete=models.SET_NULL, null=True)
 
 class UserProfile(models.Model):
-   USER_TYPE = (('TRADEUSER', 'TradeUser'), 'APIUSER', 'APIUser')
+   USER_TYPE = (('TRADEUSER', 'TradeUser'), ('APIUSER', 'APIUser'))
    user = models.ForeignKey(User, on_delete=models.CASCADE)
    user_type = models.CharField(max_length=32, choices=USER_TYPE, default='TRADEUSER')
    api_key = models.CharField(max_length=128, default='')

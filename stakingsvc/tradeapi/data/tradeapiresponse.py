@@ -14,7 +14,7 @@ class TradeAPIResponse(APIResponseBase):
             out_trade_no, trx_bill_no, **kwargs)
         self.subject = None
         self.attach = None
-        self.total_received = 0
+        self.total_fee = 0
         self.payment_url = None
         self.trade_status = 'UNKNOWN'
         if kwargs:
