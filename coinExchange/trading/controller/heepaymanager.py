@@ -106,12 +106,11 @@ class HeePayManager(object):
        content = ''
        for key in keylist:
            if key != 'sign':
-              content = content + key + '=' + json_data[key] + '&'
-       content = content + 'key=' + app_key
-       content = content.encode('utf-8')
+              content = "{0}{1}={2}&".format(content, key, json_data[key])
+       content = "{0}key={1}".format(content, app_key)
        m = hashlib.md5()
        logger.info('the content to be verified with signature: {0}'.format(content))
-       m.update(content)
+       m.update(content.encode('utf-8'))
        signed_str = m.hexdigest().upper()
        return signed_str
 

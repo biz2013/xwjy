@@ -12,6 +12,7 @@ from unittest.mock import Mock, MagicMock, patch
 
 from tradeapi.data.traderequest import PurchaseAPIRequest
 from tradeex.apitests.tradingutils import *
+from tradeex.responses.heepaynotify import HeepayNotification
 from trading.models import *
 from trading.controller import useraccountinfomanager
 import json
@@ -182,7 +183,9 @@ class TestPrepurchase(TransactionTestCase):
            side_effect=send_buy_apply_request_side_effect)
     def test_purchase_order_succeed(self,send_buy_apply_request_function):
         self.create_fitting_order(62)
-        request = PurchaseAPIRequest('hyq17121610000800000911220E16AB0', '4AE4583FD4D240559F80ED39',
+        app_id = 'hyq17121610000800000911220E16AB0'
+        secret_key = '4AE4583FD4D240559F80ED39'
+        request = PurchaseAPIRequest(app_id, secret_key,
                 'order_match', # order id
                 62, # total fee
                 10, # expire_minute
@@ -193,7 +196,7 @@ class TestPrepurchase(TransactionTestCase):
                 return_url='http://retururl')
         c = Client()
         request_str = request.getPayload()
-        print('send request {0}'.format(request_str))
+        print('test_purchase_order_succeed(): send request {0}'.format(request_str))
         response = c.post('/tradeex/purchasetoken/', request_str,
                           content_type='application/json')
         print('response is {0}'.format(json.dumps(json.loads(response.content), ensure_ascii=False)))
@@ -202,4 +205,18 @@ class TestPrepurchase(TransactionTestCase):
         resp_json = json.loads(response.content)
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
 
+        heepay_confirm = json.load(io.open('trading/tests/data/test_heepay_confirm.json', 'r', encoding='utf-8'))
+        heepay_confirm['app_id'] = app_id
+        heepay_notify = HeepayNotification.parseFromJson(heepay_confirm, secret_key)
+        heepay_confirm['sign'] = heepay_notify.sign
+        request_str  =json.dumps(heepay_confirm, ensure_ascii=False)
+        print('send heepay confirmation request {0}'.format(request_str))
+        
+        c1 = Client()
+        response = c1.post('/tradeex/heepayreply/', request_str,
+            content_type='application/json')
+        
+        self.assertEqual('OK', response.content, "The response to the payment confirmation should be OK")
 
+
+        

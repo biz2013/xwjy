@@ -21,10 +21,11 @@ def get_payment_confirmation_json(request, app_key):
    json_data = {}
    logger.info('notification method is %s, full url is %s' % (request.method, request.get_full_path()))
    response = request.body.decode('utf-8')
-   json_data = json.loads(response)
+   json_data = json.loads(response, encoding='utf-8')
    logger.info('Receive payment confirmation {0}'.format(response))
    manager = HeePayManager()
    if not manager.confirmation_is_valid(json_data, app_key):
+       logger.info('get_payment_confirmation_json() the request is not valid')
        return None
    return json_data
 
