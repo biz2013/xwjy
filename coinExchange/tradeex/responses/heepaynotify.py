@@ -24,22 +24,17 @@ class HeepayNotification(object):
 
     def __sign(self, json):
         sorted_keys = sorted(json.keys())
-        count = 0
         str_to_be_signed = ""
         for key in sorted_keys:
-            if key.startswith('return'):
-                continue
-            if count > 0:
-                str_to_be_signed = str_to_be_signed + '&'
-            str_to_be_signed = '{0}{1}={2}'.format(str_to_be_signed, key, json[key])
-            count = count + 1
-        str_to_be_signed = str_to_be_signed + '&key=' + self.api_secret
+           if key != 'sign':
+               str_to_be_signed = '{0}{1}={2}&'.format(str_to_be_signed, key, json[key])
+        str_to_be_signed = "{0}key={1}".format(str_to_be_signed, self.api_secret)
         m = hashlib.md5()
         m.update(str_to_be_signed.encode('utf-8'))
         return m.hexdigest().upper()
 
     @classmethod    
-    def parseFromJson(cls, json_data, api_secret):
+    def parseFromJson(cls, json_data, api_secret, validate_sign = False):
         notify = HeepayNotification(api_secret)
         notify.version = json_data['version']
         notify.appkey = json_data['app_id']
@@ -59,11 +54,11 @@ class HeepayNotification(object):
         notify.original_json = json_data
 
 
-        calculated_sign = resp.__sign(json_data)
+        calculated_sign = notify.__sign(json_data)
         notify.sign = calculated_sign
-        #if calculated_sign != json_data['sign']:
-        #    raise ValueError('Invalid heepay response: signature does not match.  Expected {0} but got {1}'.format(
-        #        json_data['sign'], calculated_sign
-        #    ))
+        if validate_sign and calculated_sign != json_data['sign']:
+            raise ValueError('Invalid heepay response: signature does not match.  Expected {0} but got {1}'.format(
+                json_data['sign'], calculated_sign
+            ))
 
         return notify
