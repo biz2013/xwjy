@@ -12,6 +12,7 @@ from unittest.mock import Mock, MagicMock, patch
 
 from tradeapi.data.traderequest import PurchaseAPIRequest
 from tradeex.apitests.tradingutils import *
+from tradeex.apitests.util_tests import *
 from tradeex.responses.heepaynotify import HeepayNotification
 from trading.models import *
 from trading.controller import useraccountinfomanager
@@ -19,21 +20,26 @@ import json
 
 # match the hy_bill_no in test data test_heepay_confirm.json
 TEST_HY_BILL_NO='180102122300364021000081666'
-
+TEST_HY_APPID = 'hyq17121610000800000911220E16AB0'
+TEST_HY_KEY='4AE4583FD4D240559F80ED39'
+TEST_SELLER_ACCOUNT='1555555'
 heepay_reponse_template = json.load(io.open('trading/tests/data/heepay_return_success.json', 'r', encoding='utf-8'))
 
 #mock function
 def send_buy_apply_request_side_effect(payload):
     json_payload = json.loads(payload)
-    json_response = copy.copy(heepay_reponse_template)
-    print('copied response template is {0}'.format(json.dumps(json_response)))
     biz_content = json.loads(json_payload['biz_content'])
-    print('biz_content json is {0}'.format(json.dumps(biz_content)))
-    json_response['out_trade_no'] = biz_content['out_trade_no']
-    json_response['hy_bill_no'] = TEST_HY_BILL_NO
-    json_response['to_account'] = '15811302702'
-    print('copied and templated response is {0}'.format(json.dumps(json_response)))
-    return 200, 'Ok', json.dumps(json_response)
+    key_values = {}
+    key_values['app_id'] = json_payload['app_id']
+    key_values['out_trade_no'] = biz_content['out_trade_no']
+    key_values['subject'] = biz_content['subject'] if 'subject' in json_payload else ''
+    key_values['total_fee'] = biz_content['total_fee']
+    key_values['to_account'] = TEST_SELLER_ACCOUNT
+    output_data = jinja2_render('tradeex/apitests/data/heepay_response_template.j2', key_values)
+    output_json = json.loads(output_data)
+    sign = sign_test_json(output_json, TEST_HY_KEY)
+    output_json['sign'] = sign
+    return 200, 'Ok', json.dumps(output_json, ensure_ascii=False)
 
 # Create your tests here.
 class TestPrepurchase(TransactionTestCase):
