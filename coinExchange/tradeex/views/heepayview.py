@@ -43,7 +43,7 @@ def heepay_notification(request):
             return HttpResponse(content='ok')
         elif updated_api_trans.trade_status=='PAIDSUCCESS':
             resp_content = 'OK'
-            if not APIUserTransactionManager.on_trans_paid_succss(updated_api_trans):
+            if not APIUserTransactionManager.on_trans_paid_success(updated_api_trans):
                 resp_content = 'error'
             return HttpResponse(content=resp_content)
         else: 
