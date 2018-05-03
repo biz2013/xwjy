@@ -129,6 +129,17 @@ class TestPrepurchase(TransactionTestCase):
         for order in Order.objects.all():
             print('matching order {0} order_type {1} sub_type {2}'.format(order.order_id, order.order_type, order.sub_type))
 
+
+    def get_api_trans(self, target_out_trade_no):
+        return None
+
+    def validate_api_trans_before_confirm(self, api_trans, app_id, 
+            secret_key, test_out_trade_no, **kwargs):
+        pass
+    
+    def create_heepay_confirm(self, template_path, api_trans):
+        return None
+
     def test_purchase_no_fitting_order(self):
         self.create_no_fitting_order()
         request = PurchaseAPIRequest('hyq17121610000800000911220E16AB0', '4AE4583FD4D240559F80ED39',
@@ -189,17 +200,29 @@ class TestPrepurchase(TransactionTestCase):
            side_effect=send_buy_apply_request_side_effect)
     def test_purchase_order_succeed(self,send_buy_apply_request_function):
         self.create_fitting_order(62)
+
+        # these are the app_id and secret from fixture apiuseraccount        
+        # TODO: validate this is tradeex_api_user1
         app_id = 'hyq17121610000800000911220E16AB0'
         secret_key = '4AE4583FD4D240559F80ED39'
+        test_out_trade_no = 'order_match'
+        test_purchase_amount = 62
+        test_user_heepay_from_account = '12738456'
+        test_attach = 'userid:1'
+        test_subject = '人民币充值成功测试'
+        test_notify_url = 'http://testurl'
+        test_return_url = 'http://testurl'
         request = PurchaseAPIRequest(app_id, secret_key,
-                'order_match', # order id
-                62, # total fee
+                test_out_trade_no, # out_trade_no
+                test_purchase_amount, # total fee
                 10, # expire_minute
-                'heepay', '12738456',
+                'heepay', 
+                test_user_heepay_from_account,
                 '127.0.0.1', #client ip
-                attach='userid:1',
-                notify_url='http://testurl',
-                return_url='http://retururl')
+                attach=test_attach,
+                subject=test_subject,
+                notify_url=test_notify_url,
+                return_url=test_return_url)
         c = Client()
         request_str = request.getPayload()
         print('test_purchase_order_succeed(): send request {0}'.format(request_str))
@@ -211,18 +234,32 @@ class TestPrepurchase(TransactionTestCase):
         resp_json = json.loads(response.content)
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
 
-        heepay_confirm = json.load(io.open('trading/tests/data/test_heepay_confirm.json', 'r', encoding='utf-8'))
-        heepay_confirm['app_id'] = app_id
-        heepay_notify = HeepayNotification.parseFromJson(heepay_confirm, secret_key)
-        heepay_confirm['sign'] = heepay_notify.sign
+        api_trans = self.get_api_trans(test_out_trade_no)
+        self.validate_api_trans_before_confirm(api_trans, app_id, 
+            secret_key, test_out_trade_no, expected_total_fee=test_purchase_amount,
+            expected_from_account=test_user_heepay_from_account,
+            expected_subject = test_subject, expected_attach = test_attach,
+            expected_return_url = test_return_url, 
+            expected_notify_url = test_notify_url)
+        
+        heepay_confirm = self.create_heepay_confirm('tradeex/apitests/data/heepay_confirm_template.j2', api_trans)
+        #heepay_confirm = json.load(io.open('trading/tests/data/test_heepay_confirm.json', 'r', encoding='utf-8'))
+        #heepay_confirm['app_id'] = app_id
+        #heepay_notify = HeepayNotification.parseFromJson(heepay_confirm, secret_key)
+        #heepay_confirm['sign'] = heepay_notify.sign
         request_str  =json.dumps(heepay_confirm, ensure_ascii=False)
-        print('send heepay confirmation request {0}'.format(request_str))
+        #print('send heepay confirmation request {0}'.format(request_str))
         
         c1 = Client()
         response = c1.post('/tradeex/heepayreply/', request_str,
             content_type='application/json')
         
+        #TODO: test sending coin is execute
+        #TODO: test notification is sent
+        #TODO: test the notification is correct
         self.assertEqual('OK', response.content, "The response to the payment confirmation should be OK")
 
+
+         
 
         
