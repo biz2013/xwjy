@@ -14,6 +14,7 @@ from tradeapi.data.traderequest import PurchaseAPIRequest
 from tradeex.apitests.tradingutils import *
 from tradeex.apitests.util_tests import *
 from tradeex.responses.heepaynotify import HeepayNotification
+from tradeex.models import *
 from trading.models import *
 from trading.controller import useraccountinfomanager
 import json
@@ -131,11 +132,18 @@ class TestPrepurchase(TransactionTestCase):
 
 
     def get_api_trans(self, target_out_trade_no):
-        return None
+        try:
+            return APIUserTransaction.objects.get(api_out_trade_no = target_out_trade_no)
+        except APIUserTransaction.DoesNotExist:
+            self.fail('System cannot find the api trans for out_trade_no {0}'.format(target_out_trade_no))
+        except APIUserTransaction.MultipleObjectsReturned:
+            self.fail('System find more than one api trans for out_trade_no {0}'.format(target_out_trade_no))
 
-    def validate_api_trans_before_confirm(self, api_trans, app_id, 
-            secret_key, test_out_trade_no, **kwargs):
-        pass
+    def validate_api_trans_before_confirm(self, api_trans, expected_app_id, 
+            expected_secret_key, expected_out_trade_no, **kwargs):
+        self.assertEqual(expected_app_id, api_trans.api_user.apiKey)
+        self.assertEqual(expected_secret_key, api_trans.api_user.secretKey)
+        self.assertEqual(expected_out_trade_no, api_trans.api_out_trade_no)
     
     def create_heepay_confirm(self, template_path, api_trans):
         return None
