@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import sys, io, traceback, time, json, copy, math
+from calendar import timegm
+import datetime as dt
 sys.path.append('../stakingsvc/')
 from django.contrib.auth.models import User
 from django.test import TestCase, TransactionTestCase
@@ -10,7 +12,7 @@ from django.test import Client
 
 from unittest.mock import Mock, MagicMock, patch
 
-from tradeapi.data.traderequest import PurchaseAPIRequest
+from tradeapi.data.tradeapirequest import TradeAPIRequest
 from tradeex.apitests.tradingutils import *
 from tradeex.apitests.util_tests import *
 from tradeex.responses.heepaynotify import HeepayNotification
@@ -54,7 +56,7 @@ class TestPrepurchase(TransactionTestCase):
         return True
 
     def test_purchase_user_not_found_api_key(self):
-        request = PurchaseAPIRequest('api_key_not_exist', 'secrete_not_exist',
+        request = TradeAPIRequest('api_key_not_exist', 'secrete_not_exist',
                 '20180320222600_123', # order id
                 0.05, # total fee
                 10, # expire_minute
@@ -141,12 +143,46 @@ class TestPrepurchase(TransactionTestCase):
 
     def validate_api_trans_before_confirm(self, api_trans, expected_app_id, 
             expected_secret_key, expected_out_trade_no, **kwargs):
-        self.assertEqual(expected_app_id, api_trans.api_user.apiKey)
-        self.assertEqual(expected_secret_key, api_trans.api_user.secretKey)
-        self.assertEqual(expected_out_trade_no, api_trans.api_out_trade_no)
+        self.assertEqual(expected_app_id, api_trans.api_user.apiKey, 'api_trans api_key is not expected')
+        self.assertEqual(expected_secret_key, api_trans.api_user.secretKey, 'api_trans secret_key is not expected')
+        self.assertEqual(expected_out_trade_no, api_trans.api_out_trade_no, 'api_trans out trade no is not expected')
+        if kwargs:
+            for key, value in kwargs.items():
+                if key == 'expected_subject':
+                    self.assertEqual(value, api_trans.subject, 'api_trans subject is not expected')
+                elif key == 'expected_attach':
+                    self.assertEqual(value, api_trans.attach, 'api_trans attach is not expected')
+                elif key == 'expected_total_fee':
+                    self.assertEqual(value, api_trans.total_fee, 'api_trans total_fee is not expected')
+                elif key == 'expected_return_url':
+                    self.assertEqual(value, api_trans.return_url, 'api_trans return_url is not expected')
+                elif key == 'expected_notify_url':
+                    self.assertEqual(value, api_trans.notify_url, 'api_trans notify_url is not expected')
+
     
-    def create_heepay_confirm(self, template_path, api_trans):
-        return None
+    def create_heepay_confirm(self, template_path, api_trans, trade_status, payment_time, to_account=None):
+        key_values = {}
+        key_values['app_id'] = api_trans.api_user.apiKey
+        key_values['subject'] = api_trans.subject if api_trans.subject else ''
+        key_values['total_fee'] = api_trans.total_fee
+        key_values['trade_status'] = trade_status
+        key_values['from_account'] = TEST_SELLER_ACCOUNT
+        try:
+            seller_account = UserPaymentMethod.objects.get(
+                user__id=api_trans.reference_order.reference_order.user.id,
+                provider__code = 'heepay')
+        except UserPaymentMethod.DoesNotExist:
+            self.fail('System cannot find the payment account of the seller that test trans {0} try to buy from'.format(api_trans.api_out_trade_no))
+        except UserPaymentMethod.MultipleObjectsReturned:
+            self.fail('System find more than one payment account of the seller that test trans {0} try to buy from'.format(api_trans.api_out_trade_no))
+
+        key_values['to_account'] = seller_account.account_at_provider
+        key_values['payment_time'] = payment_time
+        output_data = jinja2_render('tradeex/apitests/data/heepay_confirm_template.j2', key_values)
+        output_json = json.loads(output_data)
+        sign = sign_test_json(output_json, TEST_HY_KEY)
+        output_json['sign'] = sign
+        return HeepayNotification.parseFromJson(output_json, api_trans.api_user.secretKey, False)
 
     def test_purchase_no_fitting_order(self):
         self.create_no_fitting_order()
@@ -220,7 +256,7 @@ class TestPrepurchase(TransactionTestCase):
         test_subject = '人民币充值成功测试'
         test_notify_url = 'http://testurl'
         test_return_url = 'http://testurl'
-        request = PurchaseAPIRequest(app_id, secret_key,
+        request = TradeAPIRequest(app_id, secret_key,
                 test_out_trade_no, # out_trade_no
                 test_purchase_amount, # total fee
                 10, # expire_minute
@@ -250,11 +286,9 @@ class TestPrepurchase(TransactionTestCase):
             expected_return_url = test_return_url, 
             expected_notify_url = test_notify_url)
         
-        heepay_confirm = self.create_heepay_confirm('tradeex/apitests/data/heepay_confirm_template.j2', api_trans)
-        #heepay_confirm = json.load(io.open('trading/tests/data/test_heepay_confirm.json', 'r', encoding='utf-8'))
-        #heepay_confirm['app_id'] = app_id
-        #heepay_notify = HeepayNotification.parseFromJson(heepay_confirm, secret_key)
-        #heepay_confirm['sign'] = heepay_notify.sign
+        heepay_confirm = self.create_heepay_confirm('tradeex/apitests/data/heepay_confirm_template.j2', 
+            api_trans, 'SUCCESS', timegm(dt.datetime.utcnow().utctimetuple()))
+        self.assertTrue(heepay_confirm, 'There is problem when the heepay confirmation data')
         request_str  =json.dumps(heepay_confirm, ensure_ascii=False)
         #print('send heepay confirmation request {0}'.format(request_str))
         

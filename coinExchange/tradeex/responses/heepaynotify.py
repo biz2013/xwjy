@@ -53,7 +53,6 @@ class HeepayNotification(object):
             notify.from_account = json_data['from_account']
         notify.original_json = json_data
 
-
         calculated_sign = notify.__sign(json_data)
         notify.sign = calculated_sign
         if validate_sign and calculated_sign != json_data['sign']:
