@@ -10,6 +10,7 @@ logger = logging.getLogger("tradeex.apiusermanager")
 class APIUserManager(object):
     @staticmethod
     def get_api_user_by_apikey(apikey):
+        logger.debug('get_api_user_by_apikey({0})'.format(apikey))
         try:
             return APIUserAccount.objects.get(apiKey=apikey)
         except APIUserAccount.DoesNotExist:

@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import sys, io, traceback, time, json, copy, math
+import logging
+
 from calendar import timegm
 import datetime as dt
 sys.path.append('../stakingsvc/')
@@ -25,8 +27,12 @@ import json
 TEST_HY_BILL_NO='180102122300364021000081666'
 TEST_HY_APPID = 'hyq17121610000800000911220E16AB0'
 TEST_HY_KEY='4AE4583FD4D240559F80ED39'
-TEST_SELLER_ACCOUNT='1555555'
+TEST_BUYER_ACCOUNT='13910978598'
+TEST_API_USER1_APPKEY = 'TRADEEX_USER1_APP_KEY_1234567890ABCDE'
+TEST_API_USER1_SECRET='TRADEEX_USER1_APP_SECRET'
 heepay_reponse_template = json.load(io.open('trading/tests/data/heepay_return_success.json', 'r', encoding='utf-8'))
+
+logger = logging.getLogger('tradeex.apitests.test_trading')
 
 #mock function
 def send_buy_apply_request_side_effect(payload):
@@ -37,7 +43,22 @@ def send_buy_apply_request_side_effect(payload):
     key_values['out_trade_no'] = biz_content['out_trade_no']
     key_values['subject'] = biz_content['subject'] if 'subject' in json_payload else ''
     key_values['total_fee'] = biz_content['total_fee']
-    key_values['to_account'] = TEST_SELLER_ACCOUNT
+    key_values['hy_bill_no'] = TEST_HY_BILL_NO
+
+    buy_order = Order.objects.get(pk=biz_content['out_trade_no'])
+    try:
+        seller_account = UserPaymentMethod.objects.get(
+            user__id=buy_order.reference_order.user.id,
+            provider__code = 'heepay')
+    except UserPaymentMethod.DoesNotExist:
+        logger.error('send_buy_apply_request_side_effec(): cannot find the payment account of the seller that test trans {0} try to buy from'.format(api_trans.api_out_trade_no))
+        return 500, 'error', '{}'
+    except UserPaymentMethod.MultipleObjectsReturned:
+        logger.error('System find more than one payment account of the seller that test trans {0} try to buy from'.format(api_trans.api_out_trade_no))
+        return 500, 'error', '{}'
+
+    key_values['to_account'] = seller_account.account_at_provider
+    key_values['to_account'] = TEST_BUYER_ACCOUNT
     output_data = jinja2_render('tradeex/apitests/data/heepay_response_template.j2', key_values)
     output_json = json.loads(output_data)
     sign = sign_test_json(output_json, TEST_HY_KEY)
@@ -160,13 +181,15 @@ class TestPrepurchase(TransactionTestCase):
                     self.assertEqual(value, api_trans.notify_url, 'api_trans notify_url is not expected')
 
     
-    def create_heepay_confirm(self, template_path, api_trans, trade_status, payment_time, to_account=None):
+    def create_heepay_confirm(self, template_path, api_trans, trade_status, payment_time):
         key_values = {}
-        key_values['app_id'] = api_trans.api_user.apiKey
+        key_values['app_id'] = TEST_HY_APPID
+        key_values['out_trade_no'] = api_trans.reference_order.order_id
         key_values['subject'] = api_trans.subject if api_trans.subject else ''
         key_values['total_fee'] = api_trans.total_fee
+        key_values['hy_bill_no'] = TEST_HY_BILL_NO
         key_values['trade_status'] = trade_status
-        key_values['from_account'] = TEST_SELLER_ACCOUNT
+        key_values['from_account'] = TEST_BUYER_ACCOUNT
         try:
             seller_account = UserPaymentMethod.objects.get(
                 user__id=api_trans.reference_order.reference_order.user.id,
@@ -182,7 +205,9 @@ class TestPrepurchase(TransactionTestCase):
         output_json = json.loads(output_data)
         sign = sign_test_json(output_json, TEST_HY_KEY)
         output_json['sign'] = sign
-        return HeepayNotification.parseFromJson(output_json, api_trans.api_user.secretKey, False)
+        # TODO: this is to validate the sign
+        #HeepayNotification.parseFromJson(output_json, api_trans.api_user.secretKey, False)
+        return output_json
 
     def test_purchase_no_fitting_order(self):
         self.create_no_fitting_order()
@@ -243,12 +268,17 @@ class TestPrepurchase(TransactionTestCase):
     @patch('trading.controller.heepaymanager.HeePayManager.send_buy_apply_request', 
            side_effect=send_buy_apply_request_side_effect)
     def test_purchase_order_succeed(self,send_buy_apply_request_function):
+
+        api_users = APIUserAccount.objects.all()
+        self.assertEqual(1, len(api_users),'there should be one api user')
+        for api_user in api_users:
+            print('Before test, found user with apiKey {0}'.format(api_user.apiKey))
         self.create_fitting_order(62)
 
         # these are the app_id and secret from fixture apiuseraccount        
         # TODO: validate this is tradeex_api_user1
-        app_id = 'hyq17121610000800000911220E16AB0'
-        secret_key = '4AE4583FD4D240559F80ED39'
+        app_id = TEST_API_USER1_APPKEY
+        secret_key = TEST_API_USER1_SECRET
         test_out_trade_no = 'order_match'
         test_purchase_amount = 62
         test_user_heepay_from_account = '12738456'
