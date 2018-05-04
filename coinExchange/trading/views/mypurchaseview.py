@@ -194,14 +194,14 @@ def create_purchase_order(request):
             json_response = send_payment_request(sitesettings, seller_payment_provider,
                 buyorder.order_id, total_amount)
             if json_response is not None and json_response['return_code'] == 'SUCCESS':
-                if ordermanager.post_open_payment_order(
+                ordermanager.post_open_payment_order(
                                 buyorderid, 'heepay',
                                 json_response['hy_bill_no'],
                                 json_response['hy_url'],
-                                username):
+                                username)
 
-                    qrcode_file = generate_payment_qrcode('heepay', json_response, settings.MEDIA_ROOT)
-                    return render(request, 'trading/purchase_heepay_qrcode.html',
+                qrcode_file = generate_payment_qrcode('heepay', json_response, settings.MEDIA_ROOT)
+                return render(request, 'trading/purchase_heepay_qrcode.html',
                          { 'total_units' : quantity, 'unit_price': unit_price,
                            'total_amount': total_amount,
                            'heepay_qrcode_file' : qrcode_file })

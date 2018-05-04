@@ -87,11 +87,17 @@ def prepurchase(request):
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
         request_json= json.loads(request.body)
         request_obj = TradeAPIRequest.parseFromJson(request_json)
+        logger.debug('after parse the input, the request object is {0}'.format(
+            request_obj.getPayload()
+        ))
         api_user = APIUserManager.get_api_user_by_apikey(request_obj.apikey)
         logger.info('prepurchase(): [out_trade_no:{0}] find out api user id is {1}, key {2}'.format(
             request_obj.out_trade_no, api_user.user.id, api_user.secretKey
         ))
         validate_request(request_obj, api_user, 'wallet.trade.buy')
+        logger.info('prepurchase(): [out_trade_no:{0}] request is valid'.format(
+            request_obj.out_trade_no
+        ))
         tradex = TradeExchangeManager()
         api_trans_id, buyorder_id, seller_payment_account = tradex.purchase_by_cash_amount(api_user,
            request_obj, 'AXFund',  True)
@@ -135,6 +141,13 @@ def prepurchase(request):
         ))
 
         if request_obj.payment_provider == 'heepay':
+            if response_json['return_code'] == 'SUCCESS':
+                ordermanager.post_open_payment_order(
+                            buyorder_id, 'heepay',
+                            response_json['hy_bill_no'],
+                            response_json['hy_url'],
+                            api_user.user.username)
+                
             heepay_response = HeepayResponse.parseFromJson(response_json, heepay_api_secret)
 
             return JsonResponse(create_prepurchase_response_from_heepay(

@@ -466,42 +466,45 @@ def update_order_with_heepay_notification(notify_json, operator, api_trans=None)
         if purchase_trans.status == 'PROCESSED':
             logger.info("The transaction has been processed.  Nothing to do")
             return
-        
-        if buyorder.reference_order.order_source == 'API':
-            # get original buy order
-            buyorder = Order.objects.select_for_update().get(
-                pk = notify_json['out_trade_no'])
-            buyorder.status = 'PAID'
-            buyorder.lastupdated_by = operatorObj
-            buyorder.save()
-            
-            if api_trans:
-                api_trans.payment_provider_last_notify = json.dumps(notify_json, ensure_ascii=False)
-                api_trans.payment_provider_last_notified_at = dt.now()
-                if api_trans.method == 'wallet.trade.buy':
-                    if notify_json.get('from_account', None):
-                        api_trans.from_account = notify_json['from_account']
-                    if notify_json.get('to_account', None):
-                        api_trans.to_account = notify_json['to_account']
-                elif api_trans.method == 'wallet.trade.sell':
-                    if notify_json.get('from_account', None):
-                        api_trans.to_account = notify_json['from_account']
-                    if notify_json.get('to_account', None):
-                        api_trans.from_account = notify_json['to_account']
-                if notify_json.get('attach', None):
-                    api_trans.attach = notify_json['attach']
-                payment_status = notify_json['trade_status']
-                api_trans.trade_status = heepay_status_to_trade_status(payment_status)
-                api_trans.save()
 
-        if payment_status != 'Success':
-            update_purchase_transaction(purchase_trans, payment_status)
+        updated = APIUserTransaction.objects.filter(
+                Q(reference_order__order_id=purchase_trans.reference_order.order_id) | 
+                Q(reference_order__order_id=purchase_trans.reference_order.reference_order.order_id)
+            ).update(
+                payment_provider_last_notify = json.dumps(notify_json, ensure_ascii=False),
+                payment_provider_last_notified_at = dt.datetime.utcnow(),
+                payment_account = notify_json.get('from_account', None) if purchase_trans.reference_order.order_source == 'API' else None,
+                payment_status = notify_json['trade_status'],
+                trade_status = heepay_status_to_trade_status(notify_json['trade_status']),
+                lastupdated_by = operatorObj,
+                lastupdated_at = dt.datetime.utcnow()
+            )
+
+        if not updated and (purchase_trans.reference_order.order_source == 'API' or 
+            purchase_trans.reference_order.reference_order.order_source == 'API'):
+            raise ValueError('either purchase {0} or its matching sell order {1} did not update its api trans with heepay notification'.format(
+                purchase_trans.reference_order.order_id, 
+                purchase_trans.reference_order.reference_order.order_id
+            ))
+
+        if notify_json['trade_status'] != 'Success':
+            update_purchase_transaction(purchase_trans, 
+                notify_json['trade_status'],
+                'heepay notify payment status {0}'.format(notify_json['trade_status']))
             return
+
+        # get original buy order
+        buyorder = Order.objects.select_for_update().get(
+            pk = notify_json['out_trade_no'])
+        buyorder.status = 'PAID'
+        buyorder.lastupdated_by = operatorObj
+        buyorder.save()
 
         # release lock at the last moment
         purchase_trans.payment_status = 'SUCCESS'
         purchase_trans.lastupdated_by = operatorObj
         purchase_trans.save()
+
 
 def lock_paid_trans_of_purchase_order(order_id):
     try:
@@ -673,7 +676,6 @@ def cancel_sell_order(userid, order_id, crypto, operator):
         user_wallet.lastupdated_by = operatorObj
         user_wallet.save()
 
-
 def post_open_payment_order(buyorder_id, payment_provider, bill_no, hy_url, username):
     operator = User.objects.get(username=username)
     with transaction.atomic():
@@ -689,9 +691,26 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, hy_url, user
             raise ValueError("Purchase order {0} should not become {1} before starting payment".format(
                 buyorder_id, buyorder.status
             ))
+        
         buyorder.comment = 'hy_url: {0}'.format(hy_url)
         buyorder.status = 'PAYING'
         buyorder.save()
+
+        # if the buy order comes from API call, update its api trans'
+        # reference bill no
+        if buyorder.order_source == 'API':
+            updated = APIUserTransaction.objects.filter(
+                    reference_order__order_id = buyorder.order_id
+                ).update(
+                    reference_bill_no = bill_no,
+                    trade_status = 'INPROGRESS',
+                    lastupdated_by = operator,
+                    lastupdated_at = dt.datetime.utcnow()
+                )
+            if not updated:
+                raise ValueError("Purchase order {0} should have api_trans associated".format(
+                    buyorder_id
+                ))
 
         # update sell order status
         updated = Order.objects.filter(
@@ -701,19 +720,35 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, hy_url, user
                             lastupdated_at = dt.datetime.utcnow())
         if not updated:
             error_msg = "Sell order {0}:status{1} is not locked by buy order {2} anymore.  Should not happen.".format(
-                    sell_order.order_id, sell_order.status, buyorder.order_id)
+                    buyorder.reference_order.order_id,
+                    buyorder.reference_order.status, buyorder.order_id)
             logger.error(error_msg)
             raise ValueError(error_msg)
-        logger.info("update related status of sell order {0} (of purchase order {1}) to OPEN".format(
+
+        # if the buy order's matching sell order comes from API call, 
+        # update its api trans' reference bill no
+        if buyorder.reference_order.order_source == 'API':
+            updated = APIUserTransaction.objects.filter(
+                    reference_order__order_id = buyorder.reference_order.order_id
+                ).update(
+                    reference_bill_no = bill_no,
+                    trade_status = 'INPROGRESS',
+                    lastupdated_by = operator,
+                    lastupdated_at = dt.datetime.utcnow()
+                )
+            if not updated:
+                raise ValueError("Purchase order {0}'s sell order {1} should have api_trans associated".format(
+                    buyorder_id, buyerorder.reference_order.order_id
+                ))
+
+        logger.info("post_open_payment_order(): update related status of sell order {0} (of purchase order {1}) to OPEN".format(
             buyorder.reference_order.order_id, buyorder_id))
 
         purchase_trans.payment_bill_no = bill_no
         purchase_trans.save()
-        logger.info("record {0}.bill#: {1} to related buyorder: {2}".format(
+        logger.info("post_open_payment_order(): record {0}.bill#: {1} to related buyorder: {2}".format(
            payment_provider, bill_no, buyorder.order_id
         ))
-
-        return True
 
 def get_user_transactions(userid, crypto):
     return UserWalletTransaction.objects.filter(user_wallet__user__id= userid,
