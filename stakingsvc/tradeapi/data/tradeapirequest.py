@@ -50,7 +50,7 @@ class TradeAPIRequest(object):
             biz_content_json['payment_provider'],
             biz_content_json['payment_account'],
             biz_content_json['client_ip'],
-            biz_content_json['subject'],
+            biz_content_json['subject'],            
             attach = biz_content_json.get('attach', None),
             notify_url= biz_content_json.get('notify_url', None),
             return_url= biz_content_json.get('return_url', None),
@@ -71,6 +71,8 @@ class TradeAPIRequest(object):
         biz_content_json['client_ip'] = self.client_ip
         biz_content_json['payment_provider'] = self.payment_provider
         biz_content_json['payment_account'] = self.payment_account
+        if self.attach:
+            biz_content_json['attach'] = self.attach
         if self.meta_option:
             biz_content_json['meta_option'] = self.meta_option
         if self.notify_url:
