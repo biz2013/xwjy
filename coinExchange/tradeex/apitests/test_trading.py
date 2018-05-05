@@ -30,6 +30,11 @@ TEST_HY_KEY='4AE4583FD4D240559F80ED39'
 TEST_BUYER_ACCOUNT='13910978598'
 TEST_API_USER1_APPKEY = 'TRADEEX_USER1_APP_KEY_1234567890ABCDE'
 TEST_API_USER1_SECRET='TRADEEX_USER1_APP_SECRET'
+TEST_PURCHASE_AMOUNT = 62
+TEST_CNY_ADDR="TRADDEX_USER1_EXTERNAL_TEST_ADDR"
+TEST_CRYPTO_SEND_COMMENT = ""
+TEST_NOTIFY_URL = "http://testurl/"
+
 heepay_reponse_template = json.load(io.open('trading/tests/data/heepay_return_success.json', 'r', encoding='utf-8'))
 
 logger = logging.getLogger('tradeex.apitests.test_trading')
@@ -65,12 +70,29 @@ def send_buy_apply_request_side_effect(payload):
     output_json['sign'] = sign
     return 200, 'Ok', json.dumps(output_json, ensure_ascii=False)
 
+
+#mock function
+def send_fund_for_purchase_test(target_addr, amount, comment):
+    logger.debug('come to the mock of send fund()')
+    TestCase.assertEqual(TEST_CNY_ADDR, target_addr, "System should send purchase CNY to {0}".format(TEST_CNY_ADDR) )
+    TestCase.assertEqual(TEST_PURCHASE_AMOUNT, amount, "System should come to send {0} unit of CNY".format(TEST_PURCHASE_AMOUNT))
+    TestCase.assertEqual(TEST_CRYPTO_SEND_COMMENT, comment, "System expects comment like '{0}'".format(TEST_CRYPTO_SEND_COMMENT))
+    return { 'txid': 'TEST_TXID'}
+
+#mock function
+def send_json_request_for_purchase_test(payload, trackId='', response_format='json'):
+    logger.debug('come to mock to send notification back to buyer')
+    TestCase.assertEqual('text', response_format, "System ask for text response")
+    #TODO: more validation on payload
+    return 'OK'
+
 # Create your tests here.
 class TestPrepurchase(TransactionTestCase):
     fixtures = ['fixture_test_tradeapi.json']
 
     def setUp(self):
         pass
+
 
     def validate_success_prepurchase_response(self, resp_json):
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
@@ -248,7 +270,7 @@ class TestPrepurchase(TransactionTestCase):
                 'heepay', '12738456',
                 '127.0.0.1', #client ip
                 attach='userid:1',
-                notify_url='http://testurl',
+                notify_url=TEST_NOTIFY_URL,
                 return_url='http://retururl')
         c = Client()
         request_str = request.getPayload()
@@ -266,9 +288,13 @@ class TestPrepurchase(TransactionTestCase):
         self.assertEqual(resp_json['return_msg'], "收钱方账号不存在")
 
 
+    @patch('tradeex.controllers.crypto_utils.CryptoUtility.send_fund', side_effect=send_fund_for_purchase_test)
     @patch('trading.controller.heepaymanager.HeePayManager.send_buy_apply_request', 
            side_effect=send_buy_apply_request_side_effect)
-    def test_purchase_order_succeed(self,send_buy_apply_request_function):
+    @patch('tradeex.client.apiclient.APIClient.send_json_request', side_effect=send_json_request_for_purchase_test)
+    def test_purchase_order_succeed(self,send_fund_function,
+            send_buy_apply_request_function,
+            send_json_request_function):
 
         api_users = APIUserAccount.objects.all()
         self.assertEqual(1, len(api_users),'there should be one api user')
@@ -281,7 +307,7 @@ class TestPrepurchase(TransactionTestCase):
         app_id = TEST_API_USER1_APPKEY
         secret_key = TEST_API_USER1_SECRET
         test_out_trade_no = 'order_match'
-        test_purchase_amount = 62
+        test_purchase_amount = TEST_PURCHASE_AMOUNT
         test_user_heepay_from_account = '12738456'
         test_attach = 'userid:1'
         test_subject = '人民币充值成功测试'
@@ -310,6 +336,9 @@ class TestPrepurchase(TransactionTestCase):
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
 
         api_trans = self.get_api_trans(test_out_trade_no)
+        TEST_CRYPTO_SEND_COMMENT = 'amount:{0},trxId:{1},out_trade_no:{2}'.format(
+            TEST_PURCHASE_AMOUNT, api_trans.transactionId, 
+            api_trans.api_out_trade_no)
         self.validate_api_trans_before_confirm(api_trans, app_id, 
             secret_key, test_out_trade_no, expected_total_fee=test_purchase_amount,
             expected_from_account=test_user_heepay_from_account,

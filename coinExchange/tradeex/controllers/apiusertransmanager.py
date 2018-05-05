@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import sys, logging, json
+import sys, logging, json, traceback
 import datetime as dt
 sys.path.append('../stakingsvc/')
 
@@ -250,7 +250,18 @@ class APIUserTransactionManager(object):
         total_cny_in_units = round(float(api_trans.total_fee)/100.0,8)
 
         # send notification if needed
-        if api_trans.notify_url and api_trans.last_notify_response and api_trans.last_status_description != 'NOTIFYSUCCESS':
+        if api_trans.notify_url:
+            logger.debug('on_found_success_purchase_trans(): has notify_url {0}'.format(api_trans.notify_url))
+        if api_trans.last_notify_response:
+            logger.debug('on_found_success_purchase_trans(): has last_notify_response {0}'.format(
+                api_trans.last_notify_response))
+        if api_trans.last_status_description:
+            logger.debug('on_found_success_purchase_trans(): has last_status_description {0}'.format(
+                api_trans.last_status_description))
+            
+        if api_trans.notify_url and (
+            (not api_trans.last_notify_response) or api_trans.last_status_description != 'NOTIFYSUCCESS'):
+            logger.info('on_found_success_purchase_trans(): send notification to buyer')
             notify = PurchaseAPINotify(
                 '1.0',
                 api_trans.api_user.apiKey,
@@ -263,12 +274,12 @@ class APIUserTransactionManager(object):
                 api_trans.trade_status,
                 api_trans.real_fee,
                 api_trans.payment_provider_last_notified_at.strftime('yyyyMMddHHmmss') if api_trans.payment_provider_last_notified_at else None,
-                from_account=api_trans.from_account,
-                to_account = api_trans.to_account,
+                from_account=api_trans.payment_account,
+                #to_account = api_trans.to_account,
                 attach = api_trans.attach
             )
             api_client = APIClient(api_trans.notify_url)
-            notify_resp = api_client.send_json_request(notify.to_json, response_format='text')
+            notify_resp = api_client.send_json_request(notify.to_json(), response_format='text')
             # update notify situation
             comment = 'NOTIFYSUCCESS' if notify_resp.upper() == 'OK' else 'NOTIFYFAILED: {0}'.format(notify_resp)
             APIUserTransactionManager.update_notification_status(
@@ -276,14 +287,14 @@ class APIUserTransactionManager(object):
                 json.dumps(notify.to_json(), ensure_ascii = False), 
                 notify_resp, comment)
             if not APIUserTransaction.objects.filter(
-                transactionId= trx_id).update(
+                transactionId= api_trans.transactionId).update(
                 last_notify = notify,
                 last_notify_response = notify_resp,
                 last_notified_at = dt.datetime.utcnow(),
                 last_status_description = comment,
                 lastupdated_by = User.objects.get(username='admin'),
                 lastupdated_at = dt.datetime.utcnow()):
-                logger.error("update_notification_status({0}, ..., {1}, {2}: did not update".format(trx_id, notify_resp, comment))
+                logger.error("update_notification_status({0}, ..., {1}, {2}: did not update".format(api_trans.transactionId, notify_resp, comment))
         
         external_crypto_addr = APIUserManager.get_api_user_external_crypto_addr(api_trans.api_user.user.id, 'CNY')
         if not external_crypto_addr:
@@ -319,6 +330,9 @@ class APIUserTransactionManager(object):
                     operation_comment='api user {0} send his purchased {1} CNY back his wallet'.format(
                         api_trans.api_user.user.username, total_cny_in_units
                     )
+                    logger.debug('on_found_paid_purchase_trans(): create userwalletrans about {0}'.format(
+                        operation_comment
+                    ))
                     user_cny_wallet_trans = UserWalletTransaction.objects.create(
                         user_wallet = user_cny_wallet,
                         reference_order = api_trans.reference_order,
@@ -331,7 +345,7 @@ class APIUserTransactionManager(object):
                         available_to_trade_begin = user_cny_wallet.available_balance,
                         available_to_trade_end = user_cny_wallet.available_balance - total_cny_in_units,
                         fiat_money_amount = total_cny_in_units,
-                        payment_provider = PaymentProvider.objects.get(pk=api_trans.payment_provider),
+                        payment_provider = api_trans.payment_provider,
                         balance_update_type= 'DEBT',
                         transaction_type = 'AUTOREDEEM',
                         comment = operation_comment,
@@ -341,7 +355,7 @@ class APIUserTransactionManager(object):
                         lastupdated_by = operatorObj
                     )
                     user_cny_wallet_trans.save()
-                    user_cny_wallet.balance = user_cny_wallet.balance + total_cny_in_units                    
+                    user_cny_wallet.available_balance = user_cny_wallet.available_balance - total_cny_in_units                    
                     user_cny_wallet.locked_balance = user_cny_wallet.locked_balance + total_cny_in_units
                     #unlock the wallet
                     user_cny_wallet.save()
@@ -349,6 +363,7 @@ class APIUserTransactionManager(object):
                     logger.error('on_found_success_purchase_trans(api trans {0}): sending cny upon purchase hit exception {1}'.format(
                         api_trans.transactionId, sys.exc_info()[0]
                     ))
+                    traceback.print_exc(file=sys.stdout)
             except UserWalletTransaction.MultipleObjectsReturned:
                 logger.error('on_found_success_purchase_trans(api trans {0}): has more than one cny wallet transaction related to order {1}'.format(
                     api_trans.transactionId, api_trans.reference_order.order_id
