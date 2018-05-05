@@ -74,15 +74,16 @@ def send_buy_apply_request_side_effect(payload):
 #mock function
 def send_fund_for_purchase_test(target_addr, amount, comment):
     logger.debug('come to the mock of send fund()')
-    TestCase.assertEqual(TEST_CNY_ADDR, target_addr, "System should send purchase CNY to {0}".format(TEST_CNY_ADDR) )
-    TestCase.assertEqual(TEST_PURCHASE_AMOUNT, amount, "System should come to send {0} unit of CNY".format(TEST_PURCHASE_AMOUNT))
-    TestCase.assertEqual(TEST_CRYPTO_SEND_COMMENT, comment, "System expects comment like '{0}'".format(TEST_CRYPTO_SEND_COMMENT))
+    TestCase().assertEqual(TEST_CNY_ADDR, target_addr, "System should send purchase CNY to {0}".format(TEST_CNY_ADDR) )
+    amt_in_cent = int(amount*100)
+    TestCase().assertEqual(TEST_PURCHASE_AMOUNT, amt_in_cent, "System should come to send {0} unit of CNY".format(amt_in_cent))
+    TestCase().assertEqual(TEST_CRYPTO_SEND_COMMENT, comment, "System expects comment like '{0}'".format(TEST_CRYPTO_SEND_COMMENT))
     return { 'txid': 'TEST_TXID'}
 
 #mock function
 def send_json_request_for_purchase_test(payload, trackId='', response_format='json'):
     logger.debug('come to mock to send notification back to buyer')
-    TestCase.assertEqual('text', response_format, "System ask for text response")
+    TestCase().assertEqual('text', response_format, "System ask for text response")
     #TODO: more validation on payload
     return 'OK'
 
@@ -336,8 +337,9 @@ class TestPrepurchase(TransactionTestCase):
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
 
         api_trans = self.get_api_trans(test_out_trade_no)
+        global TEST_CRYPTO_SEND_COMMENT
         TEST_CRYPTO_SEND_COMMENT = 'amount:{0},trxId:{1},out_trade_no:{2}'.format(
-            TEST_PURCHASE_AMOUNT, api_trans.transactionId, 
+            float(TEST_PURCHASE_AMOUNT)/100.0, api_trans.transactionId, 
             api_trans.api_out_trade_no)
         self.validate_api_trans_before_confirm(api_trans, app_id, 
             secret_key, test_out_trade_no, expected_total_fee=test_purchase_amount,
