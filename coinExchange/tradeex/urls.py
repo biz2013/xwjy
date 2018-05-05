@@ -22,11 +22,11 @@ from tradeex.views import api, heepayview, wallet_cronjob
 
 urlpatterns = [
     re_path(r'^purchasetoken/$', api.prepurchase, name='prepurchase'),
-    re_path(r'^heepayreply/$', heepayview.heepay_notification, name='heepay_notification'),
+    #re_path(r'^heepayreply/$', heepayview.heepay_notification, name='heepay_notification'),
     re_path(r'^cancelorder/$', api.cancel_order, name='cancelorder'),
     re_path(r'^checkorderstatus/$', api.query_order_status, name='checkorderstatus'),
     re_path(r'^selltoken/$', api.selltoken, name='selltoken'),
-    re_path(r'^checkwallet/$', wallet_cronjob.check_on_wallet, name='selltoken'),
+    re_path(r'^checkwallet/$', wallet_cronjob.check_on_wallet, name='check_on_wallet'),
     #re_path(r'^register/$', api.register, name='register'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

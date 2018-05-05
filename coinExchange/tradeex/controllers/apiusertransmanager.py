@@ -66,10 +66,11 @@ class APIUserTransactionManager(object):
         
     @staticmethod
     def on_trans_paid_success(api_trans):
+        logger.debug('on_trans_paid_success()')
         operatorObj = User.objects.get(username='admin')
         total_cny_in_units = round(float(api_trans.total_fee)/100.0,8)
         with transaction.atomic():
-            api_trans = APIUserTransactionManager.objects.select_for_update().get(pk=api_trans.transactionId)
+            api_trans = APIUserTransaction.objects.select_for_update().get(pk=api_trans.transactionId)
             if api_trans.trade_status == 'SUCCESS':
                 logger.info("on_trans_paid_success(): api trans {0} is already done.  Nothing to do")
                 return True
@@ -78,8 +79,9 @@ class APIUserTransactionManager(object):
                 user__id = api_trans.api_user.user.id, 
                 wallet__cryptocurrency__currency_code ='CNY')
             master_wallet = UserWallet.objects.select_for_update().get(
+                user__id = 1,
                 wallet__cryptocurrency__currency_code='CNY')
-            if api_trans.method == 'wallet.trade.sell':
+            if api_trans.action == 'wallet.trade.sell':
                 if user_cny_wallet.locked_balance < total_cny_in_units :
                     logger.error("[out_trade_no: {0}] user {1} does not have enough locked CNY in wallet: locked {2} to be released {3}. ".format(
                         api_trans.out_trade_no,
@@ -105,7 +107,7 @@ class APIUserTransactionManager(object):
                     available_to_trade_begin = user_cny_wallet.available_balance,
                     available_to_trade_end = end_cny_available_balance,
                     fiat_money_amount = total_cny_in_units,
-                    payment_provider = PaymentProvider.objects.get(pk=api_trans.payment_provider),
+                    payment_provider = api_trans.payment_provider,
                     balance_update_type= 'DBET',
                     transaction_type = 'OPEN SELL ORDER',
                     comment = operation_comment,
@@ -135,7 +137,7 @@ class APIUserTransactionManager(object):
                     available_to_trade_begin = master_wallet.available_balance,
                     available_to_trade_end = end_master_available_balance,
                     fiat_money_amount = total_cny_in_units,
-                    payment_provider = PaymentProvider.objects.get(pk=api_trans.payment_provider),
+                    payment_provider = api_trans.payment_provider,
                     balance_update_type= 'CEDIT',
                     transaction_type = 'OPEN SELL ORDER',
                     comment = operation_comment,
@@ -154,6 +156,7 @@ class APIUserTransactionManager(object):
                 end_cny_available_balance = user_cny_wallet.available_balance + total_cny_in_units
                 end_cny_locked_balance = user_cny_wallet.locked_balance
 
+                operation_comment = 'user {0} purchase {1} CNY'.format(api_trans.api_user.user.username, total_cny_in_units)
                 user_cny_wallet_trans = UserWalletTransaction.objects.create(
                     user_wallet = user_cny_wallet,
                     reference_order = api_trans.reference_order,
@@ -166,7 +169,7 @@ class APIUserTransactionManager(object):
                     available_to_trade_begin = user_cny_wallet.available_balance,
                     available_to_trade_end = end_cny_available_balance,
                     fiat_money_amount = total_cny_in_units,
-                    payment_provider = PaymentProvider.objects.get(pk=api_trans.payment_provider),
+                    payment_provider = api_trans.payment_provider,
                     balance_update_type= 'CEDIT',
                     transaction_type = 'OPEN BUY ORDER',
                     comment = operation_comment,
@@ -196,7 +199,7 @@ class APIUserTransactionManager(object):
                     available_to_trade_begin = master_wallet.available_balance,
                     available_to_trade_end = end_master_available_balance,
                     fiat_money_amount = total_cny_in_units,
-                    payment_provider = PaymentProvider.objects.get(pk=api_trans.payment_provider),
+                    payment_provider = api_trans.payment_provider,
                     balance_update_type= 'DEBT',
                     transaction_type = 'OPEN BUY ORDER',
                     comment = operation_comment,
@@ -217,7 +220,7 @@ class APIUserTransactionManager(object):
         return True
 
     @staticmethod
-    def on_trans_cancel(api_trans):
+    def on_trans_cancelled(api_trans):
         logger.info("on_trans_cancel(api trans{0})".format(
             api_trans.transactionId
         ))
@@ -243,6 +246,7 @@ class APIUserTransactionManager(object):
 
     @staticmethod
     def on_found_success_purchase_trans(api_trans):
+        logger.debug('on_found_success_purchase_trans')
         total_cny_in_units = round(float(api_trans.total_fee)/100.0,8)
 
         # send notification if needed
@@ -301,14 +305,15 @@ class APIUserTransactionManager(object):
             try:
                 user_cny_wallet_trans = UserWalletTransaction.objects.get(
                     user_wallet__id=user_cny_wallet.id,
-                    reference_order__order_id=api_trans.reference_order.orer_id,
+                    reference_order__order_id=api_trans.reference_order.order_id,
                     transaction_type = 'AUTOREDEEM')
             except UserWalletTransaction.DoesNotExist:
                 logger.info('on_found_paid_purchase_trans: try to auto redeem for api trans {0}'.format(
                     api_trans.transactionId
                 ))
                 crypto_util = WalletManager.create_fund_util('CNY')
-                comment = 'amount:{0},trxId:{1},out_trade_no:{2}'.format(total_cny_in_units, api_trans.transactionId, api_trans.out_trade_no)
+                comment = 'amount:{0},trxId:{1},out_trade_no:{2}'.format(total_cny_in_units, 
+                    api_trans.transactionId, api_trans.api_out_trade_no)
                 try:
                     crypto_trans = crypto_util.send_fund(external_crypto_addr, total_cny_in_units, comment)
                     operation_comment='api user {0} send his purchased {1} CNY back his wallet'.format(

@@ -432,28 +432,33 @@ def update_purchase_transaction(purchase_trans, trade_status, trade_msg):
         purchase_trans.status = 'PROCESSED'
     purchase_trans.save()
 
-def get_sell_order_associated_api_trans(buy_order_id):
-    order = Orders.objects.get(order_id = buy_order_id)
+def get_order_associated_api_trans(buy_order_id):
+    order = Order.objects.get(order_id = buy_order_id)
     if order.order_type != 'BUY':
         raise ValueError('UNEXPECTED_BUY_ORDER')
     
-    if order.reference_order.order_source == 'API':
-        try:
-            return APIUserTransaction.objects.get(referenc_order__order_id= order.reference_order.order_id)
-        except APIUserTransaction.DoesNotExist:
-            logger.error('get_sell_order_associated_api_trans(): sell order {0}\'s associated api transaction could not be found'.format(
-                order.reference_order.order_id
-            ))
-            raise ValueError('API_TRANS_SHOULD_HAVE_EXISTED')
-        except APIUserTransaction.MultipleObjectsReturned:
-            logger.error('get_sell_order_associated_api_trans(): sell order {0} has more than one associated api transaction'.format(
-                order.reference_order.order_id
-            ))
-            raise ValueError('TOO_MANY_ASSOCIATED_API_TRANS')
+    api_order_id = None
+    if order.order_source == 'API':
+        api_order_id = order.order_id
+    elif order.reference_order.order_source == 'API':
+        api_order_id = order.reference_order.order_id
     else:
         return None
 
-def update_order_with_heepay_notification(notify_json, operator, api_trans=None):
+    try:
+        return APIUserTransaction.objects.get(reference_order__order_id= api_order_id)
+    except APIUserTransaction.DoesNotExist:
+        logger.error('get_sell_order_associated_api_trans(): buyorder {0} or its sell order {1}\'s associated api transaction could not be found'.format(
+            buy_order_id, order.reference_order.order_id
+        ))
+        raise ValueError('API_TRANS_SHOULD_HAVE_EXISTED')
+    except APIUserTransaction.MultipleObjectsReturned:
+        logger.error('get_sell_order_associated_api_trans(): buyorder {0} or its sell order {1} has more than one associated api transaction'.format(
+            buy_order_id, order.reference_order.order_id
+        ))
+        raise ValueError('TOO_MANY_ASSOCIATED_API_TRANS')
+
+def update_order_with_heepay_notification(notify_json, operator):
     logger.info('update_order_with_heepay_notification(with hy_bill_no {0} out_trade_no {1}'.format(
         notify_json['hy_bill_no'], notify_json['out_trade_no']
     ))

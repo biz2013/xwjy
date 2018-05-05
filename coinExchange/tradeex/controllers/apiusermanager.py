@@ -23,7 +23,7 @@ class APIUserManager(object):
     @staticmethod
     def get_api_user_external_crypto_addr(userId, crypto):
         try:
-            externalobj = UserExternalWalletAddress.objects.get(user__id = userId, cryptocurrency__code = crypto)
+            externalobj = UserExternalWalletAddress.objects.get(user__id = userId, cryptocurrency__currency_code = crypto)
             return externalobj.address
         except UserExternalWalletAddress.DoesNotExist:
             logger.warn("get_api_user_external_crypto_addr: Failed to find external address for user {0} crypto {1}".format(userId, crypto))
