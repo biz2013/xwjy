@@ -7,7 +7,6 @@ logger = logger = logging.getLogger("tradeapi.utils")
 
 def sign_api_content(json, secret_key):
     sorted_keys = sorted(json.keys())
-    count = 0
     str_to_be_signed = ""
     for key in sorted_keys:
         str_to_be_signed = '{0}{1}={2}&'.format(str_to_be_signed, key, json[key])
