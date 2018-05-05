@@ -53,14 +53,15 @@ def heepay_confirm_payment(request):
                 logger.error(error_msg)
                 return HttpResponse(content='error')
             
-            api_trans = ordermanager.get_sell_order_associated_api_trans(json_data['out_order_no'])
+            api_trans = ordermanager.get_order_associated_api_trans(json_data['out_trade_no'])
             old_trade_status = api_trans.trade_status if api_trans else None
 
-            ordermanager.update_order_with_heepay_notification(json_data, 'admin', api_trans=api_trans)
+            ordermanager.update_order_with_heepay_notification(json_data, 'admin')
             if api_trans:
+                logger.debug('heepay_confirm_payment(): dealing with api trans of the order')
                 api_trans.refresh_from_db()
                 if api_trans.trade_status == 'PaidSuccess' and api_trans.trade_status != old_trade_status:
-                    APIUserTransactionManager.on_trans_paid_succss(api_trans)
+                    APIUserTransactionManager.on_trans_paid_success(api_trans)
                     api_trans.refresh_from_db()
                     if api_trans.trade_status == 'Success':
                         APIUserTransactionManager.on_found_success_purchase_trans(api_trans)

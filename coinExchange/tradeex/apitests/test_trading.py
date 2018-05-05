@@ -203,6 +203,7 @@ class TestPrepurchase(TransactionTestCase):
         key_values['payment_time'] = payment_time
         output_data = jinja2_render('tradeex/apitests/data/heepay_confirm_template.j2', key_values)
         output_json = json.loads(output_data)
+        logger.debug('create_heepay_confirm(): about to sign heepay confirmation')
         sign = sign_test_json(output_json, TEST_HY_KEY)
         output_json['sign'] = sign
         # TODO: this is to validate the sign
@@ -316,20 +317,23 @@ class TestPrepurchase(TransactionTestCase):
             expected_return_url = test_return_url, 
             expected_notify_url = test_notify_url)
         
+        logger.info('finish issue purchase request, about to test receiving heepay notification')
+
+        #NOTE: the trade status is case-sensitive thing
         heepay_confirm = self.create_heepay_confirm('tradeex/apitests/data/heepay_confirm_template.j2', 
-            api_trans, 'SUCCESS', timegm(dt.datetime.utcnow().utctimetuple()))
+            api_trans, 'Success', timegm(dt.datetime.utcnow().utctimetuple()))
         self.assertTrue(heepay_confirm, 'There is problem when the heepay confirmation data')
         request_str  =json.dumps(heepay_confirm, ensure_ascii=False)
-        #print('send heepay confirmation request {0}'.format(request_str))
+        print('send heepay confirmation request {0}'.format(request_str))
         
         c1 = Client()
-        response = c1.post('/tradeex/heepayreply/', request_str,
+        response = c1.post('/trading/heepay/confirm_payment/', request_str,
             content_type='application/json')
         
         #TODO: test sending coin is execute
         #TODO: test notification is sent
         #TODO: test the notification is correct
-        self.assertEqual('OK', response.content, "The response to the payment confirmation should be OK")
+        self.assertEqual('OK', response.content.decode('utf-8'), "The response to the payment confirmation should be OK")
 
 
          

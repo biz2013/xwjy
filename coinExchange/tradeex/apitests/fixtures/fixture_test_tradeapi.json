@@ -71,7 +71,7 @@
     "fields":{
       "name":"CNYWallet",
       "cryptocurrency": "CNY",
-      "config_json": "{ \"cny_wallet_passphrase\": \"\", \"cny_max_querycount\": 100000, \"cny_account_name\": \"\" }", 
+      "config_json": "{ \"bin_path\": \"/home/ubuntu/workspace/peercoin/bin/peercoind\", \"passphrase\": \"\", \"datadir\": \"/home/ubuntu/workspace/peercoin/data\", \"list_trans_count\": 100000, \"account_name\": \"\" }", 
       "created_at": "2017-12-17T21:14:00+08:00",
       "lastupdated_at": "2017-12-17T21:14:00+08:00",
       "created_by": 1,
@@ -336,6 +336,20 @@
     }
   },
   {
+    "model": "trading.userexternalwalletaddress",
+    "pk": "2",
+    "fields" : {
+        "address" :  "TRADDEX_USER1_EXTERNAL_TEST_ADDR",
+        "alias" : "primary",
+        "user" : 4,
+        "cryptocurrency" : "CNY",
+        "created_at": "2018-01-30 03:52:14.396183",
+        "lastupdated_at": "2018-01-30 03:52:14.396183",
+        "created_by":  1,
+        "lastupdated_by" : 1
+    }
+  },
+  {
      "model": "tradeex.apiuseraccount",
      "pk": "TRADEEX_USER1_APP_KEY_1234567890ABCDE",
      "fields": {
@@ -343,20 +357,6 @@
        "accountNo": "1000-0000-0001",
        "secretKey" : "TRADEEX_USER1_APP_SECRET",
        "status" : "ACTIVE",
-       "created_at": "2017-12-17T21:14:00+08:00",
-       "lastupdated_at": "2017-12-17T21:14:00+08:00",
-       "created_by": 1,
-       "lastupdated_by": 1
-     }
-   },
-   {
-     "model": "tradeex.apiuserexternalwalletaddress",
-     "pk": 1,
-     "fields": {
-       "api_account": "TRADEEX_USER1_APP_KEY_1234567890ABCDE",
-       "cryptocurrency": "CNY",
-       "address": "cny_test_address",
-       "alias": "first_test",
        "created_at": "2017-12-17T21:14:00+08:00",
        "lastupdated_at": "2017-12-17T21:14:00+08:00",
        "created_by": 1,

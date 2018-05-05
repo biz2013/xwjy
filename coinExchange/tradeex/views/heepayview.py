@@ -39,16 +39,18 @@ def heepay_notification(request):
     try:
         api_trans = APIUserTransactionManager.get_trans_by_reference_order(heepay_notify.out_trade_no)
         updated_api_trans = tradeex.handle_payment_notificiation('heepay', heepay_notify, api_trans)
-        if updated_api_trans.trade_status=='INPROGRESS':
-            # do nothing if payment provider is in progress
+        logger.debug("handle_payment_notificiation(): return trade_status: {0}".format(updated_api_trans.trade_status))
+        if updated_api_trans.trade_status.upper()=='INPROGRESS':
+            logger.debug("heepay_notification(): Do nothing if payment provider is in progress")
             return HttpResponse(content='ok')
-        elif updated_api_trans.trade_status=='PAIDSUCCESS':
+        elif updated_api_trans.trade_status.upper()=='PAIDSUCCESS':
             resp_content = 'OK'
             if not APIUserTransactionManager.on_trans_paid_success(updated_api_trans):
+                logger.debug("heepay_notification(): on_trans_paid_success() failed")
                 resp_content = 'error'
             return HttpResponse(content=resp_content)
         else: 
-            # return failed response
+            logger.debug("heepay_notification(): return failed response")
             return HttpResponse(content='error')
 
     except ValueError as ve:

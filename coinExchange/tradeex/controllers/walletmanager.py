@@ -379,7 +379,7 @@ class WalletManager(object):
     @staticmethod
     def create_fund_util(crypto):
         try:
-            wallet = Wallet.object.get(cryptocurrency__code=crypto)
+            wallet = Wallet.objects.get(cryptocurrency__currency_code=crypto)
             if not wallet.config_json:
                 logger.error('create_fund_util({0}): the wallet does not have config'.format(crypto))
                 raise ValueError('CRYPTO_WALLET_NO_CONFIG')
