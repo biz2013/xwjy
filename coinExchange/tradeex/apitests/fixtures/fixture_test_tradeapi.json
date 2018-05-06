@@ -362,5 +362,19 @@
        "created_by": 1,
        "lastupdated_by": 1
      }
-   }
+   },
+   {
+    "model": "tradeex.apiuseraccount",
+    "pk": "TRADEEX_USER2_APP_KEY_SELLER",
+    "fields": {
+      "user" : 5,
+      "accountNo": "1000-0000-0002",
+      "secretKey" : "TRADEEX_USER2_API_SECRET",
+      "status" : "ACTIVE",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  }
  ]

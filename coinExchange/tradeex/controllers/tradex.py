@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from django.db.models import Q
+from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from trading.views.models.orderitem import *
 from trading.models import *
 from tradeex.models import *
@@ -180,9 +181,9 @@ class TradeExchangeManager(object):
                '',  # no need for user login of the order
                unit_price,
                'CNY',
-               round(reqeust_obj.total_fee / unit_price, 8),
+               round(request_obj.total_fee / unit_price, 8),
                0,  # no need for available_units
-               reqeust_obj.total_fee,
+               request_obj.total_fee,
                'AXFund',
                '', # no need for lastmodified_at
                '', # no need for status
@@ -191,8 +192,8 @@ class TradeExchangeManager(object):
                selected_payment_provider= request_obj.payment_provider,
                account_at_payment_provider = request_obj.payment_account,
                order_source = 'API') # order type is buy
-        order_id = ordermanager.create_sell_order(order, 'admin', api_user, request_obj, api_trans_id)
-        return api_trans_id, order_id
+        order_id = ordermanager.create_sell_order(order_item, 'admin', api_user, request_obj, api_trans_id)
+        return APIUserTransactionManager.get_transaction_by_id(api_trans_id), order_id
 
     
     def confirm_order(self):

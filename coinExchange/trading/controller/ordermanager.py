@@ -64,7 +64,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
            order_type= order.order_type,
            sub_type = order.sub_type,
            order_source = order.order_source,
-           selected_payment_provider = order.selected_payment_provider,
+           selected_payment_provider = PaymentProvider.objects.get(pk=order.selected_payment_provider) if order.selected_payment_provider else None,
            account_at_selected_payment_provider = order.account_at_payment_provider,
            units = order.total_units,
            unit_price = order.unit_price,
@@ -75,11 +75,11 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
            status = 'OPEN')
         logger.info("order {0} created".format(orderRecord.order_id))
         if api_trans_id:
-            user_cny_wallet = UserWallet.objects.select_for_update().get(user__id = userObj.id, wallet__cryptocurrency__currency_code ='CNY')
+            user_cny_wallet = UserWallet.objects.select_for_update().get(user__id = userobj.id, wallet__cryptocurrency__currency_code ='CNY')
             total_fee_in_units = round(float(api_redeem_request.total_fee)/100.0,8)
             if user_cny_wallet.available_balance < total_fee_in_units :
                 logger.error("user {0} does not have enough CNY in wallet: available {1} to be sold {2}".format(
-                  userObj.username, user_cny_wallet.available_balance, total_fee_in_units 
+                  userobj.username, user_cny_wallet.available_balance, total_fee_in_units 
                 ))
                 raise ValueError('NOT_ENOUGH_CNY_TO_SELL')
             user_cny_wallet.available_balance = user_cny_wallet.available_balance - total_fee_in_units
@@ -90,7 +90,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
                 api_out_trade_no = api_redeem_request.out_trade_no,
                 api_user = api_user,
                 payment_provider = PaymentProvider.objects.get(code= api_redeem_request.payment_provider),
-                reference_order = order,
+                reference_order = orderRecord,
                 payment_account = api_redeem_request.payment_account,
                 action = api_redeem_request.method,
                 client_ip = api_redeem_request.client_ip,

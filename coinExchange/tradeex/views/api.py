@@ -59,7 +59,7 @@ def create_selltoken_response(request_obj, api_trans):
         api_trans.api_user.apiKey, api_trans.api_user.secretKey,
         'SUCCESS',  '挂卖单成功',
         'SUCCESS',  '挂卖单成功',
-        api_trans.out_trade_no,
+        api_trans.api_out_trade_no,
         api_trans.transactionId,
         subject = api_trans.subject if api_trans.subject else None,
         attach = api_trans.attach if api_trans.attach else None,
@@ -67,6 +67,8 @@ def create_selltoken_response(request_obj, api_trans):
         payment_url = None,
         reference_id = api_trans.transactionId
     )
+
+    return response.to_json()
     
 # This will find user's account, use its secret key to check
 # the sign of the request, then, based on request type, validate
@@ -177,6 +179,8 @@ def prepurchase(request):
         return JsonResponse(resp.to_json())
 
 def selltoken(request):
+    request_obj = None
+    api_user = None    
     try:
         logger.info('receive request from: {0}'.format(request.get_host()))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
@@ -252,7 +256,7 @@ def cancel_order(requet):
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
         request_json= json.loads(request.body)
         request_obj = TradeAPIRequest.parseFromJson(request_json)
-        api_user = APIUserManager.get_api_user_by_apikey(request_obj['api_key'])
+        api_user = APIUserManager.get_api_user_by_apikey(request_obj.api_key)
         validate_request(request_obj, api_user, 'wallet.trade.cancel')
         tradeex = TradeExchangeManager()
         api_trans = tradeex.find_transaction(request_obj.trx_bill_no)
@@ -294,16 +298,17 @@ def cancel_order(requet):
     
 def create_error_trade_response(request_obj, api_user, return_msg, result_msg, trx_bill_no):
     kwargs = {}
-    if request_obj.subject:
-        kwargs['subject'] = request_obj.subject
-    if request_obj.attach:
-        kwargs['attach'] = request_obj.attach
-    kwargs['total_fee'] = request_obj.total_fee
+    if request_obj:
+        if request_obj.subject:
+            kwargs['subject'] = request_obj.subject
+        if request_obj.attach:
+            kwargs['attach'] = request_obj.attach
+        kwargs['total_fee'] = request_obj.total_fee
     return TradeAPIResponse(
         request_obj.apikey if request_obj else '',
         api_user.secretKey if api_user else '',
         'FAIL', return_msg, 'FAIL', result_msg,
-        request_obj.out_trade_no,
+        request_obj.out_trade_no if request_obj else '',
         trx_bill_no, **kwargs)
 
 
