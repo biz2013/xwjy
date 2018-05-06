@@ -11,7 +11,7 @@ logger = logging.getLogger("tradeapi.purchaserequest")
 
 class TradeAPIRequest(object):
 
-    def __init__(self, apikey, secret_key, out_trade_no, total_fee,
+    def __init__(self, method, apikey, secret_key, out_trade_no, total_fee,
             expire_minute, payment_provider, payment_account, client_ip, 
             subject='人民币充值', attach=None, notify_url=None, return_url=None,
             version='1.0', charset='utf-8', sign_type='MD5', timestamp=0,
@@ -19,7 +19,7 @@ class TradeAPIRequest(object):
         self.version = version
         self.charset = charset
         self.sign_type = sign_type
-        self.method = 'wallet.trade.buy'
+        self.method = method
         self.apikey = apikey
         self.secret_key = secret_key
         self.out_trade_no = out_trade_no
@@ -40,11 +40,11 @@ class TradeAPIRequest(object):
     @classmethod
     def parseFromJson(cls, json_input):
         method = json_input['method']
-        if method != 'wallet.trade.buy':
-            raise ValueError('Unexpected PrepurchaseRequest method. Expected: wallet.trade.buy actual:{0}'.format(method))
+        if not method in ['wallet.trade.buy', 'wallet.trade.sell', 'wallet.trade.query', 'wallet.trade.cancel']:
+            raise ValueError('Unexpected method {0}'.format(method))
 
         biz_content_json = json.loads(json_input['biz_content'])
-        return TradeAPIRequest(json_input['api_key'], '', biz_content_json['out_trade_no'],
+        return TradeAPIRequest(method, json_input['api_key'], '', biz_content_json['out_trade_no'],
             int(biz_content_json['total_fee']),
             biz_content_json['expire_minute'],
             biz_content_json['payment_provider'],
