@@ -29,8 +29,11 @@ TEST_HY_APPID = 'hyq17121610000800000911220E16AB0'
 TEST_HY_KEY='4AE4583FD4D240559F80ED39'
 TEST_BUYER_ACCOUNT='13910978598'
 TEST_API_USER1_APPKEY = 'TRADEEX_USER1_APP_KEY_1234567890ABCDE'
+TEST_API_USER2_APPKEY = 'TRADEEX_USER2_APP_KEY_SELLER'
 TEST_API_USER1_SECRET='TRADEEX_USER1_APP_SECRET'
+TEST_API_USER2_SECRET='TRADEEX_USER2_API_SECRET'
 TEST_PURCHASE_AMOUNT = 62
+TEST_REDEEM_AMOUNT = 100
 TEST_CNY_ADDR="TRADDEX_USER1_EXTERNAL_TEST_ADDR"
 TEST_CRYPTO_SEND_COMMENT = ""
 TEST_NOTIFY_URL = "http://testurl/"
@@ -56,10 +59,10 @@ def send_buy_apply_request_side_effect(payload):
             user__id=buy_order.reference_order.user.id,
             provider__code = 'heepay')
     except UserPaymentMethod.DoesNotExist:
-        logger.error('send_buy_apply_request_side_effec(): cannot find the payment account of the seller that test trans {0} try to buy from'.format(api_trans.api_out_trade_no))
+        logger.error('send_buy_apply_request_side_effec(): cannot find the payment account of the seller that test trans {0} try to buy from'.format(biz_content['out_trade_no']))
         return 500, 'error', '{}'
     except UserPaymentMethod.MultipleObjectsReturned:
-        logger.error('System find more than one payment account of the seller that test trans {0} try to buy from'.format(api_trans.api_out_trade_no))
+        logger.error('System find more than one payment account of the seller that test trans {0} try to buy from'.format(biz_content['out_trade_no']))
         return 500, 'error', '{}'
 
     key_values['to_account'] = seller_account.account_at_provider
@@ -235,7 +238,7 @@ class TestPrepurchase(TransactionTestCase):
 
     def test_purchase_no_fitting_order(self):
         self.create_no_fitting_order()
-        request = PurchaseAPIRequest('hyq17121610000800000911220E16AB0', '4AE4583FD4D240559F80ED39',
+        request = TradeAPIRequest('hyq17121610000800000911220E16AB0', '4AE4583FD4D240559F80ED39',
                 'order_no_order', # order id
                 620, # total fee
                 10, # expire_minute
@@ -264,7 +267,7 @@ class TestPrepurchase(TransactionTestCase):
         # is selected for the purchase, this update will failed the test.
         updated = UserPaymentMethod.objects.filter(user__username='tttzhang2000@yahoo.com').filter(provider__code='heepay').update(account_at_provider='bad_user_account')
         self.assertTrue(updated, 'change tttzhang2000@yahoo.com\'s heepay account should be successful')
-        request = PurchaseAPIRequest('hyq17121610000800000911220E16AB0', '4AE4583FD4D240559F80ED39',
+        request = TradeAPIRequest('hyq17121610000800000911220E16AB0', '4AE4583FD4D240559F80ED39',
                 'order_match', # order id
                 62, # total fee
                 10, # expire_minute
@@ -297,10 +300,14 @@ class TestPrepurchase(TransactionTestCase):
             send_buy_apply_request_function,
             send_json_request_function):
 
-        api_users = APIUserAccount.objects.all()
-        self.assertEqual(1, len(api_users),'there should be one api user')
-        for api_user in api_users:
-            print('Before test, found user with apiKey {0}'.format(api_user.apiKey))
+        try:
+            api_users = APIUserAccount.objects.get(pk=TEST_API_USER1_APPKEY)
+        except:
+            self.fail('test_purchase_order_succeed() did not find api user {0}'.format(
+                TEST_API_USER1_APPKEY
+            ))
+
+        # create test sell orders
         self.create_fitting_order(62)
 
         # these are the app_id and secret from fixture apiuseraccount        
@@ -314,7 +321,9 @@ class TestPrepurchase(TransactionTestCase):
         test_subject = '人民币充值成功测试'
         test_notify_url = 'http://testurl'
         test_return_url = 'http://testurl'
-        request = TradeAPIRequest(app_id, secret_key,
+        request = TradeAPIRequest(
+                'wallet.trade.buy',
+                app_id, secret_key,
                 test_out_trade_no, # out_trade_no
                 test_purchase_amount, # total fee
                 10, # expire_minute
@@ -366,7 +375,80 @@ class TestPrepurchase(TransactionTestCase):
         #TODO: test the notification is correct
         self.assertEqual('OK', response.content.decode('utf-8'), "The response to the payment confirmation should be OK")
 
+    def test_redeem_order_succeed(self):
 
-         
+        try:
+            api_users = APIUserAccount.objects.get(pk=TEST_API_USER2_APPKEY)
+        except:
+            self.fail('test_purchase_order_succeed() did not find api user {0}'.format(
+                TEST_API_USER2_APPKEY
+            ))
+
+        # these are the app_id and secret from fixture apiuseraccount        
+        # TODO: validate this is tradeex_api_user1
+        app_id = TEST_API_USER2_APPKEY
+        secret_key = TEST_API_USER2_SECRET
+        test_out_trade_no = 'order_match'
+        test_purchase_amount = TEST_REDEEM_AMOUNT
+        test_user_heepay_to_account = '12738456'
+        test_attach = 'userid:1'
+        test_subject = '人民币提现成功测试'
+        test_notify_url = 'http://testurl'
+        test_return_url = 'http://testurl'
+        request = TradeAPIRequest(
+                'wallet.trade.sell',
+                app_id, secret_key,
+                test_out_trade_no, # out_trade_no
+                test_purchase_amount, # total fee
+                10, # expire_minute
+                'heepay', 
+                test_user_heepay_to_account,
+                '127.0.0.1', #client ip
+                attach=test_attach,
+                subject=test_subject,
+                notify_url=test_notify_url,
+                return_url=test_return_url)
+        c = Client()
+        request_str = request.getPayload()
+        print('test_purchase_order_succeed(): send request {0}'.format(request_str))
+        response = c.post('/tradeex/selltoken/', request_str,
+                          content_type='application/json')
+        print('response is {0}'.format(json.dumps(json.loads(response.content), ensure_ascii=False)))
+
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content)
+        self.assertEqual(resp_json['return_code'], 'SUCCESS')
+
+        """
+        api_trans = self.get_api_trans(test_out_trade_no)
+        global TEST_CRYPTO_SEND_COMMENT
+        TEST_CRYPTO_SEND_COMMENT = 'amount:{0},trxId:{1},out_trade_no:{2}'.format(
+            float(TEST_PURCHASE_AMOUNT)/100.0, api_trans.transactionId, 
+            api_trans.api_out_trade_no)
+        self.validate_api_trans_before_confirm(api_trans, app_id, 
+            secret_key, test_out_trade_no, expected_total_fee=test_purchase_amount,
+            expected_from_account=test_user_heepay_from_account,
+            expected_subject = test_subject, expected_attach = test_attach,
+            expected_return_url = test_return_url, 
+            expected_notify_url = test_notify_url)
+        
+        logger.info('finish issue purchase request, about to test receiving heepay notification')
+
+        #NOTE: the trade status is case-sensitive thing
+        heepay_confirm = self.create_heepay_confirm('tradeex/apitests/data/heepay_confirm_template.j2', 
+            api_trans, 'Success', timegm(dt.datetime.utcnow().utctimetuple()))
+        self.assertTrue(heepay_confirm, 'There is problem when the heepay confirmation data')
+        request_str  =json.dumps(heepay_confirm, ensure_ascii=False)
+        print('send heepay confirmation request {0}'.format(request_str))
+        
+        c1 = Client()
+        response = c1.post('/trading/heepay/confirm_payment/', request_str,
+            content_type='application/json')
+        
+        #TODO: test sending coin is execute
+        #TODO: test notification is sent
+        #TODO: test the notification is correct
+        self.assertEqual('OK', response.content.decode('utf-8'), "The response to the payment confirmation should be OK")
+        """ 
 
         

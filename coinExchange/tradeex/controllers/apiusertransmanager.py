@@ -20,6 +20,17 @@ logger = logging.getLogger("tradeex.apiusertransmanager")
 
 class APIUserTransactionManager(object):
     @staticmethod
+    def get_transaction_by_id(transId):
+        try:
+            return APIUserTransaction.objects.get(transactionId=transId)           
+        except APIUserTransaction.DoesNotExist:
+            logger.warn("get_transaction_by_id: Failed to find APIUserTransaction for transId {0}".format(transId))
+            return None
+        except APIUserTransaction.MultipleObjectsReturned:
+            logger.error("get_transaction_by_id: Find mutiple APIUserTransaction for transId order {0}".format(transId))
+            raise ValueError('MORE_THAN_ONE_APIUSERTRANSACT')
+        
+    @staticmethod
     def get_trans_by_reference_order(orderId):
         try:
             return APIUserTransaction.objects.get(reference_order__order_id=orderId)           
