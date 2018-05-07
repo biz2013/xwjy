@@ -314,7 +314,7 @@ class TestPrepurchase(TransactionTestCase):
         # TODO: validate this is tradeex_api_user1
         app_id = TEST_API_USER1_APPKEY
         secret_key = TEST_API_USER1_SECRET
-        test_out_trade_no = 'order_match'
+        test_out_trade_no = 'order_to_purchase'
         test_purchase_amount = TEST_PURCHASE_AMOUNT
         test_user_heepay_from_account = '12738456'
         test_attach = 'userid:1'
@@ -388,7 +388,7 @@ class TestPrepurchase(TransactionTestCase):
         # TODO: validate this is tradeex_api_user1
         app_id = TEST_API_USER2_APPKEY
         secret_key = TEST_API_USER2_SECRET
-        test_out_trade_no = 'order_match'
+        test_out_trade_no = 'order_to_redeem'
         test_purchase_amount = TEST_REDEEM_AMOUNT
         test_user_heepay_to_account = '12738456'
         test_attach = 'userid:1'
