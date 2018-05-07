@@ -54,11 +54,12 @@ def create_prepurchase_response_from_heepay(heepay_response, api_user, api_trans
 
     return response.to_json()       
 
-def create_selltoken_response(request_obj, api_trans):
+def create_selltoken_response(request_obj, api_trans, sell_order_id):
+    return_msg = '挂卖单成功' if sell_order_id else '挂卖进行中'
     response = TradeAPIResponse(
         api_trans.api_user.apiKey, api_trans.api_user.secretKey,
-        'SUCCESS',  '挂卖单成功',
-        'SUCCESS',  '挂卖单成功',
+        'SUCCESS',  return_msg,
+        'SUCCESS',  return_msg,
         api_trans.api_out_trade_no,
         api_trans.transactionId,
         subject = api_trans.subject if api_trans.subject else None,
@@ -193,8 +194,7 @@ def selltoken(request):
         validate_request(request_obj, api_user, 'wallet.trade.sell')
         tradex = TradeExchangeManager()
         api_trans, sell_orderId = tradex.post_sell_order(request_obj, api_user)
-
-        return JsonResponse(create_selltoken_response(request_obj, api_trans))
+        return JsonResponse(create_selltoken_response(request_obj, api_trans, sell_orderId))
     #TODO: should handle different error here.
     # what if network issue, what if the return is 30x, 40x, 50x
     except :

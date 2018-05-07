@@ -41,13 +41,58 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
     operatorObj = User.objects.get(username = operator)
     crypto = Cryptocurrency.objects.get(currency_code = order.crypto)
     frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
-    operation_comment = 'User {0} open sell order {1} with total {2}{3}({4}x@{5})'.format(
+    operation_comment = 'User {0} open {6} sell order {1} with total {2}{3}({4}x@{5}). {6}'.format(
         order.owner_user_id, frmt_date, order.total_amount,
         order.unit_price_currency, order.total_units,
-        order.unit_price)
+        order.unit_price, 
+        'normal ' if not api_trans_id else 'api')
     logger.info(operation_comment)
     
     with transaction.atomic():
+        # if api_trans_id provided, this is an api redeem call, so we create transaction
+        # anyway.  then we check whether cny wallet of the api user has enough fund
+        # if not, then, return api_tran_id, but no sell_order_id, caller will treat it
+        # as signal to wait for fund to be ready.  The waiting time is the same as the
+        # expiration time.
+        api_trans = None
+        if api_trans_id:
+            api_trans = APIUserTransaction.objects.create(
+                transactionId = api_trans_id,
+                api_out_trade_no = api_redeem_request.out_trade_no,
+                api_user = api_user,
+                payment_provider = PaymentProvider.objects.get(code= api_redeem_request.payment_provider),
+                payment_account = api_redeem_request.payment_account,
+                action = api_redeem_request.method,
+                client_ip = api_redeem_request.client_ip,
+                subject = api_redeem_request.subject,
+                total_fee = api_redeem_request.total_fee,
+                attach = api_redeem_request.attach,
+                request_timestamp = api_redeem_request.timestamp,
+                original_request = api_redeem_request.original_json_request,
+                payment_provider_last_notify = '',
+                payment_provider_last_notified_at = None,
+                notify_url = api_redeem_request.notify_url,
+                return_url = api_redeem_request.return_url,
+                expire_in_sec=api_redeem_request.expire_minute * 60,
+                created_by = operatorObj,
+                lastupdated_by= operatorObj
+            )
+
+            # check current available balance of api user's cny balance 
+            user_cny_wallet = UserWallet.objects.select_for_update().get(user__id = userobj.id, wallet__cryptocurrency__currency_code ='CNY')
+            total_fee_in_units = round(float(api_redeem_request.total_fee)/100.0,8)
+            if user_cny_wallet.available_balance < total_fee_in_units :
+                logger.error("user {0} does not have enough CNY in wallet: available {1} to be sold {2}".format(
+                userobj.username, user_cny_wallet.available_balance, total_fee_in_units 
+                ))
+                # return transId but none orderId meaning there is no enough fund in the cny wallet
+                api_trans.save()
+                return None
+            
+            logger.debug('')
+            user_cny_wallet.available_balance = user_cny_wallet.available_balance - total_fee_in_units
+            user_cny_wallet.locked_balance = user_cny_wallet.locked_balance + total_fee_in_units
+            user_cny_wallet.save()
         userwallet = UserWallet.objects.select_for_update().get(
                 user__id=order.owner_user_id,
                 wallet__cryptocurrency = crypto)
@@ -73,47 +118,22 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
            units_locked = 0,
            total_amount = order.total_amount,
            status = 'OPEN')
-        logger.info("order {0} created".format(orderRecord.order_id))
-        if api_trans_id:
-            user_cny_wallet = UserWallet.objects.select_for_update().get(user__id = userobj.id, wallet__cryptocurrency__currency_code ='CNY')
-            total_fee_in_units = round(float(api_redeem_request.total_fee)/100.0,8)
-            if user_cny_wallet.available_balance < total_fee_in_units :
-                logger.error("user {0} does not have enough CNY in wallet: available {1} to be sold {2}".format(
-                  userobj.username, user_cny_wallet.available_balance, total_fee_in_units 
-                ))
-                raise ValueError('NOT_ENOUGH_CNY_TO_SELL')
-            user_cny_wallet.available_balance = user_cny_wallet.available_balance - total_fee_in_units
-            user_cny_wallet.locked_balance = user_cny_wallet.locked_balance + total_fee_in_units
-            user_cny_wallet.save()
-            api_trans = APIUserTransaction.objects.create(
-                transactionId = api_trans_id,
-                api_out_trade_no = api_redeem_request.out_trade_no,
-                api_user = api_user,
-                payment_provider = PaymentProvider.objects.get(code= api_redeem_request.payment_provider),
-                reference_order = orderRecord,
-                payment_account = api_redeem_request.payment_account,
-                action = api_redeem_request.method,
-                client_ip = api_redeem_request.client_ip,
-                subject = api_redeem_request.subject,
-                total_fee = api_redeem_request.total_fee,
-                attach = api_redeem_request.attach,
-                request_timestamp = api_redeem_request.timestamp,
-                original_request = api_redeem_request.original_json_request,
-                payment_provider_last_notify = '',
-                payment_provider_last_notified_at = None,
-                notify_url = api_redeem_request.notify_url,
-                return_url = api_redeem_request.return_url,
-                expire_in_sec=api_redeem_request.expire_minute * 60,
-                created_by = operatorObj,
-                lastupdated_by= operatorObj
-            )
-            
+        logger.info("create_sell_order(): sell order {0} created".format(orderRecord.order_id))
+        
+        if api_trans:
+            logger.info("create_sell_order(): remember sell order {0} in api transaction {1}".format(
+                orderRecord.order_id, api_trans.transactionId
+            ))
+            api_trans.reference_order = orderRecord
+            api_trans.save()
+         
         userwallet.locked_balance = userwallet.locked_balance + order.total_units
         userwallet.available_balance = userwallet.available_balance - order.total_units
         userwallet.save()
-        logger.info('Created {5} sell order {0}, units {1} user\'s wallet: balance:{2} available_balance:{3} locked_balance: {4}'.format(
+        logger.info('create_sell_order(): Created {5} sell order {0}, units {1} user\'s wallet: balance:{2} available_balance:{3} locked_balance: {4} {5}'.format(
            orderRecord.order_id, orderRecord.units, userwallet.balance, userwallet.available_balance, 
-           userwallet.locked_balance, order.order_source
+           userwallet.locked_balance, order.order_source,
+           'reference by api trans {0}'.format(api_trans.transactionId) if api_trans else ''
         ))
         return orderRecord.order_id
 
