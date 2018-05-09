@@ -140,7 +140,7 @@ def send_payment_request(sitesettings, payment_provider, buyorder_id, amount):
     if payment_provider == 'heepay':
         return send_payment_request_to_heepay(sitesettings, buyorder_id, amount)
     else:
-        raise ValueError('Payment method {0} is not supported'.format(payment_method))
+        raise ValueError('Payment method {0} is not supported'.format(payment_provider))
 
 def generate_payment_qrcode(payment_provider,payment_provider_response_json,
          qrcode_image_basedir):
@@ -162,9 +162,11 @@ def create_purchase_order(request):
             reference_order_id = request.POST['reference_order_id']
             owner_user_id = int(request.POST["owner_user_id"])
             quantity = float(request.POST['quantity'])
-            available_units = float(request.POST['available_units'])
             unit_price = float(request.POST['unit_price'])
             seller_payment_provider = request.POST['seller_payment_provider']
+            logger.debug('create_purchase_order(): seller_payment_provider is {0}'.format(
+                seller_payment_provider
+            ))
             crypto= request.POST['crypto']
             total_amount = float(request.POST['total_amount'])
             buyorder = OrderItem('', userid, username, unit_price, 'CNY', quantity,
@@ -181,13 +183,11 @@ def create_purchase_order(request):
                     messages.error(request,'购买数量超过卖单余额，请按撤销键然后再试')
                 else:
                     raise
-                owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
-                useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
+                #owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
+                #useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
                 return redirect('purchase')
             if buyorderid is None:
                raise ValueError('Failed to get purchase order id')
-
-            returnstatus = None
 
             # read the sitsettings
             sitesettings = context_processor.settings(request)['settings']

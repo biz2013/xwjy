@@ -26,14 +26,9 @@ def get_user_payment_account(user_id, payment_provider_code):
 def get_seller_buyer_payment_accounts(buyorder_id, payment_provider):
     buyorder = Order.objects.get(pk=buyorder_id)
     sellorder = Order.objects.get(pk=buyorder.reference_order.order_id)
-    seller_account = None
-    if sellorder.selected_payment_provider:
-        seller_account = sellorder.account_at_payment_provider
-    else:
-        seller_payment_method = UserPaymentMethod.objects.get(user__id=sellorder.user.id, provider__code = payment_provider)
-        seller_account = seller_payment_method.account_at_provider
+    seller_payment_method = UserPaymentMethod.objects.get(user__id=sellorder.user.id, provider__code = payment_provider)
     buyer_payment_method = UserPaymentMethod.objects.get(user__id=buyorder.user.id, provider__code = payment_provider)
-    return seller_account, buyer_payment_method.account_at_provider
+    return seller_payment_method.account_at_provider, buyer_payment_method.account_at_provider
 
 def create_sell_order(order, operator, api_user = None,  api_redeem_request = None,
          api_trans_id = None):
@@ -55,7 +50,9 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
         # as signal to wait for fund to be ready.  The waiting time is the same as the
         # expiration time.
         api_trans = None
+        logger.debug('begin trans to create sell order')
         if api_trans_id:
+            logger.debug('create_sell_order(): create api_trans with id {0}'.format(api_trans_id))
             api_trans = APIUserTransaction.objects.create(
                 transactionId = api_trans_id,
                 api_out_trade_no = api_redeem_request.out_trade_no,
@@ -88,8 +85,6 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
                 # return transId but none orderId meaning there is no enough fund in the cny wallet
                 api_trans.save()
                 return None
-            
-            logger.debug('')
             user_cny_wallet.available_balance = user_cny_wallet.available_balance - total_fee_in_units
             user_cny_wallet.locked_balance = user_cny_wallet.locked_balance + total_fee_in_units
             user_cny_wallet.save()
@@ -269,7 +264,7 @@ def create_purchase_order(buyorder, reference_order_id,
     frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
     buyorder.order_id = frmt_date
     is_api_call = api_user and api_purchase_request and api_trans_id
-    api_call_order_id = api_purchase_request.out_trade_no
+    api_call_order_id = api_purchase_request.out_trade_no if api_purchase_request else None
     operation_comment = ''
     if not is_api_call:
         operation_comment = 'User {0} open buy order {1} with total {2}{3}({4}x@{5})'.format(
@@ -326,10 +321,17 @@ def create_purchase_order(buyorder, reference_order_id,
            frmt_date, userwallet.id, userwallet.balance, userwallet.available_balance, userwallet.locked_balance
         ))
 
+        selected_payment_provider = None
+        try:
+            selected_payment_provider = PaymentProvider.objects.get(pk=seller_payment_provider)
+        except:
+            logger.error('create_purchase_order(): failed to find payment provider record with code {0}'.format(
+                seller_payment_provider
+            ))
         order = Order.objects.create(
             order_id = buyorder.order_id,
             user= User.objects.get(pk=buyorder.owner_user_id),
-            selected_payment_provider = PaymentProvider.objects.get(pk=seller_payment_provider),
+            selected_payment_provider = selected_payment_provider,
             created_by = operatorObj,
             lastupdated_by = operatorObj,
             reference_order= reference_order,
@@ -350,7 +352,7 @@ def create_purchase_order(buyorder, reference_order_id,
           reference_wallet_trxId = '',
           units = buyorder.total_units,
           fiat_money_amount = buyorder.total_amount,
-          payment_provider = PaymentProvider.objects.get(pk=seller_payment_provider),
+          payment_provider = selected_payment_provider,
           balance_update_type= 'CREDIT',
           transaction_type = 'OPEN BUY ORDER',
           comment = operation_comment,
@@ -368,7 +370,7 @@ def create_purchase_order(buyorder, reference_order_id,
                 transactionId = api_trans_id,
                 api_out_trade_no = api_purchase_request.out_trade_no,
                 api_user = api_user,
-                payment_provider = PaymentProvider.objects.get(code= api_purchase_request.payment_provider),
+                payment_provider = PaymentProvider.objects.get(pk= api_purchase_request.payment_provider),
                 reference_order = order,
                 payment_account = api_purchase_request.payment_account,
                 action = api_purchase_request.method,
@@ -386,6 +388,8 @@ def create_purchase_order(buyorder, reference_order_id,
                 created_by = operatorObj,
                 lastupdated_by= operatorObj
             )
+
+            api_trans.save()
 
         reference_order.status = 'LOCKED'
         reference_order.units_locked = reference_order.units_locked + buyorder.total_units

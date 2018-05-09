@@ -15,6 +15,7 @@ from django.test import Client
 from unittest.mock import Mock, MagicMock, patch
 
 from tradeapi.data.tradeapirequest import TradeAPIRequest
+from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from tradeex.apitests.tradingutils import *
 from tradeex.apitests.util_tests import *
 from tradeex.responses.heepaynotify import HeepayNotification
@@ -28,6 +29,7 @@ TEST_HY_BILL_NO='180102122300364021000081666'
 TEST_HY_APPID = 'hyq17121610000800000911220E16AB0'
 TEST_HY_KEY='4AE4583FD4D240559F80ED39'
 TEST_BUYER_ACCOUNT='13910978598'
+TEST_SELLER_ACCOUNT='api_user2_12345'
 TEST_API_USER1_APPKEY = 'TRADEEX_USER1_APP_KEY_1234567890ABCDE'
 TEST_API_USER2_APPKEY = 'TRADEEX_USER2_APP_KEY_SELLER'
 TEST_API_USER1_SECRET='TRADEEX_USER1_APP_SECRET'
@@ -54,10 +56,27 @@ def send_buy_apply_request_side_effect(payload):
     key_values['hy_bill_no'] = TEST_HY_BILL_NO
 
     buy_order = Order.objects.get(pk=biz_content['out_trade_no'])
+    buyer_account = TEST_BUYER_ACCOUNT
+    
+    #TODO: ??? Does Heepay purchase request need from account?
+    """
+    try:
+        buyer_account = UserPaymentMethod.objects.get(
+            user__id=buy_order.user.id,
+            provider__code = 'heepay').account_at_provider
+    except UserPaymentMethod.DoesNotExist:
+        logger.error('send_buy_apply_request_side_effec(): cannot find the payment account of the buyer that test trans {0} try to sell'.format(biz_content['out_trade_no']))
+        return 500, 'error', '{}'
+    except UserPaymentMethod.MultipleObjectsReturned:
+        logger.error('System find more than one payment account of the buyer that test trans {0} try to sell'.format(biz_content['out_trade_no']))
+        return 500, 'error', '{}'
+    """
+
+    #TODO: if trans state the buyer account
     try:
         seller_account = UserPaymentMethod.objects.get(
             user__id=buy_order.reference_order.user.id,
-            provider__code = 'heepay')
+            provider__code = 'heepay').account_at_provider
     except UserPaymentMethod.DoesNotExist:
         logger.error('send_buy_apply_request_side_effec(): cannot find the payment account of the seller that test trans {0} try to buy from'.format(biz_content['out_trade_no']))
         return 500, 'error', '{}'
@@ -65,8 +84,28 @@ def send_buy_apply_request_side_effect(payload):
         logger.error('System find more than one payment account of the seller that test trans {0} try to buy from'.format(biz_content['out_trade_no']))
         return 500, 'error', '{}'
 
-    key_values['to_account'] = seller_account.account_at_provider
-    key_values['to_account'] = TEST_BUYER_ACCOUNT
+    key_values['from_account'] = buyer_account
+    key_values['to_account'] = seller_account
+    output_data = jinja2_render('tradeex/apitests/data/heepay_response_template.j2', key_values)
+    output_json = json.loads(output_data)
+    sign = sign_test_json(output_json, TEST_HY_KEY)
+    output_json['sign'] = sign
+    return 200, 'Ok', json.dumps(output_json, ensure_ascii=False)
+
+#mock function
+def send_buy_apply_for_redeem_side_effect(payload):
+    json_payload = json.loads(payload)
+    biz_content = json.loads(json_payload['biz_content'])
+    key_values = {}
+    key_values['app_id'] = json_payload['app_id']
+    key_values['out_trade_no'] = biz_content['out_trade_no']
+    key_values['subject'] = biz_content['subject'] if 'subject' in json_payload else ''
+    key_values['total_fee'] = biz_content['total_fee']
+    key_values['hy_bill_no'] = TEST_HY_BILL_NO
+
+
+    #key_values['from_account'] = seller_account.account_at_provider
+    key_values['to_account'] = TEST_SELLER_ACCOUNT
     output_data = jinja2_render('tradeex/apitests/data/heepay_response_template.j2', key_values)
     output_json = json.loads(output_data)
     sign = sign_test_json(output_json, TEST_HY_KEY)
@@ -375,8 +414,9 @@ class TestPrepurchase(TransactionTestCase):
         #TODO: test the notification is correct
         self.assertEqual('OK', response.content.decode('utf-8'), "The response to the payment confirmation should be OK")
 
-    def test_redeem_order_succeed(self):
-
+    @patch('trading.controller.heepaymanager.HeePayManager.send_buy_apply_request', 
+           side_effect=send_buy_apply_for_redeem_side_effect)
+    def test_redeem_order_succeed(self, send_buy_apply_request_function):
         try:
             api_users = APIUserAccount.objects.get(pk=TEST_API_USER2_APPKEY)
         except:
@@ -419,6 +459,37 @@ class TestPrepurchase(TransactionTestCase):
         resp_json = json.loads(response.content)
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
 
+        c2 = Client()
+        c.login(username='tttzhang2000@yahoo.com', password='user@123')
+
+        purchase_request = {}
+        api_trans = APIUserTransaction.objects.get(api_out_trade_no=test_out_trade_no)
+        purchase_request['reference_order_id'] = api_trans.reference_order.order_id
+        purchase_request['owner_user_id'] = api_trans.reference_order.user.id
+        purchase_request['quantity']=api_trans.reference_order.units
+        purchase_request['unit_price'] = api_trans.reference_order.unit_price
+        logger.debug('test_redeem_order_succeed(): seller payment provider {0}'.format(
+            api_trans.payment_provider
+        ))
+        purchase_request['seller_payment_provider']=api_trans.payment_provider.code
+        purchase_request['crypto'] = 'AXFund'
+        purchase_request['total_amount'] = api_trans.reference_order.total_amount
+        #TODO: why purchase donot set unit_price currency
+        purchase_response = c.post('/trading/purchase/createorder2/', purchase_request, follow=True)
+        print('------------------------------')
+        print(purchase_response.content.decode('utf-8'))
+
+        """
+        if request.method == 'POST':
+            reference_order_id = request.POST['reference_order_id']
+            owner_user_id = int(request.POST["owner_user_id"])
+            quantity = float(request.POST['quantity'])
+            available_units = float(request.POST['available_units'])
+            unit_price = float(request.POST['unit_price'])
+            seller_payment_provider = request.POST['seller_payment_provider']
+            crypto= request.POST['crypto']
+            total_amount = float(request.POST['total_amount'])
+        """
         """
         api_trans = self.get_api_trans(test_out_trade_no)
         global TEST_CRYPTO_SEND_COMMENT
