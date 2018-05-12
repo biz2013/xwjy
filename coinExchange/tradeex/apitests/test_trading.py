@@ -129,6 +129,13 @@ def send_json_request_for_purchase_test(payload, trackId='', response_format='js
     #TODO: more validation on payload
     return 'OK'
 
+#mock function
+def send_json_request_for_redeem_test(payload, trackId='', response_format='json'):
+    logger.debug('come to mock to send notification back to buyer')
+    TestCase().assertEqual('text', response_format, "System ask for text response")
+    #TODO: more validation on payload
+    return 'OK'
+
 # Create your tests here.
 class TestPrepurchase(TransactionTestCase):
     fixtures = ['fixture_test_tradeapi.json']
@@ -249,15 +256,26 @@ class TestPrepurchase(TransactionTestCase):
     def create_heepay_confirm(self, template_path, api_trans, trade_status, payment_time):
         key_values = {}
         key_values['app_id'] = TEST_HY_APPID
-        key_values['out_trade_no'] = api_trans.reference_order.order_id
+        
+        # for purchase transaction, the transaction's reference order is the purchase order
+        if api_trans.action == 'wallet.trade.buy':
+            purchase_order = api_trans.reference_order
+        # for redeem transaction, we need to get the purchase order of the sell order that 
+        # the transaction put forwarder
+        elif api_trans.action == 'wallet.trade.sell':
+            purchase_order = Order.objects.get(reference_order__order_id=api_trans.reference_order.order_id, order_type='BUY')
+        
+        key_values['out_trade_no'] = purchase_order.order_id
         key_values['subject'] = api_trans.subject if api_trans.subject else ''
         key_values['total_fee'] = api_trans.total_fee
         key_values['hy_bill_no'] = TEST_HY_BILL_NO
         key_values['trade_status'] = trade_status
-        key_values['from_account'] = TEST_BUYER_ACCOUNT
+
+        # Let's assume there's no from account for heepay
+        #key_values['from_account'] = TEST_BUYER_ACCOUNT
         try:
             seller_account = UserPaymentMethod.objects.get(
-                user__id=api_trans.reference_order.reference_order.user.id,
+                user__id=purchase_order.reference_order.user.id,
                 provider__code = 'heepay')
         except UserPaymentMethod.DoesNotExist:
             self.fail('System cannot find the payment account of the seller that test trans {0} try to buy from'.format(api_trans.api_out_trade_no))
@@ -416,7 +434,10 @@ class TestPrepurchase(TransactionTestCase):
 
     @patch('trading.controller.heepaymanager.HeePayManager.send_buy_apply_request', 
            side_effect=send_buy_apply_for_redeem_side_effect)
-    def test_redeem_order_succeed(self, send_buy_apply_request_function):
+    @patch('tradeex.client.apiclient.APIClient.send_json_request', 
+            side_effect=send_json_request_for_redeem_test)
+    def test_redeem_order_succeed(self,send_buy_apply_request_function,
+            send_json_request_function):
         try:
             api_users = APIUserAccount.objects.get(pk=TEST_API_USER2_APPKEY)
         except:
@@ -479,31 +500,14 @@ class TestPrepurchase(TransactionTestCase):
         print('------------------------------')
         print(purchase_response.content.decode('utf-8'))
 
-        """
-        if request.method == 'POST':
-            reference_order_id = request.POST['reference_order_id']
-            owner_user_id = int(request.POST["owner_user_id"])
-            quantity = float(request.POST['quantity'])
-            available_units = float(request.POST['available_units'])
-            unit_price = float(request.POST['unit_price'])
-            seller_payment_provider = request.POST['seller_payment_provider']
-            crypto= request.POST['crypto']
-            total_amount = float(request.POST['total_amount'])
-        """
-        """
         api_trans = self.get_api_trans(test_out_trade_no)
-        global TEST_CRYPTO_SEND_COMMENT
-        TEST_CRYPTO_SEND_COMMENT = 'amount:{0},trxId:{1},out_trade_no:{2}'.format(
-            float(TEST_PURCHASE_AMOUNT)/100.0, api_trans.transactionId, 
-            api_trans.api_out_trade_no)
         self.validate_api_trans_before_confirm(api_trans, app_id, 
             secret_key, test_out_trade_no, expected_total_fee=test_purchase_amount,
-            expected_from_account=test_user_heepay_from_account,
             expected_subject = test_subject, expected_attach = test_attach,
             expected_return_url = test_return_url, 
             expected_notify_url = test_notify_url)
         
-        logger.info('finish issue purchase request, about to test receiving heepay notification')
+        logger.info('finish issue redeem request. About simulate buyer purchase')
 
         #NOTE: the trade status is case-sensitive thing
         heepay_confirm = self.create_heepay_confirm('tradeex/apitests/data/heepay_confirm_template.j2', 
@@ -520,6 +524,5 @@ class TestPrepurchase(TransactionTestCase):
         #TODO: test notification is sent
         #TODO: test the notification is correct
         self.assertEqual('OK', response.content.decode('utf-8'), "The response to the payment confirmation should be OK")
-        """ 
 
         
