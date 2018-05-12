@@ -13,6 +13,7 @@ class TradeAPIRequest(object):
 
     def __init__(self, method, apikey, secret_key, out_trade_no, total_fee,
             expire_minute, payment_provider, payment_account, client_ip, 
+            trx_bill_no = None,
             subject='人民币充值', attach=None, notify_url=None, return_url=None,
             version='1.0', charset='utf-8', sign_type='MD5', timestamp=0,
             sign = '', original_json_request = None):
@@ -23,6 +24,7 @@ class TradeAPIRequest(object):
         self.apikey = apikey
         self.secret_key = secret_key
         self.out_trade_no = out_trade_no
+        self.trx_bill_no = trx_bill_no
         self.total_fee = total_fee
         self.client_ip = client_ip
         self.expire_minute = expire_minute
@@ -50,6 +52,7 @@ class TradeAPIRequest(object):
             biz_content_json['payment_provider'],
             biz_content_json['payment_account'],
             biz_content_json['client_ip'],
+            biz_content_json.get('trx_bill_no', None),
             biz_content_json['subject'],            
             attach = biz_content_json.get('attach', None),
             notify_url= biz_content_json.get('notify_url', None),
@@ -64,21 +67,24 @@ class TradeAPIRequest(object):
     def __get_biz_content_json(self):
         biz_content_json = {}
         biz_content_json['out_trade_no'] = self.out_trade_no
-        biz_content_json['subject'] = self.subject
-        biz_content_json['total_fee'] = self.total_fee
-        biz_content_json['expire_minute'] = self.expire_minute
-        biz_content_json['api_account_mode']= 'Account'
-        biz_content_json['client_ip'] = self.client_ip
-        biz_content_json['payment_provider'] = self.payment_provider
-        biz_content_json['payment_account'] = self.payment_account
-        if self.attach:
-            biz_content_json['attach'] = self.attach
-        if self.meta_option:
-            biz_content_json['meta_option'] = self.meta_option
-        if self.notify_url:
-            biz_content_json['notify_url'] = self.notify_url
-        if self.return_url:
-            biz_content_json['return_url'] = self.return_url
+        if self.method in ['wallet.trade.buy', 'wallet.trade.sell']:
+            biz_content_json['subject'] = self.subject
+            biz_content_json['total_fee'] = self.total_fee
+            biz_content_json['expire_minute'] = self.expire_minute
+            biz_content_json['api_account_mode']= 'Account'
+            biz_content_json['client_ip'] = self.client_ip
+            biz_content_json['payment_provider'] = self.payment_provider
+            biz_content_json['payment_account'] = self.payment_account
+            if self.attach:
+                biz_content_json['attach'] = self.attach
+            if self.meta_option:
+                biz_content_json['meta_option'] = self.meta_option
+            if self.notify_url:
+                biz_content_json['notify_url'] = self.notify_url
+            if self.return_url:
+                biz_content_json['return_url'] = self.return_url
+        elif self.method == 'wallet.trade.query':
+            biz_content_json['trx_bill_no'] = self.trx_bill_no
         return biz_content_json
 
     def __create_json_to_sign(self):
