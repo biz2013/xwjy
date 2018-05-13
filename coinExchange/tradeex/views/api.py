@@ -76,6 +76,7 @@ def create_selltoken_response(request_obj, api_trans, sell_order_id):
 # whether request has meaningful data
 def validate_request(request_obj, api_user_info, expected_method):
     logger.info("validate_request: request parsed is {0}".format(request_obj.getPayload()))
+    logger.info("validate request with key={0}".format(api_user_info.secretKey))
     if not request_obj.is_valid(api_user_info.secretKey):
         raise ValueError('Request has invalid signature')
     if request_obj.method != expected_method:
@@ -207,12 +208,13 @@ def selltoken(request):
         return JsonResponse(resp.to_json())
 
 def query_order_status(request) :
+    api_user = None
     try:
         logger.debug('receive request from: {0}'.format(request.get_host()))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
         request_json= json.loads(request.body)
         request_obj = TradeAPIRequest.parseFromJson(request_json)
-        api_user = APIUserManager.get_api_user_by_apikey(request_obj['api_key'])
+        api_user = APIUserManager.get_api_user_by_apikey(request_obj.apikey)
         validate_request(request_obj, api_user, 'wallet.trade.query')
         tradeex = TradeExchangeManager()
         api_trans = tradeex.find_transaction(request_obj.trx_bill_no)
@@ -221,6 +223,9 @@ def query_order_status(request) :
         appKey = sitesettings.heepay_app_key
 
         # if trade status is alreadu in failed state, just return the status
+        logger.info('query_order_status(): api trans[{0}] trade_status is {1}'.format(
+            api_trans.transactionId, api_trans.trade_status
+        ))
         if api_trans.trade_status in ['ExpiredInvalid', 'DevClose','UserAbandon']:
             return JsonResponse(create_query_status_response(api_trans, api_user).to_json())
             
@@ -235,7 +240,7 @@ def query_order_status(request) :
             heepay = HeePayManager()
             json_response = heepay.get_payment_status(api_trans.reference_order.order_id,
                                    api_trans.reference_bill_no, appId, appKey)
-            ordermanager.update_order_with_heepay_notification(json_response, 'admin', api_trans)
+            ordermanager.update_order_with_heepay_notification(json_response, 'admin')
             api_trans.refresh_from_db()
 
         return JsonResponse(create_query_status_response(api_trans, api_user).to_json())
@@ -279,7 +284,7 @@ def cancel_order(requet):
             heepay = HeePayManager()
             json_response = heepay.get_payment_status(api_trans.reference_order.order_id,
                                    api_trans.reference_bill_no, appId, appKey)
-            ordermanager.update_order_with_heepay_notification(json_response, 'admin', api_trans)
+            ordermanager.update_order_with_heepay_notification(json_response, 'admin')
             api_trans.refresh_from_db()
             if api_trans.payment_status in ['Unknow','NotStart']:
                 APIUserTransactionManager.abandon_trans(api_trans)
@@ -318,7 +323,7 @@ def create_query_status_response(api_trans, api_user):
         api_user.secretKey,
         'SUCCESS', '查询成功',
         'SUCCESS', '查询成功',
-        api_trans.out_trade_no,
+        api_trans.api_out_trade_no,
         api_trans.reference_bill_no,
         subject = api_trans.subject,
         attach = api_trans.attach,
