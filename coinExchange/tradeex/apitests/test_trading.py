@@ -357,13 +357,6 @@ class TestPrepurchase(TransactionTestCase):
             send_buy_apply_request_function,
             send_json_request_function):
 
-        try:
-            api_users = APIUserAccount.objects.get(pk=TEST_API_USER1_APPKEY)
-        except:
-            self.fail('test_purchase_order_succeed() did not find api user {0}'.format(
-                TEST_API_USER1_APPKEY
-            ))
-
         # create test sell orders
         self.create_fitting_order(62)
 
@@ -382,11 +375,11 @@ class TestPrepurchase(TransactionTestCase):
                 'wallet.trade.buy',
                 app_id, secret_key,
                 test_out_trade_no, # out_trade_no
-                test_purchase_amount, # total fee
-                10, # expire_minute
-                'heepay', 
-                test_user_heepay_from_account,
-                '127.0.0.1', #client ip
+                total_fee=test_purchase_amount, # total fee
+                expire_minute=10, # expire_minute
+                payment_provider='heepay', 
+                payment_account=test_user_heepay_from_account,
+                client_ip='127.0.0.1', #client ip
                 attach=test_attach,
                 subject=test_subject,
                 notify_url=test_notify_url,
@@ -460,11 +453,11 @@ class TestPrepurchase(TransactionTestCase):
                 'wallet.trade.sell',
                 app_id, secret_key,
                 test_out_trade_no, # out_trade_no
-                test_purchase_amount, # total fee
-                10, # expire_minute
-                'heepay', 
-                test_user_heepay_to_account,
-                '127.0.0.1', #client ip
+                total_fee=test_purchase_amount, # total fee
+                expire_minute=10, # expire_minute
+                payment_provider='heepay', 
+                payment_account=test_user_heepay_to_account,
+                client_ip='127.0.0.1', #client ip
                 attach=test_attach,
                 subject=test_subject,
                 notify_url=test_notify_url,
@@ -478,6 +471,7 @@ class TestPrepurchase(TransactionTestCase):
 
         self.assertEqual(200, response.status_code)
         resp_json = json.loads(response.content)
+        self.assertEqual(resp_json['return_code'], 'SUCCESS')
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
 
         c2 = Client()
@@ -525,4 +519,109 @@ class TestPrepurchase(TransactionTestCase):
         #TODO: test the notification is correct
         self.assertEqual('OK', response.content.decode('utf-8'), "The response to the payment confirmation should be OK")
 
+    @patch('tradeex.controllers.crypto_utils.CryptoUtility.send_fund', side_effect=send_fund_for_purchase_test)
+    @patch('trading.controller.heepaymanager.HeePayManager.send_buy_apply_request', 
+           side_effect=send_buy_apply_request_side_effect)
+    @patch('tradeex.client.apiclient.APIClient.send_json_request', side_effect=send_json_request_for_purchase_test)
+    def test_status_query(self,send_fund_function,
+            send_buy_apply_request_function,
+            send_json_request_function):
+
+        try:
+            api_users = APIUserAccount.objects.get(pk=TEST_API_USER1_APPKEY)
+        except:
+            self.fail('test_purchase_order_succeed() did not find api user {0}'.format(
+                TEST_API_USER1_APPKEY
+            ))
+
+        # create test sell orders
+        self.create_fitting_order(62)
+
+        # these are the app_id and secret from fixture apiuseraccount        
+        # TODO: validate this is tradeex_api_user1
+        app_id = TEST_API_USER1_APPKEY
+        secret_key = TEST_API_USER1_SECRET
+        test_out_trade_no = 'order_to_purchase'
+        test_purchase_amount = TEST_PURCHASE_AMOUNT
+        test_user_heepay_from_account = '12738456'
+        test_attach = 'userid:1'
+        test_subject = '人民币充值成功测试'
+        test_notify_url = 'http://testurl'
+        test_return_url = 'http://testurl'
+        request = TradeAPIRequest(
+                'wallet.trade.buy',
+                app_id, secret_key,
+                test_out_trade_no, # out_trade_no
+                total_fee= test_purchase_amount, # total fee
+                expire_minute = 10, # expire_minute
+                payment_provider = 'heepay', 
+                payment_account = test_user_heepay_from_account,
+                client_ip = '127.0.0.1', #client ip
+                attach=test_attach,
+                subject=test_subject,
+                notify_url=test_notify_url,
+                return_url=test_return_url,
+                timestamp = timegm(dt.datetime.utcnow().utctimetuple()))
+        c = Client()
+        request_str = request.getPayload()
+        print('test_purchase_order_succeed(): send request {0}'.format(request_str))
+        response = c.post('/tradeex/purchasetoken/', request_str,
+                          content_type='application/json')
+
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content)
+        self.assertEqual(resp_json['return_code'], 'SUCCESS')
+
+        api_trans = self.get_api_trans(test_out_trade_no)        
+        logger.info('finish issue purchase request, about to query the status');
+        query_request = TradeAPIRequest(
+            "wallet.trade.query",
+            app_id, secret_key,
+            test_out_trade_no, # out_trade_no    
+            trx_bill_no=api_trans.transactionId,
+            timestamp = timegm(dt.datetime.utcnow().utctimetuple())
+        )
+
+        c_query = Client()
+        request_str = query_request.getPayload()
+        print('test_status_query(): send request right after purchase command {0}'.format(request_str))
+        response = c_query.post('/tradeex/checkorderstatus/', request_str,
+                          content_type='application/json')
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content)
+        print('Status right after purchase command is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
+        self.assertEqual('SUCCESS', resp_json['return_code'], 'The query should return SUCCCESS')
+        self.assertEqual('InProgress', resp_json['trade_status'], 'The transaction should be in progress')
+    
+        logger.info('about to test receiving heepay notification')
+        global TEST_CRYPTO_SEND_COMMENT
+        TEST_CRYPTO_SEND_COMMENT = 'amount:{0},trxId:{1},out_trade_no:{2}'.format(
+            float(TEST_PURCHASE_AMOUNT)/100.0, api_trans.transactionId, 
+            api_trans.api_out_trade_no)
+
+        #NOTE: the trade status is case-sensitive thing
+        heepay_confirm = self.create_heepay_confirm('tradeex/apitests/data/heepay_confirm_template.j2', 
+            api_trans, 'Success', timegm(dt.datetime.utcnow().utctimetuple()))
+        self.assertTrue(heepay_confirm, 'There is problem when the heepay confirmation data')
+        request_str  =json.dumps(heepay_confirm, ensure_ascii=False)
+        print('send heepay confirmation request {0}'.format(request_str))
+        
+        c1 = Client()
+        response = c1.post('/trading/heepay/confirm_payment/', request_str,
+            content_type='application/json')
+        
+        #TODO: test sending coin is execute
+        #TODO: test notification is sent
+        #TODO: test the notification is correct
+        self.assertEqual('OK', response.content.decode('utf-8'), "The response to the payment confirmation should be OK")
+        c_query = Client()
+        request_str = query_request.getPayload()
+        print('test_status_query(): send request right after purchase command {0}'.format(request_str))
+        response = c_query.post('/tradeex/checkorderstatus/', request_str,
+                          content_type='application/json')
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content)
+        print('Status right after purchase command is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
+        self.assertEqual('SUCCESS', resp_json['return_code'], 'The query should return SUCCCESS')
+        self.assertEqual('Success', resp_json['trade_status'], 'The transaction should be in progress')
         

@@ -27,6 +27,8 @@ class TradeAPIResponse(APIResponseBase):
                     self.total_fee = value
                 elif key == 'payment_url':
                     self.payment_url = value
+                elif key == 'trade_status':
+                    self.trade_status = value
         
         #if 'SUCCESS' == self.return_code:
         #    if not self.payment_url:

@@ -732,7 +732,7 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, hy_url, user
                     reference_order__order_id = buyorder.order_id
                 ).update(
                     reference_bill_no = bill_no,
-                    trade_status = 'INPROGRESS',
+                    trade_status = 'InProgress',
                     lastupdated_by = operator,
                     lastupdated_at = dt.datetime.utcnow()
                 )
@@ -761,7 +761,7 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, hy_url, user
                     reference_order__order_id = buyorder.reference_order.order_id
                 ).update(
                     reference_bill_no = bill_no,
-                    trade_status = 'INPROGRESS',
+                    trade_status = 'InProgress',
                     lastupdated_by = operator,
                     lastupdated_at = dt.datetime.utcnow()
                 )
