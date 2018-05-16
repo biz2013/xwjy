@@ -45,6 +45,9 @@
     $("#create_purchase").submit();
   }
   function show_total_cost(units, price) {
+    if ($("#id_order_sub_type") == "ALL_OR_NOTHING") {
+      $("#id_quantity").val($("#id_available_units").val());
+    }
     if (!isNaN(units) && !isNaN(price)) {
       var amount = parseFloat(units * price).toFixed(2);
       $("#total_cost").text(amount);
@@ -105,7 +108,7 @@
                  </table>
                </div>
                <div id="div_id_quantity" class="form-group"> <label for="id_quantity" class="control-label">购买数量</label><span class="asteriskField">*</span>
-                 <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" onkeyup="show_total_cost(this.value, {{ buyorder.unit_price }})" /> </div>
+                 <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" {% if buyorder.sub_type == "ALL_OR_NOTHING" %}value="{{ available_units_for_purchase }}"{%endif%}onkeyup="show_total_cost(this.value, {{ buyorder.unit_price }})" /> </div>
                 </div>
                 {% if buyorder.sub_type == "ALL_OR_NOTHING" %}
                  <div class="controls"><label for="id_all_or_nothing" class="control-label">卖方要求全部购买</label></div>
