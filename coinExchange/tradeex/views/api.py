@@ -14,10 +14,13 @@ from trading.config import context_processor
 # this is for test UI. A fake one
 from tradeex.client.apiclient import APIClient
 from tradeex.controllers.apiusermanager import APIUserManager
+from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from tradeex.controllers.tradex import TradeExchangeManager
 from tradeex.controllers.crypto_utils import CryptoUtility
 from tradeex.requests.heepayapirequestfactory import HeepayAPIRequestFactory
 from tradeex.responses.heepayresponse import HeepayResponse
+from tradeex.data.tradeapirequest import TradeAPIRequest
+from tradeex.data.tradeapiresponse import TradeAPIResponse
 from tradeex.utils import *
 
 from trading.views import errorpageview
@@ -25,9 +28,6 @@ from trading.config import context_processor
 from trading.controller.global_constants import *
 from trading.controller import ordermanager
 from trading.controller.heepaymanager import *
-from tradeapi.utils import *
-from tradeapi.data.tradeapirequest import TradeAPIRequest
-from tradeapi.data.tradeapiresponse import TradeAPIResponse
 import logging,json
 
 logger = logging.getLogger("tradeex.api")
@@ -255,7 +255,7 @@ def query_order_status(request) :
         )
         return JsonResponse(resp.to_json())
 
-def cancel_order(requet):
+def cancel_order(request):
     try:
         logger.debug('receive request from: {0}'.format(request.get_host()))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
