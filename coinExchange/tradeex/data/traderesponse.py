@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from tradeapi.utils import *
+from tradeex.utils import *
 
 class APIResponseBase(object):
     def __init__(self, apikey, return_code, return_msg,

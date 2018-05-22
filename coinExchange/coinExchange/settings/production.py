@@ -10,4 +10,4 @@ STATIC_ROOT = "/var/www/coinexchange/static/"
 
 MEDIA_ROOT = "/var/www/coinexchange/media/"
 
-ALLOWED_HOSTS = ['54.218.104.21', '34.216.121.138', 'www.uuvc.com', 'uuvc.com', 'localhost', '127.0.0.1', '[::1]']
+ALLOWED_HOSTS = ['54.203.195.52', '34.216.121.138','18.237.182.87','www.uuvc.com', 'uuvc.com', 'localhost', '127.0.0.1', '[::1]']

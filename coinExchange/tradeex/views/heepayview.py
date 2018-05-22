@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import sys, json, logging
-sys.path.append('../stakingsvc/')
 
 from django.http import JsonResponse, HttpResponse
 
@@ -12,7 +11,7 @@ from tradeex.client.apiclient import APIClient
 from tradeex.controllers.tradex import TradeExchangeManager
 from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from trading.controller.heepaymanager import *
-from tradeapi.data.purchase_notify import PurchaseAPINotify
+from tradeex.data.purchase_notify import PurchaseAPINotify
 
 logger = logging.getLogger("tradeex.heepayview")
 

@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from tradeapi.utils import *
-from tradeapi.data.traderesponse import APIResponseBase
+from tradeex.utils import *
+from tradeex.data.traderesponse import APIResponseBase
 
 import json
 

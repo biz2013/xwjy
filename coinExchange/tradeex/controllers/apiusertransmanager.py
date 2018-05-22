@@ -3,7 +3,6 @@
 
 import sys, logging, json, traceback
 import datetime as dt
-sys.path.append('../stakingsvc/')
 
 from calendar import timegm
 from django.db import transaction
@@ -14,7 +13,7 @@ from tradeex.controllers.walletmanager import WalletManager
 from tradeex.controllers.crypto_utils import CryptoUtility
 from tradeex.models import APIUserTransaction
 from trading.models import User, UserWallet, UserWalletTransaction,PaymentProvider
-from tradeapi.data.purchase_notify import PurchaseAPINotify
+from tradeex.data.purchase_notify import PurchaseAPINotify
 
 logger = logging.getLogger("tradeex.apiusertransmanager")
 
