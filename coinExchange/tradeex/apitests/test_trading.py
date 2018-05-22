@@ -14,7 +14,7 @@ from django.test import Client
 
 from unittest.mock import Mock, MagicMock, patch
 
-from tradeapi.data.tradeapirequest import TradeAPIRequest
+from tradeex.data.tradeapirequest import TradeAPIRequest
 from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from tradeex.apitests.tradingutils import *
 from tradeex.apitests.util_tests import *
@@ -573,7 +573,7 @@ class TestPrepurchase(TransactionTestCase):
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
 
         api_trans = self.get_api_trans(test_out_trade_no)        
-        logger.info('finish issue purchase request, about to query the status');
+        logger.info('finish issue purchase request, about to query the status')
         query_request = TradeAPIRequest(
             "wallet.trade.query",
             app_id, secret_key,
