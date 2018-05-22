@@ -17,7 +17,7 @@ from trading.controller.heepaymanager import *
 from trading.controller import ordermanager
 from trading.views import errorpageview
 
-from tradeapi.data.tradeapiresponse import TradeAPIResponse
+from tradeex.data.tradeapiresponse import TradeAPIResponse
 logger = logging.getLogger("site.heepay_confirm")
 
 def get_payment_confirmation_json(request, app_key):

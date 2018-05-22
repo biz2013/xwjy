@@ -5,7 +5,7 @@ import json, time, datetime as dt
 import hashlib
 import logging
 
-from tradeapi.utils import *
+from tradeex.utils import *
 
 logger = logging.getLogger("tradeex.tradeapirequest")
 
