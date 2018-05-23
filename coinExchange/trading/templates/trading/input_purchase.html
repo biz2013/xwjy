@@ -23,7 +23,7 @@
       return;
     }
 
-    if (availabe_units - units_val > 0.00000001 && $("#id_order_sub_type") == "ALL_OR_NOTHING") {
+    if (available_units - units_val > 0.00000001 && $("#id_order_sub_type") == "ALL_OR_NOTHING") {
       $("#div_id_error").text("卖方要求买方一次性全部购买，请提高购买数量");
       return;
     }
@@ -90,7 +90,7 @@
                <input type="hidden" name="crypto" value="AXFund"/>
                <input type="hidden" name="order_sub_type" id="id_order_sub_type" value="{{ buyorder.sub_type }}"/>
                <input type="hidden" name="seller_payment_provider" value="{{ buyorder.selected_payment_provider }}"/>
-               <input type="hidden" name="seller_payment_provider_account" value="{{ buyorder.account_at_selected_payment_provider }}"/>
+               <input type="hiddengi" name="seller_payment_provider_account" value="{{ buyorder.account_at_selected_payment_provider }}"/>
                <input type="hidden" id="id_total_amount" name="total_amount" value="{% if buyorder.total_units > 0 %}{{ buyorder.total_units }}{% endif %}"/>
                <div class="form_group">
                  <div id="div_id_error" class="text-danger"></div>
