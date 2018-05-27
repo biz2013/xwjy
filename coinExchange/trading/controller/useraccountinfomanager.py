@@ -18,12 +18,11 @@ from trading.views.models.userexternalwalletaddrinfo import *
 
 logger = logging.getLogger("site.useraccountinfomanager")
 
-def update_user_wallet_based_on_deposit(trx, user_wallet, min_trx_confirmation,
+def update_user_wallet_based_on_deposit(trx, user_wallet_id, min_trx_confirmation,
                                         operator):
     try:
         user_wallet_trans = UserWalletTransaction.objects.get(
-            user_wallet__user__id=user_wallet.user.id,
-            user_wallet__wallet_addr=user_wallet.wallet_addr,
+            user_wallet__id=user_wallet_id,
             reference_wallet_trxId=trx['txid'],
             transaction_type='DEPOSIT')
         if user_wallet_trans.status == 'PENDING' and trx['confirmations'] >= min_trx_confirmation:
@@ -31,7 +30,7 @@ def update_user_wallet_based_on_deposit(trx, user_wallet, min_trx_confirmation,
                  trx['txid'], user_wallet_trans.id
             ))
             with transaction.atomic():
-                user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet.id)
+                user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet_id)
                 balance_end = user_wallet.balance + trx['amount']
                 available_to_trade_end = user_wallet.available_balance + trx['amount']
                 user_wallet_trans.balance_begin = user_wallet.balance
@@ -65,9 +64,12 @@ def update_user_wallet_based_on_deposit(trx, user_wallet, min_trx_confirmation,
 
     except UserWalletTransaction.DoesNotExist:
         with transaction.atomic():
+            user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet_id)
             print ('come to create trans for deposit on user {0}, trx confirmation is {1}, amount is {2} min_confirmation is {3}'.format(
                 user_wallet.user.id, trx['confirmations'], trx['amount'], min_trx_confirmation
             ))
+            print ('target userwallet id {0}, balance {1} locked {2} available {3}'.format(
+                user_wallet.id, user_wallet.balance, user_wallet.locked_balance, user_wallet.available_balance))
             trans_status = 'PENDING'
             balance_begin = 0
             balance_end = 0
@@ -76,14 +78,14 @@ def update_user_wallet_based_on_deposit(trx, user_wallet, min_trx_confirmation,
             available_to_trade_begin =0
             available_to_trade_end = 0
             if trx['confirmations'] >= min_trx_confirmation:
-                user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet.id)
                 trans_status = 'PROCESSED'
                 balance_begin = user_wallet.balance
-                balance_end = user_wallet.balance + trx['amount']
+                balance_end = balance_begin + trx['amount']
                 locked_balance_begin = user_wallet.locked_balance
-                locked_balance_end = user_wallet.locked_balance
+                locked_balance_end = locked_balance_begin
                 available_to_trade_begin = user_wallet.available_balance
-                available_to_trade_end = user_wallet.available_balance + trx['amount']
+                available_to_trade_end = available_to_trade_begin + trx['amount']
+
             wallet_trans = UserWalletTransaction.objects.create(
                 user_wallet = user_wallet,
                 balance_begin= balance_begin,
@@ -103,6 +105,8 @@ def update_user_wallet_based_on_deposit(trx, user_wallet, min_trx_confirmation,
                 created_by = operator,
                 lastupdated_by = operator
             )
+
+            wallet_trans.save()
             logger.info('Create deposit transaction {0} related to txid {1}'.format(
                   wallet_trans.id,trx['txid']))
             if trx['confirmations'] >= min_trx_confirmation:
@@ -113,22 +117,25 @@ def update_user_wallet_based_on_deposit(trx, user_wallet, min_trx_confirmation,
                 user_wallet.save()
                 logger.info('Update user wallet balance for user id {0} address {1} related to txid {2}'.format(
                     user_wallet.user.id, user_wallet.wallet_addr, trx['txid']))
+                print ('updated target userwallet id {0}, balance {1} locked {2} available {3}'.format(
+                    user_wallet.id, user_wallet.balance, user_wallet.locked_balance, user_wallet.available_balance))
 
     except UserWalletTransaction.MultipleObjectsReturned:
          logger.error('DEPOSIT: There are more than one transaction related to txid {0} for user id {1} on receiving address {2}'.format(
              trx['txid'], user_wallet.user.id, user_wallet.wallet_addr))
 
-def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
+def update_user_wallet_based_on_redeem(trx, user_wallet_id, min_trx_confirmation,
                                         operator):
     try:
         user_wallet_trans = UserWalletTransaction.objects.get(
             transaction_type ='REDEEM',
-            user_wallet__id=user_wallet.id,
+            user_wallet__id=user_wallet_id,
             reference_wallet_trxId=trx['txid'])
-        logger.info("update_user_wallet_based_on_redeem(): find user wallet trans {0} for user_wallet {1}".format(user_wallet_trans.id, user_wallet.id))
+        logger.info("update_user_wallet_based_on_redeem(): find user wallet trans {0} for user_wallet {1}".format(
+            user_wallet_trans.id, user_wallet_id))
         user_wallet_fee_trans = UserWalletTransaction.objects.get(
             transaction_type ='REDEEMFEE',
-            user_wallet__id=user_wallet.id,
+            user_wallet__id=user_wallet_id,
             reference_wallet_trxId=trx['txid'])
         logger.info("update_user_wallet_based_on_redeem(): find user wallet fee trans {0} for user_wallet {1}".format(user_wallet_fee_trans.id, user_wallet.id))
 
@@ -149,7 +156,7 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
                    trx['txid'], fee
                 ))
             with transaction.atomic():
-                user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet.id)
+                user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet_id)
                 # reduce total balance
                 balance_end = user_wallet.balance - amount - fee
                 # release the locked amount
@@ -197,6 +204,7 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
 
     except UserWalletTransaction.DoesNotExist:
         with transaction.atomic():
+            user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet_id)
             trans_status = 'PENDING'
             balance_begin = 0
             balance_end = 0
@@ -215,7 +223,6 @@ def update_user_wallet_based_on_redeem(trx, user_wallet, min_trx_confirmation,
             amount = math.fabs(trx['amount'])
             fee = math.fabs(trx['fee'])
             if trx['confirmations'] >= min_trx_confirmation:
-                user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet.id)
                 trans_status = 'PROCESSED'
                 balance_begin = user_wallet.balance
                 balance_end = user_wallet.balance - amount
@@ -327,12 +334,15 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
     for wallet in user_wallets:
         print ('come into wallets')
         if wallet.wallet_addr not in wallet_lookup_by_addr:
-           wallet_lookup_by_addr[wallet.wallet_addr]= wallet
+           wallet_lookup_by_addr[wallet.wallet_addr]= wallet.id
+           print ('record wallet addr[{0}] with id {1}'.format(
+               wallet.wallet_addr, wallet.id
+           ))
         else:
            raise ValueError('address {0} should not have more than one entry in userwallets'.format(wallet.wallet_addr))
 
         if wallet.user.id not in wallet_lookup_by_userid:
-           wallet_lookup_by_userid[wallet.user.id] = wallet
+           wallet_lookup_by_userid[wallet.user.id] = wallet.id
         else:
            raise ValueError('user id {0} should not have more than one entry in userwallets'.format(wallet.user.id))
 
@@ -342,9 +352,10 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
         try:
             if trx['category'] == 'receive':
                 if trx['address'] in wallet_lookup_by_addr:
-                    entry = wallet_lookup_by_addr[trx['address']]
+                    wallet_id = wallet_lookup_by_addr[trx['address']]
+                    print ('find wallet[{0}], wallt.id {0}'.format(trx['address'], wallet_id))
                     update_user_wallet_based_on_deposit(
-                          trx, entry, min_trx_confirmation, operator)
+                          trx, wallet_id, min_trx_confirmation, operator)
                 else:
                     logger.error('Transaction {0} with address {1} does not belong to any user'.format(
                             trx['txid'],trx['address']))
@@ -356,9 +367,9 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
                     # means userid parse has issue, the logger should have logged it
                     pass
                 elif userid in wallet_lookup_by_userid:
-                    entry = wallet_lookup_by_userid[userid]
+                    wallet_id = wallet_lookup_by_userid[userid]
                     update_user_wallet_based_on_redeem(
-                          trx, entry, min_trx_confirmation, operator)
+                          trx, wallet_id, min_trx_confirmation, operator)
                 else:
                     logger.error('Could not find user wallet for Transaction {0} with  comment {1} '.format(
                             trx['txid'],trx['comment']))
