@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import sys
-sys.path.append('../stakingsvc/')
 
 from django.conf import settings
 from django.db.models import Q

@@ -1,17 +1,22 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
-from tradeex.utils import *
-from tradeex.data.traderesponse import APIResponseBase
-
 import json
 
-class TradeAPIResponse(APIResponseBase):
+from tradeex.utils import *
+
+class TradeAPIResponse(object):
     def __init__(self, apikey, secret_key, return_code, return_msg, result_code, 
             result_msg, out_trade_no, trx_bill_no, **kwargs):
-        super(TradeAPIResponse, self).__init__(apikey, return_code, 
-            return_msg, result_code, result_msg,
-            out_trade_no, trx_bill_no, **kwargs)
+
+        self.return_code = return_code
+        self.return_msg = return_msg
+        self.result_code = result_code
+        self.result_msg = result_msg
+        self.apikey = apikey
+        self.out_trade_no = out_trade_no
+        self.trx_bill_no = trx_bill_no
+        self.content_to_sign = ""
+        self.sign = ""
         self.subject = None
         self.attach = None
         self.total_fee = 0
