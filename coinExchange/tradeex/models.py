@@ -44,6 +44,7 @@ class APIUserTransaction(models.Model):
     )
     TRADE_STATUS=(
         ('UNKNOWN', 'Unknown'),
+        ('NOTSTARTED', 'Not Started'),
         ('INPROGRESS', 'InProgress'),
         ('PAIDSUCCESS','PaidSuccess'),
         ('SUCCESS','Success'),

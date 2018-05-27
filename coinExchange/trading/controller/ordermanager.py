@@ -53,28 +53,30 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
         logger.debug('begin trans to create sell order')
         if api_trans_id:
             logger.debug('create_sell_order(): create api_trans with id {0}'.format(api_trans_id))
-            api_trans = APIUserTransaction.objects.create(
-                transactionId = api_trans_id,
-                api_out_trade_no = api_redeem_request.out_trade_no,
-                api_user = api_user,
-                payment_provider = PaymentProvider.objects.get(code= api_redeem_request.payment_provider),
-                payment_account = api_redeem_request.payment_account,
-                action = api_redeem_request.method,
-                client_ip = api_redeem_request.client_ip,
-                subject = api_redeem_request.subject,
-                total_fee = api_redeem_request.total_fee,
-                attach = api_redeem_request.attach,
-                request_timestamp = api_redeem_request.timestamp,
-                original_request = api_redeem_request.original_json_request,
-                payment_provider_last_notify = '',
-                payment_provider_last_notified_at = None,
-                notify_url = api_redeem_request.notify_url,
-                return_url = api_redeem_request.return_url,
-                expire_in_sec=api_redeem_request.expire_minute * 60,
-                created_by = operatorObj,
-                lastupdated_by= operatorObj
-            )
-
+            try:
+                api_trans = APIUserTransaction.objects.get(pk=api_trans_id)
+            except APIUserTransaction.DoesNotExist:
+                api_trans = APIUserTransaction.objects.create(
+                    transactionId = api_trans_id,
+                    api_out_trade_no = api_redeem_request.out_trade_no,
+                    api_user = api_user,
+                    payment_provider = PaymentProvider.objects.get(code= api_redeem_request.payment_provider),
+                    payment_account = api_redeem_request.payment_account,
+                    action = api_redeem_request.method,
+                    client_ip = api_redeem_request.client_ip,
+                    subject = api_redeem_request.subject,
+                    total_fee = api_redeem_request.total_fee,
+                    attach = api_redeem_request.attach,
+                    request_timestamp = api_redeem_request.timestamp,
+                    original_request = api_redeem_request.original_json_request,
+                    payment_provider_last_notify = '',
+                    payment_provider_last_notified_at = None,
+                    notify_url = api_redeem_request.notify_url,
+                    return_url = api_redeem_request.return_url,
+                    expire_in_sec=api_redeem_request.expire_minute * 60,
+                    created_by = operatorObj,
+                    lastupdated_by= operatorObj
+                )
             # check current available balance of api user's cny balance 
             user_cny_wallet = UserWallet.objects.select_for_update().get(user__id = userobj.id, wallet__cryptocurrency__currency_code ='CNY')
             total_fee_in_units = round(float(api_redeem_request.total_fee)/100.0,8)
@@ -82,6 +84,8 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
                 logger.error("user {0} does not have enough CNY in wallet: available {1} to be sold {2}".format(
                 userobj.username, user_cny_wallet.available_balance, total_fee_in_units 
                 ))
+                api_trans.trade_status = 'NOTSTARTED'
+                api_trans.payment_status = 'NOTSTARTED'
                 # return transId but none orderId meaning there is no enough fund in the cny wallet
                 api_trans.save()
                 return None
@@ -120,6 +124,8 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
                 orderRecord.order_id, api_trans.transactionId
             ))
             api_trans.reference_order = orderRecord
+            api_trans.payment_status = 'NOTSTARTED'
+            api_trans.trade_status = 'INPROGRESS'
             api_trans.save()
          
         userwallet.locked_balance = userwallet.locked_balance + order.total_units

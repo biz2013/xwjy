@@ -170,27 +170,34 @@ class TradeExchangeManager(object):
         return api_trans
 
 
-    def post_sell_order(self, request_obj, api_user):
+    def post_sell_order(self, request_obj, api_user, api_trans=None):
+        if not request_obj and not api_trans:
+            raise ValueError('post_sell_order(): request_obj and api_trans cannot be None at the same time')
         current_sell_orders = self.get_active_sell_orders('AXFund', 'CNY')
         unit_price = self.decide_sell_price(current_sell_orders)
-        api_trans_id = 'API_TX_{0}'.format(
-                dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
-        )
+        if not api_trans:
+            api_trans_id = 'API_TX_{0}'.format(
+                    dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
+            )
+        else:
+            api_trans_id = api_trans.transactionId
+        
+        total_fee = request_obj.total_fee if request_obj else api_trans.total_fee
         order_item = OrderItem('', # order_id empty for purchase
                api_user.user.id, 
                '',  # no need for user login of the order
                unit_price,
                'CNY',
-               round(request_obj.total_fee / unit_price, 8),
+               round(total_fee / unit_price, 8),
                0,  # no need for available_units
-               request_obj.total_fee,
+               total_fee,
                'AXFund',
                '', # no need for lastmodified_at
                '', # no need for status
                'BUY',
                sub_type='ALL_OR_NOTHING',
-               selected_payment_provider= request_obj.payment_provider,
-               account_at_payment_provider = request_obj.payment_account,
+               selected_payment_provider= request_obj.payment_provider if request_obj else None,
+               account_at_payment_provider = request_obj.payment_account if request_obj else None,
                order_source = 'API') # order type is buy
         order_id = ordermanager.create_sell_order(order_item, 'admin', api_user, request_obj, api_trans_id)
         return APIUserTransactionManager.get_transaction_by_id(api_trans_id), order_id

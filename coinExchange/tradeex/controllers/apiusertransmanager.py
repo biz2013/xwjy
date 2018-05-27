@@ -41,6 +41,10 @@ class APIUserTransactionManager(object):
             raise ValueError('MORE_THAN_ONE_APIUSERTRANSACT')
     
     @staticmethod
+    def get_pending_redeems():
+        return APIUserTransaction.objects.filter(reference_order__isnull = True, action = 'wallet.trade.sell')
+        
+    @staticmethod
     def update_notification_status(trx_id, notify, notify_resp, comment):
         try:
             if not APIUserTransaction.objects.filter(

@@ -10,6 +10,7 @@ from django.utils import timezone
 
 # this is for test UI. A fake one
 from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
+from tradeex.controllers.tradex import TradeExchangeManager
 from trading.config import context_processor
 from trading.controller.global_constants import *
 from trading.controller.global_utils import *
@@ -25,6 +26,10 @@ from django.contrib.auth.decorators import login_required
 
 
 logger = logging.getLogger("site.order_batch_process")
+
+def handle_pend_api_trans(api_trans):
+    tradex = TradeExchangeManager()
+    tradex.post_sell_order(None, api_trans.api_user, api_trans)
 
 def handle_paying_order(order, order_timeout, appId, appkey):
     try:
@@ -107,14 +112,18 @@ def order_batch_process(request):
             if api_trans:
                 api_trans.refresh_from_db()
                 if api_trans.trade_status == 'PaidSuccess' and api_trans.trade_status != old_trade_status:
-                    APIUserTransactionManager.on_trans_paid_succss(api_trans)
+                    APIUserTransactionManager.on_trans_paid_success(api_trans)
                     api_trans.refresh_from_db()
                     if api_trans.trade_status == 'Success':
                         APIUserTransactionManager.on_found_success_purchase_trans(api_trans)
 
                 elif api_trans.trade_status in ['ExpiredInvald', 'UserAbandon', 'DevClose'] and api_trans.trade_status != old_trade_status:
                     APIUserTransactionManager.on_trans_cancelled(api_trans)
-                    
+
+        api_transacts = APIUserTransactionManager.get_pending_redeems()
+        for api_trans in api_transacts:
+            handle_pending_redeem_trans(api_trans)
+    
         return HttpResponse(content='OK')
     except Exception as e:
         error_msg = 'order_batch_process hit eception {0}'.format(sys.exc_info()[0])
