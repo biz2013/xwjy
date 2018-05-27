@@ -148,28 +148,6 @@ class TestPrepurchase(TransactionTestCase):
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
         return True
 
-    def test_purchase_user_not_found_api_key(self):
-        request = TradeAPIRequest('api_key_not_exist', 'secrete_not_exist',
-                '20180320222600_123', # order id
-                0.05, # total fee
-                10, # expire_minute
-                'heepay', '12738456',
-                '127.0.0.1', #client ip
-                attach='userid:1',
-                notify_url='http://testurl',
-                return_url='http://retururl')
-        c = Client()
-        request_str = request.getPayload()
-        print('send request {0}'.format(request_str))
-        response = c.post('/tradeex/purchasetoken/', request_str,
-                          content_type='application/json')
-
-        self.assertEqual(200, response.status_code)
-        resp_json = json.loads(response.content)
-        self.assertEqual(resp_json['return_code'], 'FAIL')
-        self.assertEqual(resp_json['return_msg'], '系统错误:通知系统服务')
-        #TODO: show user not found?
-
     def validate_user_info(self, username):
         wallet_count = len(UserWallet.objects.all())
         self.assertTrue(wallet_count==7, "There should be 7 user wallets but have {0}".format(wallet_count))
@@ -293,15 +271,50 @@ class TestPrepurchase(TransactionTestCase):
         #HeepayNotification.parseFromJson(output_json, api_trans.api_user.secretKey, False)
         return output_json
 
-    def test_purchase_no_fitting_order(self):
+    def test_purchase_bad_user_account(self):
         self.create_no_fitting_order()
-        request = TradeAPIRequest('hyq17121610000800000911220E16AB0', '4AE4583FD4D240559F80ED39',
+        request = TradeAPIRequest(
+                'wallet.trade.buy',
+                'user_does_not_exist',
+                'secret_key_not_exist',
                 'order_no_order', # order id
+                None, # trx_id
                 620, # total fee
                 10, # expire_minute
                 'heepay', '12738456',
                 '127.0.0.1', #client ip
                 attach='userid:1',
+                subject='人民币充值测试-账号不存在',
+                notify_url='http://testurl',
+                return_url='http://retururl')
+        c = Client()
+        request_str = request.getPayload()
+        print('send request {0}'.format(request_str))
+        response = c.post('/tradeex/purchasetoken/', request_str,
+                          content_type='application/json')
+
+        print('response is {0}'.format(json.dumps(json.loads(response.content), ensure_ascii=False)))
+
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content)
+        self.assertEqual(resp_json['return_code'], 'FAIL')
+        self.assertEqual(resp_json['return_msg'], '未找到您的账户:通知系统服务')
+        #TODO: show user not found?
+
+    def test_purchase_no_fitting_order(self):
+        self.create_no_fitting_order()
+        request = TradeAPIRequest(
+                'wallet.trade.buy',
+                TEST_API_USER1_APPKEY,
+                TEST_API_USER1_SECRET,
+                'order_no_order', # order id
+                None, # trx_id
+                620, # total fee
+                10, # expire_minute
+                'heepay', '12738456',
+                '127.0.0.1', #client ip
+                attach='userid:1',
+                subject='人民币充值测试-没有合适卖单',
                 notify_url='http://testurl',
                 return_url='http://retururl')
         c = Client()
@@ -324,13 +337,18 @@ class TestPrepurchase(TransactionTestCase):
         # is selected for the purchase, this update will failed the test.
         updated = UserPaymentMethod.objects.filter(user__username='tttzhang2000@yahoo.com').filter(provider__code='heepay').update(account_at_provider='bad_user_account')
         self.assertTrue(updated, 'change tttzhang2000@yahoo.com\'s heepay account should be successful')
-        request = TradeAPIRequest('hyq17121610000800000911220E16AB0', '4AE4583FD4D240559F80ED39',
+        request = TradeAPIRequest(
+                'wallet.trade.buy',
+                TEST_API_USER1_APPKEY,
+                TEST_API_USER1_SECRET,
                 'order_match', # order id
+                None, # trx _id
                 62, # total fee
                 10, # expire_minute
-                'heepay', '12738456',
+                'heepay', 'not_exist',
                 '127.0.0.1', #client ip
                 attach='userid:1',
+                subject='人民币充值测试-没有付款账号',
                 notify_url=TEST_NOTIFY_URL,
                 return_url='http://retururl')
         c = Client()

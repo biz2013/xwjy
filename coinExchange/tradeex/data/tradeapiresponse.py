@@ -40,8 +40,7 @@ class TradeAPIResponse(object):
         #        raise ValueError('PurchaseAPIResponse: miss payment_url')
         #    if 0 == self.total_fee
         #        raise ValueError('PurchaseAPIResponse: miss total_fee')
-
-        self.sign = sign_api_content(self.__get_content_to_be_signed(), secret_key)
+        self.sign = sign_api_content(self.__get_content_to_be_signed(), secret_key) if secret_key else ''
     
     def __get_content_to_be_signed(self):
         content_json = {}
@@ -53,20 +52,21 @@ class TradeAPIResponse(object):
         resp_json = {}
         resp_json['return_code'] = self.return_code
         resp_json['return_msg'] = self.return_msg
-        resp_json['result_code'] = self.result_code
-        resp_json['result_msg'] = self.result_msg
-        resp_json['api_key'] = self.apikey
-        resp_json['total_fee'] = self.total_fee
-        resp_json['out_trade_no'] = self.out_trade_no
-        resp_json['trx_bill_no'] = self.trx_bill_no
-        if self.payment_url:
-            resp_json['payment_url'] = self.payment_url
-        if self.subject:
-            resp_json['subject'] = self.subject
-        if self.attach:
-            resp_json['attach'] = self.attach
-        if self.trade_status:
-            resp_json['trade_status'] = self.trade_status
-            
-        resp_json['sign'] = self.sign
+        if self.sign:
+            resp_json['result_code'] = self.result_code
+            resp_json['result_msg'] = self.result_msg
+            resp_json['api_key'] = self.apikey
+            resp_json['total_fee'] = self.total_fee
+            resp_json['out_trade_no'] = self.out_trade_no
+            resp_json['trx_bill_no'] = self.trx_bill_no
+            if self.payment_url:
+                resp_json['payment_url'] = self.payment_url
+            if self.subject:
+                resp_json['subject'] = self.subject
+            if self.attach:
+                resp_json['attach'] = self.attach
+            if self.trade_status:
+                resp_json['trade_status'] = self.trade_status
+                
+            resp_json['sign'] = self.sign
         return resp_json

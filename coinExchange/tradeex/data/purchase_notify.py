@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from tradeex.utils import *
-from tradeex.data.traderesponse import APIResponseBase
 
 import json
 
