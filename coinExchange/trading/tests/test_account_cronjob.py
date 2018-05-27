@@ -15,7 +15,7 @@ import sys, traceback, time, json, math
 test_data1 = json.load(open('trading/tests/data/trx_test_data1.json'))
 test_data2 = json.load(open('trading/tests/data/trx_test_data2.json'))
 class AccountCronJobTestCase(TransactionTestCase):
-    fixtures = ['fixture_for_tests.json']
+    fixtures = ['fixture_for_account_cronjob.json']
 
     def setUp(self):
         try:
@@ -33,7 +33,7 @@ class AccountCronJobTestCase(TransactionTestCase):
           wallet_addr='AGqfmz49fVFpdoKRfaw2zN7CikWAhUsYdE',
           lastupdated_at = dt.datetime.utcnow())
         if not updated:
-            fail('Did not find userwallet for taozhang')
+            self.fail('Did not find userwallet for taozhang')
         taozhang = User.objects.get(username='taozhang')
         print ('taozhang\'s userid is {0}'.format(taozhang.id))
         updated = UserWallet.objects.filter(user__username='yingzhou',
@@ -54,6 +54,9 @@ class AccountCronJobTestCase(TransactionTestCase):
 
         user1_wallet = UserWallet.objects.get(user__username='taozhang',
                   wallet__cryptocurrency__currency_code = 'AXFund')
+        print ('about to test user_Wallet {0} user {1}'.format(
+            user1_wallet.id, user1_wallet.user.id
+        ))
         user2_wallet = UserWallet.objects.get(user__username='yingzhou',
                   wallet__cryptocurrency__currency_code = 'AXFund')
         self.assertEqual(101, user1_wallet.balance)
@@ -91,7 +94,7 @@ class AccountCronJobTestCase(TransactionTestCase):
 
         mock_listtransactions.return_value = test_data2
         c = Client()
-        response = c.get('/account/cron/update_receive/')
+        response = c.get('/trading/account/cron/update_receive/')
         self.assertEqual(200, response.status_code)
 
         user1_wallet = UserWallet.objects.get(user__username='taozhang',
@@ -131,7 +134,7 @@ class AccountCronJobTestCase(TransactionTestCase):
         # rerun should not make any problem
         mock_listtransactions.return_value = test_data2
         c = Client()
-        response = c.get('/account/cron/update_receive/')
+        response = c.get('/trading/account/cron/update_receive/')
         self.assertEqual(200, response.status_code)
 
         user1_wallet = UserWallet.objects.get(user__username='taozhang',
