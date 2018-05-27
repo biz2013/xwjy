@@ -1,9 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import sys
-sys.path.append('../stakingsvc/')
+import hashlib
+import logging
+
+logger = logger = logging.getLogger("tradeex.utils")
 
 from tradeex.data.tradeapiresponse import TradeAPIResponse
+
 
 def sign_api_content(json, secret_key):
     sorted_keys = sorted(json.keys())
