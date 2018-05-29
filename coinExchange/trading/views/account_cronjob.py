@@ -34,6 +34,8 @@ def update_account_with_receiving_fund(request):
        # get all past 10000 transactions in wallet
        trans = axfd_tool.listtransactions()
 
+       logger.info("update_account_with_receiving_fund(): query axfund transactions and update user wallet...")
+
        useraccountinfomanager.update_account_balance_with_wallet_trx(
             'AXFund', trans, min_trx_confirmation)
        return HttpResponse('OK')
