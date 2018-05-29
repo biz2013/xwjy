@@ -383,9 +383,72 @@ class PurchaseTestCase(TransactionTestCase):
 
             print('test_2_purchase_view(): there should be just 2 trans ...')
             wallet_trans = UserWalletTransaction.objects.all()
-            count_of_wallet_trans = len(wallet_trans)
-            if (count_of_wallet_trans != 2):
-                self.fail('There should be 2 wallet trans after receiving confirmation but we hit {0}'.format(count_of_wallet_trans))
+            self.assertEqual(1, len(wallet_trans), 'There should be 1 wallet trans after receiving confirmation')
+
+            #After heepay notification, only update the purchase order and its purchase trans, so we
+            #verify that first.
+            print('test_2_purchase_view(): verify buyer wallet after heepay notifiction ...')
+            buyer_wallet_trans.refresh_from_db()
+            self.assertEqual('CREDIT', buyer_wallet_trans.balance_update_type)
+            self.assertEqual(purchase_order.order_id, buyer_wallet_trans.reference_order.order_id)
+            self.assertEqual(buyer_wallet.id, buyer_wallet_trans.user_wallet.id)
+            self.assertEqual(old_buyer_balance, buyer_wallet_trans.balance_begin)
+            self.assertEqual(buyer_wallet.balance, buyer_wallet_trans.balance_end)
+            self.assertEqual(old_buyer_locked_balance, buyer_wallet_trans.locked_balance_begin)
+            self.assertEqual(buyer_wallet.locked_balance, buyer_wallet_trans.locked_balance_end)
+            self.assertEqual(old_buyer_available_balance, buyer_wallet_trans.available_to_trade_begin)
+            self.assertEqual(buyer_wallet.available_balance, buyer_wallet_trans.available_to_trade_end)
+            self.assertEqual(u'', buyer_wallet_trans.reference_wallet_trxId)
+            self.assertEqual(purchase_units, buyer_wallet_trans.units)
+            self.assertEqual(total_amount, buyer_wallet_trans.fiat_money_amount)
+            self.assertEqual(TEST_HY_BILL_NO, buyer_wallet_trans.payment_bill_no)
+            self.assertEqual('heepay', buyer_wallet_trans.payment_provider.code)
+            self.assertEqual('SUCCESS', buyer_wallet_trans.payment_status)
+            self.assertEqual('OPEN BUY ORDER', buyer_wallet_trans.transaction_type)
+            self.assertEqual('PENDING', buyer_wallet_trans.status)
+            self.assertEqual('yingzhou', buyer_wallet_trans.created_by.username)
+            self.assertEqual('admin', buyer_wallet_trans.lastupdated_by.username)
+            lcreated_timestamp = timegm(buyer_wallet_trans.created_at.utctimetuple())
+            self.assertTrue(abs(lcreated_timestamp - ltimestamp_now) < 120)
+            llastupdated_timestamp = timegm(buyer_wallet_trans.lastupdated_at.utctimetuple())
+            self.assertTrue(abs(llastupdated_timestamp - ltimestamp_now) < 120)
+
+            print('test_2_purchase_view(): verify purchase after heepay notification ...')
+            purchase_order.refresh_from_db()
+            self.assertEqual('PAID', purchase_order.status)
+            self.assertEqual('BUY', purchase_order.order_type)
+            self.assertEqual('BUY_ON_ASK', purchase_order.sub_type)
+            self.assertEqual('heepay', purchase_order.selected_payment_provider.code)
+            self.assertEqual('AXFund', purchase_order.cryptocurrency.currency_code)
+            self.assertEqual(old_sell_order_unit_price, purchase_order.unit_price)
+            self.assertEqual(old_sell_order_unit_price_currency, purchase_order.unit_price_currency)
+            self.assertEqual(purchase_units, purchase_order.units)
+            self.assertEqual(0.0, purchase_order.units_available_to_trade)
+            self.assertEqual(0.0, purchase_order.units_locked)
+            self.assertEqual('yingzhou', purchase_order.created_by.username)
+            self.assertEqual('admin', purchase_order.lastupdated_by.username)
+            llastupdated_timestamp = timegm(purchase_order.lastupdated_at.utctimetuple())
+            self.assertTrue(abs(llastupdated_timestamp - ltimestamp_now) < 120)
+
+            #----------------------------------------------------------------------------
+            # now run the order batch process to create the update seller order/trans
+            # and update both buyer/seller's wallet
+
+            # turn the confirmation timeout out for now, otherwise the order batch process
+            # won't commit the change
+            sitesettings = SiteSettings.objects.all()[0]
+            sitesettings.confirmation_timeout_insec = 0
+            sitesettings.save()
+
+            c = Client()
+            c.login(username='yingzhou', password='user@123')
+            response = c.get('/trading/account/cron/order_batch_process/')
+            print('test_2_purchase_view(): order batch process return {0}'.format(response.content))
+            #print 'purchase view template {0}'.format(response.templates)
+            self.assertEqual(200, response.status_code)
+
+            wallet_trans = UserWalletTransaction.objects.all()
+            self.assertEqual(2, len(wallet_trans), 'There should be 2 wallet trans after receiving confirmation')
 
             print('test_2_purchase_view(): verify seller wallet balance ...')
             seller_wallet.refresh_from_db()
@@ -482,7 +545,6 @@ class PurchaseTestCase(TransactionTestCase):
             self.assertEqual('FILLED', purchase_order.status)
             self.assertEqual('BUY', purchase_order.order_type)
             self.assertEqual('BUY_ON_ASK', purchase_order.sub_type)
-            self.assertEqual('FILLED', purchase_order.status)
             self.assertEqual('heepay', purchase_order.selected_payment_provider.code)
             self.assertEqual('AXFund', purchase_order.cryptocurrency.currency_code)
             self.assertEqual(old_sell_order_unit_price, purchase_order.unit_price)
