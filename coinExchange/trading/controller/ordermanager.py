@@ -462,7 +462,8 @@ def update_purchase_transaction(purchase_trans, trade_status, trade_msg):
         purchase_trans.status = 'PROCESSED'
     purchase_trans.save()
 
-def get_order_associated_api_trans(buy_order_id):
+def get_associated_api_trans_of_buyorder(buy_order_id):
+    logger.info('get_order_associated_api_trans({0})'.format(buy_order_id))
     order = Order.objects.get(order_id = buy_order_id)
     if order.order_type != 'BUY':
         raise ValueError('UNEXPECTED_BUY_ORDER')
@@ -470,20 +471,23 @@ def get_order_associated_api_trans(buy_order_id):
     api_order_id = None
     if order.order_source == 'API':
         api_order_id = order.order_id
-    elif order.reference_order.order_source == 'API':
+    elif order.reference_order and order.reference_order.order_source == 'API':
         api_order_id = order.reference_order.order_id
     else:
+        logger.info('get_associated_api_trans_of_buyorder({0}): order has no associated api_trans'.format(
+            buy_order_id
+        ))
         return None
 
     try:
         return APIUserTransaction.objects.get(reference_order__order_id= api_order_id)
     except APIUserTransaction.DoesNotExist:
-        logger.error('get_sell_order_associated_api_trans(): buyorder {0} or its sell order {1}\'s associated api transaction could not be found'.format(
+        logger.error('get_associated_api_trans_of_buyorder({0}): the order or its sell order {1}\'s associated api transaction could not be found'.format(
             buy_order_id, order.reference_order.order_id
         ))
         raise ValueError('API_TRANS_SHOULD_HAVE_EXISTED')
     except APIUserTransaction.MultipleObjectsReturned:
-        logger.error('get_sell_order_associated_api_trans(): buyorder {0} or its sell order {1} has more than one associated api transaction'.format(
+        logger.error('get_associated_api_trans_of_buyorder({0}): the order or its sell order {1} has more than one associated api transaction'.format(
             buy_order_id, order.reference_order.order_id
         ))
         raise ValueError('TOO_MANY_ASSOCIATED_API_TRANS')
@@ -537,6 +541,7 @@ def update_order_with_heepay_notification(notify_json, operator):
 
         # release lock at the last moment
         purchase_trans.payment_status = 'SUCCESS'
+        # we still make status = 'PENDING'
         purchase_trans.lastupdated_by = operatorObj
         purchase_trans.save()
 
@@ -612,6 +617,9 @@ def confirm_purchase_order(order_id, operator):
           created_by = operatorObj,
           lastupdated_by = operatorObj
         )
+
+        seller_userwallet_trans.save()
+
         purchase_trans.balance_begin = buyer_user_wallet.balance
         purchase_trans.balance_end = buyer_user_wallet.balance + buyorder.units
         purchase_trans.locked_balance_begin = buyer_user_wallet.locked_balance

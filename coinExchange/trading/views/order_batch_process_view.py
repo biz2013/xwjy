@@ -68,9 +68,12 @@ def handle_paying_order(order, order_timeout, appId, appkey):
 
 def handle_paid_order(order, confirmation_timeout):
     try:
-        logger.info("handle_paid_order {0}".format(order.order_id))
+        logger.info("handle_paid_order({0}, {1})".format(order.order_id, confirmation_timeout))
         timediff = timezone.now() - order.lastupdated_at
-        if int(timediff.total_seconds()) > confirmation_timeout:
+        logger.info('handle_paid_order({0}, {1}): time elapse is {2}'.format(
+            order.order_id, confirmation_timeout, int(timediff.total_seconds())
+        ))
+        if int(timediff.total_seconds()) >= confirmation_timeout:
             ordermanager.confirm_purchase_order(order.order_id, 'admin')
     except Exception as e:
         error_msg = 'handle_paid_order hit eception {0}'.format(sys.exc_info()[0])
@@ -80,7 +83,7 @@ def handle_open_order(order, sell_order_timeout):
     try:
         logger.info("handle_open_order {0}".format(order.order_id))
         timediff = timezone.now() - order.lastupdated_at
-        if int(timediff.total_seconds()) > sell_order_timeout:
+        if int(timediff.total_seconds()) >= sell_order_timeout:
             ordermanager.cancel_purchase_order(order,
               'CANCELLED', 'UNKNOWN', 'admin')
     except Exception as e:
@@ -95,7 +98,9 @@ def order_batch_process(request):
         appId = sitesettings.heepay_app_id
         appKey = sitesettings.heepay_app_key
         orders = backend_order_processor.get_unfilled_purchase_orders()
+        logger.info('order_batch_process(): found {0} unfilled purchase order'.format(len(orders)))
         for order in orders:
+            logger.info('order_batch_process(): processing order {0} status {1}'.format(order.order_id, order.status))
             api_trans = None
             if order.order_source == 'API':
                 api_trans = APIUserTransactionManager.get_trans_by_reference_order(order.order_id)
