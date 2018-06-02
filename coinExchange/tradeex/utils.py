@@ -13,9 +13,10 @@ def sign_api_content(json_input, secret_key):
     str_to_be_signed = ""
     for key in sorted_keys:
         str_to_be_signed = '{0}{1}={2}&'.format(str_to_be_signed, key, json_input[key])
-    logger.info("after for loop ")
+    logger.info('after for loop %s' % str_to_be_signed)
     str_to_be_signed = '{0}key={1}'.format(str_to_be_signed, secret_key)
-    logger.info("str_to_be_signed={0}".format(str_to_be_signed))
+    logger.info('after end %s' % str_to_be_signed)
+    logger.info('str_to_be_signed={0}'.format(str_to_be_signed))
     m = hashlib.md5()
     logger.debug("sign_api_content(): str to be signed {0}".format(str_to_be_signed))
     m.update(str_to_be_signed.encode('utf-8'))
