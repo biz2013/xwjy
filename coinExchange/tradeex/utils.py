@@ -2,16 +2,18 @@
 # -*- coding: utf-8 -*-
 import sys
 import hashlib
-import logging
+import logging, json
 
 logger = logging.getLogger("tradeex.utils")
 
 def sign_api_content(json_input, secret_key):
-    logger.info("sign_api_content({0})".format(json_input))
+    logger.info("sign_api_content({0})".format(json.dumps(json_input, ensure_ascii=False)))
     sorted_keys = sorted(json_input.keys())
+    logger.info("sorted ")
     str_to_be_signed = ""
     for key in sorted_keys:
         str_to_be_signed = '{0}{1}={2}&'.format(str_to_be_signed, key, json_input[key])
+    logger.info("after for loop ")
     str_to_be_signed = '{0}key={1}'.format(str_to_be_signed, secret_key)
     logger.info("str_to_be_signed={0}".format(str_to_be_signed))
     m = hashlib.md5()
