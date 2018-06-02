@@ -61,7 +61,10 @@ def setupbasic(operator):
     return True
 
 def create_user(username, password, email, apiaccount, appId, secret, payment_account, operator):
-    wallet = Wallet.objects.get(cryptocurrency__currency_code = 'CNY')
+    cny_wallet = Wallet.objects.get(cryptocurrency__currency_code = 'CNY')
+    axf_wallet = Wallet.objects.get(cryptocurrency__currency_code = 'AXFund')
+    print('axfund wallet id is {0}'.format(axf_wallet.id))
+
     try:
         user1 = User.objects.get(username = username)
         logger.info("{0} user object already exists".format(username))
@@ -98,12 +101,12 @@ def create_user(username, password, email, apiaccount, appId, secret, payment_ac
         return False
     
     try:
-        userwallet = UserWallet.objects.get(user__id = user1.id, wallet__id = wallet.id)
+        userwallet = UserWallet.objects.get(user__id = user1.id, wallet__id = cny_wallet.id)
         logger.info('userwallet {0}:{1} already exists'.format(
                 userwallet.id, userwallet.wallet_addr         
         ))
     except UserWallet.DoesNotExist:
-        existingwallets = UserWallet.objects.filter(user__isnull = True, wallet__id = wallet.id)
+        existingwallets = UserWallet.objects.filter(user__isnull = True, wallet__id = cny_wallet.id)
         if len(existingwallets) > 0:
             pickedwallet = UserWallet.objects.select_for_update().get(id = existingwallets[0].id)
             pickedwallet.user = user1
@@ -117,7 +120,7 @@ def create_user(username, password, email, apiaccount, appId, secret, payment_ac
             addr = cnyutil.create_wallet_address()
             userwallet=UserWallet.objects.create(
                 user = user1,
-                wallet = wallet,
+                wallet = cny_wallet,
                 wallet_addr = addr,
                 created_by = operator,
                 lastupdated_by = operator
@@ -131,11 +134,37 @@ def create_user(username, password, email, apiaccount, appId, secret, payment_ac
     except UserWallet.MultipleObjectsReturned:
         logger.error('There are more than one user wallet for api user {0}'.format(username))
         return False
-    
+
+    try:
+        axf_userwallet = UserWallet.objects.get(user__id = user1.id, wallet__id = axf_wallet.id)
+        logger.info('axf userwallet {0}:{1} already exists'.format(
+                axf_userwallet.id, axf_userwallet.wallet_addr         
+        ))
+    except UserWallet.DoesNotExist:
+        axf_existingwallets = UserWallet.objects.filter(user__isnull = True, wallet__id = axf_wallet.id)
+        if len(axf_existingwallets) > 0:
+            pickedwallet = UserWallet.objects.select_for_update().get(id = axf_existingwallets[0].id)
+            pickedwallet.user = user1
+            pickedwallet.lastupdated_by = operator
+            pickedwallet.save()
+            logger.info('Assign userwallet {0}:{1} to user {2}'.format(
+                axf_existingwallets[0].id, axf_existingwallets[0].wallet_addr, username
+            ))
+        else:
+            logger.error('There is not existing axf wallet for new user')
+            return False
+    except UserWallet.MultipleObjectsReturned:
+        logger.error('There are more than one user wallet for api user {0}'.format(username))
+        return False
+
     heepay = PaymentProvider.objects.get(pk='heepay')
     try:
         userpayment = UserPaymentMethod.objects.get(user__id = user1.id, provider__code = heepay.code)
         logger.info('user {0} has heepay account {1}'.format(user1.username, userpayment.account_at_provider))
+        userpayment.account_at_provider = payment_account
+        userpayment.lastupdated_by = operator
+        userpayment.save()
+
     except UserPaymentMethod.DoesNotExist:
         UserPaymentMethod.objects.create(
             user = user1,
@@ -164,7 +193,7 @@ def setuptestuser(request):
                 raise ValueError('failed to create test user')
             if not create_user('api_test_user2', '---', 'yingzhuu@yahoo.ca', 
                 '1000-0002', 'api_test_user_appId2', 'api_test_user_secrets2', 
-                '13910978598', login):
+                '13641388306', login):
                 raise ValueError('failed to create test user')
     except ValueError:
         logger.error('Create test user has issue')
