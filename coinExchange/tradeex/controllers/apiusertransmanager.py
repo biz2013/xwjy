@@ -337,7 +337,8 @@ class APIUserTransactionManager(object):
                     api_trans.transactionId
                 ))
                 crypto_util = WalletManager.create_fund_util('CNY')
-                comment = 'amount:{0},trxId:{1},out_trade_no:{2}'.format(total_cny_in_units, 
+                comment = 'userId:{0},amount:{1},trxId:{2},out_trade_no:{3}'.format(
+                    api_trans.api_user.user.id, total_cny_in_units, 
                     api_trans.transactionId, api_trans.api_out_trade_no)
                 try:
                     crypto_trans = crypto_util.send_fund(external_crypto_addr, total_cny_in_units, comment)
