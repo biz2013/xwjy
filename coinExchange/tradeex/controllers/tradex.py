@@ -35,7 +35,7 @@ class TradeExchangeManager(object):
         # query all the orders that best fit the buy order
         return Order.objects.filter(Q(status='OPEN') & Q(order_type='SELL') &
                ~Q(sub_type='ALL_OR_NOTHING') & Q(total_amount__gt=amount) & 
-               Q(unit_price_currency=currency) & Q(cryptocurrency=crypto)).order_by('total_amount', '-created_at')
+               Q(unit_price_currency=currency) & Q(cryptocurrency__currency_code=crypto)).order_by('total_amount', '-created_at')
 
     def get_active_sell_orders(self, crypto, currency):
         return Order.objects.filter(Q(status='OPEM') & Q(order_type='BUY') &
