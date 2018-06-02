@@ -361,8 +361,6 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
     for wallet in user_wallets:
         if wallet.wallet_addr not in wallet_lookup_by_addr:
            wallet_lookup_by_addr[wallet.wallet_addr]= wallet.id
-               wallet.wallet_addr, wallet.id
-           ))
         else:
            raise ValueError('address {0} should not have more than one entry in userwallets'.format(wallet.wallet_addr))
 
