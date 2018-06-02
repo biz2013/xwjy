@@ -60,7 +60,7 @@ def setupbasic(operator):
     
     return True
 
-def create_user(username, password, email, apiaccount, appId, secret, operator):
+def create_user(username, password, email, apiaccount, appId, secret, payment_account, operator):
     wallet = Wallet.objects.get(cryptocurrency__currency_code = 'CNY')
     try:
         user1 = User.objects.get(username = username)
@@ -140,7 +140,7 @@ def create_user(username, password, email, apiaccount, appId, secret, operator):
         UserPaymentMethod.objects.create(
             user = user1,
             provider = heepay,
-            account_at_provider = '13910978598',
+            account_at_provider = payment_account,
             created_by = operator,
             lastupdated_by = operator            
         ).save()
@@ -159,10 +159,12 @@ def setuptestuser(request):
             if not setupbasic(login):
                 raise ValueError('failed to setup basics')
             if not create_user('api_test_user1', '---', 'tttzhang2000@yahoo.com', 
-                '1000-0001', 'api_test_user_appId1', 'api_test_user_secrets1', login):
+                '1000-0001', 'api_test_user_appId1', 'api_test_user_secrets1',
+                '13910978598', login):
                 raise ValueError('failed to create test user')
             if not create_user('api_test_user2', '---', 'yingzhuu@yahoo.ca', 
-                '1000-0002', 'api_test_user_appId2', 'api_test_user_secrets2', login):
+                '1000-0002', 'api_test_user_appId2', 'api_test_user_secrets2', 
+                '13910978598', login):
                 raise ValueError('failed to create test user')
     except ValueError:
         logger.error('Create test user has issue')
