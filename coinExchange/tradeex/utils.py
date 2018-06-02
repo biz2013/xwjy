@@ -14,7 +14,7 @@ def sign_api_content(json_input, secret_key):
     for key in sorted_keys:
        logger.info('in loop str_to_be_signed={0}'.format(str_to_be_signed))
        logger.info('in loop key={0}'.format(key))
-       str_to_be_signed = '{0}{1}=2&'.format(str_to_be_signed, key, json_input[key])
+       str_to_be_signed = '{0}{1}={2}&'.format(str_to_be_signed, key, json_input[key])
     logger.info('after for loop %s' % str_to_be_signed)
     str_to_be_signed = '{0}key={1}'.format(str_to_be_signed, secret_key)
     logger.info('after end %s' % str_to_be_signed)
