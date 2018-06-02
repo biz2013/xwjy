@@ -105,7 +105,7 @@ class TradeAPIRequest(object):
         jsonobj['timestamp'] = self.timestamp
         biz_content_json = self.__get_biz_content_json()
 
-        jsonobj['biz_content'] = json.dumps(biz_content_json, ensure_ascii=False)
+        jsonobj['biz_content'] = json.dumps(biz_content_json, ensure_ascii=False, sort_keys=True)
         return jsonobj
 
     def is_valid(self, secret_key):

@@ -39,7 +39,7 @@ class TestSetupUser(TestCase):
                 notify_url=test_notify_url,
                 return_url=test_return_url)
 
-        c = APIClient('http://54.203.195.52//tradeex/purchasetoken/')
+        c = APIClient('http://54.203.195.52/tradeex/purchasetoken/')
         request_str = request.getPayload()
         resp_json = c.send_json_request(json.loads(request_str))
         print('reply is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
