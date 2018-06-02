@@ -4,7 +4,7 @@ import sys
 import hashlib
 import logging
 
-logger = logger = logging.getLogger("tradeex.utils")
+logger = logging.getLogger("tradeex.utils")
 
 def sign_api_content(json, secret_key):
     sorted_keys = sorted(json.keys())
