@@ -15,7 +15,7 @@ TEST_PURCHASE_AMOUNT = 1
 # Create your tests here.
 class TestSetupUser(TestCase):
 
-    def test_setupuser(self, create_wallet_address_function):
+    def test_purchase_api_call(self):
         app_id = TEST_API_USER1_APPKEY
         secret_key = TEST_API_USER1_SECRET
         test_out_trade_no = 'order_to_purchase'
@@ -41,6 +41,6 @@ class TestSetupUser(TestCase):
 
         c = APIClient('http://54.203.195.52//tradeex/purchasetoken/')
         request_str = request.getPayload()
-        resp_json = c.send_json_request(json.loads(request_str))
+        resp_json = c.send_json_request(request_str)
         print('reply is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
 
