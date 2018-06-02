@@ -83,7 +83,7 @@ def show_purchase_input(request):
            '',
            userid,
            username,
-           unit_price,'CYN',
+           unit_price,'CNY',
            total_units, 0,
            0.0, 'AXFund',
            '','','BUY', sub_type = order_sub_type)
