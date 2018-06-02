@@ -111,6 +111,7 @@ class TradeAPIRequest(object):
     def is_valid(self, secret_key):
         self.secret_key = secret_key
         signed = sign_api_content(self.__create_json_to_sign(), secret_key)
+        logger.info('signed is {0} original sign is {1}'.format(signed, self.sign))
         return signed == self.sign
 
     def getPayload(self):
