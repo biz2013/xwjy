@@ -4,6 +4,7 @@ import sys
 
 from django.conf import settings
 from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponseServerError
 from django.utils import timezone
 
@@ -82,6 +83,7 @@ def validate_request(request_obj, api_user_info, expected_method):
         raise ValueError('Request has invalid method: expected {0}, actual {1}'.format(
             expected_method, request_obj.method))
 
+@csrf_exempt
 def prepurchase(request):
     request_obj = None
     api_user = None
@@ -179,6 +181,7 @@ def prepurchase(request):
         )
         return JsonResponse(resp.to_json())
 
+@csrf_exempt
 def selltoken(request):
     request_obj = None
     api_user = None    
@@ -206,6 +209,7 @@ def selltoken(request):
         )
         return JsonResponse(resp.to_json())
 
+@csrf_exempt
 def query_order_status(request) :
     api_user = None
     try:
@@ -254,6 +258,7 @@ def query_order_status(request) :
         )
         return JsonResponse(resp.to_json())
 
+@csrf_exempt
 def cancel_order(request):
     try:
         logger.debug('receive request from: {0}'.format(request.get_host()))
