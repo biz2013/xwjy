@@ -198,6 +198,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+        'tradeex': {
+            'handlers': ['siteTimeRotateFile', 'console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
         # TODO: add django.server, django.template, django.db.backends and other django framework component logging.
         'django': {
             'handlers': ['console', 'siteTimeRotateFile'],
