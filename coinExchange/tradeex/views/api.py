@@ -90,7 +90,7 @@ def prepurchase(request):
     try:
         logger.info('receive request from: {0}'.format(request.get_host()))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
-        request_json= json.loads(request.body)
+        request_json= json.loads(request.body.decode('utf-8'))
         request_obj = TradeAPIRequest.parseFromJson(request_json)
         logger.debug('after parse the input, the request object is {0}'.format(
             request_obj.getPayload()
