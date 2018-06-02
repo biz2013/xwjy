@@ -375,7 +375,6 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
             if trx['category'] == 'receive':
                 if trx['address'] in wallet_lookup_by_addr:
                     wallet_id = wallet_lookup_by_addr[trx['address']]
-                    print ('wallet[{0}:{1}] has receiving trans'.format(wallet_id, trx['address']))
                     update_user_wallet_based_on_deposit(
                           trx, wallet_id, min_trx_confirmation, operator)
                 else:
