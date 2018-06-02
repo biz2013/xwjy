@@ -46,18 +46,56 @@ def setupbasic(operator):
         wallet_config['datadir'] = "/home/ubuntu/.peercoin"
         wallet_config['list_trans_count'] = 100000
         wallet_config["account_name"] = ""
-        Wallet.objects.create(
+        wallet = Wallet.objects.create(
             name = 'CNY',
             cryptocurrency = crypto,
             config_json = json.dumps(wallet_config, ensure_ascii=False),
             created_by = login,
             lastupdated_by = login
-        ).save()
+        )
+        wallet.save()
         logger.info("Create CNY wallet object")
     except Wallet.MultipleObjectsReturned:
         logger.error("There are more than one CNY wallet objects")
         return False
     
+    logger.info("About to create master user wallet for CNY")
+    try:
+        userwallet = UserWallet.objects.get(user__username='admin', wallet__id = wallet.id)
+        logger.info('userwallet {0}:{1} already exists'.format(
+                userwallet.id, userwallet.wallet_addr         
+        ))
+    except UserWallet.DoesNotExist:
+        admin = User.objects.get(username='admin')
+        existingwallets = UserWallet.objects.filter(user__isnull = True, wallet__id = wallet.id)
+        if len(existingwallets) > 0:
+            pickedwallet = UserWallet.objects.select_for_update().get(id = existingwallets[0].id)
+            pickedwallet.user = admin
+            pickedwallet.lastupdated_by = operator
+            pickedwallet.save()
+            logger.info('Assign userwallet {0}:{1} to admin'.format(
+                existingwallets[0].id, existingwallets[0].wallet_addr
+            ))
+        else:
+            cnyutil = WalletManager.create_fund_util('CNY')
+            addr = cnyutil.create_wallet_address()
+            userwallet=UserWallet.objects.create(
+                user = admin,
+                wallet = wallet,
+                wallet_addr = addr,
+                created_by = operator,
+                lastupdated_by = operator
+            )
+            userwallet.save()
+
+            logger.info('Create userwallet {0}:{1} for admin'.format(
+                userwallet.id, userwallet.wallet_addr
+            ))
+    except Wallet.MultipleObjectsReturned:
+        logger.error("There are more than one master CNY userwallet objects")
+        return False
+    
+
     return True
 
 def create_user(username, password, email, apiaccount, appId, secret, payment_account, operator):
