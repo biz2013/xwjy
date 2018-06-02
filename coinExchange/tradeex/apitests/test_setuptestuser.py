@@ -25,3 +25,9 @@ class TestSetupUser(TransactionTestCase):
         self.assertEqual(200, response.status_code)
         self.assertEqual('ok', response.content.decode('utf-8'))
 
+        # call second time
+        response = c.get('/setuptest/')
+        self.assertEqual(200, response.status_code)
+        self.assertEqual('ok', response.content.decode('utf-8'))
+        
+
