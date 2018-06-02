@@ -9,7 +9,7 @@ logger = logging.getLogger("tradeex.utils")
 def sign_api_content(json_input, secret_key):
     logger.info("sign_api_content({0})".format(json.dumps(json_input, ensure_ascii=False)))
     sorted_keys = sorted(json_input.keys())
-    logger.info("sorted ")
+    logger.info("sorted {0} keys".format(len(sorted_keys)))
     str_to_be_signed = ""
     for key in sorted_keys:
        logger.info('in loop str_to_be_signed={0}'.format(str_to_be_signed))
