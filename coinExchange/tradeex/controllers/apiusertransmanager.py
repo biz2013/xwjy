@@ -293,9 +293,13 @@ class APIUserTransactionManager(object):
                 attach = api_trans.attach
             )
             api_client = APIClient(api_trans.notify_url)
-            notify_resp = api_client.send_json_request(notify.to_json(), response_format='text')
+            notify_resp = ""
+            try:
+                notify_resp = api_client.send_json_request(notify.to_json(), response_format='text')
+            except:
+                logger.info('send api user notification hit error {0}'.format(sys.exc_info()[0]))
             # update notify situation
-            comment = 'NOTIFYSUCCESS' if notify_resp.upper() == 'OK' else 'NOTIFYFAILED: {0}'.format(notify_resp)
+            comment = 'NOTIFYSUCCESS' if notify_resp and notify_resp.upper() == 'OK' else 'NOTIFYFAILED: {0}'.format(notify_resp)
             APIUserTransactionManager.update_notification_status(
                 api_trans.transactionId, 
                 json.dumps(notify.to_json(), ensure_ascii = False), 
