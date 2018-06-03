@@ -55,7 +55,7 @@ class TradeAPIRequest(object):
 
         biz_content_json = json.loads(json_input['biz_content'])
         return TradeAPIRequest(method, json_input['api_key'], '', biz_content_json['out_trade_no'],
-            total_fee=int(biz_content_json.get('total_fee', 0)),
+            total_fee=float(biz_content_json.get('total_fee', 0)),
             expire_minute=biz_content_json.get('expire_minute',0),
             payment_provider=biz_content_json.get('payment_provider', None),
             payment_account=biz_content_json.get('payment_account', None),
