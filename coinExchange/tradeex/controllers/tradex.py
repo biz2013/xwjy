@@ -99,7 +99,7 @@ class TradeExchangeManager(object):
 
 
         for sell_order in qualify_orders:
-            logger.info('Try to purchase order {0] amount {1}'.format(
+            logger.info('Try to purchase order {0}amount {1}'.format(
                 sell_order.order_id, round(amount / sell_order.unit_price, 8)))
             order_item = OrderItem('', # order_id empty for purchase
                api_user_id, 
