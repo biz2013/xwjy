@@ -19,4 +19,4 @@ class APIClient(object):
         ))
         r = requests.post(self.url, json=pay_load, headers= headers, allow_redirects=True)
         logger.info("response is {0}".format(r.text))
-        return r.json() if response_format=='json' else r.text.decode('utf-8')
+        return r.json() if response_format=='json' else r.text.encode('utf-8')
