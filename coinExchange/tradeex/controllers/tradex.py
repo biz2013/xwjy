@@ -99,6 +99,8 @@ class TradeExchangeManager(object):
 
 
         for sell_order in qualify_orders:
+            logger.info('Try to purchase order {0] amount {1}'.format(
+                sell_order.order_id, round(amount / sell_order.unit_price, 8)))
             order_item = OrderItem('', # order_id empty for purchase
                api_user_id, 
                '',  # no need for user login of the order
@@ -130,6 +132,8 @@ class TradeExchangeManager(object):
                 api_trans_id = 'API_TX_{0}'.format(
                     dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
                 )
+
+                logger.info('come to create order api_trans_id: {0}'.format(api_trans_id))
                 buyorder_id = ordermanager.create_purchase_order(order_item, sell_order.order_id, 
                     buyer_payment_provider, 'admin', 
                     api_user, request_obj, api_trans_id
