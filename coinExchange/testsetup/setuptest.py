@@ -98,9 +98,11 @@ def setupbasic(operator):
 
     return True
 
-def create_user(username, password, email, apiaccount, appId, secret, payment_account, operator):
+def create_user(username, password, email, apiaccount, appId, secret, 
+        payment_account, external_addr, operator):
     cny_wallet = Wallet.objects.get(cryptocurrency__currency_code = 'CNY')
     axf_wallet = Wallet.objects.get(cryptocurrency__currency_code = 'AXFund')
+    cny = Cryptocurrency.objects.get(currency_code = 'CNY')
     print('axfund wallet id is {0}'.format(axf_wallet.id))
 
     try:
@@ -216,6 +218,23 @@ def create_user(username, password, email, apiaccount, appId, secret, payment_ac
         logger.error('User {0} has more than one heepay account'.format(user1.username))
         return False    
 
+    if external_addr:
+        try:
+            user_external_addr = UserExternalWalletAddress.objects.get(user__id = user1.id, cryptocurrency__currency_code='CNY')
+            logger.info('There is existing external address for user {0}'.format(user1.id))
+        except UserExternalWalletAddress.DoesNotExist:
+            user_external_addr = UserExternalWalletAddress.objects.create(
+                user = user1,
+                cryptocurrency = cny,
+                address = external_addr,
+                alias = 'cny_external_addr',
+                created_by = operator,
+                lastupdated_by = operator
+            )
+            user_external_addr.save()
+            logger.info('Create user external addr for user {0}'.format(user1.id))
+        except UserExternalWalletAddress.MultipleObjectsReturned:
+            logger.error('User {0} has more than multiple addr'.format(user1.id))
     return True
 
 @csrf_exempt
@@ -227,11 +246,11 @@ def setuptestuser(request):
                 raise ValueError('failed to setup basics')
             if not create_user('api_test_user1', '---', 'tttzhang2000@yahoo.com', 
                 '1000-0001', 'api_test_user_appId1', 'api_test_user_secrets1',
-                '13910978598', login):
+                '13910978598', 'PLn7kEWV4EyLPUNAs1bKfArqiKHm2jJFrc', login):
                 raise ValueError('failed to create test user')
             if not create_user('api_test_user2', '---', 'yingzhuu@yahoo.ca', 
                 '1000-0002', 'api_test_user_appId2', 'api_test_user_secrets2', 
-                '13641388306', login):
+                '13641388306', None, login):
                 raise ValueError('failed to create test user')
     except ValueError:
         logger.error('Create test user has issue')
