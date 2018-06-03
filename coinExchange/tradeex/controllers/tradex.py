@@ -34,7 +34,7 @@ class TradeExchangeManager(object):
     def get_qualified_orders_to_buy(self, crypto, amount, currency):
         # query all the orders that best fit the buy order
         return Order.objects.filter(Q(status='OPEN') & Q(order_type='SELL') &
-               ~Q(sub_type='ALL_OR_NOTHING') & Q(total_amount__ge=amount) & 
+               ~Q(sub_type='ALL_OR_NOTHING') & Q(total_amount-amount>0) & 
                Q(unit_price_currency=currency) & Q(cryptocurrency__currency_code=crypto)).order_by('total_amount', '-created_at')
 
     def get_active_sell_orders(self, crypto, currency):
