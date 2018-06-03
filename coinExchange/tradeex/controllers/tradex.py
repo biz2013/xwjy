@@ -93,7 +93,7 @@ class TradeExchangeManager(object):
 
     def purchase_by_cash_amount(self, api_user, request_obj, crypto, is_api_call=True):
         api_user_id = api_user.user.id
-        amount = request_obj.total_fee
+        amount = float(request_obj.total_fee / 100.0)
         currency = 'CNY'
         buyer_payment_provider = request_obj.payment_provider
         buyer_payment_account =  request_obj.payment_account
