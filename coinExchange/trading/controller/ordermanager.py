@@ -301,7 +301,7 @@ def create_purchase_order(buyorder, reference_order_id,
         if reference_order.status != 'PARTIALFILLED' and reference_order.status != 'OPEN':
             logger.error('create_purchase_order(): reference_order {0} with status {1}: raise SELLORDER_NOT_OPEN'.format(reference_order_id, reference_order.status))
             raise ValueError('SELLORDER_NOT_OPEN')
-        if buyorder.total_units > reference_order.units_available_to_trade:
+        if buyorder.total_units - reference_order.units_available_to_trade > 0:
             logger.error('sell order %s has %f to trade, buyer buy %f units' % (
                       reference_order.order_id,
                       reference_order.units_available_to_trade,
