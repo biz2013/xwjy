@@ -9,7 +9,7 @@ from tradeex.client.apiclient import APIClient
 
 TEST_API_USER1_APPKEY = 'api_test_user_appId1'
 TEST_API_USER1_SECRET ='api_test_user_secrets1'
-TEST_PURCHASE_AMOUNT = 0.1
+TEST_PURCHASE_AMOUNT = 5
 
 
 # Create your tests here.

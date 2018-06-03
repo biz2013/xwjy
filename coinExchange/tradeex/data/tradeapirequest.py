@@ -30,6 +30,8 @@ class TradeAPIRequest(object):
         self.out_trade_no = out_trade_no
         self.trx_bill_no = trx_bill_no
         self.total_fee = total_fee
+        if total_fee < 1:
+            raise ValueError("The total fee is too small")
         self.expire_minute = expire_minute
         self.payment_provider = payment_provider
         self.payment_account = payment_account
@@ -55,7 +57,7 @@ class TradeAPIRequest(object):
 
         biz_content_json = json.loads(json_input['biz_content'])
         return TradeAPIRequest(method, json_input['api_key'], '', biz_content_json['out_trade_no'],
-            total_fee=float(biz_content_json.get('total_fee', 0)),
+            total_fee=int(biz_content_json.get('total_fee', 0)),
             expire_minute=biz_content_json.get('expire_minute',0),
             payment_provider=biz_content_json.get('payment_provider', None),
             payment_account=biz_content_json.get('payment_account', None),
