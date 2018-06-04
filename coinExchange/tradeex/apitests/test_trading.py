@@ -613,9 +613,9 @@ class TestPrepurchase(TransactionTestCase):
     
         logger.info('about to test receiving heepay notification')
         global TEST_CRYPTO_SEND_COMMENT
-        TEST_CRYPTO_SEND_COMMENT = 'amount:{0},trxId:{1},out_trade_no:{2}'.format(
+        TEST_CRYPTO_SEND_COMMENT = 'userId:{3},amount:{0},trxId:{1},out_trade_no:{2}'.format(
             float(TEST_PURCHASE_AMOUNT)/100.0, api_trans.transactionId, 
-            api_trans.api_out_trade_no)
+            api_trans.api_out_trade_no, api_trans.api_user.user.id)
 
         #NOTE: the trade status is case-sensitive thing
         heepay_confirm = self.create_heepay_confirm('tradeex/apitests/data/heepay_confirm_template.j2', 
