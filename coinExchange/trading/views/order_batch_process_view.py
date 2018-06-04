@@ -127,7 +127,7 @@ def order_batch_process(request):
 
         api_transacts = APIUserTransactionManager.get_pending_redeems()
         for api_trans in api_transacts:
-            handle_pending_redeem_trans(api_trans)
+            handle_pend_api_trans(api_trans)
     
         return HttpResponse(content='OK')
     except Exception as e:
