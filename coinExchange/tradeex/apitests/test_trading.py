@@ -296,7 +296,7 @@ class TestPrepurchase(TransactionTestCase):
         print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
 
         self.assertEqual(200, response.status_code)
-        resp_json = json.loads(response.content)
+        resp_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual(resp_json['return_code'], 'FAIL')
         self.assertEqual(resp_json['return_msg'], '未找到您的账户:通知系统服务')
         #TODO: show user not found?
@@ -359,10 +359,10 @@ class TestPrepurchase(TransactionTestCase):
         self.assertTrue(UserPaymentMethod.objects.filter(user__username='tttzhang2000@yahoo.com').filter(provider__code='heepay').update(account_at_provider='18600701961'),
               'recover tttzhang2000@yahoo.com\'s heepay account should be successful')
 
-        print('response is {0}'.format(json.dumps(json.loads(response.content), ensure_ascii=False)))
+        print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
 
         self.assertEqual(200, response.status_code)
-        resp_json = json.loads(response.content)
+        resp_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual(resp_json['return_code'], 'FAIL')
         self.assertEqual(resp_json['return_msg'], "收钱方账号不存在")
 
@@ -606,7 +606,7 @@ class TestPrepurchase(TransactionTestCase):
         response = c_query.post('/tradeex/checkorderstatus/', request_str,
                           content_type='application/json')
         self.assertEqual(200, response.status_code)
-        resp_json = json.loads(response.content)
+        resp_json = json.loads(response.content.decode('utf-8'))
         print('Status right after purchase command is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
         self.assertEqual('SUCCESS', resp_json['return_code'], 'The query should return SUCCCESS')
         self.assertEqual('InProgress', resp_json['trade_status'], 'The transaction should be in progress')
@@ -638,7 +638,7 @@ class TestPrepurchase(TransactionTestCase):
         response = c_query.post('/tradeex/checkorderstatus/', request_str,
                           content_type='application/json')
         self.assertEqual(200, response.status_code)
-        resp_json = json.loads(response.content)
+        resp_json = json.loads(response.content.decode('utf-8'))
         print('Status right after purchase command is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
         self.assertEqual('SUCCESS', resp_json['return_code'], 'The query should return SUCCCESS')
         self.assertEqual('Success', resp_json['trade_status'], 'The transaction should be in progress')
