@@ -293,7 +293,7 @@ class TestPrepurchase(TransactionTestCase):
         response = c.post('/tradeex/purchasetoken/', request_str,
                           content_type='application/json')
 
-        print('response is {0}'.format(json.dumps(json.loads(response.content), ensure_ascii=False)))
+        print('response is {0}'.format(json.dumps(json.loads(response.content.decod('utf-8')), ensure_ascii=False)))
 
         self.assertEqual(200, response.status_code)
         resp_json = json.loads(response.content)
@@ -323,7 +323,7 @@ class TestPrepurchase(TransactionTestCase):
         response = c.post('/tradeex/purchasetoken/', request_str,
                           content_type='application/json')
 
-        print('response is {0}'.format(json.dumps(json.loads(response.content), ensure_ascii=False)))
+        print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
 
         self.assertEqual(200, response.status_code)
         resp_json = json.loads(response.content)
@@ -407,7 +407,7 @@ class TestPrepurchase(TransactionTestCase):
         print('test_purchase_order_succeed(): send request {0}'.format(request_str))
         response = c.post('/tradeex/purchasetoken/', request_str,
                           content_type='application/json')
-        print('response is {0}'.format(json.dumps(json.loads(response.content), ensure_ascii=False)))
+        print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
 
         self.assertEqual(200, response.status_code)
         resp_json = json.loads(response.content)
@@ -485,7 +485,7 @@ class TestPrepurchase(TransactionTestCase):
         print('test_purchase_order_succeed(): send request {0}'.format(request_str))
         response = c.post('/tradeex/selltoken/', request_str,
                           content_type='application/json')
-        print('response is {0}'.format(json.dumps(json.loads(response.content), ensure_ascii=False)))
+        print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
 
         self.assertEqual(200, response.status_code)
         resp_json = json.loads(response.content)

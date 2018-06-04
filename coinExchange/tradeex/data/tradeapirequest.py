@@ -30,7 +30,7 @@ class TradeAPIRequest(object):
         self.out_trade_no = out_trade_no
         self.trx_bill_no = trx_bill_no
         self.total_fee = total_fee
-        if total_fee < 1:
+        if total_fee < 1 and method in ['wallet.trade.buy', 'wallet.trade.sell']:
             raise ValueError("The total fee is too small")
         self.expire_minute = expire_minute
         self.payment_provider = payment_provider
