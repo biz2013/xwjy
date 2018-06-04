@@ -309,7 +309,7 @@ class TestPrepurchase(TransactionTestCase):
                 TEST_API_USER1_SECRET,
                 'order_no_order', # order id
                 None, # trx_id
-                620, # total fee
+                62000, # total fee
                 10, # expire_minute
                 'heepay', '12738456',
                 '127.0.0.1', #client ip
