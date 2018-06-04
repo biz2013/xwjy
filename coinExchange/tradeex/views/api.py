@@ -212,10 +212,11 @@ def selltoken(request):
 @csrf_exempt
 def query_order_status(request) :
     api_user = None
+    request_obj = None
     try:
         logger.debug('receive request from: {0}'.format(request.get_host()))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
-        request_json= json.loads(request.body)
+        request_json= json.loads(request.body.decode('utf-8'))
         request_obj = TradeAPIRequest.parseFromJson(request_json)
         api_user = APIUserManager.get_api_user_by_apikey(request_obj.apikey)
         validate_request(request_obj, api_user, 'wallet.trade.query')
@@ -263,7 +264,7 @@ def cancel_order(request):
     try:
         logger.debug('receive request from: {0}'.format(request.get_host()))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
-        request_json= json.loads(request.body)
+        request_json= json.loads(request.body.decode('utf-8'))
         request_obj = TradeAPIRequest.parseFromJson(request_json)
         api_user = APIUserManager.get_api_user_by_apikey(request_obj.api_key)
         validate_request(request_obj, api_user, 'wallet.trade.cancel')

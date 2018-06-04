@@ -293,7 +293,7 @@ class TestPrepurchase(TransactionTestCase):
         response = c.post('/tradeex/purchasetoken/', request_str,
                           content_type='application/json')
 
-        print('response is {0}'.format(json.dumps(json.loads(response.content.decod('utf-8')), ensure_ascii=False)))
+        print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
 
         self.assertEqual(200, response.status_code)
         resp_json = json.loads(response.content)
@@ -326,7 +326,7 @@ class TestPrepurchase(TransactionTestCase):
         print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
 
         self.assertEqual(200, response.status_code)
-        resp_json = json.loads(response.content)
+        resp_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual(resp_json['return_code'], 'FAIL')
         self.assertEqual(resp_json['return_msg'], '数据错误:通知系统服务')
         #TODO: show user not found?
@@ -410,7 +410,7 @@ class TestPrepurchase(TransactionTestCase):
         print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
 
         self.assertEqual(200, response.status_code)
-        resp_json = json.loads(response.content)
+        resp_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
 
         api_trans = self.get_api_trans(test_out_trade_no)
@@ -488,7 +488,7 @@ class TestPrepurchase(TransactionTestCase):
         print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
 
         self.assertEqual(200, response.status_code)
-        resp_json = json.loads(response.content)
+        resp_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
 
