@@ -587,7 +587,7 @@ class TestPrepurchase(TransactionTestCase):
                           content_type='application/json')
 
         self.assertEqual(200, response.status_code)
-        resp_json = json.loads(response.content)
+        resp_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
 
         api_trans = self.get_api_trans(test_out_trade_no)        
