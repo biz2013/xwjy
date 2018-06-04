@@ -415,9 +415,9 @@ class TestPrepurchase(TransactionTestCase):
 
         api_trans = self.get_api_trans(test_out_trade_no)
         global TEST_CRYPTO_SEND_COMMENT
-        TEST_CRYPTO_SEND_COMMENT = 'amount:{0},trxId:{1},out_trade_no:{2}'.format(
+        TEST_CRYPTO_SEND_COMMENT = 'userId:{3},amount:{0},trxId:{1},out_trade_no:{2}'.format(
             float(TEST_PURCHASE_AMOUNT)/100.0, api_trans.transactionId, 
-            api_trans.api_out_trade_no)
+            api_trans.api_out_trade_no, api_trans.api_user.user.id )
         self.validate_api_trans_before_confirm(api_trans, app_id, 
             secret_key, test_out_trade_no, expected_total_fee=test_purchase_amount,
             expected_from_account=test_user_heepay_from_account,
