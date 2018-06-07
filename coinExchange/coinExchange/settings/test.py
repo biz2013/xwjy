@@ -4,7 +4,7 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 # send email to console
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-INSTALLED_APPS = INSTALLED_APPS.append('testsetup')
+INSTALLED_APPS += ['testsetup',]
 
 LOGGING = {
     'version': 1,

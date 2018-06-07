@@ -339,7 +339,6 @@ class WalletManager(object):
                 else:
                     raise ValueError('user id {0} should not have more than one entry in userwallets'.format(wallet.user.id))
 
-            print ('calling listtransaction return {0}'.format(trans))
             for trx in trans:
                 # only process confirmed wallet transactions
                 try:
