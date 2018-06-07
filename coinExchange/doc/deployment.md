@@ -48,6 +48,10 @@ LoadModule wsgi_module /usr/lib/apache2/modules/mod_wsgi.so
 ServerName server_domain_or_IP (ex: 192.168.1.252)
 ```
 
+5) Verify wsgi module:
+https://code.google.com/archive/p/modwsgi/wikis/CheckingYourInstallation.wiki
+https://stackoverflow.com/questions/8660896/mod-wsgi-isnt-honoring-wsgipythonhome
+
 Verify configuration and restart
 ```
 sudo apache2ctl configtest
@@ -55,6 +59,12 @@ sudo apache2ctl restart apache2
 or: 
 sudo apache2ctl stop
 sudo apache2ctl start
+Ubuntu:
+/etc/init.d/apache2 stop
+/etc/init.d/apache2 start
+systemctl start apache2.service
+systemctl stop apache2.service
+systemctl restart apache2.service
 ```
 
 Check /var/log/apache2/error.log, verify the wsgi mod are loaded correctly. Looking for "mod_wsgi/4.5.24 Python/3.5 configured".
@@ -166,7 +176,7 @@ sudo chmod 755 -R /var/www/coinexchange/media
 ## Prepare logging
 Grant access for apache to write logs.
 ```
-chmod 777 /home/chi/workspace/python/projects/xwjy/coinExchange/logs
+chmod 777 -R /home/chi/workspace/python/projects/xwjy/coinExchange/logs
 ```
 
 ## Config environment variables
