@@ -198,6 +198,16 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+        'tradeex': {
+            'handlers': ['siteTimeRotateFile', 'console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'tradeapi': {
+            'handlers': ['siteTimeRotateFile', 'console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
         # TODO: add django.server, django.template, django.db.backends and other django framework component logging.
         'django': {
             'handlers': ['console', 'siteTimeRotateFile'],
@@ -215,6 +225,7 @@ LOGGING = {
 # Redirect to home URL after login (Default redirects to /accounts/profile/)
 LOGIN_REDIRECT_URL = '/'
 
+HEEPAY_NOTIFY_HOST='www.uuvc.com'
 # format for construct the url for heepay return and notify
 HEEPAY_NOTIFY_URL_FORMAT='http://{0}:{1}/trading/heepay/confirm_payment/'
 HEEPAY_RETURN_URL_FORMAT='http://{0}:{1}/trading/heepay/confirm_payment/'

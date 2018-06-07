@@ -33,9 +33,22 @@ class TradeExchangeManager(object):
         
     def get_qualified_orders_to_buy(self, crypto, amount, currency):
         # query all the orders that best fit the buy order
-        return Order.objects.filter(Q(status='OPEN') & Q(order_type='SELL') &
-               ~Q(sub_type='ALL_OR_NOTHING') & Q(total_amount__gt=amount) & 
-               Q(unit_price_currency=currency) & Q(cryptocurrency=crypto)).order_by('total_amount', '-created_at')
+        candidates = []
+        orders =  Order.objects.filter(
+            (Q(status='OPEN') | Q(status='PARTIALFILLED')) & 
+            Q(order_type='SELL') & Q(units_available_to_trade__gt=0.0) &
+            Q(unit_price_currency=currency) &
+            Q(cryptocurrency__currency_code=crypto)).order_by('-created_at')
+        for order in orders:
+            available_amount = order.unit_price * order.units_available_to_trade
+            diff = available_amount - amount
+            if diff >= 0.0:
+                if order.sub_type == 'ALL_OR_NOTHING':
+                    if diff > 0.01:
+                        continue
+                candidates.append(order)
+
+        return candidates if len(candidates) > 0 else None
 
     def get_active_sell_orders(self, crypto, currency):
         return Order.objects.filter(Q(status='OPEM') & Q(order_type='BUY') &
@@ -80,7 +93,7 @@ class TradeExchangeManager(object):
 
     def purchase_by_cash_amount(self, api_user, request_obj, crypto, is_api_call=True):
         api_user_id = api_user.user.id
-        amount = request_obj.total_fee
+        amount = float(request_obj.total_fee / 100.0)
         currency = 'CNY'
         buyer_payment_provider = request_obj.payment_provider
         buyer_payment_account =  request_obj.payment_account
@@ -99,6 +112,8 @@ class TradeExchangeManager(object):
 
 
         for sell_order in qualify_orders:
+            logger.info('Try to purchase order {0}amount {1}'.format(
+                sell_order.order_id, round(amount / sell_order.unit_price, 8)))
             order_item = OrderItem('', # order_id empty for purchase
                api_user_id, 
                '',  # no need for user login of the order
@@ -130,6 +145,8 @@ class TradeExchangeManager(object):
                 api_trans_id = 'API_TX_{0}'.format(
                     dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
                 )
+
+                logger.info('come to create order api_trans_id: {0}'.format(api_trans_id))
                 buyorder_id = ordermanager.create_purchase_order(order_item, sell_order.order_id, 
                     buyer_payment_provider, 'admin', 
                     api_user, request_obj, api_trans_id

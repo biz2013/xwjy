@@ -293,9 +293,13 @@ class APIUserTransactionManager(object):
                 attach = api_trans.attach
             )
             api_client = APIClient(api_trans.notify_url)
-            notify_resp = api_client.send_json_request(notify.to_json(), response_format='text')
+            notify_resp = ""
+            try:
+                notify_resp = api_client.send_json_request(notify.to_json(), response_format='text')
+            except:
+                logger.info('send api user notification hit error {0}'.format(sys.exc_info()[0]))
             # update notify situation
-            comment = 'NOTIFYSUCCESS' if notify_resp.upper() == 'OK' else 'NOTIFYFAILED: {0}'.format(notify_resp)
+            comment = 'NOTIFYSUCCESS' if notify_resp and notify_resp.upper() == 'OK' else 'NOTIFYFAILED: {0}'.format(notify_resp)
             APIUserTransactionManager.update_notification_status(
                 api_trans.transactionId, 
                 json.dumps(notify.to_json(), ensure_ascii = False), 
@@ -337,7 +341,8 @@ class APIUserTransactionManager(object):
                     api_trans.transactionId
                 ))
                 crypto_util = WalletManager.create_fund_util('CNY')
-                comment = 'amount:{0},trxId:{1},out_trade_no:{2}'.format(total_cny_in_units, 
+                comment = 'userId:{0},amount:{1},trxId:{2},out_trade_no:{3}'.format(
+                    api_trans.api_user.user.id, total_cny_in_units, 
                     api_trans.transactionId, api_trans.api_out_trade_no)
                 try:
                     crypto_trans = crypto_util.send_fund(external_crypto_addr, total_cny_in_units, comment)

@@ -30,6 +30,8 @@ class TradeAPIRequest(object):
         self.out_trade_no = out_trade_no
         self.trx_bill_no = trx_bill_no
         self.total_fee = total_fee
+        if total_fee < 1 and method in ['wallet.trade.buy', 'wallet.trade.sell']:
+            raise ValueError("The total fee is too small")
         self.expire_minute = expire_minute
         self.payment_provider = payment_provider
         self.payment_account = payment_account
@@ -105,12 +107,13 @@ class TradeAPIRequest(object):
         jsonobj['timestamp'] = self.timestamp
         biz_content_json = self.__get_biz_content_json()
 
-        jsonobj['biz_content'] = json.dumps(biz_content_json, ensure_ascii=False)
+        jsonobj['biz_content'] = json.dumps(biz_content_json, ensure_ascii=False, sort_keys=True)
         return jsonobj
 
     def is_valid(self, secret_key):
         self.secret_key = secret_key
         signed = sign_api_content(self.__create_json_to_sign(), secret_key)
+        logger.info('signed is {0} original sign is {1}'.format(signed, self.sign))
         return signed == self.sign
 
     def getPayload(self):
