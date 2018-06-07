@@ -361,9 +361,6 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
     for wallet in user_wallets:
         if wallet.wallet_addr not in wallet_lookup_by_addr:
            wallet_lookup_by_addr[wallet.wallet_addr]= wallet.id
-           print ('record wallet addr[{0}] with id {1}'.format(
-               wallet.wallet_addr, wallet.id
-           ))
         else:
            raise ValueError('address {0} should not have more than one entry in userwallets'.format(wallet.wallet_addr))
 
@@ -372,14 +369,12 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
         else:
            raise ValueError('user id {0} should not have more than one entry in userwallets'.format(wallet.user.id))
 
-    print ('calling listtransaction return {0}'.format(trans))
     for trx in trans:
         # only process confirmed wallet transactions
         try:
             if trx['category'] == 'receive':
                 if trx['address'] in wallet_lookup_by_addr:
                     wallet_id = wallet_lookup_by_addr[trx['address']]
-                    print ('wallet[{0}:{1}] has receiving trans'.format(wallet_id, trx['address']))
                     update_user_wallet_based_on_deposit(
                           trx, wallet_id, min_trx_confirmation, operator)
                 else:

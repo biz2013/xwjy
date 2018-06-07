@@ -4,6 +4,7 @@ import sys
 
 from django.conf import settings
 from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponseServerError
 from django.utils import timezone
 
@@ -82,13 +83,14 @@ def validate_request(request_obj, api_user_info, expected_method):
         raise ValueError('Request has invalid method: expected {0}, actual {1}'.format(
             expected_method, request_obj.method))
 
+@csrf_exempt
 def prepurchase(request):
     request_obj = None
     api_user = None
     try:
         logger.info('receive request from: {0}'.format(request.get_host()))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
-        request_json= json.loads(request.body)
+        request_json= json.loads(request.body.decode('utf-8'))
         request_obj = TradeAPIRequest.parseFromJson(request_json)
         logger.debug('after parse the input, the request object is {0}'.format(
             request_obj.getPayload()
@@ -179,13 +181,14 @@ def prepurchase(request):
         )
         return JsonResponse(resp.to_json())
 
+@csrf_exempt
 def selltoken(request):
     request_obj = None
     api_user = None    
     try:
         logger.info('receive request from: {0}'.format(request.get_host()))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
-        request_json= json.loads(request.body)
+        request_json= json.loads(request.body.decode('utf-8'))
         request_obj = TradeAPIRequest.parseFromJson(request_json)
         api_user = APIUserManager.get_api_user_by_apikey(request_obj.apikey)
         logger.info('selltoken(): [out_trade_no:{0}] find out api user id is {1}, key {2}'.format(
@@ -206,12 +209,14 @@ def selltoken(request):
         )
         return JsonResponse(resp.to_json())
 
+@csrf_exempt
 def query_order_status(request) :
     api_user = None
+    request_obj = None
     try:
         logger.debug('receive request from: {0}'.format(request.get_host()))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
-        request_json= json.loads(request.body)
+        request_json= json.loads(request.body.decode('utf-8'))
         request_obj = TradeAPIRequest.parseFromJson(request_json)
         api_user = APIUserManager.get_api_user_by_apikey(request_obj.apikey)
         validate_request(request_obj, api_user, 'wallet.trade.query')
@@ -254,11 +259,12 @@ def query_order_status(request) :
         )
         return JsonResponse(resp.to_json())
 
+@csrf_exempt
 def cancel_order(request):
     try:
         logger.debug('receive request from: {0}'.format(request.get_host()))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
-        request_json= json.loads(request.body)
+        request_json= json.loads(request.body.decode('utf-8'))
         request_obj = TradeAPIRequest.parseFromJson(request_json)
         api_user = APIUserManager.get_api_user_by_apikey(request_obj.api_key)
         validate_request(request_obj, api_user, 'wallet.trade.cancel')

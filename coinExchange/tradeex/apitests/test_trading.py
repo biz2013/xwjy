@@ -293,10 +293,10 @@ class TestPrepurchase(TransactionTestCase):
         response = c.post('/tradeex/purchasetoken/', request_str,
                           content_type='application/json')
 
-        print('response is {0}'.format(json.dumps(json.loads(response.content), ensure_ascii=False)))
+        print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
 
         self.assertEqual(200, response.status_code)
-        resp_json = json.loads(response.content)
+        resp_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual(resp_json['return_code'], 'FAIL')
         self.assertEqual(resp_json['return_msg'], '未找到您的账户:通知系统服务')
         #TODO: show user not found?
@@ -309,7 +309,7 @@ class TestPrepurchase(TransactionTestCase):
                 TEST_API_USER1_SECRET,
                 'order_no_order', # order id
                 None, # trx_id
-                620, # total fee
+                62000, # total fee
                 10, # expire_minute
                 'heepay', '12738456',
                 '127.0.0.1', #client ip
@@ -323,10 +323,10 @@ class TestPrepurchase(TransactionTestCase):
         response = c.post('/tradeex/purchasetoken/', request_str,
                           content_type='application/json')
 
-        print('response is {0}'.format(json.dumps(json.loads(response.content), ensure_ascii=False)))
+        print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
 
         self.assertEqual(200, response.status_code)
-        resp_json = json.loads(response.content)
+        resp_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual(resp_json['return_code'], 'FAIL')
         self.assertEqual(resp_json['return_msg'], '数据错误:通知系统服务')
         #TODO: show user not found?
@@ -359,10 +359,10 @@ class TestPrepurchase(TransactionTestCase):
         self.assertTrue(UserPaymentMethod.objects.filter(user__username='tttzhang2000@yahoo.com').filter(provider__code='heepay').update(account_at_provider='18600701961'),
               'recover tttzhang2000@yahoo.com\'s heepay account should be successful')
 
-        print('response is {0}'.format(json.dumps(json.loads(response.content), ensure_ascii=False)))
+        print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
 
         self.assertEqual(200, response.status_code)
-        resp_json = json.loads(response.content)
+        resp_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual(resp_json['return_code'], 'FAIL')
         self.assertEqual(resp_json['return_msg'], "收钱方账号不存在")
 
@@ -407,17 +407,17 @@ class TestPrepurchase(TransactionTestCase):
         print('test_purchase_order_succeed(): send request {0}'.format(request_str))
         response = c.post('/tradeex/purchasetoken/', request_str,
                           content_type='application/json')
-        print('response is {0}'.format(json.dumps(json.loads(response.content), ensure_ascii=False)))
+        print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
 
         self.assertEqual(200, response.status_code)
-        resp_json = json.loads(response.content)
+        resp_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
 
         api_trans = self.get_api_trans(test_out_trade_no)
         global TEST_CRYPTO_SEND_COMMENT
-        TEST_CRYPTO_SEND_COMMENT = 'amount:{0},trxId:{1},out_trade_no:{2}'.format(
+        TEST_CRYPTO_SEND_COMMENT = 'userId:{3},amount:{0},trxId:{1},out_trade_no:{2}'.format(
             float(TEST_PURCHASE_AMOUNT)/100.0, api_trans.transactionId, 
-            api_trans.api_out_trade_no)
+            api_trans.api_out_trade_no, api_trans.api_user.user.id )
         self.validate_api_trans_before_confirm(api_trans, app_id, 
             secret_key, test_out_trade_no, expected_total_fee=test_purchase_amount,
             expected_from_account=test_user_heepay_from_account,
@@ -485,10 +485,10 @@ class TestPrepurchase(TransactionTestCase):
         print('test_purchase_order_succeed(): send request {0}'.format(request_str))
         response = c.post('/tradeex/selltoken/', request_str,
                           content_type='application/json')
-        print('response is {0}'.format(json.dumps(json.loads(response.content), ensure_ascii=False)))
+        print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
 
         self.assertEqual(200, response.status_code)
-        resp_json = json.loads(response.content)
+        resp_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
 
@@ -587,7 +587,7 @@ class TestPrepurchase(TransactionTestCase):
                           content_type='application/json')
 
         self.assertEqual(200, response.status_code)
-        resp_json = json.loads(response.content)
+        resp_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
 
         api_trans = self.get_api_trans(test_out_trade_no)        
@@ -606,16 +606,16 @@ class TestPrepurchase(TransactionTestCase):
         response = c_query.post('/tradeex/checkorderstatus/', request_str,
                           content_type='application/json')
         self.assertEqual(200, response.status_code)
-        resp_json = json.loads(response.content)
+        resp_json = json.loads(response.content.decode('utf-8'))
         print('Status right after purchase command is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
         self.assertEqual('SUCCESS', resp_json['return_code'], 'The query should return SUCCCESS')
         self.assertEqual('InProgress', resp_json['trade_status'], 'The transaction should be in progress')
     
         logger.info('about to test receiving heepay notification')
         global TEST_CRYPTO_SEND_COMMENT
-        TEST_CRYPTO_SEND_COMMENT = 'amount:{0},trxId:{1},out_trade_no:{2}'.format(
+        TEST_CRYPTO_SEND_COMMENT = 'userId:{3},amount:{0},trxId:{1},out_trade_no:{2}'.format(
             float(TEST_PURCHASE_AMOUNT)/100.0, api_trans.transactionId, 
-            api_trans.api_out_trade_no)
+            api_trans.api_out_trade_no, api_trans.api_user.user.id)
 
         #NOTE: the trade status is case-sensitive thing
         heepay_confirm = self.create_heepay_confirm('tradeex/apitests/data/heepay_confirm_template.j2', 
@@ -638,7 +638,7 @@ class TestPrepurchase(TransactionTestCase):
         response = c_query.post('/tradeex/checkorderstatus/', request_str,
                           content_type='application/json')
         self.assertEqual(200, response.status_code)
-        resp_json = json.loads(response.content)
+        resp_json = json.loads(response.content.decode('utf-8'))
         print('Status right after purchase command is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
         self.assertEqual('SUCCESS', resp_json['return_code'], 'The query should return SUCCCESS')
         self.assertEqual('Success', resp_json['trade_status'], 'The transaction should be in progress')
