@@ -41,11 +41,12 @@ def setupbasic(operator):
             json.dumps(wallet_config, ensure_ascii=False)))
     except Wallet.DoesNotExist:
         wallet_config = {}
-        wallet_config['bin_path'] = "/usr/bin/peercoind"
+        wallet_config['bin_path'] = "/usr/bin/peercoin-cli"
         wallet_config['passphrase'] = ""
         wallet_config['datadir'] = "/home/ubuntu/.peercoin"
         wallet_config['list_trans_count'] = 100000
         wallet_config["account_name"] = ""
+        wallet_config['min_trx_confirmation'] = 8
         wallet = Wallet.objects.create(
             name = 'CNY',
             cryptocurrency = crypto,
