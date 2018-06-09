@@ -3,6 +3,9 @@
 import sys
 import hashlib
 import logging, json
+import hmac
+import string
+import random
 
 logger = logging.getLogger("tradeex.utils")
 
@@ -56,4 +59,21 @@ def heepay_status_to_trade_status(status):
            'Failure'.upper(): 'Failure',
            'Starting'.upper(): 'InProgress'}
 
-    return states_map[status.upper()] if status.upper() in states_map else 'UnKown' 
+    return states_map[status.upper()] if status.upper() in states_map else 'UnKown'
+
+
+# id_generator creates random user id, by default is 16 characters combined with upper case letter and digits.
+def id_generator(size=16, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
+
+# create_access_keys creates pair of user id and user access key, access key is md5 hash of user id + random string.
+# return {user_access_key_id, user_access_key}
+def create_access_keys():
+    access_key_id = id_generator()
+    digest_maker = hmac.new(access_key_id)
+
+    random_factor = id_generator(3)
+    digest_maker.update(random_factor)
+
+    access_key = digest_maker.hexdigest()
+    return access_key_id, access_key
