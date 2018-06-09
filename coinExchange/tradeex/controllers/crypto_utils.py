@@ -9,9 +9,10 @@ class CryptoUtility(object):
     def __init__(self, settings):
         self.cnyd_path = settings['bin_path']
         self.cnyd_datadir = settings['datadir']
-        self.cnyd_account = settings['account_name']
-        self.cnyd_passphrase = settings['passphrase']
-        self.cnyd_lookback_count = settings['list_trans_count']
+        self.cnyd_account = settings.get('account_name', "")
+        self.cnyd_passphrase = settings.get('passphrase', "")
+        self.cnyd_lookback_count = settings.get('list_trans_count', 100000)
+        self.min_trx_confirmation = settings.get('min_trx_confirmation', 8)
 
     def listtransactions(self):
         return self.listtransactions_impl(self.cnyd_lookback_count)
