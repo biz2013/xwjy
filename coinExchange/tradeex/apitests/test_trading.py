@@ -497,6 +497,9 @@ class TestPrepurchase(TransactionTestCase):
 
         purchase_request = {}
         api_trans = APIUserTransaction.objects.get(api_out_trade_no=test_out_trade_no)
+        print('original request is {0}'.format(api_trans.original_request))
+        request_obj = TradeAPIRequest.parseFromJson(json.loads(api_trans.original_request.replace("'", "\"")))
+        self.assertEqual('wallet.trade.sell', request_obj.method)
         purchase_request['reference_order_id'] = api_trans.reference_order.order_id
         purchase_request['owner_user_id'] = api_trans.reference_order.user.id
         purchase_request['quantity']=api_trans.reference_order.units
