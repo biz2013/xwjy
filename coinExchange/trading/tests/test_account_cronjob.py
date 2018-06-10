@@ -281,8 +281,8 @@ class AccountCronJobTestCase(TransactionTestCase):
                 self.assertEqual('PENDING', tran.status)
 
         self.assertEqual(2, debt_count)
-        self.assertEqual(-1.0, user2_wallet.balance)
+        self.assertEqual(-1.0 - 0.01 + 2.0, user2_wallet.balance)
         self.assertEqual(0, user2_wallet.locked_balance)
-        self.assertEqual(-1.0, user2_wallet.available_balance)
+        self.assertEqual(-1.0 - 0.01 + 2.0, user2_wallet.available_balance)
         
 
