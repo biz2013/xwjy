@@ -35,6 +35,7 @@ def update_account_with_receiving_fund(request):
         trans = axfd_tool.listtransactions()
 
         logger.info("update_account_with_receiving_fund(): query axfund transactions and update user wallet...")
+        logger.info("We get {0} axfund trans".format(len(trans)))
 
         useraccountinfomanager.update_account_balance_with_wallet_trx(
                 'AXFund', trans, min_trx_confirmation)
@@ -42,6 +43,8 @@ def update_account_with_receiving_fund(request):
         logger.info("Check CNY wallet transactions")
         cnyutil = WalletManager.create_fund_util('CNY')
         trans = cnyutil.listtransactions()
+        logger.info("We get {0} CNY trans".format(len(trans)))
+
         useraccountinfomanager.update_account_balance_with_wallet_trx(
                 'CNY', trans, min_trx_confirmation)
         

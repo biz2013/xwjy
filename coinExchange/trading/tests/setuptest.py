@@ -43,3 +43,27 @@ def setup_test():
        'heepay', '汇钱包', '13641388306', '')
     userpaymentmethodmanager.create_update_user_payment_method(
            buyer_paymentmethod, 'yingzhou')
+
+    form = SignUpForm(data={'username':'taozhang2','password1':'user@123', 'password2':'user@123', 'email':'taozhang@salesforce.com'})
+    form.full_clean()
+    if not form.is_valid():
+        print ('-{0}'.format(form.errors))
+        raise ValueError('bad form')
+    loginmanager.create_login(form, 'taozhang2')
+    seller = User.objects.get(username='taozhang2')
+    # prepare seller payment method
+    seller_paymentmethod = UserPaymentMethodView(0, seller.id,
+       'heepay', '汇钱包', '15811302701', '')
+    userpaymentmethodmanager.create_update_user_payment_method(
+           seller_paymentmethod, 'taozhang2')
+
+    form = SignUpForm(data={'username':'yingzhou2','password1':'user@123', 'password2':'user@123', 'email':'yingzhou62@yahoo.ca'})
+    if not form.is_valid():
+        raise ValueError('bad form for buyer')
+    loginmanager.create_login(form, 'yingzhou2')
+    buyer = User.objects.get(username='yingzhou2')
+    # prepare buyer payment method
+    buyer_paymentmethod = UserPaymentMethodView(0, buyer.id,
+       'heepay', '汇钱包', '13641388305', '')
+    userpaymentmethodmanager.create_update_user_payment_method(
+           buyer_paymentmethod, 'yingzhou2')

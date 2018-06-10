@@ -16,7 +16,7 @@ def create_login(regform, username):
     with transaction.atomic():
         regform.save()
         user = User.objects.get(username=username)
-        if (len(UserWallet.objects.all())!=3):
+        if (len(UserWallet.objects.all())==0):
             raise ValueError("There is no user wallet data here")
         user_wallet = UserWallet.objects.select_for_update().filter(Q(user__isnull=True))[0]
         user_wallet.user = user

@@ -351,6 +351,7 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
     operator = User.objects.get(username='admin')
 
     # get all user's Wallets
+    logger.info("scan through userwallet for {0}".format(crypto))
     user_wallets = UserWallet.objects.filter(user__isnull=False, wallet__cryptocurrency__currency_code=crypto)
 
     # build a lookup table based on user's wallet receiving address
@@ -358,7 +359,11 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
     wallet_lookup_by_addr = {}
     wallet_lookup_by_userid = {}
 
+    # dup receive trans for CNY send transaction
+    dup_receives = {}
+
     for wallet in user_wallets:
+        logger.info("Get userwallet {0}".format(wallet.id))
         if wallet.wallet_addr not in wallet_lookup_by_addr:
            wallet_lookup_by_addr[wallet.wallet_addr]= wallet.id
         else:
@@ -378,22 +383,37 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
                     update_user_wallet_based_on_deposit(
                           trx, wallet_id, min_trx_confirmation, operator)
                 else:
+                    if 'comment' in trx:
+                        dup_receives[trx['txid']] = trx
+                        logger.info('Receiving trans {0} could be part of sending trans for CNY. Record it'.format(
+                            trx['txid']
+                        ))
                     logger.error('Transaction {0} with address {1} does not belong to any user'.format(
                             trx['txid'],trx['address']))
             elif trx['category'] == 'send':
+                if trx['txid'] in dup_receives:
+                    sum = trx['amount'] + dup_receives[trx['txid']]['amount']
+                    if math.fabs(sum) < 0.00000001:
+                        logger.info('sending trans {0} is part of CNY extra receive/send pair, ignore it'.format(
+                            trx['txid']
+                        ))
+                        continue
                 userid = get_send_money_trans_userid(trx)
                 logger.info("Get user id {0} from trx[{1}]'s comment {2}'".format(
                       userid, trx['txid'], trx['comment']))
                 if userid == -1:
-                    # means userid parse has issue, the logger should have logged it
+                    logger.warn('Could not parse transaction[{0}]\'s comment for user {1}'.format(
+                        trx['txid'], trx.get('comment', '')
+                    ))
                     pass
                 elif userid in wallet_lookup_by_userid:
                     wallet_id = wallet_lookup_by_userid[userid]
                     update_user_wallet_based_on_redeem(
                           trx, wallet_id, min_trx_confirmation, operator)
                 else:
-                    logger.error('Could not find user wallet for Transaction {0} with  comment {1} '.format(
-                            trx['txid'],trx['comment']))
+                    logger.error('Could not find user {0}\'s with txid[{1}] '.format(
+                        userid, trx['txid']))
+
         except ValueError as ve:
             logger.exception('Encounter error when processing transaction: {0}'.format(trx['txid']))
 
