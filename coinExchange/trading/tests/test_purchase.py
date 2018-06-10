@@ -27,7 +27,6 @@ from datetime import datetime as dt
 TEST_HY_BILL_NO='180102122300364021000081666'
 
 heepay_reponse_template = json.load(io.open('trading/tests/data/heepay_return_success.json', 'r', encoding='utf-8'))
-test_redeem_request = json.load(io.open('test_request.json', 'r', encoding='utf-8'))
 
 #mock function
 def send_buy_apply_request_side_effect(payload):
