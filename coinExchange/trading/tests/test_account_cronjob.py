@@ -274,15 +274,92 @@ class AccountCronJobTestCase(TransactionTestCase):
         for tran in user1_wallet_trans:
             if tran.balance_update_type == 'CREDIT':
                 self.assertEqual('PROCESSED', tran.status)
+                self.assertEqual('DEPOSIT', tran.transaction_type)
                 self.assertEqual(0, tran.balance_begin)
+                self.assertEqual(100.0, tran.balance_end)
+                self.assertEqual(0, tran.locked_balance_begin)
+                self.assertEqual(0, tran.locked_balance_end)
+                self.assertEqual(0, tran.available_to_trade_begin)
+                self.assertEqual(100.0, tran.available_to_trade_end)
 
             elif tran.balance_update_type == 'DEBT':
                 debt_count = debt_count + 1
                 self.assertEqual('PENDING', tran.status)
-
+                if tran.transaction_type == 'REDEEM':
+                    self.assertEqual(100.0, tran.balance_begin)
+                    self.assertEqual(100.0, tran.balance_end)
+                    self.assertEqual(0, tran.locked_balance_begin)
+                    self.assertEqual(0.02, tran.locked_balance_end)
+                    self.assertEqual(100.0, tran.available_to_trade_begin)
+                    self.assertEqual(99.98, tran.available_to_trade_end)
+                elif tran.transaction_type == 'REDEEMFEE':
+                    self.assertEqual(100.0, tran.balance_begin)
+                    self.assertEqual(100.0, tran.balance_end)
+                    self.assertEqual(0.02, tran.locked_balance_begin)
+                    self.assertEqual(0.03, tran.locked_balance_end)
+                    self.assertEqual(99.98, tran.available_to_trade_begin)
+                    self.assertEqual(99.97, tran.available_to_trade_end)
+                else:
+                    self.fail('Unexpected transaction type {0}'.format(tran.transaction_type))
         self.assertEqual(2, debt_count)
+
+        # varify the user3's transaction, which is just has one confirmed
+        # redeem, and one confirmed deposite, there's no trace of the 
+        # first deposite
         self.assertEqual(-1.0 - 0.01 + 2.0, user2_wallet.balance)
         self.assertEqual(0, user2_wallet.locked_balance)
         self.assertEqual(-1.0 - 0.01 + 2.0, user2_wallet.available_balance)
+        
+        user2_wallet_trans = UserWalletTransaction.objects.filter(
+            user_wallet__id = user2_wallet.id).order_by('-lastupdated_at')
+        self.assertEqual(4, len(user2_wallet_trans))
+
+        for tran in user2_wallet_trans:
+            
+            print('Tran {0}: type:{1}:{2} balance: {3}-{4} locked: {5}-{6} available: {7}-{8} status: {9}'.format(
+                tran.id, tran.balance_update_type, tran.transaction_type,
+                tran.balance_begin, tran.balance_end, 
+                tran.locked_balance_begin, tran.locked_balance_end,
+                tran.available_to_trade_begin, tran.available_to_trade_end,
+                tran.status
+            ))
+            
+            if tran.balance_update_type == 'CREDIT':
+                if tran.status == 'PROCESSED':
+                    self.assertEqual('DEPOSIT', tran.transaction_type)
+                    self.assertEqual(-1.01, tran.balance_begin)
+                    self.assertEqual(0.99, tran.balance_end)
+                    self.assertEqual(0, tran.locked_balance_begin)
+                    self.assertEqual(0, tran.locked_balance_end)
+                    self.assertEqual(-1.01, tran.available_to_trade_begin)
+                    self.assertEqual(0.99, tran.available_to_trade_end)
+                # the pending deposite should have everything as 0
+                elif tran.status == 'PENDING':
+                    self.assertEqual('DEPOSIT', tran.transaction_type)
+                    self.assertEqual(0, tran.balance_begin)
+                    self.assertEqual(0, tran.balance_end)
+                    self.assertEqual(0, tran.locked_balance_begin)
+                    self.assertEqual(0, tran.locked_balance_end)
+                    self.assertEqual(0, tran.available_to_trade_begin)
+                    self.assertEqual(0, tran.available_to_trade_end)
+                    
+            elif tran.balance_update_type == 'DEBT':
+                self.assertEqual('PROCESSED', tran.status)
+                if tran.transaction_type == 'REDEEM':
+                    self.assertEqual(0, tran.balance_begin)
+                    self.assertEqual(-1.0, tran.balance_end)
+                    self.assertEqual(0, tran.locked_balance_begin)
+                    self.assertEqual(0, tran.locked_balance_end)
+                    self.assertEqual(0, tran.available_to_trade_begin)
+                    self.assertEqual(-1.0, tran.available_to_trade_end)
+                elif tran.transaction_type == 'REDEEMFEE':
+                    self.assertEqual(-1.0, tran.balance_begin)
+                    self.assertEqual(-1.01, tran.balance_end)
+                    self.assertEqual(0, tran.locked_balance_begin)
+                    self.assertEqual(0, tran.locked_balance_end)
+                    self.assertEqual(-1.0, tran.available_to_trade_begin)
+                    self.assertEqual(-1.01, tran.available_to_trade_end)
+                else:
+                    self.fail('Unexpected transaction type {0}'.format(tran.transaction_type))
         
 
