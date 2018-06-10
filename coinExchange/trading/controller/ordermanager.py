@@ -179,7 +179,7 @@ def cancel_purchase_order(order, final_status, payment_status,
                 api_trans.trade_status = 'ExpiredInvalid'
             else:
                 timediff = timezone.now() - api_trans.created_at
-                if timediff > api_trans.timeout_in_sec:
+                if timediff > api_trans.expire_in_sec:
                     api_trans.trade_status = 'ExpiredInvalid'
                 else:
                     api_trans.trade_status = 'UserAbandon'
