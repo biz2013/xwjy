@@ -11,6 +11,7 @@ from django.utils import timezone
 # this is for test UI. A fake one
 from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from tradeex.controllers.tradex import TradeExchangeManager
+from tradeex.data.tradeapirequest import TradeAPIRequest
 from trading.config import context_processor
 from trading.controller.global_constants import *
 from trading.controller.global_utils import *
