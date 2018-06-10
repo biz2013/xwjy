@@ -25,13 +25,12 @@ from trading.views.models.returnstatus import ReturnStatus
 from trading.views import errorpageview
 from django.contrib.auth.decorators import login_required
 
-
 logger = logging.getLogger("site.order_batch_process")
 
 def handle_pend_api_trans(api_trans):
     tradex = TradeExchangeManager()
     request_obj = TradeAPIRequest.parseFromJson(api_trans.original_request)
-    tradex.post_sell_order(None, requse_obj, api_trans.api_user, api_trans)
+    tradex.post_sell_order(None, request_obj, api_trans.api_user, api_trans)
 
 def handle_paying_order(order, order_timeout, appId, appkey):
     try:
