@@ -71,7 +71,7 @@
     "fields":{
       "name":"CNYWallet",
       "cryptocurrency": "CNY",
-      "config_json": "{ \"bin_path\": \"/home/ubuntu/workspace/peercoin/bin/peercoind\", \"passphrase\": \"\", \"datadir\": \"/home/ubuntu/workspace/peercoin/data\", \"list_trans_count\": 100000, \"account_name\": \"\" }", 
+      "config_json": "{ \"bin_path\": \"/home/ubuntu/workspace/peercoin/bin/peercoin\", \"passphrase\": \"\", \"datadir\": \"/home/ubuntu/workspace/peercoin/data\", \"list_trans_count\": 100000, \"account_name\": \"\" }", 
       "created_at": "2017-12-17T21:14:00+08:00",
       "lastupdated_at": "2017-12-17T21:14:00+08:00",
       "created_by": 1,
@@ -269,7 +269,7 @@
     "fields":{
       "user": 4,
       "wallet": 2,
-      "wallet_addr":"EcinEAwDsYgUDHeZijSDD7AHYNuDdqBn5j",
+      "wallet_addr":"PBfMvKuNtJH5yodb13n5FfE7UggNCLh7YP",
       "created_at": "2017-12-17T21:14:00+08:00",
       "lastupdated_at": "2017-12-17T21:14:00+08:00",
       "created_by": 1,
@@ -299,7 +299,7 @@
      "wallet": 2,
      "balance" : 1000,
      "available_balance" : 1000,
-     "wallet_addr":"GcinEAwDsYgUDHeZijSDD7AHYNuDdqBn5j",
+     "wallet_addr":"PXZCvnATCuvNcJheKsg9LGe5Asf9a5xeEd",
      "created_at": "2017-12-17T21:14:00+08:00",
      "lastupdated_at": "2017-12-17T21:14:00+08:00",
      "created_by": 1,
@@ -312,7 +312,7 @@
   "fields":{
     "user": 1,
     "wallet": 2,
-    "wallet_addr":"ANG53xNLvM4YkjHCeiaLMgobMZv3i6hT--",
+    "wallet_addr":"PUXF3ugnPigADfgK2HKv71k8vAhySvP1v7",
     "balance" : 1000000,
     "available_balance" : 1000000,
     "created_at": "2017-12-17T21:14:00+08:00",

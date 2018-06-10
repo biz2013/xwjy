@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 
 from trading.controller import axfd_utils, useraccountinfomanager
 from trading.models import *
+from tradeex.controllers.crypto_utils import CryptoUtility
 #from trading.forms import *
 from trading.tests.setuptest import *
 from unittest.mock import Mock, MagicMock, patch
@@ -14,6 +15,7 @@ import sys, traceback, time, json, math
 
 test_data1 = json.load(open('trading/tests/data/trx_test_data1.json'))
 test_data2 = json.load(open('trading/tests/data/trx_test_data2.json'))
+test_data_cny_pass1 = json.load(open('trading/tests/data/trx_test_cny_wallet_1.json'))
 
 class AccountCronJobTestCase(TransactionTestCase):
     fixtures = ['fixture_for_account_cronjob.json']
@@ -23,11 +25,18 @@ class AccountCronJobTestCase(TransactionTestCase):
             User.objects.get(username='tttzhang2000@yahoo.com')
         except User.DoesNotExist:
             setup_test()
+            
 
-         
+    @patch.object(CryptoUtility, 'listtransactions_impl')
     @patch.object(axfd_utils.AXFundUtility, 'listtransactions')
-    def test_update_account_from_trx(self, mock_listtransactions):
+    def test_update_account_from_trx(self, mock_listtransactions,mock_listtransactions_impl):
         mock_listtransactions.return_value = test_data1
+        mock_listtransactions_impl.return_value = test_data_cny_pass1
+
+        cnywallet = Wallet.objects.get(cryptocurrency__currency_code='CNY')
+        axfwallet = Wallet.objects.get(cryptocurrency__currency_code='AXFund')
+
+        operator = User.objects.get(username='admin')
 
         # set user's wallet to test address
         updated = UserWallet.objects.filter(user__username='taozhang',
@@ -44,8 +53,24 @@ class AccountCronJobTestCase(TransactionTestCase):
           lastupdated_at = dt.datetime.utcnow())
         if not updated:
             self.fail('Did not find userwallet for yingzhou')
+        UserWallet.objects.create(
+            user = taozhang,
+            wallet = cnywallet,
+            wallet_addr = 'PBfMvKuNtJH5yodb13n5FfE7UggNCLh7YP',
+            created_by = operator,
+            lastupdated_by = operator
+        ).save()
+
+
         yingzhou = User.objects.get(username='yingzhou')
         print ('yingzhou\'s userid is {0}'.format(yingzhou.id))
+        UserWallet.objects.create(
+            user = yingzhou,
+            wallet = cnywallet,
+            wallet_addr = 'PXZCvnATCuvNcJheKsg9LGe5Asf9a5xeEd',
+            created_by = operator,
+            lastupdated_by = operator
+        ).save()
 
         #with patch('controller.axfd_utils.axfd_listtransactions') as mock:
         #    instance = mock.return_value
@@ -146,12 +171,15 @@ class AccountCronJobTestCase(TransactionTestCase):
             self.fail('Could not find redeem fee userwallettransaction for txid 6027fed2199003b34ceb910bd7e1f42914e0c1ea2153d9766e77cfa31cb9255e')
 
         #TODO: should test there are 3 pending redeem 0 pending receive trans for user1
-        self.assertEqual(3, len(UserWalletTransaction.objects.filter(user_wallet__user__id = 2, transaction_type = 'REDEEM', status='PENDING')))
-        self.assertEqual(0, len(UserWalletTransaction.objects.filter(user_wallet__user__id = 2, transaction_type = 'DEPOSITE', status='PENDING')))
+        self.assertEqual(3, len(UserWalletTransaction.objects.filter(user_wallet__user__id = 2, user_wallet__wallet__id = axfwallet.id, transaction_type = 'REDEEM', status='PENDING')))
+        self.assertEqual(0, len(UserWalletTransaction.objects.filter(user_wallet__user__id = 2, user_wallet__wallet__id = axfwallet.id, transaction_type = 'DEPOSITE', status='PENDING')))
         
         #TODO: should test there are 2 pending redeem 0 pending receive trans for user2
-        self.assertEqual(2, len(UserWalletTransaction.objects.filter(user_wallet__user__id = 3, transaction_type = 'REDEEM', status='PENDING')))
-        self.assertEqual(0, len(UserWalletTransaction.objects.filter(user_wallet__user__id = 2, transaction_type = 'DEPOSITE', status='PENDING')))
+        self.assertEqual(2, len(UserWalletTransaction.objects.filter(user_wallet__user__id = 3, user_wallet__wallet__id = axfwallet.id, transaction_type = 'REDEEM', status='PENDING')))
+        self.assertEqual(0, len(UserWalletTransaction.objects.filter(user_wallet__user__id = 2, user_wallet__wallet__id = axfwallet.id, transaction_type = 'DEPOSITE', status='PENDING')))
+
+        # validate the cny transaction
+        self.validate_cny_first_run()
 
         mock_listtransactions.return_value = test_data2
         c = Client()
@@ -187,8 +215,8 @@ class AccountCronJobTestCase(TransactionTestCase):
             self.fail('Could not find userwallettransaction for txid e8392e991eaa06fc4e37a32c713d69f56b4f14ff823c1adee7b43dc1f98e3b63')
 
         #Test there is 0 pending transaction
-        self.assertEqual(0, len(UserWalletTransaction.objects.filter(user_wallet__user__id = 2, status='PENDING')))
-        self.assertEqual(0, len(UserWalletTransaction.objects.filter(user_wallet__user__id = 3, status='PENDING')))
+        self.assertEqual(0, len(UserWalletTransaction.objects.filter(user_wallet__user__id = 2, user_wallet__wallet__id = axfwallet.id, status='PENDING')))
+        self.assertEqual(0, len(UserWalletTransaction.objects.filter(user_wallet__user__id = 3, user_wallet__wallet__id = axfwallet.id, status='PENDING')))
 
         # save the trans, prepare to compare it with the trans after another run
         lookup = {}
@@ -196,8 +224,8 @@ class AccountCronJobTestCase(TransactionTestCase):
         for trans in all_trans:
             lookup[trans.id] = trans
 
-        user_wallet_1 = UserWallet.objects.get(user__id=2)
-        user_wallet_2 = UserWallet.objects.get(user__id=3)
+        user_wallet_1 = UserWallet.objects.get(user__id=2, wallet__cryptocurrency__currency_code = 'AXFund')
+        user_wallet_2 = UserWallet.objects.get(user__id=3, wallet__cryptocurrency__currency_code = 'AXFund')
         
         # rerun should not make any problem
         mock_listtransactions.return_value = test_data2
@@ -228,3 +256,33 @@ class AccountCronJobTestCase(TransactionTestCase):
             self.assertEqual(old_trans.lastupdated_by, trans.lastupdated_by)
             self.assertEqual(old_trans.units, trans.units)
             
+    def validate_cny_first_run(self):
+        cnywallet = Wallet.objects.get(cryptocurrency__currency_code = 'CNY')
+        user1_wallet = UserWallet.objects.get(user__username='taozhang',
+                  wallet__cryptocurrency__currency_code = 'CNY')
+        user2_wallet = UserWallet.objects.get(user__username='yingzhou',
+                  wallet__cryptocurrency__currency_code = 'CNY')
+        
+        self.assertEqual(100.0, user1_wallet.balance)
+        self.assertEqual(0.02 + 0.01, user1_wallet.locked_balance)
+        self.assertEqual(100.0 - 0.02 - 0.01, user1_wallet.available_balance)
+
+        user1_wallet_trans = UserWalletTransaction.objects.filter(
+            user_wallet__id = user1_wallet.id).order_by('-lastupdated_at')
+        self.assertEqual(3, len(user1_wallet_trans))
+        debt_count = 0
+        for tran in user1_wallet_trans:
+            if tran.balance_update_type == 'CREDIT':
+                self.assertEqual('PROCESSED', tran.status)
+                self.assertEqual(0, tran.balance_begin)
+
+            elif tran.balance_update_type == 'DEBT':
+                debt_count = debt_count + 1
+                self.assertEqual('PENDING', tran.status)
+
+        self.assertEqual(2, debt_count)
+        self.assertEqual(-1.0, user2_wallet.balance)
+        self.assertEqual(0, user2_wallet.locked_balance)
+        self.assertEqual(-1.0, user2_wallet.available_balance)
+        
+
