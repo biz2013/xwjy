@@ -262,7 +262,7 @@ def setuptestuser(request):
 @csrf_exempt
 def fix(request):
     json_input = {}
-    json_input['version']= '1.0
+    json_input['version']= '1.0'
     json_input['biz_content']= '{\"api_account_mode\": \"Account\", \"attach\": \"userid:1\", \"client_ip\": \"127.0.0.1\", \"expire_minute\": 10, \"notify_url\": \"http://54.203.195.52/tradeex/api_notify_test/\", \"out_trade_no\": \"order_to_purchase\", \"payment_account\": \"13910978598\", \"payment_provider\": \"heepay\", \"return_url\": \"http://54.203.195.52/tradeex/api_notify_test/\", \"subject\": \"人民币提现成功测试\", \"total_fee\": 2}'
     json_input['method'] = 'wallet.trade.buy'
     json_input['timestamp'] = 0
