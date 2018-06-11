@@ -271,6 +271,14 @@ def fix(request):
 	"sign": "85424D71C638FF66CDC3B0BB14C26E73",
 	"charset": "utf-8"
     }
-    api_trans = APIUserTransaction.objects.get(pk='API_TX_20180604045827_816356')
-    api_trans.original_request = json.dumps(json_input, ensure_ascii=False)
-    api_trans.save()
+
+    try:
+        with transaction.atomic():
+            api_trans = APIUserTransaction.objects.get(pk='API_TX_20180604045827_816356')
+            api_trans.original_request = json.dumps(json_input, ensure_ascii=False)
+            api_trans.save()
+            return HttpResponse(content='ok')
+    except:
+        errmsg = 'failed to fix api trans API_TX_20180604045827_816356 {0}'.format(sys.exc_info()[0])
+        logger.error(errmsg)
+        return HttpResponse(content=errmsg)
