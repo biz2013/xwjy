@@ -356,4 +356,3 @@ def create_cancel_response(api_trans, api_user):
         api_trans.reference_bill_no,
         trade_status = api_trans.trade_status
     )
-    

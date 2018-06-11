@@ -258,3 +258,19 @@ def setuptestuser(request):
         return HttpResponse(content='error')
     return HttpResponse(content='ok')
 
+
+@csrf_exempt
+def fix(request):
+    json_input = {
+	"version": "1.0",
+	"biz_content": "{\"api_account_mode\": \"Account\", \"attach\": \"userid:1\", \"client_ip\": \"127.0.0.1\", \"expire_minute\": 10, \"notify_url\": \"http://54.203.195.52/tradeex/api_notify_test/\", \"out_trade_no\": \"order_to_purchase\", \"payment_account\": \"13910978598\", \"payment_provider\": \"heepay\", \"return_url\": \"http://54.203.195.52/tradeex/api_notify_test/\", \"subject\": \"人民币充值成功测试\", \"total_fee\": 2}",
+	"method": "wallet.trade.buy",
+	"timestamp": 0,
+	"sign_type": "MD5",
+	"api_key": "api_test_user_appId1",
+	"sign": "85424D71C638FF66CDC3B0BB14C26E73",
+	"charset": "utf-8"
+    }
+    api_trans = APIUserTransaction.objects.get(pk='API_TX_20180604045827_816356')
+    api_trans.original_request = json.dumps(json_input, ensure_ascii=False)
+    api_trans.save()
