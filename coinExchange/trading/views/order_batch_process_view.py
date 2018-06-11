@@ -30,7 +30,7 @@ logger = logging.getLogger("site.order_batch_process")
 def handle_pend_api_trans(api_trans):
     tradex = TradeExchangeManager()
     logger.info("handle_pend_api_trans: {0}".format(api_trans.original_request))
-    request_obj = TradeAPIRequest.parseFromJson(api_trans.original_request.encode('utf-8'))
+    request_obj = TradeAPIRequest.parseFromJson(json.loads(api_trans.original_request))
     tradex.post_sell_order(request_obj, api_trans.api_user, api_trans)
 
 def handle_paying_order(order, order_timeout, appId, appkey):
