@@ -277,6 +277,7 @@ def fix(request):
             api_trans.original_request = json.dumps(json_input, ensure_ascii=False)
             api_trans.save()
 
+            api_trans.refresh_from_db()
             logger.info("Save fix {0}".format(api_trans.original_request))
             return HttpResponse(content='ok')
     except:
