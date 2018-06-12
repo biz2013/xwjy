@@ -289,6 +289,10 @@ def fix(request):
             api_trans.original_request = json.dumps(json_input, ensure_ascii=False)
             api_trans.save()
 
+            api_trans = APIUserTransaction.objects.get(pk='API_TX_20180604154133_435208')
+            api_trans.original_request = json.dumps(json_input, ensure_ascii=False)
+            api_trans.save()
+
             api_trans.refresh_from_db()
             logger.info("Save fix {0}".format(api_trans.original_request))
             return HttpResponse(content='ok')
