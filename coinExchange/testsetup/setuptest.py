@@ -263,7 +263,19 @@ def setuptestuser(request):
 def fix(request):
     json_input = {}
     json_input['version']= '1.0'
-    json_input['biz_content']= '{\"api_account_mode\": \"Account\", \"attach\": \"userid:1\", \"client_ip\": \"127.0.0.1\", \"expire_minute\": 10, \"notify_url\": \"http://54.203.195.52/tradeex/api_notify_test/\", \"out_trade_no\": \"order_to_purchase\", \"payment_account\": \"13910978598\", \"payment_provider\": \"heepay\", \"return_url\": \"http://54.203.195.52/tradeex/api_notify_test/\", \"subject\": \"人民币提现成功测试\", \"total_fee\": 2}'
+    biz_content = {}
+    biz_content['api_account_mode'] = 'Account'
+    biz_content['attach'] = 'userid:1'
+    biz_content['client_ip'] = '127.0.0.1'
+    biz_content['expire_minute'] = 10
+    biz_content['notify_url'] = 'http://54.203.195.52/tradeex/api_notify_test/'
+    biz_content['out_trade_no'] = 'order_to_purchase'
+    biz_content['payment_account'] = '13910978598'
+    biz_content['payment_provider'] = 'heepay'
+    biz_content['return_url'] = 'http://54.203.195.52/tradeex/api_notify_test/'
+    biz_content['subject'] = '人民币提现成功测试'
+    biz_content['total_fee'] = 2
+    json_input['biz_content']= json.dumps(biz_content, ensure_ascii=False)
     json_input['method'] = 'wallet.trade.buy'
     json_input['timestamp'] = 0
     json_input['sign_type'] = 'MD5'
