@@ -273,19 +273,19 @@ def fix(request):
     biz_content['payment_account'] = '13910978598'
     biz_content['payment_provider'] = 'heepay'
     biz_content['return_url'] = 'http://54.203.195.52/tradeex/api_notify_test/'
-    biz_content['subject'] = '人民币提现成功测试'
+    biz_content['subject'] = '人民币充值成功测试'
     biz_content['total_fee'] = 2
     json_input['biz_content']= json.dumps(biz_content, ensure_ascii=False)
     json_input['method'] = 'wallet.trade.buy'
     json_input['timestamp'] = 0
     json_input['sign_type'] = 'MD5'
     json_input['api_key'] = 'api_test_user_appId1'
-    json_input['sign'] = '85424D71C638FF66CDC3B0BB14C26E73'
+    json_input['sign'] = '4C9944A0C0CD27261425C0F5B27AD75A'
     json_input['charset'] = 'utf-8'
 
     try:
         with transaction.atomic():
-            api_trans = APIUserTransaction.objects.get(pk='API_TX_20180604045827_816356')
+            api_trans = APIUserTransaction.objects.get(pk='API_TX_20180604145226_100480')
             api_trans.original_request = json.dumps(json_input, ensure_ascii=False)
             api_trans.save()
 
