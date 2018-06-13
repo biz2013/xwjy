@@ -42,24 +42,36 @@ def update_user_wallet_based_on_deposit(trx, user_wallet_id, min_trx_confirmatio
                     user_wallet.id, user_wallet.wallet_addr, user_wallet.balance, user_wallet.locked_balance, user_wallet.available_balance))
                 balance_end = user_wallet.balance + trx['amount']
                 available_to_trade_end = user_wallet.available_balance + trx['amount']
-                user_wallet_trans.balance_begin = user_wallet.balance
-                user_wallet_trans.balance_end = balance_end
-                user_wallet_trans.available_to_trade_begin = user_wallet.available_balance
-                user_wallet_trans.available_to_trade_end = available_to_trade_end
-                user_wallet_trans.lastupdated_by = operator
-                user_wallet_trans.status = 'PROCESSED'
-                user_wallet_trans.save()
+                updated = UserWalletTransaction.objects.filter(
+                    id = user_wallet_trans.id,
+                    lastupdated_at = user_wallet_trans.lastupdated_at
+                ).update(
+                    balance_begin = user_wallet.balance,
+                    balance_end = balance_end,
+                    available_to_trade_begin = user_wallet.available_balance,
+                    available_to_trade_end = available_to_trade_end,
+                    lastupdated_by = operator,
+                    status = 'PROCESSED',
+                    lastupdated_at = dt.datetime.utcnow()
+                )
 
-                user_wallet.balance = balance_end
-                user_wallet.available_balance = available_to_trade_end
-                user_wallet.user_wallet_trans_id = user_wallet_trans.id
-                user_wallet.lastupdated_by = operator
-                user_wallet.save()
+                if updated: 
+                    user_wallet.balance = balance_end
+                    user_wallet.available_balance = available_to_trade_end
+                    user_wallet.user_wallet_trans_id = user_wallet_trans.id
+                    user_wallet.lastupdated_by = operator
+                    user_wallet.save()
                 
-                logger.info('update_user_wallet_based_on_deposit(): txid {0} updated userwallet[{1}:{2}] to balance {3} locked {4} available {5}'.format(
-                    trx['txid'], user_wallet.id, user_wallet.wallet_addr, 
-                    user_wallet.balance, user_wallet.locked_balance, user_wallet.available_balance,
-                ))
+                    logger.info('update_user_wallet_based_on_deposit(): txid {0} updated userwallet[{1}:{2}] to balance {3} locked {4} available {5}'.format(
+                        trx['txid'], user_wallet.id, user_wallet.wallet_addr, 
+                        user_wallet.balance, user_wallet.locked_balance, user_wallet.available_balance,
+                    ))
+                else:
+                    user_wallet.refresh_from_db()
+                    logger.warn('update_user_wallet_based_on_deposit(): txid {0} userwallet[{1}:{2}] has already been updated by other process to balance {3} locked {4} available {5}'.format(
+                        trx['txid'], user_wallet.id, user_wallet.wallet_addr, 
+                        user_wallet.balance, user_wallet.locked_balance, user_wallet.available_balance,
+                    ))
         elif user_wallet_trans.status == 'PENDING' and trx['confirmations'] < min_trx_confirmation:
             if int(time.time()) - trx['timereceived'] >= 24 * 3600:
                 error_msg = 'update_user_wallet_based_on_deposit(): Wallet deposite txid {0} has not had {1} confirmation after more than a day'.format(trx['txid'], min_trx_confirmation)
@@ -77,6 +89,7 @@ def update_user_wallet_based_on_deposit(trx, user_wallet_id, min_trx_confirmatio
     except UserWalletTransaction.DoesNotExist:
         with transaction.atomic():
             user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet_id)
+
             logger.info('update_user_wallet_based_on_deposit(): txid {0} confirmations: {1} vs min_confirmation {2} amount: {3} create deposit user wallet trans for user {4}'.format(
                 trx['txid'], trx['confirmations'], min_trx_confirmation, trx['amount'], user_wallet.user.id 
             ))
@@ -186,37 +199,50 @@ def update_user_wallet_based_on_redeem(trx, user_wallet_id, min_trx_confirmation
                 available_to_trade_fee_end = available_to_trade_fee_begin
 
                 # update original pending redeem trans
-                user_wallet_trans.balance_begin = balance_begin
-                user_wallet_trans.balance_end = balance_end
-                user_wallet_trans.locked_balance_begin =  locked_balance_begin
-                user_wallet_trans.locked_balance_end =  locked_balance_end
-                user_wallet_trans.available_to_trade_begin = available_to_trade_begin
-                user_wallet_trans.available_to_trade_end = available_to_trade_end
-                user_wallet_trans.lastupdated_by = operator
-                user_wallet_trans.status = 'PROCESSED'
-                user_wallet_trans.save()
+                updated = UserWalletTransaction.objects.filter(
+                    id = user_wallet_trans.id,
+                    lastupdated_at = user_wallet_trans.lastupdated_at
+                ).update(
+                    balance_begin = balance_begin,
+                    balance_end = balance_end,
+                    locked_balance_begin =  locked_balance_begin,
+                    locked_balance_end =  locked_balance_end,
+                    available_to_trade_begin = available_to_trade_begin,
+                    available_to_trade_end = available_to_trade_end,
+                    lastupdated_by = operator,
+                    status = 'PROCESSED',
+                    lastupdated_at = dt.datetime.utcnow()
+                )
 
-                user_wallet_fee_trans.balance_begin = balance_fee_begin
-                user_wallet_fee_trans.balance_end = balance_fee_end
-                user_wallet_fee_trans.locked_balance_begin =  locked_balance_fee_begin
-                user_wallet_fee_trans.locked_balance_end =  locked_balance_fee_end
-                user_wallet_fee_trans.available_to_trade_begin = available_to_trade_fee_begin
-                user_wallet_fee_trans.available_to_trade_end = available_to_trade_fee_end
-                user_wallet_fee_trans.lastupdated_by = operator
-                user_wallet_fee_trans.status = 'PROCESSED'
-                user_wallet_fee_trans.save()
+                if updated:
+                    user_wallet_fee_trans.balance_begin = balance_fee_begin
+                    user_wallet_fee_trans.balance_end = balance_fee_end
+                    user_wallet_fee_trans.locked_balance_begin =  locked_balance_fee_begin
+                    user_wallet_fee_trans.locked_balance_end =  locked_balance_fee_end
+                    user_wallet_fee_trans.available_to_trade_begin = available_to_trade_fee_begin
+                    user_wallet_fee_trans.available_to_trade_end = available_to_trade_fee_end
+                    user_wallet_fee_trans.lastupdated_by = operator
+                    user_wallet_fee_trans.status = 'PROCESSED'
+                    user_wallet_fee_trans.save()
 
-                user_wallet.balance = round(balance_fee_end,8)
-                user_wallet.locked_balance = round(locked_balance_fee_end, 8)
-                user_wallet.available_balance = round(available_to_trade_fee_end, 8)
-                user_wallet.user_wallet_trans_id = user_wallet_trans.id
-                user_wallet.lastupdated_by = operator
-                user_wallet.save()
+                    user_wallet.balance = round(balance_fee_end,8)
+                    user_wallet.locked_balance = round(locked_balance_fee_end, 8)
+                    user_wallet.available_balance = round(available_to_trade_fee_end, 8)
+                    user_wallet.user_wallet_trans_id = user_wallet_trans.id
+                    user_wallet.lastupdated_by = operator
+                    user_wallet.save()
 
-                logger.info('update_user_wallet_based_on_redeem(): txid {0} updated userwallet[{1}:{2}] to balance {3} locked {4} available {5}'.format(
-                    trx['txid'], user_wallet.id, user_wallet.wallet_addr, 
-                    user_wallet.balance, user_wallet.locked_balance, user_wallet.available_balance,
-                ))
+                    logger.info('update_user_wallet_based_on_redeem(): txid {0} updated userwallet[{1}:{2}] to balance {3} locked {4} available {5}'.format(
+                        trx['txid'], user_wallet.id, user_wallet.wallet_addr, 
+                        user_wallet.balance, user_wallet.locked_balance, user_wallet.available_balance,
+                    ))
+                else:
+                    user_wallet.refresh_from_db()
+                    logger.warn('update_user_wallet_based_on_redeem(): txid {0} userwallet[{1}:{2}] has already been updated by other process to balance {3} locked {4} available {5}'.format(
+                        trx['txid'], user_wallet.id, user_wallet.wallet_addr, 
+                        user_wallet.balance, user_wallet.locked_balance, user_wallet.available_balance,
+                    ))
+
         elif user_wallet_trans.status == 'PENDING' and trx['confirmations'] < min_trx_confirmation:
             if int(time.time()) - trx['timereceived'] >= 24 * 3600:
                 logger.warn('update_user_wallet_based_on_redeem(): Wallet redeem txid {0} has not had {1} confirmation after more than a day'.format(trx['txid'], min_trx_confirmation))
