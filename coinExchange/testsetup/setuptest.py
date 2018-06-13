@@ -12,7 +12,7 @@ from tradeex.controllers.walletmanager import WalletManager
 
 logger = logging.getLogger("site.testsetup")
 
-def setupbasic(operator):
+def setupbasic(operator, master_cny_address= None):
     login = operator
 
     logger.info("About to create CNY currency entry")
@@ -79,7 +79,7 @@ def setupbasic(operator):
             ))
         else:
             cnyutil = WalletManager.create_fund_util('CNY')
-            addr = cnyutil.create_wallet_address()
+            addr = cnyutil.create_wallet_address() if not master_cny_address else master_cny_address
             userwallet=UserWallet.objects.create(
                 user = admin,
                 wallet = wallet,
@@ -100,7 +100,7 @@ def setupbasic(operator):
     return True
 
 def create_user(username, password, email, apiaccount, appId, secret, 
-        payment_account, external_addr, operator):
+        payment_account, external_addr, operator, cny_address = None):
     cny_wallet = Wallet.objects.get(cryptocurrency__currency_code = 'CNY')
     axf_wallet = Wallet.objects.get(cryptocurrency__currency_code = 'AXFund')
     cny = Cryptocurrency.objects.get(currency_code = 'CNY')
@@ -158,7 +158,7 @@ def create_user(username, password, email, apiaccount, appId, secret,
             ))
         else:
             cnyutil = WalletManager.create_fund_util('CNY')
-            addr = cnyutil.create_wallet_address()
+            addr = cnyutil.create_wallet_address() if not cny_address else cny_address
             userwallet=UserWallet.objects.create(
                 user = user1,
                 wallet = cny_wallet,
@@ -243,15 +243,17 @@ def setuptestuser(request):
     login = User.objects.get(username='admin')
     try:
         with transaction.atomic():
-            if not setupbasic(login):
+            if not setupbasic(login, 'P8x436LDCpwopEd56rhndtxCmBFjFih5qB'):
                 raise ValueError('failed to setup basics')
             if not create_user('api_test_user1', '---', 'tttzhang2000@yahoo.com', 
                 '1000-0001', 'api_test_user_appId1', 'api_test_user_secrets1',
-                '13910978598', 'PLn7kEWV4EyLPUNAs1bKfArqiKHm2jJFrc', login):
+                '13910978598', 'PLn7kEWV4EyLPUNAs1bKfArqiKHm2jJFrc', login,
+                'PUXF3ugnPigADfgK2HKv71k8vAhySvP1v7'):
                 raise ValueError('failed to create test user')
             if not create_user('api_test_user2', '---', 'yingzhuu@yahoo.ca', 
                 '1000-0002', 'api_test_user_appId2', 'api_test_user_secrets2', 
-                '13641388306', None, login):
+                '13641388306', None, login,
+                'PXZCvnATCuvNcJheKsg9LGe5Asf9a5xeEd'):
                 raise ValueError('failed to create test user')
     except ValueError:
         logger.error('Create test user has issue')
