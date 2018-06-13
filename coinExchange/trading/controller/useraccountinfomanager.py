@@ -67,11 +67,12 @@ def update_user_wallet_based_on_deposit(trx, user_wallet_id, min_trx_confirmatio
                         user_wallet.balance, user_wallet.locked_balance, user_wallet.available_balance,
                     ))
                 else:
-                    user_wallet.refresh_from_db()
-                    logger.warn('update_user_wallet_based_on_deposit(): txid {0} userwallet[{1}:{2}] has already been updated by other process to balance {3} locked {4} available {5}'.format(
+                    errMsg = 'DIRTY_UPDATE: update_user_wallet_based_on_deposit(): txid {0} userwallet[{1}:{2}] has already been updated by other process to balance {3} locked {4} available {5}'.format(
                         trx['txid'], user_wallet.id, user_wallet.wallet_addr, 
                         user_wallet.balance, user_wallet.locked_balance, user_wallet.available_balance,
-                    ))
+                        )
+                    raise ValueError(errMsg)
+                
         elif user_wallet_trans.status == 'PENDING' and trx['confirmations'] < min_trx_confirmation:
             if int(time.time()) - trx['timereceived'] >= 24 * 3600:
                 error_msg = 'update_user_wallet_based_on_deposit(): Wallet deposite txid {0} has not had {1} confirmation after more than a day'.format(trx['txid'], min_trx_confirmation)
@@ -146,8 +147,16 @@ def update_user_wallet_based_on_deposit(trx, user_wallet_id, min_trx_confirmatio
                 ))
 
     except UserWalletTransaction.MultipleObjectsReturned:
-         logger.error('update_user_wallet_based_on_deposit(): There are more than one transaction related to txid {0} for user id {1} on receiving address {2}'.format(
+        logger.error('update_user_wallet_based_on_deposit(): There are more than one transaction related to txid {0} for user id {1} on receiving address {2}'.format(
              trx['txid'], user_wallet.user.id, user_wallet.wallet_addr))
+    
+    except ValueError as ve:
+        logger.error(ve.args[0])
+        if not ve.args[0].startswith('DIRTY_UPDATE'):
+            raise
+
+
+        
 
 def update_user_wallet_based_on_redeem(trx, user_wallet_id, min_trx_confirmation,
                                         operator):
@@ -237,11 +246,11 @@ def update_user_wallet_based_on_redeem(trx, user_wallet_id, min_trx_confirmation
                         user_wallet.balance, user_wallet.locked_balance, user_wallet.available_balance,
                     ))
                 else:
-                    user_wallet.refresh_from_db()
-                    logger.warn('update_user_wallet_based_on_redeem(): txid {0} userwallet[{1}:{2}] has already been updated by other process to balance {3} locked {4} available {5}'.format(
+                    errMsg= 'DIRTY_UPDATE:update_user_wallet_based_on_redeem(): txid {0} userwallet[{1}:{2}] has already been updated by other process to balance {3} locked {4} available {5}'.format(
                         trx['txid'], user_wallet.id, user_wallet.wallet_addr, 
                         user_wallet.balance, user_wallet.locked_balance, user_wallet.available_balance,
-                    ))
+                    )
+                    raise ValueError(errMsg)
 
         elif user_wallet_trans.status == 'PENDING' and trx['confirmations'] < min_trx_confirmation:
             if int(time.time()) - trx['timereceived'] >= 24 * 3600:
@@ -356,6 +365,11 @@ def update_user_wallet_based_on_redeem(trx, user_wallet_id, min_trx_confirmation
     except UserWalletTransaction.MultipleObjectsReturned:
          logger.error('update_user_wallet_based_on_redeem(): There are more than one transaction related to txid {0} for user id {1} on receiving address {2}'.format(
              trx['txid'], user_wallet.user.id, user_wallet.wallet_addr))
+    except ValueError as ve:
+        logger.error(ve.args[0])
+        if not ve.args[0].startswith('DIRTY_UPDATE'):
+            raise
+
 
 def get_send_money_trans_userid(trx):
     try:
