@@ -35,7 +35,7 @@ TEST_API_USER2_APPKEY = 'TRADEEX_USER2_APP_KEY_SELLER'
 TEST_API_USER1_SECRET='TRADEEX_USER1_APP_SECRET'
 TEST_API_USER2_SECRET='TRADEEX_USER2_API_SECRET'
 TEST_PURCHASE_AMOUNT = 62
-TEST_REDEEM_AMOUNT = 100
+TEST_REDEEM_AMOUNT = 50
 TEST_CNY_ADDR="TRADDEX_USER1_EXTERNAL_TEST_ADDR"
 TEST_CRYPTO_SEND_COMMENT = ""
 TEST_NOTIFY_URL = "http://testurl/"
@@ -456,6 +456,9 @@ class TestPrepurchase(TransactionTestCase):
                 TEST_API_USER2_APPKEY
             ))
 
+        # create test sell orders
+        self.create_fitting_order(62)
+
         # these are the app_id and secret from fixture apiuseraccount        
         # TODO: validate this is tradeex_api_user1
         app_id = TEST_API_USER2_APPKEY
@@ -482,14 +485,13 @@ class TestPrepurchase(TransactionTestCase):
                 return_url=test_return_url)
         c = Client()
         request_str = request.getPayload()
-        print('test_purchase_order_succeed(): send request {0}'.format(request_str))
+        print('test_redeem_order_succeed(): send request {0}'.format(request_str))
         response = c.post('/tradeex/selltoken/', request_str,
                           content_type='application/json')
         print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
 
         self.assertEqual(200, response.status_code)
         resp_json = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(resp_json['return_code'], 'SUCCESS')
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
 
         c2 = Client()
@@ -498,6 +500,19 @@ class TestPrepurchase(TransactionTestCase):
         purchase_request = {}
         api_trans = APIUserTransaction.objects.get(api_out_trade_no=test_out_trade_no)
         print('original request is {0}'.format(api_trans.original_request))
+
+        try:
+            sell_order = Order.objects.get(pk=api_trans.reference_order.order_id)
+            self.assertEqual('SELL', sell_order.order_type)
+        except Order.DoesNotExist:
+            self.fail('could not find the sell order for sell transaction {0}'.format(
+                api_trans.transactionId
+            ))
+        except Order.MultipleObjectsReturned:
+            self.fail('More than one sell order for sell transaction {0}'.format(
+                api_trans.transactionId
+            ))
+
         request_obj = TradeAPIRequest.parseFromJson(json.loads(api_trans.original_request))
         self.assertEqual('wallet.trade.sell', request_obj.method)
         purchase_request['reference_order_id'] = api_trans.reference_order.order_id
