@@ -169,7 +169,7 @@ def cancel_purchase_order(order, final_status, payment_status,
            lastupdated_at = dt.datetime.utcnow()
         )
         if not updated:
-            logger.error("cancel_purchase_order(): did not find order {0} to update, maybe someone changed its status from PAYING already".format(order_id))
+            logger.error("cancel_purchase_order(): did not find order {0} to update, maybe someone changed its status from PAYING already".format(order.order_id))
         
         api_trans = APIUserTransactionManager.get_trans_by_reference_order(order.order_id)
         if not api_trans and sell_order:

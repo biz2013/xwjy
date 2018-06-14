@@ -469,7 +469,7 @@ def get_user_accountInfo(user, crypto, load_balance_only=False):
     externaladdr = None
     payment_methods= []
     if not load_balance_only:
-        userpayments = UserPaymentMethod.objects.filter(user=user)
+        userpayments = UserPaymentMethod.objects.filter(user__id=user.id)
         external_addresses = UserExternalWalletAddress.objects.filter(user= user).filter(cryptocurrency__currency_code=crypto)
         if external_addresses:
            logger.info('Found the external address record for user {0} with {1}'.format(user.username, crypto))
