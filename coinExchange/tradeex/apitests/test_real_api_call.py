@@ -56,7 +56,7 @@ class TestAPICall(TestCase):
             return
         app_id = TEST_API_USER1_APPKEY
         secret_key = TEST_API_USER1_SECRET
-        test_out_trade_no = 'order_to_purchase'
+        test_out_trade_no = 'order_test_redeem'
         test_purchase_amount = TEST_PURCHASE_AMOUNT
         test_user_heepay_from_account = '13910978598'
         test_attach = 'userid:1'
