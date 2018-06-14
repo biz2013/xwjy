@@ -143,12 +143,13 @@ def cancel_purchase_order(order, final_status, payment_status,
                          operator):
     operatorObj = User.objects.get(username = operator)
     with transaction.atomic():
-
-        sell_order = Order.objects.select_for_update().get(pk=order.reference_order.order_id)
-        sell_order.units_locked = sell_order.units_locked - order.units
-        sell_order.units_available_to_trade = sell_order.units_available_to_trade + order.units
-        sell_order.status = 'OPEN'
-        sell_order.lastupdated_by = operatorObj
+        sell_order = None
+        if order.reference_order:
+            sell_order = Order.objects.select_for_update().get(pk=order.reference_order.order_id)
+            sell_order.units_locked = sell_order.units_locked - order.units
+            sell_order.units_available_to_trade = sell_order.units_available_to_trade + order.units
+            sell_order.status = 'OPEN'
+            sell_order.lastupdated_by = operatorObj
 
         updated = UserWalletTransaction.objects.filter(
                reference_order__order_id= order.order_id,
@@ -171,7 +172,7 @@ def cancel_purchase_order(order, final_status, payment_status,
             logger.error("cancel_purchase_order(): did not find order {0} to update, maybe someone changed its status from PAYING already".format(order_id))
         
         api_trans = APIUserTransactionManager.get_trans_by_reference_order(order.order_id)
-        if not api_trans:
+        if not api_trans and sell_order:
             api_trans = APIUserTransactionManager.get_trans_by_reference_order(sell_order.order_id)
         if api_trans:
             api_trans.payment_status = payment_status
@@ -186,7 +187,8 @@ def cancel_purchase_order(order, final_status, payment_status,
             api_trans.save()
 
         # release lock
-        sell_order.save()
+        if sell_order:
+            sell_order.save()
 
 def get_all_open_seller_order_exclude_user(user_id):
     sell_orders = Order.objects.filter(order_type='SELL').exclude(user__id=user_id).exclude(status='CANCELLED').exclude(status='FILLED').order_by('unit_price','-lastupdated_at')
