@@ -1,6 +1,6 @@
 from .base import *
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['54.203.195.52', 'localhost', '127.0.0.1']
 # send email to console
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
