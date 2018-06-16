@@ -31,7 +31,7 @@ urlpatterns = [
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 #Add URL maps to redirect the base URL to our application
-from django.views.generic import RedirectViewgi
+from django.views.generic import RedirectView
 urlpatterns += [
     path('', RedirectView.as_view(url='/trading/', permanent=True)),
 ]
