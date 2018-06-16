@@ -153,12 +153,16 @@ class TestTradingAPI(TransactionTestCase):
         return True
 
     def validate_user_info(self, username):
-        wallet_count = len(UserWallet.objects.all())
+        active_wallets = UserWallet.objects.filter(user__isnull = False)
+        wallet_count = len(active_wallets)
         self.assertTrue(wallet_count==7, "There should be 7 user wallets but have {0}".format(wallet_count))
-        for wallet in UserWallet.objects.all():
-            print('wallet {0}, user {1} {2}, balance {3}, address {4}, coin {5}'.format(
-                wallet.id, wallet.user.id, wallet.user.username, wallet.balance, wallet.wallet_addr,
-                wallet.wallet.cryptocurrency.currency_code
+        print('---------- snapshot of user wallet ---------')
+        for wallet in active_wallets:
+            print('wallet {0}|{1}, user {2} {3}, balance {4}/{5}/{6}, address {7}'.format(
+                wallet.id, wallet.wallet.cryptocurrency.currency_code, 
+                wallet.user.id, wallet.user.username, 
+                wallet.balance, wallet.locked_balance, wallet.available_balance,
+                wallet.wallet_addr
             ))
 
         useraccountInfo = useraccountinfomanager.get_user_accountInfo(User.objects.get(username=username),'AXFund')
@@ -197,8 +201,7 @@ class TestTradingAPI(TransactionTestCase):
         self.assertEqual(200, resp.status_code, "Create order of 200 units should return 200")
         self.assertFalse('系统遇到问题'.encode('utf-8') in resp.content, 'Create order of 200 units hit issue')
 
-        for order in Order.objects.all():
-            print('order {0} order_type {1} sub_type {2}'.format(order.order_id, order.order_type, order.sub_type))
+        show_order_overview()
 
     def create_fitting_order(self, amount):
         print('create_fitting_order({0})'.format(amount))
@@ -219,9 +222,8 @@ class TestTradingAPI(TransactionTestCase):
         resp = create_axfund_sell_order('tttzhang2000@yahoo.com', 'user@123', 156, 0.4, 'CNY')
         self.assertEqual(200, resp.status_code, "Create order of 156*0.4 units should return 200")
         self.assertFalse('系统遇到问题'.encode('utf-8') in resp.content,'Create order of 156*0.5 units hit issue')
-
-        for order in Order.objects.all():
-            print('matching order {0} order_type {1} sub_type {2}'.format(order.order_id, order.order_type, order.sub_type))
+        
+        show_order_overview()
 
 
     def get_api_trans(self, target_out_trade_no):

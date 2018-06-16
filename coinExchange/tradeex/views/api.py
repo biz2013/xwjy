@@ -163,7 +163,7 @@ def prepurchase(request):
     # what if network issue, what if the return is 30x, 40x, 50x
     except ValueError as ve:
         logger.error("prepurchase(): [out_trade_no:{0}] hit value error {1}".format(
-            request_obj.out_trade_no, ve.args[0]))
+            request_obj.out_trade_no if request_obj else 'N/A', ve.args[0]))
         resp = create_error_trade_response(
             request_obj, api_user,
             create_return_msg_from_valueError(ve.args[0]),
