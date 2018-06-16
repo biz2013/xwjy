@@ -2,13 +2,17 @@
 # -*- coding: utf-8 -*-
 import logging, json
 import datetime
-from tradeex.models import *
-from trading.models import *
+
 from django.db import transaction
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+
+from tradeex.models import *
+from tradeex.utls import *
 from tradeex.controllers.walletmanager import WalletManager
+
+from trading.models import *
 
 logger = logging.getLogger("site.testsetup")
 
@@ -260,7 +264,6 @@ def setuptestuser(request):
         return HttpResponse(content='error')
     return HttpResponse(content='ok')
 
-
 @csrf_exempt
 def fix(request):
     json_input = {}
@@ -302,3 +305,37 @@ def fix(request):
         errmsg = 'failed to fix api trans API_TX_20180604045827_816356 {0}'.format(sys.exc_info()[0])
         logger.error(errmsg)
         return HttpResponse(content=errmsg)
+
+@csrf_exempt
+def create_api_user(request):
+    if request.method != 'POST':
+        return HttpResponseBadRequest('请用POST方式')
+    request_json= json.loads(request.body.decode('utf-8'))
+    if not ('email' in request_json):
+        return HttpResponseBadRequest(content='请提供email')
+
+    appId = id_generator(32)
+    secret = create_access_keys()    
+    email = request_json['email']
+    username = request_json['username'] if 'username' in request_json else email
+    password = request_json['password'] if 'password' in request_json else id_generator(16)
+    payment_account = request_json['payment_account'],
+    external_addr = request_json.get('external_addr', None)
+
+    login = User.objects.get(username='admin')
+    try:
+        with transaction.atomic():
+            cny_wallet = Wallet.object.select_for_update().get(cryptocurrency__currency_code='CNY')
+            account_count = len(APIUserAccount.objects.all()) + 1
+            account_no = '{0}-{1}'.format(
+                str((100000000 + account_count)/1000),
+                str((100000000 + account_count) % 1000)
+            )
+
+            if not create_user(username, password, email, apiaccount, appId, secret, 
+                    payment_account, external_addr, operator):
+                raise ValueError('failed to create test user')
+    except ValueError:
+        logger.error('Create test user has issue')
+        return HttpResponseBadReequest(content='error')
+    return HttpResponse(content='ok')
