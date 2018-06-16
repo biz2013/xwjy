@@ -15,6 +15,7 @@ from django.test import Client
 from unittest.mock import Mock, MagicMock, patch
 
 from tradeex.data.tradeapirequest import TradeAPIRequest
+from tradeex.data.api_const import *
 from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from tradeex.apitests.tradingutils import *
 from tradeex.apitests.util_tests import *
@@ -34,6 +35,9 @@ TEST_API_USER1_APPKEY = 'TRADEEX_USER1_APP_KEY_1234567890ABCDE'
 TEST_API_USER2_APPKEY = 'TRADEEX_USER2_APP_KEY_SELLER'
 TEST_API_USER1_SECRET='TRADEEX_USER1_APP_SECRET'
 TEST_API_USER2_SECRET='TRADEEX_USER2_API_SECRET'
+
+TEST_OUT_TRADE_NO_REDEEM = 'order_to_redeem'
+
 TEST_PURCHASE_AMOUNT = 62
 TEST_REDEEM_AMOUNT = 50
 TEST_CNY_ADDR="TRADDEX_USER1_EXTERNAL_TEST_ADDR"
@@ -137,7 +141,7 @@ def send_json_request_for_redeem_test(payload, trackId='', response_format='json
     return 'OK'
 
 # Create your tests here.
-class TestPrepurchase(TransactionTestCase):
+class TestTradingAPI(TransactionTestCase):
     fixtures = ['fixture_test_tradeapi.json']
 
     def setUp(self):
@@ -164,6 +168,22 @@ class TestPrepurchase(TransactionTestCase):
         self.assertEqual(1, len(useraccountInfo.paymentmethods), "There should be 1 payment method for user {0}".format(username))
         self.assertEqual('heepay', useraccountInfo.paymentmethods[0].provider_code, "user {0}\'s payment method should come from heepay".format(username))
         self.assertTrue(useraccountInfo.paymentmethods[0].account_at_provider, "User {0} should have account at heepay".format(username))
+
+    def validate_purchase_first_state(self,request_obj, resp_json):
+        api_trans = None
+        try:
+            api_trans = APIUserTransaction.objects.get(api_out_trade_no=TEST_OUT_TRADE_NO_REDEEM)
+        except APIUserTransaction.DoesNotExist:
+            self.fail('There should be one api user transaction record for {0} API call'.format(TEST_OUT_TRADE_NO_REDEEM))
+        except APIUserTransaction.MultipleObjectsReturned:
+            self.fail('There should not be more than one api user transaction record for {0} API call'.format(TEST_OUT_TRADE_NO_REDEEM))
+
+        self.assertEqual(api_trans.action, API_METHOD_REDEEM)
+        self.assertTrue(api_trans.reference_order)
+        self.assertEqual('SELL', api_trans.reference_order.order_type)
+        self.assertEqual('ALL_OR_NOTHING', api_trans.reference_order.sub_type)
+        self.assertEqual('API', api_trans.reference_order.order_source)
+        self.assertTrue(math.fabs(round(request_obj.total_fee/100.0, 8) - api_trans.reference_order.total_amount) < 0.00000001)
 
     def create_no_fitting_order(self):
         print('create_no_fitting_order()')
@@ -274,7 +294,7 @@ class TestPrepurchase(TransactionTestCase):
     def test_purchase_bad_user_account(self):
         self.create_no_fitting_order()
         request = TradeAPIRequest(
-                'wallet.trade.buy',
+                API_METHOD_PURCHASE,
                 'user_does_not_exist',
                 'secret_key_not_exist',
                 'order_no_order', # order id
@@ -304,7 +324,7 @@ class TestPrepurchase(TransactionTestCase):
     def test_purchase_no_fitting_order(self):
         self.create_no_fitting_order()
         request = TradeAPIRequest(
-                'wallet.trade.buy',
+                API_METHOD_PURCHASE,
                 TEST_API_USER1_APPKEY,
                 TEST_API_USER1_SECRET,
                 'order_no_order', # order id
@@ -338,7 +358,7 @@ class TestPrepurchase(TransactionTestCase):
         updated = UserPaymentMethod.objects.filter(user__username='tttzhang2000@yahoo.com').filter(provider__code='heepay').update(account_at_provider='bad_user_account')
         self.assertTrue(updated, 'change tttzhang2000@yahoo.com\'s heepay account should be successful')
         request = TradeAPIRequest(
-                'wallet.trade.buy',
+                API_METHOD_PURCHASE,
                 TEST_API_USER1_APPKEY,
                 TEST_API_USER1_SECRET,
                 'order_match', # order id
@@ -390,7 +410,7 @@ class TestPrepurchase(TransactionTestCase):
         test_notify_url = 'http://testurl'
         test_return_url = 'http://testurl'
         request = TradeAPIRequest(
-                'wallet.trade.buy',
+                API_METHOD_PURCHASE,
                 app_id, secret_key,
                 test_out_trade_no, # out_trade_no
                 total_fee=test_purchase_amount, # total fee
@@ -463,7 +483,7 @@ class TestPrepurchase(TransactionTestCase):
         # TODO: validate this is tradeex_api_user1
         app_id = TEST_API_USER2_APPKEY
         secret_key = TEST_API_USER2_SECRET
-        test_out_trade_no = 'order_to_redeem'
+        test_out_trade_no = TEST_OUT_TRADE_NO_REDEEM
         test_purchase_amount = TEST_REDEEM_AMOUNT
         test_user_heepay_to_account = '12738456'
         test_attach = 'userid:1'
@@ -471,7 +491,7 @@ class TestPrepurchase(TransactionTestCase):
         test_notify_url = 'http://testurl'
         test_return_url = 'http://testurl'
         request = TradeAPIRequest(
-                'wallet.trade.sell',
+                API_METHOD_REDEEM,
                 app_id, secret_key,
                 test_out_trade_no, # out_trade_no
                 total_fee=test_purchase_amount, # total fee
@@ -493,6 +513,8 @@ class TestPrepurchase(TransactionTestCase):
         self.assertEqual(200, response.status_code)
         resp_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
+
+        self.validate_purchase_first_state(request, resp_json)
 
         c2 = Client()
         c.login(username='tttzhang2000@yahoo.com', password='user@123')

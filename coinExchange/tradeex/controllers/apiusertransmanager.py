@@ -306,7 +306,7 @@ class APIUserTransactionManager(object):
                 notify_resp, comment)
             if not APIUserTransaction.objects.filter(
                 transactionId= api_trans.transactionId).update(
-                last_notify = notify,
+                last_notify = json.dumps(notify.to_json(), ensure_ascii=False),
                 last_notify_response = notify_resp,
                 last_notified_at = dt.datetime.utcnow(),
                 last_status_description = comment,
