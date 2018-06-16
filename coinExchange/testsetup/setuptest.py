@@ -5,11 +5,11 @@ import datetime
 
 from django.db import transaction
 from django.contrib.auth.models import User
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 
 from tradeex.models import *
-from tradeex.utls import *
+from tradeex.utils import *
 from tradeex.controllers.walletmanager import WalletManager
 
 from trading.models import *
@@ -108,7 +108,6 @@ def create_user(username, password, email, apiaccount, appId, secret,
     cny_wallet = Wallet.objects.get(cryptocurrency__currency_code = 'CNY')
     axf_wallet = Wallet.objects.get(cryptocurrency__currency_code = 'AXFund')
     cny = Cryptocurrency.objects.get(currency_code = 'CNY')
-    print('axfund wallet id is {0}'.format(axf_wallet.id))
 
     try:
         user1 = User.objects.get(username = username)
@@ -310,32 +309,38 @@ def fix(request):
 def create_api_user(request):
     if request.method != 'POST':
         return HttpResponseBadRequest('请用POST方式')
-    request_json= json.loads(request.body.decode('utf-8'))
+    
+    request_str = request.body.decode('utf-8')
+    logger.info('create_api_user receive request {0}'.format(request_str))
+    request_json= json.loads(request_str)
     if not ('email' in request_json):
         return HttpResponseBadRequest(content='请提供email')
+
+    if not 'payment_account' in request_json:
+        return HttpResponseBadRequest(content='请提供回钱包账号')
 
     appId = id_generator(32)
     secret = create_access_keys()    
     email = request_json['email']
     username = request_json['username'] if 'username' in request_json else email
     password = request_json['password'] if 'password' in request_json else id_generator(16)
-    payment_account = request_json['payment_account'],
+    payment_account = request_json['payment_account']
     external_addr = request_json.get('external_addr', None)
 
     login = User.objects.get(username='admin')
     try:
         with transaction.atomic():
-            cny_wallet = Wallet.object.select_for_update().get(cryptocurrency__currency_code='CNY')
+            cny_wallet = Wallet.objects.select_for_update().get(cryptocurrency__currency_code='CNY')
             account_count = len(APIUserAccount.objects.all()) + 1
             account_no = '{0}-{1}'.format(
                 str((100000000 + account_count)/1000),
                 str((100000000 + account_count) % 1000)
             )
 
-            if not create_user(username, password, email, apiaccount, appId, secret, 
-                    payment_account, external_addr, operator):
+            if not create_user(username, password, email, account_no, appId, secret, 
+                    payment_account, external_addr, login):
                 raise ValueError('failed to create test user')
     except ValueError:
         logger.error('Create test user has issue')
-        return HttpResponseBadReequest(content='error')
+        return HttpResponseBadRequest(content='error')
     return HttpResponse(content='ok')

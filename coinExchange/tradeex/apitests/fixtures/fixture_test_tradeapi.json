@@ -321,6 +321,20 @@
     "lastupdated_by": 1
   }
 },
+{
+  "model": "trading.userwallet",
+  "pk": 8,
+  "fields": {
+      "user": null,
+      "wallet": 1,
+      "user_wallet_trans_id": null,
+      "wallet_addr": "b'ARDY127wX22by4nsT39obCQHbZ85LQuVzR'",
+      "created_at": "2018-02-19T20:53:32.034Z",
+      "created_by": 1,
+      "lastupdated_at": "2018-02-19T20:53:32.034Z",
+      "lastupdated_by": 1
+  }
+},
  {
     "model": "trading.userexternalwalletaddress",
     "pk": "1",
