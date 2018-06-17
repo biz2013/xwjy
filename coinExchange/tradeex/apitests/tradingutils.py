@@ -33,3 +33,83 @@ def show_order_overview():
             order.account_at_selected_payment_provider,
             order.user.id, order.user.username
             ))
+
+def dump_userwallet(wallet):
+    if not wallet:
+        print('encounter none wallet')
+        return
+    print('wallet {0}|{1}, user {2} {3}, balance {4}/{5}/{6}, address {7}'.format(
+        wallet.id, wallet.wallet.cryptocurrency.currency_code, 
+        wallet.user.id, wallet.user.username, 
+        wallet.balance, wallet.locked_balance, wallet.available_balance,
+        wallet.wallet_addr
+    ))
+
+def dump_userwallet_trans(trans):
+    if not trans:
+        print('encounter none user_wallet_tran')
+        return
+
+    print('wallet_trans: {0}|{1} status:{2} type:{3}: {4} ({5}{6}/{7})->({8}/{9}/{10}) payment:{11}:{12}:{13}'.format(
+        trans.id, trans.user_wallet.wallet.cryptocurrency.currency_code,
+        trans.status, 
+        trans.transaction_type, trans.units,
+        trans.balance_begin, trans.locked_balance_begin, trans.available_to_trade_begin,
+        trans.balance_end, trans.locked_balance_end, trans.available_to_trade_end,
+        trans.payment_provider.code, trans.payment_bill_no, trans.payment_status
+    )) 
+def show_user_wallet_overview(selected_users = None):
+    active_wallets = UserWallet.objects.filter(user__isnull = False)
+    print('---------- snapshot of user wallet {0} ---------'.format(
+        selected_users if selected_users else '[]'
+    ))
+    for wallet in active_wallets:
+        if selected_users and wallet.user.username not in selected_users:
+            continue;
+        dump_userwallet(wallet)
+
+
+def show_user_wallet_trans(buyer, seller):
+    print('---------show buyer {0} and seller {1} transaction overview ------'.format(buyer, seller))
+    print('**** buyer {0} *******'.format(buyer))
+    axf_wallet = UserWallet.objects.get(user__username=buyer, wallet__cryptocurrency__currency_code='AXFund')
+    dump_userwallet(axf_wallet)
+    axf_trans = UserWalletTransaction.objects.filter(user_wallet__id=axf_wallet.id).order_by("lastupdated_at")
+    if len(axf_trans) > 0:
+        print('???? has {0} trans'.format(len(axf_trans)))
+        for tran in axf_trans:
+            dump_userwallet_trans(tran)
+    else:
+        print('no axf_wallet_trans for buyer {0}'.format(buyer))
+    
+    try:
+        cny_wallet = UserWallet.objects.get(user__username=buyer, wallet__cryptocurrency__currency_code='CNY')    
+        dump_userwallet(cny_wallet)
+        cny_trans = UserWalletTransaction.objects.filter(user_wallet__id=cny_wallet.id).order_by("lastupdated_at")
+        if len(cny_trans) > 0:
+            for tran in cny_trans:
+                dump_userwallet_trans(tran)
+        else:
+            print('no cyn_wallet_trans for buyer {0}'.format(buyer))
+    except UserWallet.DoesNotExist:
+        print('no cny wallet for buyer {0}'.format(buyer))
+
+    print('**** seller {0} *******'.format(seller))
+    axf_wallet = UserWallet.objects.get(user__username=seller, wallet__cryptocurrency__currency_code='AXFund')
+    dump_userwallet(axf_wallet)
+    axf_trans = UserWalletTransaction.objects.filter(user_wallet__id=axf_wallet.id).order_by("lastupdated_at")
+    if len(axf_trans) > 0:
+        for tran in axf_trans:
+            dump_userwallet_trans(tran)
+    else:
+        print('no axf_wallet_trans for seller {0}'.format(seller))
+    
+    cny_wallet = UserWallet.objects.get(user__username=seller, wallet__cryptocurrency__currency_code='CNY')
+    dump_userwallet(cny_wallet)
+    cny_trans = UserWalletTransaction.objects.filter(user_wallet__id=cny_wallet.id).order_by("lastupdated_at")
+    if len(cny_trans) > 0:
+        for tran in cny_trans:
+            dump_userwallet_trans(tran)
+    else:
+        print('no cyn_wallet_trans for seller {0}'.format(seller))
+
