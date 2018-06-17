@@ -353,12 +353,10 @@ class APIUserTransactionManager(object):
                         operation_comment
                     ))
 
-                    crypto_trans_id = crypto_trans['txid']
-                    logger.debug('about to create autoredeem for trans {0}'.format(crypto_trans_id))
                     user_cny_wallet_trans = UserWalletTransaction.objects.create(
                         user_wallet = user_cny_wallet,
                         reference_order = api_trans.reference_order,
-                        reference_wallet_trxId = crypto_trans_id,
+                        reference_wallet_trxId = crypto_trans['txid'],
                         units = total_cny_in_units,
                         balance_begin = user_cny_wallet.balance,
                         balance_end = user_cny_wallet.balance,
