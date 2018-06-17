@@ -11,6 +11,7 @@ from tradeex.client.apiclient import APIClient
 from tradeex.controllers.apiusermanager import APIUserManager
 from tradeex.controllers.walletmanager import WalletManager
 from tradeex.controllers.crypto_utils import CryptoUtility
+from tradeex.data.api_const import *
 from tradeex.models import APIUserTransaction
 from trading.models import User, UserWallet, UserWalletTransaction,PaymentProvider
 from tradeex.data.purchase_notify import PurchaseAPINotify
@@ -75,7 +76,7 @@ class APIUserTransactionManager(object):
     def abandon_trans(api_trans):
         with transaction.atomic():
             api_trans = APIUserTransactionManager.objects.select_for_update().get(pk=api_trans.transactionId)
-            api_trans.trade_status = 'UserAbandon'
+            api_trans.trade_status = TRADE_STATUS_USERABANDON
             api_trans.save()
         
     @staticmethod
@@ -85,7 +86,7 @@ class APIUserTransactionManager(object):
         total_cny_in_units = round(float(api_trans.total_fee)/100.0,8)
         with transaction.atomic():
             api_trans = APIUserTransaction.objects.select_for_update().get(pk=api_trans.transactionId)
-            if api_trans.trade_status == 'SUCCESS':
+            if api_trans.trade_status == TRADE_STATUS_SUCCESS:
                 logger.info("on_trans_paid_success(): api trans {0} is already done.  Nothing to do")
                 return True
 
@@ -95,7 +96,7 @@ class APIUserTransactionManager(object):
             master_wallet = UserWallet.objects.select_for_update().get(
                 user__id = 1,
                 wallet__cryptocurrency__currency_code='CNY')
-            if api_trans.action == 'wallet.trade.sell':
+            if api_trans.action == API_METHOD_REDEEM:
                 if user_cny_wallet.locked_balance < total_cny_in_units :
                     logger.error("[out_trade_no: {0}] user {1} does not have enough locked CNY in wallet: locked {2} to be released {3}. ".format(
                         api_trans.out_trade_no,
@@ -103,7 +104,7 @@ class APIUserTransactionManager(object):
                     ))
                     raise ValueError('CNY_WALLET_NOT_ENOUGH_LOCKED')
 
-
+                logger.info('on_trans_paid_success(): create trans pass CNY from seller to master wallet')
                 end_cny_balance = user_cny_wallet.balance - total_cny_in_units
                 end_cny_available_balance = user_cny_wallet.available_balance
                 end_cny_locked_balance = user_cny_wallet.locked_balance - total_cny_in_units
@@ -165,7 +166,8 @@ class APIUserTransactionManager(object):
                 master_wallet.available_balance = end_master_available_balance
                 master_wallet.balance = end_master_balance   
                 master_wallet.save()
-            else:
+            elif api_trans.action == API_METHOD_PURCHASE:
+                logger.info('on_trans_paid_success(): create trans pass CNY from master wallet to seller')
                 end_cny_balance = user_cny_wallet.balance + total_cny_in_units
                 end_cny_available_balance = user_cny_wallet.available_balance + total_cny_in_units
                 end_cny_locked_balance = user_cny_wallet.locked_balance
@@ -228,8 +230,9 @@ class APIUserTransactionManager(object):
                 master_wallet.available_balance = end_master_available_balance
                 master_wallet.balance = end_master_balance   
                 master_wallet.save()
-            
-            api_trans.trade_status = 'Success'
+            else:
+                logger.info('on_trans_paid_success(): api action is {0} do nothing'.format(api_trans.action))
+            api_trans.trade_status = TRADE_STATUS_SUCCESS
             api_trans.save()
         return True
 
@@ -314,77 +317,78 @@ class APIUserTransactionManager(object):
                 lastupdated_at = dt.datetime.utcnow()):
                 logger.error("update_notification_status({0}, ..., {1}, {2}: did not update".format(api_trans.transactionId, notify_resp, comment))
         
-        external_crypto_addr = APIUserManager.get_api_user_external_crypto_addr(api_trans.api_user.user.id, 'CNY')
-        if not external_crypto_addr:
-            logger.info('on_found_success_purchase_trans: buyer for api trans {0} has no external cny wallet, nothing to do'.format(
-                api_trans.transactionId
-            ))
-            return
-        logger.info('on_found_success_purchase_trans: buyer for api trans {0} has external cny wallet, transfer fund'.format(
-            api_trans.transactionId
-        ))
-
-        operatorObj = User.objects.get(username='admin')
-        with transaction.atomic():
-            user_cny_wallet = UserWallet.objects.select_for_update().get(
-                user__id = api_trans.api_user.user.id, 
-                wallet__cryptocurrency__currency_code ='CNY')
-
-            user_cny_wallet_trans = None
-            try:
-                user_cny_wallet_trans = UserWalletTransaction.objects.get(
-                    user_wallet__id=user_cny_wallet.id,
-                    reference_order__order_id=api_trans.reference_order.order_id,
-                    transaction_type = 'AUTOREDEEM')
-            except UserWalletTransaction.DoesNotExist:
-                logger.info('on_found_paid_purchase_trans: try to auto redeem for api trans {0}'.format(
+        if api_trans.action == API_METHOD_PURCHASE:
+            external_crypto_addr = APIUserManager.get_api_user_external_crypto_addr(api_trans.api_user.user.id, 'CNY')
+            if not external_crypto_addr:
+                logger.info('on_found_success_purchase_trans: buyer for api trans {0} has no external cny wallet, nothing to do'.format(
                     api_trans.transactionId
                 ))
-                crypto_util = WalletManager.create_fund_util('CNY')
-                comment = 'userId:{0},amount:{1},trxId:{2},out_trade_no:{3}'.format(
-                    api_trans.api_user.user.id, total_cny_in_units, 
-                    api_trans.transactionId, api_trans.api_out_trade_no)
-                try:
-                    crypto_trans = crypto_util.send_fund(external_crypto_addr, total_cny_in_units, comment)
-                    operation_comment='api user {0} send his purchased {1} CNY back his wallet'.format(
-                        api_trans.api_user.user.username, total_cny_in_units
-                    )
-                    logger.debug('on_found_paid_purchase_trans(): create userwalletrans about {0}'.format(
-                        operation_comment
-                    ))
+                return
+            logger.info('on_found_success_purchase_trans: buyer for api trans {0} has external cny wallet, transfer fund'.format(
+                api_trans.transactionId
+            ))
 
-                    user_cny_wallet_trans = UserWalletTransaction.objects.create(
-                        user_wallet = user_cny_wallet,
-                        reference_order = api_trans.reference_order,
-                        reference_wallet_trxId = crypto_trans['txid'],
-                        units = total_cny_in_units,
-                        balance_begin = user_cny_wallet.balance,
-                        balance_end = user_cny_wallet.balance,
-                        locked_balance_begin = user_cny_wallet.locked_balance,
-                        locked_balance_end = user_cny_wallet.locked_balance + total_cny_in_units,
-                        available_to_trade_begin = user_cny_wallet.available_balance,
-                        available_to_trade_end = user_cny_wallet.available_balance - total_cny_in_units,
-                        fiat_money_amount = total_cny_in_units,
-                        payment_provider = api_trans.payment_provider,
-                        balance_update_type= 'DEBT',
-                        transaction_type = 'AUTOREDEEM',
-                        comment = operation_comment,
-                        reported_timestamp = timegm(dt.datetime.utcnow().utctimetuple()),
-                        status = 'PENDING',
-                        created_by = operatorObj,
-                        lastupdated_by = operatorObj
-                    )
-                    user_cny_wallet_trans.save()
-                    user_cny_wallet.available_balance = user_cny_wallet.available_balance - total_cny_in_units                    
-                    user_cny_wallet.locked_balance = user_cny_wallet.locked_balance + total_cny_in_units
-                    #unlock the wallet
-                    user_cny_wallet.save()
-                except:
-                    logger.error('on_found_success_purchase_trans(api trans {0}): sending cny upon purchase hit exception {1}'.format(
-                        api_trans.transactionId, sys.exc_info()[0]
+            operatorObj = User.objects.get(username='admin')
+            with transaction.atomic():
+                user_cny_wallet = UserWallet.objects.select_for_update().get(
+                    user__id = api_trans.api_user.user.id, 
+                    wallet__cryptocurrency__currency_code ='CNY')
+
+                user_cny_wallet_trans = None
+                try:
+                    user_cny_wallet_trans = UserWalletTransaction.objects.get(
+                        user_wallet__id=user_cny_wallet.id,
+                        reference_order__order_id=api_trans.reference_order.order_id,
+                        transaction_type = 'AUTOREDEEM')
+                except UserWalletTransaction.DoesNotExist:
+                    logger.info('on_found_paid_purchase_trans: try to auto redeem for api trans {0}'.format(
+                        api_trans.transactionId
                     ))
-                    traceback.print_exc(file=sys.stdout)
-            except UserWalletTransaction.MultipleObjectsReturned:
-                logger.error('on_found_success_purchase_trans(api trans {0}): has more than one cny wallet transaction related to order {1}'.format(
-                    api_trans.transactionId, api_trans.reference_order.order_id
-                ))
+                    crypto_util = WalletManager.create_fund_util('CNY')
+                    comment = 'userId:{0},amount:{1},trxId:{2},out_trade_no:{3}'.format(
+                        api_trans.api_user.user.id, total_cny_in_units, 
+                        api_trans.transactionId, api_trans.api_out_trade_no)
+                    try:
+                        crypto_trans = crypto_util.send_fund(external_crypto_addr, total_cny_in_units, comment)
+                        operation_comment='api user {0} send his purchased {1} CNY back his wallet'.format(
+                            api_trans.api_user.user.username, total_cny_in_units
+                        )
+                        logger.debug('on_found_paid_purchase_trans(): create userwalletrans about {0}'.format(
+                            operation_comment
+                        ))
+
+                        user_cny_wallet_trans = UserWalletTransaction.objects.create(
+                            user_wallet = user_cny_wallet,
+                            reference_order = api_trans.reference_order,
+                            reference_wallet_trxId = crypto_trans['txid'],
+                            units = total_cny_in_units,
+                            balance_begin = user_cny_wallet.balance,
+                            balance_end = user_cny_wallet.balance,
+                            locked_balance_begin = user_cny_wallet.locked_balance,
+                            locked_balance_end = user_cny_wallet.locked_balance + total_cny_in_units,
+                            available_to_trade_begin = user_cny_wallet.available_balance,
+                            available_to_trade_end = user_cny_wallet.available_balance - total_cny_in_units,
+                            fiat_money_amount = total_cny_in_units,
+                            payment_provider = api_trans.payment_provider,
+                            balance_update_type= 'DEBT',
+                            transaction_type = 'AUTOREDEEM',
+                            comment = operation_comment,
+                            reported_timestamp = timegm(dt.datetime.utcnow().utctimetuple()),
+                            status = 'PENDING',
+                            created_by = operatorObj,
+                            lastupdated_by = operatorObj
+                        )
+                        user_cny_wallet_trans.save()
+                        user_cny_wallet.available_balance = user_cny_wallet.available_balance - total_cny_in_units                    
+                        user_cny_wallet.locked_balance = user_cny_wallet.locked_balance + total_cny_in_units
+                        #unlock the wallet
+                        user_cny_wallet.save()
+                    except:
+                        logger.error('on_found_success_purchase_trans(api trans {0}): sending cny upon purchase hit exception {1}'.format(
+                            api_trans.transactionId, sys.exc_info()[0]
+                        ))
+                        traceback.print_exc(file=sys.stdout)
+                except UserWalletTransaction.MultipleObjectsReturned:
+                    logger.error('on_found_success_purchase_trans(api trans {0}): has more than one cny wallet transaction related to order {1}'.format(
+                        api_trans.transactionId, api_trans.reference_order.order_id
+                    ))

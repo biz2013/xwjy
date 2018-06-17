@@ -721,15 +721,14 @@ class TestTradingAPI(TransactionTestCase):
         show_order_overview()
         show_user_wallet_trans('tttzhang2000@yahoo.com', api_users.user.username)
 
-
         api_trans = self.get_api_trans(test_out_trade_no)
         self.validate_api_trans_before_confirm(api_trans, app_id, 
             secret_key, test_out_trade_no, expected_total_fee=test_purchase_amount,
             expected_subject = test_subject, expected_attach = test_attach,
             expected_return_url = test_return_url, 
             expected_notify_url = test_notify_url)
+        show_api_trans(api_trans)
         
-        logger.info('finish issue redeem request. About simulate buyer purchase')
 
         #NOTE: the trade status is case-sensitive thing
         heepay_confirm = self.create_heepay_confirm('tradeex/apitests/data/heepay_confirm_template.j2', 
@@ -752,6 +751,8 @@ class TestTradingAPI(TransactionTestCase):
         show_user_wallet_overview()
         show_order_overview()
         show_user_wallet_trans('tttzhang2000@yahoo.com', api_users.user.username)
+        api_trans.refresh_from_db()
+        show_api_trans(api_trans)
 
         c = Client()
         c.login(username='yingzhou', password='user@123')
@@ -762,7 +763,8 @@ class TestTradingAPI(TransactionTestCase):
         show_user_wallet_overview()
         show_order_overview()
         show_user_wallet_trans('tttzhang2000@yahoo.com', api_users.user.username)
-
+        api_trans.refresh_from_db()
+        show_api_trans(api_trans)
 
 
     @patch('tradeex.controllers.crypto_utils.CryptoUtility.send_fund', side_effect=send_fund_for_purchase_test)
@@ -882,5 +884,5 @@ class TestTradingAPI(TransactionTestCase):
         resp_json = json.loads(response.content.decode('utf-8'))
         print('Status right after purchase command is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
         self.assertEqual('SUCCESS', resp_json['return_code'], 'The query should return SUCCCESS')
-        #self.assertEqual('Success', resp_json['trade_status'], 'The transaction should be in progress')
+        self.assertEqual('Success', resp_json['trade_status'], 'The transaction should be in progress')
 
