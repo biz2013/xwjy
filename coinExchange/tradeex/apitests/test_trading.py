@@ -6,6 +6,7 @@ import logging
 
 from calendar import timegm
 import datetime as dt
+from datetime import timedelta
 sys.path.append('../stakingsvc/')
 from django.contrib.auth.models import User
 from django.test import TestCase, TransactionTestCase
@@ -20,6 +21,7 @@ from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from tradeex.apitests.tradingutils import *
 from tradeex.apitests.util_tests import *
 from tradeex.responses.heepaynotify import HeepayNotification
+from tradeex.controllers.crypto_utils import *
 from tradeex.models import *
 from trading.models import *
 from trading.controller import useraccountinfomanager
@@ -153,18 +155,6 @@ class TestTradingAPI(TransactionTestCase):
         return True
 
     def validate_user_info(self, username):
-        active_wallets = UserWallet.objects.filter(user__isnull = False)
-        wallet_count = len(active_wallets)
-        self.assertTrue(wallet_count==7, "There should be 7 user wallets but have {0}".format(wallet_count))
-        print('---------- snapshot of user wallet ---------')
-        for wallet in active_wallets:
-            print('wallet {0}|{1}, user {2} {3}, balance {4}/{5}/{6}, address {7}'.format(
-                wallet.id, wallet.wallet.cryptocurrency.currency_code, 
-                wallet.user.id, wallet.user.username, 
-                wallet.balance, wallet.locked_balance, wallet.available_balance,
-                wallet.wallet_addr
-            ))
-
         useraccountInfo = useraccountinfomanager.get_user_accountInfo(User.objects.get(username=username),'AXFund')
         self.assertTrue(useraccountInfo.balance > 0, "the balance of {0} should be larger than 0".format(username))
         self.assertTrue(useraccountInfo.available_balance > 0, "the available balance of {0} should be larger than 0".format(username))
@@ -221,10 +211,7 @@ class TestTradingAPI(TransactionTestCase):
 
         resp = create_axfund_sell_order('tttzhang2000@yahoo.com', 'user@123', 156, 0.4, 'CNY')
         self.assertEqual(200, resp.status_code, "Create order of 156*0.4 units should return 200")
-        self.assertFalse('系统遇到问题'.encode('utf-8') in resp.content,'Create order of 156*0.5 units hit issue')
-        
-        show_order_overview()
-
+        self.assertFalse('系统遇到问题'.encode('utf-8') in resp.content,'Create order of 156*0.5 units hit issue')        
 
     def get_api_trans(self, target_out_trade_no):
         try:
@@ -478,8 +465,14 @@ class TestTradingAPI(TransactionTestCase):
                 TEST_API_USER2_APPKEY
             ))
 
+        print('test_redeem_order_succeed(): ready to create purchase orders first')
+        show_user_wallet_overview(['tttzhang2000@yahoo.com', 'yingzhou61@yahoo.ca'])
         # create test sell orders
         self.create_fitting_order(62)
+
+        print('test_redeem_order_succeed(): check userwallet and orders after creating sell orders')
+        show_user_wallet_overview()
+        show_order_overview()
 
         # these are the app_id and secret from fixture apiuseraccount        
         # TODO: validate this is tradeex_api_user1
@@ -510,20 +503,17 @@ class TestTradingAPI(TransactionTestCase):
         print('test_redeem_order_succeed(): send request {0}'.format(request_str))
         response = c.post('/tradeex/selltoken/', request_str,
                           content_type='application/json')
-        print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
-
         self.assertEqual(200, response.status_code)
         resp_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
 
         self.validate_purchase_first_state(request, resp_json)
-
-        c2 = Client()
-        c.login(username='tttzhang2000@yahoo.com', password='user@123')
+        print('test_redeem_order_succeed(): check userwallet and orders after sending redeem request')
+        show_user_wallet_overview()
+        show_order_overview()
 
         purchase_request = {}
         api_trans = APIUserTransaction.objects.get(api_out_trade_no=test_out_trade_no)
-        print('original request is {0}'.format(api_trans.original_request))
 
         try:
             sell_order = Order.objects.get(pk=api_trans.reference_order.order_id)
@@ -538,7 +528,8 @@ class TestTradingAPI(TransactionTestCase):
             ))
 
         request_obj = TradeAPIRequest.parseFromJson(json.loads(api_trans.original_request))
-        self.assertEqual('wallet.trade.sell', request_obj.method)
+        self.assertEqual(API_METHOD_REDEEM, request_obj.method)
+
         purchase_request['reference_order_id'] = api_trans.reference_order.order_id
         purchase_request['owner_user_id'] = api_trans.reference_order.user.id
         purchase_request['quantity']=api_trans.reference_order.units
@@ -550,9 +541,17 @@ class TestTradingAPI(TransactionTestCase):
         purchase_request['crypto'] = 'AXFund'
         purchase_request['total_amount'] = api_trans.reference_order.total_amount
         #TODO: why purchase donot set unit_price currency
+
+        c2 = Client()
+        c.login(username='tttzhang2000@yahoo.com', password='user@123')
         purchase_response = c.post('/trading/purchase/createorder2/', purchase_request, follow=True)
-        print('------------------------------')
-        print(purchase_response.content.decode('utf-8'))
+
+        print('-------------------------------------------------------------------------------')
+        print('test_redeem_order_succeed(): check userwallet and orders after tttzhang2000@yahoo.com bought on the redeem order')
+        show_user_wallet_overview()
+        show_order_overview()
+        show_user_wallet_trans('tttzhang2000@yahoo.com', api_users.user.username)
+
 
         api_trans = self.get_api_trans(test_out_trade_no)
         self.validate_api_trans_before_confirm(api_trans, app_id, 
@@ -578,6 +577,193 @@ class TestTradingAPI(TransactionTestCase):
         #TODO: test notification is sent
         #TODO: test the notification is correct
         self.assertEqual('OK', response.content.decode('utf-8'), "The response to the payment confirmation should be OK")
+
+        print('---------------------------------------------------------------------------------')
+        print('test_redeem_order_succeed(): show overview after heepay confirm buyer\'s purchase')
+        show_user_wallet_overview()
+        show_order_overview()
+        show_user_wallet_trans('tttzhang2000@yahoo.com', api_users.user.username)
+
+        c = Client()
+        c.login(username='yingzhou', password='user@123')
+        response = c.get('/trading/account/cron/order_batch_process/')
+
+        print('-------------------------------------------------------------------------------')
+        print('test_redeem_order_succeed(): show overview after order process routine executed')
+        show_user_wallet_overview()
+        show_order_overview()
+        show_user_wallet_trans('tttzhang2000@yahoo.com', api_users.user.username)
+
+
+    @patch('trading.controller.heepaymanager.HeePayManager.send_buy_apply_request', 
+           side_effect=send_buy_apply_for_redeem_side_effect)
+    @patch('tradeex.client.apiclient.APIClient.send_json_request', 
+            side_effect=send_json_request_for_redeem_test)
+    @patch.object(CryptoUtility, 'send_fund')
+    def test_redeem_order_async_succeed(self, mock_send_fund,send_buy_apply_request_function,
+            send_json_request_function):
+        cyn_trans = {}
+        cyn_trans['txid'] = 'SIMULATED_TRANS'
+        mock_send_fund.return_value = cyn_trans
+
+        try:
+            api_users = APIUserAccount.objects.get(pk=TEST_API_USER1_APPKEY)
+        except:
+            self.fail('test_redeem_order_async_succeed() did not find api user {0}'.format(
+                TEST_API_USER1_APPKEY
+            ))
+
+        print('test_redeem_order_async_succeed(): ready to create purchase orders first')
+        show_user_wallet_overview(['tttzhang2000@yahoo.com', 'yingzhou61@yahoo.ca'])
+        # create test sell orders
+        self.create_fitting_order(62)
+
+        print('test_redeem_order_async_succeed(): check userwallet and orders after creating sell orders')
+        show_user_wallet_overview()
+        show_order_overview()
+
+        # these are the app_id and secret from fixture apiuseraccount        
+        # TODO: validate this is tradeex_api_user1
+        app_id = TEST_API_USER1_APPKEY
+        secret_key = TEST_API_USER1_SECRET
+        test_out_trade_no = TEST_OUT_TRADE_NO_REDEEM
+        test_purchase_amount = TEST_REDEEM_AMOUNT
+        test_user_heepay_to_account = '12738456'
+        test_attach = 'userid:1'
+        test_subject = '人民币提现成功测试'
+        test_notify_url = 'http://testurl'
+        test_return_url = 'http://testurl'
+        request = TradeAPIRequest(
+                API_METHOD_REDEEM,
+                app_id, secret_key,
+                test_out_trade_no, # out_trade_no
+                total_fee=test_purchase_amount, # total fee
+                expire_minute=10, # expire_minute
+                payment_provider='heepay', 
+                payment_account=test_user_heepay_to_account,
+                client_ip='127.0.0.1', #client ip
+                attach=test_attach,
+                subject=test_subject,
+                notify_url=test_notify_url,
+                return_url=test_return_url)
+        c = Client()
+        request_str = request.getPayload()
+        print('test_redeem_order_async_succeed(): send request {0}'.format(request_str))
+        response = c.post('/tradeex/selltoken/', request_str,
+                          content_type='application/json')
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(resp_json['return_code'], 'SUCCESS')
+
+        print('test_redeem_order_async_succeed(): check userwallet and orders after sending redeem request')
+        show_user_wallet_overview()
+        show_order_overview()
+
+        # since test user's cny wallet starts with 0, there should be no sell order
+        api_trans = APIUserTransaction.objects.get(api_out_trade_no=test_out_trade_no)
+        self.assertTrue(api_trans.reference_order is None)
+
+        # now update user's cny wallet
+        # TODO: use fake wallet transaction to update it
+        seller_cny_wallet = UserWallet.objects.get(wallet__cryptocurrency__currency_code = 'CNY', user__id = api_trans.api_user.user.id)
+        seller_cny_wallet.balance = seller_cny_wallet.available_balance = 20
+        seller_cny_wallet.save()
+        seller_axf_wallet = UserWallet.objects.get(wallet__cryptocurrency__currency_code = 'AXFund', user__id = api_trans.api_user.user.id)
+        seller_axf_wallet.balance = seller_axf_wallet.available_balance = 20
+        seller_axf_wallet.save()
+
+        c_order = Client()
+        c_order.login(username='yingzhou', password='user@123')
+        response = c_order.get('/trading/account/cron/order_batch_process/')
+        
+        self.validate_purchase_first_state(request, resp_json)
+        print('test_redeem_order_async_succeed(): check userwallet and orders after order backend run (after seller cyn wallet updated')
+        show_user_wallet_overview()
+        show_order_overview()
+
+        api_trans = APIUserTransaction.objects.get(api_out_trade_no=test_out_trade_no)
+
+        try:
+            sell_order = Order.objects.get(pk=api_trans.reference_order.order_id)
+            self.assertEqual('SELL', sell_order.order_type)
+        except Order.DoesNotExist:
+            self.fail('could not find the sell order for sell transaction {0}'.format(
+                api_trans.transactionId
+            ))
+        except Order.MultipleObjectsReturned:
+            self.fail('More than one sell order for sell transaction {0}'.format(
+                api_trans.transactionId
+            ))
+
+        request_obj = TradeAPIRequest.parseFromJson(json.loads(api_trans.original_request))
+        self.assertEqual(API_METHOD_REDEEM, request_obj.method)
+
+        purchase_request = {}
+        purchase_request['reference_order_id'] = api_trans.reference_order.order_id
+        purchase_request['owner_user_id'] = api_trans.reference_order.user.id
+        purchase_request['quantity']=api_trans.reference_order.units
+        purchase_request['unit_price'] = api_trans.reference_order.unit_price
+        logger.debug('test_redeem_order_async_succeed(): seller payment provider {0}'.format(
+            api_trans.payment_provider
+        ))
+        purchase_request['seller_payment_provider']=api_trans.payment_provider.code
+        purchase_request['crypto'] = 'AXFund'
+        purchase_request['total_amount'] = api_trans.reference_order.total_amount
+        #TODO: why purchase donot set unit_price currency
+
+        c2 = Client()
+        c.login(username='tttzhang2000@yahoo.com', password='user@123')
+        purchase_response = c.post('/trading/purchase/createorder2/', purchase_request, follow=True)
+
+        print('-------------------------------------------------------------------------------')
+        print('test_redeem_order_async_succeed(): check userwallet and orders after tttzhang2000@yahoo.com bought on the redeem order')
+        show_user_wallet_overview()
+        show_order_overview()
+        show_user_wallet_trans('tttzhang2000@yahoo.com', api_users.user.username)
+
+
+        api_trans = self.get_api_trans(test_out_trade_no)
+        self.validate_api_trans_before_confirm(api_trans, app_id, 
+            secret_key, test_out_trade_no, expected_total_fee=test_purchase_amount,
+            expected_subject = test_subject, expected_attach = test_attach,
+            expected_return_url = test_return_url, 
+            expected_notify_url = test_notify_url)
+        
+        logger.info('finish issue redeem request. About simulate buyer purchase')
+
+        #NOTE: the trade status is case-sensitive thing
+        heepay_confirm = self.create_heepay_confirm('tradeex/apitests/data/heepay_confirm_template.j2', 
+            api_trans, 'Success', timegm(dt.datetime.utcnow().utctimetuple()))
+        self.assertTrue(heepay_confirm, 'There is problem when the heepay confirmation data')
+        request_str  =json.dumps(heepay_confirm, ensure_ascii=False)
+        print('send heepay confirmation request {0}'.format(request_str))
+        
+        c1 = Client()
+        response = c1.post('/trading/heepay/confirm_payment/', request_str,
+            content_type='application/json')
+        
+        #TODO: test sending coin is execute
+        #TODO: test notification is sent
+        #TODO: test the notification is correct
+        self.assertEqual('OK', response.content.decode('utf-8'), "The response to the payment confirmation should be OK")
+
+        print('---------------------------------------------------------------------------------')
+        print('test_redeem_order_async_succeed(): show overview after heepay confirm buyer\'s purchase')
+        show_user_wallet_overview()
+        show_order_overview()
+        show_user_wallet_trans('tttzhang2000@yahoo.com', api_users.user.username)
+
+        c = Client()
+        c.login(username='yingzhou', password='user@123')
+        response = c.get('/trading/account/cron/order_batch_process/')
+
+        print('-------------------------------------------------------------------------------')
+        print('test_redeem_order_async_succeed(): show overview after order process routine executed')
+        show_user_wallet_overview()
+        show_order_overview()
+        show_user_wallet_trans('tttzhang2000@yahoo.com', api_users.user.username)
+
+
 
     @patch('tradeex.controllers.crypto_utils.CryptoUtility.send_fund', side_effect=send_fund_for_purchase_test)
     @patch('trading.controller.heepaymanager.HeePayManager.send_buy_apply_request', 
@@ -683,5 +869,18 @@ class TestTradingAPI(TransactionTestCase):
         resp_json = json.loads(response.content.decode('utf-8'))
         print('Status right after purchase command is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
         self.assertEqual('SUCCESS', resp_json['return_code'], 'The query should return SUCCCESS')
-        self.assertEqual('Success', resp_json['trade_status'], 'The transaction should be in progress')
+        self.assertEqual('PaidSuccess', resp_json['trade_status'], 'The transaction should be in progress')
         
+        # now run order_backend_proc
+        c1 = Client()
+        response = c1.get('/trading/account/cron/order_batch_process/')
+
+        print('test_status_query(): send request after order_backend_proc run')
+        response = c_query.post('/tradeex/checkorderstatus/', request_str,
+                          content_type='application/json')
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content.decode('utf-8'))
+        print('Status right after purchase command is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
+        self.assertEqual('SUCCESS', resp_json['return_code'], 'The query should return SUCCCESS')
+        #self.assertEqual('Success', resp_json['trade_status'], 'The transaction should be in progress')
+

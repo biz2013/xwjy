@@ -53,10 +53,11 @@ def heepay_confirm_payment(request):
                 logger.error(error_msg)
                 return HttpResponse(content='error')
             
-            api_trans = ordermanager.get_associated_api_trans_of_buyorder(json_data['out_trade_no'])
-            old_trade_status = api_trans.trade_status if api_trans else None
+            #api_trans = ordermanager.get_associated_api_trans_of_buyorder(json_data['out_trade_no'])
+            #old_trade_status = api_trans.trade_status if api_trans else None
 
             ordermanager.update_order_with_heepay_notification(json_data, 'admin')
+            """
             if api_trans:
                 logger.debug('heepay_confirm_payment(): dealing with api trans of the order')
                 api_trans.refresh_from_db()
@@ -67,6 +68,8 @@ def heepay_confirm_payment(request):
                         APIUserTransactionManager.on_found_success_purchase_trans(api_trans)
                 elif api_trans.trade_status in ['ExpiredInvald', 'UserAbandon', 'DevClose'] and api_trans.trade_status != old_trade_status:
                     APIUserTransactionManager.on_trans_cancelled(api_trans)
+            """
+
             return HttpResponse(content='OK')
         else:
             logger.info("Receive sync payment notification")
