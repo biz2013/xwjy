@@ -765,6 +765,12 @@ class TestTradingAPI(TransactionTestCase):
         show_user_wallet_trans('tttzhang2000@yahoo.com', api_users.user.username)
         api_trans.refresh_from_db()
         show_api_trans(api_trans)
+        
+        # get all master CNY wallet trans
+        master_trans = UserWalletTransaction.objects.filter(user_wallet__user__username='admin', 
+            user_wallet__wallet__cryptocurrency__currency_code='CNY')
+        self.assertEqual(1, len(master_trans))
+        dump_userwallet_trans(master_trans[0])
 
 
     @patch('tradeex.controllers.crypto_utils.CryptoUtility.send_fund', side_effect=send_fund_for_purchase_test)
