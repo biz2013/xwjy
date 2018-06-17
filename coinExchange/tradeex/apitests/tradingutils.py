@@ -50,7 +50,7 @@ def dump_userwallet_trans(trans):
         print('encounter none user_wallet_tran')
         return
 
-    print('wallet_trans: {0}|{1} status:{2} type:{3}: {4} ({5}{6}/{7})->({8}/{9}/{10}) payment:{11}:{12}:{13}'.format(
+    print('wallet_trans: {0}|{1} status:{2} type:{3}: {4} ({5}/{6}/{7})->({8}/{9}/{10}) payment:{11}:{12}:{13}'.format(
         trans.id, trans.user_wallet.wallet.cryptocurrency.currency_code,
         trans.status, 
         trans.transaction_type, trans.units,
@@ -113,3 +113,9 @@ def show_user_wallet_trans(buyer, seller):
     else:
         print('no cyn_wallet_trans for seller {0}'.format(seller))
 
+def show_api_trans(api_trans):
+    print('Trans:{0} from user {1}, action: {2} order:{3} payment_status:{4} trade_status: {5}'.format(
+        api_trans.transactionId, api_trans.api_user.user.username,
+        api_trans.action, api_trans.reference_order.order_id if api_trans.reference_order else 'N/A',
+        api_trans.payment_status, api_trans.trade_status
+    ))
