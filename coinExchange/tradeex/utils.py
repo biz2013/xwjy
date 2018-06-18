@@ -12,17 +12,10 @@ logger = logging.getLogger("tradeex.utils")
 def sign_api_content(json_input, secret_key):
     logger.info("sign_api_content({0})".format(json.dumps(json_input, ensure_ascii=False)))
     sorted_keys = sorted(json_input.keys())
-    logger.info("sorted {0} keys".format(len(sorted_keys)))
     str_to_be_signed = ""
     for key in sorted_keys:
-        if key != 'biz_content':
-            logger.info('in loop str_to_be_signed={0}'.format(str_to_be_signed))
-        logger.info('in loop key={0}'.format(key))
         str_to_be_signed = '{0}{1}={2}&'.format(str_to_be_signed, key, json_input[key])
-    logger.info('after for loop %s' % str_to_be_signed)
     str_to_be_signed = '{0}key={1}'.format(str_to_be_signed, secret_key)
-    logger.info('after end %s' % str_to_be_signed)
-    logger.info('str_to_be_signed={0}'.format(str_to_be_signed))
     m = hashlib.md5()
     logger.debug("sign_api_content(): str to be signed {0}".format(str_to_be_signed))
     m.update(str_to_be_signed.encode('utf-8'))
@@ -70,10 +63,10 @@ def id_generator(size=16, chars=string.ascii_uppercase + string.digits):
 # return {user_access_key_id, user_access_key}
 def create_access_keys():
     access_key_id = id_generator()
-    digest_maker = hmac.new(access_key_id)
-
+    digest_maker = hmac.new(access_key_id.encode('utf-8'))
     random_factor = id_generator(3)
-    digest_maker.update(random_factor)
+    digest_maker.update(random_factor.encode('utf-8'))
 
     access_key = digest_maker.hexdigest()
     return access_key_id, access_key
+

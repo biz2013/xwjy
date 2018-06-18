@@ -21,23 +21,24 @@ logger = logging.getLogger("site.useraccountinfomanager")
 def update_user_wallet_based_on_deposit(trx, user_wallet_id, min_trx_confirmation,
                                         operator):
     try:
-        user_wallet_trans = UserWalletTransaction.objects.get(
-            user_wallet__id=user_wallet_id,
-            reference_wallet_trxId=trx['txid'],
-            transaction_type='DEPOSIT')
-        if user_wallet_trans.status == 'PENDING' and trx['confirmations'] >= min_trx_confirmation:
-            logger.info('update_user_wallet_based_on_deposit(): txid {0} has just been confirmed, change status of user_wallet_trans {1} to PROCESSED and update wallet balance'.format(
-                 trx['txid'], user_wallet_trans.id
-            ))
-
-            amount = math.fabs(trx['amount'])
-            if math.fabs(user_wallet_trans.units - amount) > 0.00000001:
-                raise ValueError('update_user_wallet_based_on_deposit(): Amount not match: usertran {0}: units {1} txid {2}: amount {3}'.format(
-                   user_wallet_trans.id, user_wallet_trans.units,
-                   trx['txid'], amount
+        with transaction.atomic():
+            user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet_id)
+            user_wallet_trans = UserWalletTransaction.objects.get(
+                user_wallet__id=user_wallet_id,
+                reference_wallet_trxId=trx['txid'],
+                transaction_type='DEPOSIT')
+            if user_wallet_trans.status == 'PENDING' and trx['confirmations'] >= min_trx_confirmation:
+                logger.info('update_user_wallet_based_on_deposit(): txid {0} has just been confirmed, change status of user_wallet_trans {1} to PROCESSED and update wallet balance'.format(
+                    trx['txid'], user_wallet_trans.id
                 ))
-            with transaction.atomic():
-                user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet_id)
+
+                amount = math.fabs(trx['amount'])
+                if math.fabs(user_wallet_trans.units - amount) > 0.00000001:
+                    raise ValueError('update_user_wallet_based_on_deposit(): Amount not match: usertran {0}: units {1} txid {2}: amount {3}'.format(
+                    user_wallet_trans.id, user_wallet_trans.units,
+                    trx['txid'], amount
+                    ))
+
                 logger.info('update_user_wallet_based_on_deposit(): before updating existing deposit trans, userwallet[{0}:{1}]: balance {2} locked {3} available {4}'.format(
                     user_wallet.id, user_wallet.wallet_addr, user_wallet.balance, user_wallet.locked_balance, user_wallet.available_balance))
                 balance_end = user_wallet.balance + trx['amount']
@@ -72,20 +73,20 @@ def update_user_wallet_based_on_deposit(trx, user_wallet_id, min_trx_confirmatio
                         user_wallet.balance, user_wallet.locked_balance, user_wallet.available_balance,
                         )
                     raise ValueError(errMsg)
-                
-        elif user_wallet_trans.status == 'PENDING' and trx['confirmations'] < min_trx_confirmation:
-            if int(time.time()) - trx['timereceived'] >= 24 * 3600:
-                error_msg = 'update_user_wallet_based_on_deposit(): Wallet deposite txid {0} has not had {1} confirmation after more than a day'.format(trx['txid'], min_trx_confirmation)
-                logger.warn(error_msg)
+                    
+            elif user_wallet_trans.status == 'PENDING' and trx['confirmations'] < min_trx_confirmation:
+                if int(time.time()) - trx['timereceived'] >= 24 * 3600:
+                    error_msg = 'update_user_wallet_based_on_deposit(): Wallet deposite txid {0} has not had {1} confirmation after more than a day'.format(trx['txid'], min_trx_confirmation)
+                    logger.warn(error_msg)
+                    raise ValueError(error_msg)
+            elif user_wallet_trans.status == 'PROCESSED' and trx['confirmations'] < min_trx_confirmation:
+                error_msg = "update_user_wallet_based_on_deposit(): How come txid {0} only has {1} confirmation but wallet_trans {2} is PROCESSED".format(
+                    trx['txid'], trx['confirmations'], user_wallet_trans.id
+                )
+                logger.error(error_msg)
                 raise ValueError(error_msg)
-        elif user_wallet_trans.status == 'PROCESSED' and trx['confirmations'] < min_trx_confirmation:
-            error_msg = "update_user_wallet_based_on_deposit(): How come txid {0} only has {1} confirmation but wallet_trans {2} is PROCESSED".format(
-                trx['txid'], trx['confirmations'], user_wallet_trans.id
-            )
-            logger.error(error_msg)
-            raise ValueError(error_msg)
-        else:
-            logger.info('update_user_wallet_based_on_deposit(): txid {0} has been reflected in transaction, nothing to do'.format(trx['txid']))
+            else:
+                logger.info('update_user_wallet_based_on_deposit(): txid {0} has been reflected in transaction, nothing to do'.format(trx['txid']))
 
     except UserWalletTransaction.DoesNotExist:
         with transaction.atomic():
@@ -161,34 +162,34 @@ def update_user_wallet_based_on_deposit(trx, user_wallet_id, min_trx_confirmatio
 def update_user_wallet_based_on_redeem(trx, user_wallet_id, min_trx_confirmation,
                                         operator):
     try:
-        user_wallet_trans = UserWalletTransaction.objects.get(
-            transaction_type ='REDEEM',
-            user_wallet__id=user_wallet_id,
-            reference_wallet_trxId=trx['txid'])
-        user_wallet_fee_trans = UserWalletTransaction.objects.get(
-            transaction_type ='REDEEMFEE',
-            user_wallet__id=user_wallet_id,
-            reference_wallet_trxId=trx['txid'])
-        if user_wallet_trans.status == 'PENDING' and trx['confirmations'] >= min_trx_confirmation:
-            logger.info('update_user_wallet_based_on_redeem(): txid {0} has just been confirmed, change status of user_wallet_trans {1} and fee trans {2} to PROCESSED and update wallet balance'.format(
-                 trx['txid'], user_wallet_trans.id, user_wallet_fee_trans.id
-            ))
-
-            amount = math.fabs(trx['amount'])
-            fee = math.fabs(trx['fee'])
-            if math.fabs(user_wallet_trans.units - amount) > 0.00000001:
-                raise ValueError('update_user_wallet_based_on_redeem(): Amount not match: usertran {0}: units {1} txid {2}: amount {3}'.format(
-                   user_wallet_trans.id, user_wallet_trans.units,
-                   trx['txid'], amount
-                ))
-            if math.fabs(user_wallet_fee_trans.units - fee) > 0.00000001:
-                raise ValueError('update_user_wallet_based_on_redeem(): Amount not match: user_fee_tran {0}: fee {1} txid {2}: fee {3}'.format(
-                   user_wallet_fee_trans.id, user_wallet_fee_trans.units,
-                   trx['txid'], fee
+        with transaction.atomic():
+            user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet_id)
+            user_wallet_trans = UserWalletTransaction.objects.get(
+                transaction_type ='REDEEM',
+                user_wallet__id=user_wallet_id,
+                reference_wallet_trxId=trx['txid'])
+            user_wallet_fee_trans = UserWalletTransaction.objects.get(
+                transaction_type ='REDEEMFEE',
+                user_wallet__id=user_wallet_id,
+                reference_wallet_trxId=trx['txid'])
+            if user_wallet_trans.status == 'PENDING' and trx['confirmations'] >= min_trx_confirmation:
+                logger.info('update_user_wallet_based_on_redeem(): txid {0} has just been confirmed, change status of user_wallet_trans {1} and fee trans {2} to PROCESSED and update wallet balance'.format(
+                    trx['txid'], user_wallet_trans.id, user_wallet_fee_trans.id
                 ))
 
-            with transaction.atomic():
-                user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet_id)
+                amount = math.fabs(trx['amount'])
+                fee = math.fabs(trx['fee'])
+                if math.fabs(user_wallet_trans.units - amount) > 0.00000001:
+                    raise ValueError('update_user_wallet_based_on_redeem(): Amount not match: usertran {0}: units {1} txid {2}: amount {3}'.format(
+                    user_wallet_trans.id, user_wallet_trans.units,
+                    trx['txid'], amount
+                    ))
+                if math.fabs(user_wallet_fee_trans.units - fee) > 0.00000001:
+                    raise ValueError('update_user_wallet_based_on_redeem(): Amount not match: user_fee_tran {0}: fee {1} txid {2}: fee {3}'.format(
+                    user_wallet_fee_trans.id, user_wallet_fee_trans.units,
+                    trx['txid'], fee
+                    ))
+
                 logger.info('update_user_wallet_based_on_redeem(): before updating existing redeem trans, userwallet[{0}:{1}]: balance {2} locked {3} available {4}'.format(
                     user_wallet.id, user_wallet.wallet_addr, user_wallet.balance, user_wallet.locked_balance, user_wallet.available_balance))
 
@@ -252,15 +253,15 @@ def update_user_wallet_based_on_redeem(trx, user_wallet_id, min_trx_confirmation
                     )
                     raise ValueError(errMsg)
 
-        elif user_wallet_trans.status == 'PENDING' and trx['confirmations'] < min_trx_confirmation:
-            if int(time.time()) - trx['timereceived'] >= 24 * 3600:
-                logger.warn('update_user_wallet_based_on_redeem(): Wallet redeem txid {0} has not had {1} confirmation after more than a day'.format(trx['txid'], min_trx_confirmation))
-        elif user_wallet_trans.status == 'PROCESSED' and trx['confirmations'] < min_trx_confirmation:
-            logger.error("update_user_wallet_based_on_redeem(): How come txid {0} only has {1} confirmation but wallet_trans {2} is PROCESSED".format(
-                trx['txid'], trx['confirmations'], user_wallet_trans.id
-            ))
-        else:
-            logger.info('update_user_wallet_based_on_redeem(): txid {0} has been reflected in transaction, nothing to do'.format(trx['txid']))
+            elif user_wallet_trans.status == 'PENDING' and trx['confirmations'] < min_trx_confirmation:
+                if int(time.time()) - trx['timereceived'] >= 24 * 3600:
+                    logger.warn('update_user_wallet_based_on_redeem(): Wallet redeem txid {0} has not had {1} confirmation after more than a day'.format(trx['txid'], min_trx_confirmation))
+            elif user_wallet_trans.status == 'PROCESSED' and trx['confirmations'] < min_trx_confirmation:
+                logger.error("update_user_wallet_based_on_redeem(): How come txid {0} only has {1} confirmation but wallet_trans {2} is PROCESSED".format(
+                    trx['txid'], trx['confirmations'], user_wallet_trans.id
+                ))
+            else:
+                logger.info('update_user_wallet_based_on_redeem(): txid {0} has been reflected in transaction, nothing to do'.format(trx['txid']))
 
     except UserWalletTransaction.DoesNotExist:
         with transaction.atomic():
@@ -468,7 +469,7 @@ def get_user_accountInfo(user, crypto, load_balance_only=False):
     externaladdr = None
     payment_methods= []
     if not load_balance_only:
-        userpayments = UserPaymentMethod.objects.filter(user=user)
+        userpayments = UserPaymentMethod.objects.filter(user__id=user.id)
         external_addresses = UserExternalWalletAddress.objects.filter(user= user).filter(cryptocurrency__currency_code=crypto)
         if external_addresses:
            logger.info('Found the external address record for user {0} with {1}'.format(user.username, crypto))

@@ -11,6 +11,7 @@ from django.db import transaction
 from django.db.models import F, Q, Count
 from django.contrib.auth.models import User
 from django.utils import timezone
+from tradeex.data.api_const import *
 from tradeex.models import *
 from tradeex.utils import *
 from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
@@ -85,8 +86,8 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
                 logger.error("user {0} does not have enough CNY in wallet: available {1} to be sold {2}".format(
                 userobj.username, user_cny_wallet.available_balance, total_fee_in_units 
                 ))
-                api_trans.trade_status = 'NOTSTARTED'
-                api_trans.payment_status = 'NOTSTARTED'
+                api_trans.trade_status = TRADE_STATUS_NOTSTARTED
+                api_trans.payment_status = PAYMENT_STATUS_NOTSTARTED
                 # return transId but none orderId meaning there is no enough fund in the cny wallet
                 api_trans.save()
                 return None
@@ -125,8 +126,8 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
                 orderRecord.order_id, api_trans.transactionId
             ))
             api_trans.reference_order = orderRecord
-            api_trans.payment_status = 'NOTSTARTED'
-            api_trans.trade_status = 'INPROGRESS'
+            api_trans.payment_status = PAYMENT_STATUS_NOTSTARTED
+            api_trans.trade_status = TRADE_STATUS_INPROGRESS
             api_trans.save()
          
         userwallet.locked_balance = userwallet.locked_balance + order.total_units
@@ -143,12 +144,13 @@ def cancel_purchase_order(order, final_status, payment_status,
                          operator):
     operatorObj = User.objects.get(username = operator)
     with transaction.atomic():
-
-        sell_order = Order.objects.select_for_update().get(pk=order.reference_order.order_id)
-        sell_order.units_locked = sell_order.units_locked - order.units
-        sell_order.units_available_to_trade = sell_order.units_available_to_trade + order.units
-        sell_order.status = 'OPEN'
-        sell_order.lastupdated_by = operatorObj
+        sell_order = None
+        if order.reference_order:
+            sell_order = Order.objects.select_for_update().get(pk=order.reference_order.order_id)
+            sell_order.units_locked = sell_order.units_locked - order.units
+            sell_order.units_available_to_trade = sell_order.units_available_to_trade + order.units
+            sell_order.status = 'OPEN'
+            sell_order.lastupdated_by = operatorObj
 
         updated = UserWalletTransaction.objects.filter(
                reference_order__order_id= order.order_id,
@@ -159,7 +161,7 @@ def cancel_purchase_order(order, final_status, payment_status,
                lastupdated_at = dt.datetime.utcnow()
         )
         if not updated:
-            logger.error("cancel_purchase_order(): order {0} does not have PENDING userwallettrans to be updated".format(order_id))
+            logger.error("cancel_purchase_order(): order {0} does not have PENDING userwallettrans to be updated".format(order.order_id))
 
         updated = Order.objects.filter(
            Q(status = 'PAYING')|Q(status='OPEN'), Q(order_id = order.order_id)).update(
@@ -168,25 +170,26 @@ def cancel_purchase_order(order, final_status, payment_status,
            lastupdated_at = dt.datetime.utcnow()
         )
         if not updated:
-            logger.error("cancel_purchase_order(): did not find order {0} to update, maybe someone changed its status from PAYING already".format(order_id))
+            logger.error("cancel_purchase_order(): did not find order {0} to update, maybe someone changed its status from PAYING already".format(order.order_id))
         
         api_trans = APIUserTransactionManager.get_trans_by_reference_order(order.order_id)
-        if not api_trans:
+        if not api_trans and sell_order:
             api_trans = APIUserTransactionManager.get_trans_by_reference_order(sell_order.order_id)
         if api_trans:
             api_trans.payment_status = payment_status
-            if final_status == 'CANCELLED' and payment_status == 'UNKNOWN':
-                api_trans.trade_status = 'ExpiredInvalid'
+            if final_status == 'CANCELLED' and payment_status == PAYMENT_STATUS_UNKONWN:
+                api_trans.trade_status = TRADE_STATUS_EXPIREDINVALID
             else:
                 timediff = timezone.now() - api_trans.created_at
                 if timediff.total_seconds() > api_trans.expire_in_sec:
-                    api_trans.trade_status = 'ExpiredInvalid'
+                    api_trans.trade_status = TRADE_STATUS_EXPIREDINVALID
                 else:
-                    api_trans.trade_status = 'UserAbandon'
+                    api_trans.trade_status = TRADE_STATUS_USERABANDON
             api_trans.save()
 
         # release lock
-        sell_order.save()
+        if sell_order:
+            sell_order.save()
 
 def get_all_open_seller_order_exclude_user(user_id):
     sell_orders = Order.objects.filter(order_type='SELL').exclude(user__id=user_id).exclude(status='CANCELLED').exclude(status='FILLED').order_by('unit_price','-lastupdated_at')
@@ -441,12 +444,12 @@ def lock_trans_of_purchase_order(orderid, bill_no):
         raise ValueError("lock_trans_of_purchase_order(): There should be just one wallet transaction for purchase order {0} with bill_no {1}".format(orderid, bill_no))
 
 def update_purchase_transaction(purchase_trans, trade_status, trade_msg):
-    normal_status = {'Not Started': 'NOTSTARTED','PaySuccess':'PAYSUCCESS',
-         'Starting':'STARTING', 'Unknown':'UNKNOWN'
-         }
-    bad_status = { 'ExpiredInvalid': 'EXPIREDINVALID',
-         'UserAbandon':'USERABANDON', 'DevClose':'DEVCLOSE',
-         'Failure':'FAILURE'}
+    normal_status = [ TRADE_STATUS_NOTSTARTED, TRADE_STATUS_PAYSUCCESS, 
+          TRADE_STATUS_INPROGRESS, TRADE_STATUS_UNKNOWN]
+
+    bad_status = [ TRADE_STATUS_EXPIREDINVALID, TRADE_STATUS_USERABANDON, 
+        TRADE_STATUS_DEVCLOSE, TRADE_STATUS_FAILURE]
+
     if trade_status in normal_status:
         purchase_trans.payment_methodstatus = normal_status[trade_status]
     elif trade_status in bad_status:
@@ -656,9 +659,9 @@ def confirm_purchase_order(order_id, operator):
         seller_user_wallet.save()
 
         if api_trans:
-            if api_trans.trade_status != 'Success' and api_trans.trade_status != 'PaidSuccess':
-                api_trans.payment_status = 'Success'
-                api_trans.trade_status = 'PaidSuccess'
+            if api_trans.trade_status != TRADE_STATUS_SUCCESS and api_trans.trade_status != TRADE_STATUS_PAYSUCCESS:
+                api_trans.payment_status = PAYMENT_STATUS_SUCCESS
+                api_trans.trade_status = TRADE_STATUS_PAYSUCCESS
                 api_trans.save()
 
         # release lock at the last moment
@@ -747,7 +750,7 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, hy_url, user
                     reference_order__order_id = buyorder.order_id
                 ).update(
                     reference_bill_no = bill_no,
-                    trade_status = 'InProgress',
+                    trade_status = TRADE_STATUS_INPROGRESS,
                     lastupdated_by = operator,
                     lastupdated_at = dt.datetime.utcnow()
                 )
@@ -776,7 +779,7 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, hy_url, user
                     reference_order__order_id = buyorder.reference_order.order_id
                 ).update(
                     reference_bill_no = bill_no,
-                    trade_status = 'InProgress',
+                    trade_status = TRADE_STATUS_INPROGRESS,
                     lastupdated_by = operator,
                     lastupdated_at = dt.datetime.utcnow()
                 )

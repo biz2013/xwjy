@@ -223,8 +223,10 @@ LOGGING = {
 
 # Redirect to home URL after login (Default redirects to /accounts/profile/)
 LOGIN_REDIRECT_URL = '/'
-TEST_REAL_CALL = False
 HEEPAY_NOTIFY_HOST='www.uuvc.com'
 # format for construct the url for heepay return and notify
 HEEPAY_NOTIFY_URL_FORMAT='http://{0}:{1}/trading/heepay/confirm_payment/'
 HEEPAY_RETURN_URL_FORMAT='http://{0}:{1}/trading/heepay/confirm_payment/'
+
+# These are execution behavior code
+TEST_REAL_CALL = False

@@ -51,7 +51,7 @@ class TradeExchangeManager(object):
         return candidates if len(candidates) > 0 else None
 
     def get_active_sell_orders(self, crypto, currency):
-        return Order.objects.filter(Q(status='OPEM') & Q(order_type='BUY') &
+        return Order.objects.filter((Q(status='OPEN') or Q(status='PARTIALFILLED')) & Q(order_type='SELL') &
                 Q(unit_price_currency=currency) & Q(cryptocurrency=crypto)).order_by('total_amount', '-created_at')
 
     def find_transaction(self, trx_bill_no):
@@ -63,6 +63,9 @@ class TradeExchangeManager(object):
         max_price_normal_order = 0.0
         suggested_price = 0.0
         for order in orders:
+            logger.info('decide_sell_price(): order {0}, unit price {1} source {2} type {3}'.format(
+                order.order_id, order.unit_price, order.order_source, order.order_type
+            ))
             if (order.order_source == 'TRADESITE'):
                 if order.unit_price - min_price_normal_order < 0:
                     min_price_normal_order = order.unit_price
@@ -70,7 +73,15 @@ class TradeExchangeManager(object):
                     max_price_normal_order = order.unit_price
             elif (order.order_source == 'API' and order.unit_price - min_price_normal_order < 0):
                 min_price_api_order = order.unit_price
-
+        
+        if not orders or len(orders) == 0:
+            logger.info('decide_sell_price(): no sell order found, clear min prices')
+            min_price_normal_order = 0
+            min_price_api_order = 0
+        
+        logger.info("decide_sell_price(): min /maxorder price {0}/{1} min api price {2}".format(
+            min_price_normal_order, max_price_normal_order, min_price_api_order
+        ))
         if min_price_normal_order < min_price_api_order:
             suggested_price = max([0.05, min_price_normal_order * .95])
         else:
@@ -199,19 +210,19 @@ class TradeExchangeManager(object):
         else:
             api_trans_id = api_trans.transactionId
         
-        total_fee = request_obj.total_fee if request_obj else api_trans.total_fee
+        amount = float(request_obj.total_fee / 100.0)
         order_item = OrderItem('', # order_id empty for purchase
                api_user.user.id, 
                '',  # no need for user login of the order
                unit_price,
                'CNY',
-               round(total_fee / unit_price, 8),
+               round(amount / unit_price, 8),
                0,  # no need for available_units
-               total_fee,
+               amount,
                'AXFund',
                '', # no need for lastmodified_at
                '', # no need for status
-               'BUY',
+               'SELL',
                sub_type='ALL_OR_NOTHING',
                selected_payment_provider= request_obj.payment_provider if request_obj else None,
                account_at_payment_provider = request_obj.payment_account if request_obj else None,

@@ -27,6 +27,7 @@ urlpatterns = [
     re_path(r'^accounts/', include('django.contrib.auth.urls')),
     re_path(r'^setuptest/$', setuptest.setuptestuser),
     re_path(r'^setup_fix/$', setuptest.fix),
+    re_path(r'^setup_create_api_user/$', setuptest.create_api_user),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 #Add URL maps to redirect the base URL to our application

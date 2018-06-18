@@ -14,7 +14,8 @@
       "axfd_path": "/home/ubuntu/workspace/xwjy/smwy/src/axfd",
       "axfd_datadir": "/home/ubuntu/workspace/xwjy/qb",
       "axfd_account_name": "",
-      "axfd_list_trans_count": 1000
+      "axfd_list_trans_count": 1000,
+      "confirmation_timeout_insec" : 0
     }
   },
   {
@@ -319,6 +320,20 @@
     "lastupdated_at": "2017-12-17T21:14:00+08:00",
     "created_by": 1,
     "lastupdated_by": 1
+  }
+},
+{
+  "model": "trading.userwallet",
+  "pk": 8,
+  "fields": {
+      "user": null,
+      "wallet": 1,
+      "user_wallet_trans_id": null,
+      "wallet_addr": "ARDY127wX22by4nsT39obCQHbZ85LQuVzR",
+      "created_at": "2018-02-19T20:53:32.034Z",
+      "created_by": 1,
+      "lastupdated_at": "2018-02-19T20:53:32.034Z",
+      "lastupdated_by": 1
   }
 },
  {
