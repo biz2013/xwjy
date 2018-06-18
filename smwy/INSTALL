@@ -51,6 +51,20 @@ please use different wallet instead of use the backup_wallet.dat
 cd ~/workspace/django/xwjy/smwy/src
 run ./axfd -datadir=../../qb &
 
+### on mac for dijango 2.0 and python 3.5
+choose python3 virtual env.
+
+install mysql old version, 5.7, since connector package are not upgrade to 8.xx yet.
+https://dev.mysql.com/downloads/file/?id=476953
+
+// Delete mysql completely
+https://devmarketer.io/learn/do-not-install-mysql-macos-sierra-how-to-fix/
+
+// mysql-python doesn't work for python3. try below one:
+pip install mysql-connector-python
+
+pip install mysqlclient
+
 
 # Install qrcode tools on MAC
 # we need to do this to install zbar lib, the pip install will install
