@@ -3,6 +3,7 @@
 import sys
 import logging,json, datetime
 
+from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
@@ -109,7 +110,6 @@ def order_batch_process(request):
             elif order.reference_order.order_source == 'API':
                 api_trans = APIUserTransactionManager.get_trans_by_reference_order(order.reference_order.order_id)
 
-            old_trade_status = api_trans.trade_status if api_trans else None
             if order.status == 'PAYING':
                 handle_paying_order(order, sell_order_timeout, appId, appKey)
             elif order.status == 'PAID':
@@ -118,7 +118,7 @@ def order_batch_process(request):
                 handle_open_order(order, sell_order_timeout)
             if api_trans:
                 api_trans.refresh_from_db()
-                if api_trans.trade_status == 'PaidSuccess' and api_trans.trade_status != old_trade_status:
+                if api_trans.trade_status == 'PaidSuccess':
                     APIUserTransactionManager.on_trans_paid_success(api_trans)
                     api_trans.refresh_from_db()
                     if api_trans.trade_status == 'Success':

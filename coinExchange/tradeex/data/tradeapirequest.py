@@ -6,6 +6,7 @@ import hashlib
 import logging
 
 from tradeex.utils import *
+from tradeex.data.api_const import *
 
 logger = logging.getLogger("tradeex.tradeapirequest")
 
@@ -52,7 +53,7 @@ class TradeAPIRequest(object):
     @classmethod
     def parseFromJson(cls, json_input):
         method = json_input['method']
-        if not method in ['wallet.trade.buy', 'wallet.trade.sell', 'wallet.trade.query', 'wallet.trade.cancel']:
+        if not method in [API_METHOD_PURCHASE, API_METHOD_REDEEM, API_METHOD_QUERY, API_METHOD_CANCEL]:
             raise ValueError('Unexpected method {0}'.format(method))
 
         biz_content_json = json.loads(json_input['biz_content'])
