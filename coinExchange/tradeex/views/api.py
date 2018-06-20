@@ -95,6 +95,9 @@ def prepurchase(request):
         logger.debug('after parse the input, the request object is {0}'.format(
             request_obj.getPayload()
         ))
+
+        if request_obj.total_fee > settings.API_TRANS_LIMIT:
+            raise ValueError('OVERLIMIT: amount:{0}, limit:{1}'.format(request_obj.total_fee, settings.API_TRANS_LIMIT))
         api_user = APIUserManager.get_api_user_by_apikey(request_obj.apikey)
         logger.info('prepurchase(): [out_trade_no:{0}] find out api user id is {1}, key {2}'.format(
             request_obj.out_trade_no, api_user.user.id, api_user.secretKey
