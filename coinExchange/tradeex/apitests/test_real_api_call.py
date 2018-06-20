@@ -28,8 +28,8 @@ class TestAPICall(TestCase):
         test_user_heepay_from_account = '13910978598'
         test_attach = 'userid:1'
         test_subject = '人民币充值成功测试'
-        test_notify_url = 'http://54.203.195.52/tradeex/api_notify_test/'
-        test_return_url = 'http://54.203.195.52/tradeex/api_notify_test/'
+        test_notify_url = 'http://54.203.195.52/api/v1/api_notify_test/'
+        test_return_url = 'http://54.203.195.52/api/v1/api_notify_test/'
         request = TradeAPIRequest(
                 'wallet.trade.buy',
                 app_id, secret_key,
@@ -44,7 +44,7 @@ class TestAPICall(TestCase):
                 notify_url=test_notify_url,
                 return_url=test_return_url)
 
-        c = APIClient('http://54.203.195.52/tradeex/purchasetoken/')
+        c = APIClient('http://54.203.195.52/api/v1/applypurchase/')
         request_str = request.getPayload()
         resp_json = c.send_json_request(json.loads(request_str))
         print('reply is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
@@ -61,8 +61,8 @@ class TestAPICall(TestCase):
         test_user_heepay_from_account = '13910978598'
         test_attach = 'userid:1'
         test_subject = '人民币提现成功测试'
-        test_notify_url = 'http://54.203.195.52/tradeex/api_notify_test/'
-        test_return_url = 'http://54.203.195.52/tradeex/api_notify_test/'
+        test_notify_url = 'http://54.203.195.52/api/v1/api_notify_test/'
+        test_return_url = 'http://54.203.195.52/api/v1/api_notify_test/'
         request = TradeAPIRequest(
                 'wallet.trade.sell',
                 app_id, secret_key,
@@ -77,7 +77,7 @@ class TestAPICall(TestCase):
                 notify_url=test_notify_url,
                 return_url=test_return_url)
 
-        c = APIClient('http://54.203.195.52/tradeex/selltoken/')
+        c = APIClient('http://54.203.195.52/api/v1/applyredeem/')
         request_str = request.getPayload()
         resp_json = c.send_json_request(json.loads(request_str))
         print('reply is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
