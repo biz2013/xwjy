@@ -299,7 +299,7 @@ class TestTradingAPI(TransactionTestCase):
         c = Client()
         request_str = request.getPayload()
         print('send request {0}'.format(request_str))
-        response = c.post('/tradeex/purchasetoken/', request_str,
+        response = c.post('/api/v1/applypurchase/', request_str,
                           content_type='application/json')
 
         print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
@@ -329,7 +329,7 @@ class TestTradingAPI(TransactionTestCase):
         c = Client()
         request_str = request.getPayload()
         print('send request {0}'.format(request_str))
-        response = c.post('/tradeex/purchasetoken/', request_str,
+        response = c.post('/api/v1/applypurchase/', request_str,
                           content_type='application/json')
 
         print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
@@ -363,7 +363,7 @@ class TestTradingAPI(TransactionTestCase):
         c = Client()
         request_str = request.getPayload()
         print('send request {0}'.format(request_str))
-        response = c.post('/tradeex/purchasetoken/', request_str,
+        response = c.post('/api/v1/applypurchase/', request_str,
                           content_type='application/json')
         self.assertTrue(UserPaymentMethod.objects.filter(user__username='tttzhang2000@yahoo.com').filter(provider__code='heepay').update(account_at_provider='18600701961'),
               'recover tttzhang2000@yahoo.com\'s heepay account should be successful')
@@ -414,7 +414,7 @@ class TestTradingAPI(TransactionTestCase):
         c = Client()
         request_str = request.getPayload()
         print('test_purchase_order_succeed(): send request {0}'.format(request_str))
-        response = c.post('/tradeex/purchasetoken/', request_str,
+        response = c.post('/api/v1/applypurchase/', request_str,
                           content_type='application/json')
         print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
 
@@ -501,7 +501,7 @@ class TestTradingAPI(TransactionTestCase):
         c = Client()
         request_str = request.getPayload()
         print('test_redeem_order_succeed(): send request {0}'.format(request_str))
-        response = c.post('/tradeex/selltoken/', request_str,
+        response = c.post('/api/v1/applyredeem/', request_str,
                           content_type='application/json')
         self.assertEqual(200, response.status_code)
         resp_json = json.loads(response.content.decode('utf-8'))
@@ -649,7 +649,7 @@ class TestTradingAPI(TransactionTestCase):
         c = Client()
         request_str = request.getPayload()
         print('test_redeem_order_async_succeed(): send request {0}'.format(request_str))
-        response = c.post('/tradeex/selltoken/', request_str,
+        response = c.post('/api/v1/applyredeem/', request_str,
                           content_type='application/json')
         self.assertEqual(200, response.status_code)
         resp_json = json.loads(response.content.decode('utf-8'))
@@ -819,7 +819,7 @@ class TestTradingAPI(TransactionTestCase):
         c = Client()
         request_str = request.getPayload()
         print('test_purchase_order_succeed(): send request {0}'.format(request_str))
-        response = c.post('/tradeex/purchasetoken/', request_str,
+        response = c.post('/api/v1/applypurchase/', request_str,
                           content_type='application/json')
 
         self.assertEqual(200, response.status_code)
@@ -839,7 +839,7 @@ class TestTradingAPI(TransactionTestCase):
         c_query = Client()
         request_str = query_request.getPayload()
         print('test_status_query(): send request right after purchase command {0}'.format(request_str))
-        response = c_query.post('/tradeex/checkorderstatus/', request_str,
+        response = c_query.post('/api/v1/checkstatus/', request_str,
                           content_type='application/json')
         self.assertEqual(200, response.status_code)
         resp_json = json.loads(response.content.decode('utf-8'))
@@ -871,7 +871,7 @@ class TestTradingAPI(TransactionTestCase):
         c_query = Client()
         request_str = query_request.getPayload()
         print('test_status_query(): send request right after purchase command {0}'.format(request_str))
-        response = c_query.post('/tradeex/checkorderstatus/', request_str,
+        response = c_query.post('/api/v1/checkstatus/', request_str,
                           content_type='application/json')
         self.assertEqual(200, response.status_code)
         resp_json = json.loads(response.content.decode('utf-8'))
@@ -884,7 +884,7 @@ class TestTradingAPI(TransactionTestCase):
         response = c1.get('/trading/account/cron/order_batch_process/')
 
         print('test_status_query(): send request after order_backend_proc run')
-        response = c_query.post('/tradeex/checkorderstatus/', request_str,
+        response = c_query.post('/api/v1/checkstatus/', request_str,
                           content_type='application/json')
         self.assertEqual(200, response.status_code)
         resp_json = json.loads(response.content.decode('utf-8'))

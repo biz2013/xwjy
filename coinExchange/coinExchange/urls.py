@@ -22,7 +22,7 @@ from testsetup import setuptest
 
 urlpatterns = [
     re_path(r'^trading/', include('trading.urls')),
-    re_path(r'^tradeex/', include('tradeex.urls')),
+    re_path(r'^api/v1/', include('tradeex.urls')),
     re_path(r'^admin/', admin.site.urls),
     re_path(r'^accounts/', include('django.contrib.auth.urls')),
     re_path(r'^setuptest/$', setuptest.setuptestuser),
