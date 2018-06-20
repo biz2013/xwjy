@@ -47,7 +47,7 @@ def create_prepurchase_response_from_heepay(heepay_response, api_user, api_trans
         heepay_response.hy_bill_no,
         subject = heepay_response.subject,
         attach = heepay_response.attach,
-        total_received = heepay_response.total_fee,
+        total_fee = heepay_response.total_fee,
         payment_url = heepay_response.hy_url,
         reference_id = api_trans_id
     )
