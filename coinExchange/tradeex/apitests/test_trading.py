@@ -280,66 +280,8 @@ class TestTradingAPI(TransactionTestCase):
         #HeepayNotification.parseFromJson(output_json, api_trans.api_user.secretKey, False)
         return output_json
 
-    def test_purchase_bad_user_account(self):
-        self.create_no_fitting_order()
-        request = TradeAPIRequest(
-                API_METHOD_PURCHASE,
-                'user_does_not_exist',
-                'secret_key_not_exist',
-                'order_no_order', # order id
-                None, # trx_id
-                620, # total fee
-                10, # expire_minute
-                'heepay', '12738456',
-                '127.0.0.1', #client ip
-                attach='userid:1',
-                subject='人民币充值测试-账号不存在',
-                notify_url='http://testurl',
-                return_url='http://retururl')
-        c = Client()
-        request_str = request.getPayload()
-        print('send request {0}'.format(request_str))
-        response = c.post('/api/v1/applypurchase/', request_str,
-                          content_type='application/json')
 
-        print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
-
-        self.assertEqual(200, response.status_code)
-        resp_json = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(resp_json['return_code'], 'FAIL')
-        self.assertEqual(resp_json['return_msg'], '未找到您的账户:通知系统服务')
-        #TODO: show user not found?
-
-    def test_purchase_no_fitting_order(self):
-        self.create_no_fitting_order()
-        request = TradeAPIRequest(
-                API_METHOD_PURCHASE,
-                TEST_API_USER1_APPKEY,
-                TEST_API_USER1_SECRET,
-                'order_no_order', # order id
-                None, # trx_id
-                62000, # total fee
-                10, # expire_minute
-                'heepay', '12738456',
-                '127.0.0.1', #client ip
-                attach='userid:1',
-                subject='人民币充值测试-没有合适卖单',
-                notify_url='http://testurl',
-                return_url='http://retururl')
-        c = Client()
-        request_str = request.getPayload()
-        print('send request {0}'.format(request_str))
-        response = c.post('/api/v1/applypurchase/', request_str,
-                          content_type='application/json')
-
-        print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
-
-        self.assertEqual(200, response.status_code)
-        resp_json = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(resp_json['return_code'], 'FAIL')
-        self.assertEqual(resp_json['return_msg'], '数据错误:通知系统服务')
-        #TODO: show user not found?
-        
+    """
     def test_purchase_order_succeed_bad_payment_acct(self):
         self.create_fitting_order(62)
         # update the tttzhang2000@yahoo.com's heepay account into bad account, since this user's order
@@ -374,6 +316,7 @@ class TestTradingAPI(TransactionTestCase):
         resp_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual(resp_json['return_code'], 'FAIL')
         self.assertEqual(resp_json['return_msg'], "收钱方账号不存在")
+    """
 
 
     @patch('tradeex.controllers.crypto_utils.CryptoUtility.send_fund', side_effect=send_fund_for_purchase_test)

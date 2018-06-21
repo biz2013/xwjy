@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+from tradeex.data.api_const import *
 from tradeex.models import APIUserAccount
 from trading.models import UserExternalWalletAddress
 
@@ -15,10 +16,10 @@ class APIUserManager(object):
             return APIUserAccount.objects.get(apiKey=apikey)
         except APIUserAccount.DoesNotExist:
             logger.error("Failed to find api_user for apikey {0}".format(apikey))
-            raise ValueError('USER_NOT_FOUND_WITH_API_KEY')
+            raise ValueError(ERR_USER_NOT_FOUND_BASED_ON_APPID)
         except APIUserAccount.MultipleObjectsReturned:
             logger.error("Multiple account has the same apikey {0}".format(apikey))
-            raise ValueError('MORE_THAN_ONE_USER_WITH_API_KEY')
+            raise ValueError(ERR_MORE_THAN_ONE_USER_BASED_ON_APPID)
 
     @staticmethod
     def get_api_user_external_crypto_addr(userId, crypto):
