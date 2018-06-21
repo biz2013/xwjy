@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 from django.db.models import Q
 from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
+from tradeex.data.api_const import *
+from tradeex.models import *
 from trading.views.models.orderitem import *
 from trading.models import *
-from tradeex.models import *
 from trading.controller import ordermanager
 
 import logging
@@ -119,7 +120,7 @@ class TradeExchangeManager(object):
             logger.info("purchase_by_cash_amount(): [out_trade_no {0}] Find {1} qualified sell orders to buy from".format(
                 api_call_order_id, len(qualify_orders)))
         else:
-            raise ValueError('NOT_SELL_ORDER_FOUND')    
+            raise ValueError(ERR_NO_RIGHT_SELL_ORDER_FOUND)    
 
 
         for sell_order in qualify_orders:
@@ -186,7 +187,7 @@ class TradeExchangeManager(object):
             logger.error("purchase_by_cash_amount(): [out_trade_no:{0}] None of the qualified sell order could be secured for purchase.".format(
                 api_call_order_id
             ))
-        raise ValueError('NOT_SELL_ORDER_CAN_BE_LOCKED')    
+        raise ValueError(ERR_NO_RIGHT_SELL_ORDER_FOUND)    
     
     def handle_payment_notificiation(self, payment_provider, notification, api_trans):
         logger.debug('handle_payment_notificiation()')

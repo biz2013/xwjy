@@ -19,6 +19,7 @@ from tradeex.controllers.tradex import TradeExchangeManager
 from tradeex.controllers.crypto_utils import CryptoUtility
 from tradeex.requests.heepayapirequestfactory import HeepayAPIRequestFactory
 from tradeex.responses.heepayresponse import HeepayResponse
+from tradeex.data.api_const import *
 from tradeex.data.tradeapirequest import TradeAPIRequest
 from tradeex.data.tradeapiresponse import TradeAPIResponse
 from tradeex.utils import *
@@ -64,13 +65,66 @@ def create_selltoken_response(request_obj, api_trans, sell_order_id):
         api_trans.transactionId,
         subject = api_trans.subject if api_trans.subject else None,
         attach = api_trans.attach if api_trans.attach else None,
-        total_received = api_trans.total_fee,
+        total_fee = api_trans.total_fee,
         payment_url = None,
         reference_id = api_trans.transactionId
     )
 
     return response.to_json()
     
+def parseUserInput(expected_method, request_json):
+    request_obj = TradeAPIRequest.parseFromJson(request_json)
+    api_user = APIUserManager.get_api_user_by_apikey(request_obj.apikey)
+    if request_obj.method != expected_method:
+        raise ValueError('{0}: expected:{1}, actual:{2}'.format(
+            ERR_UNEXPECTED_METHOD,
+            expected_method, request_obj.method))
+
+    if not request_obj.is_valid(api_user.secretKey):
+        raise ValueError(ERR_INVALID_SIGNATURE)
+
+    if request_obj.total_fee > settings.API_TRANS_LIMIT:
+        raise ValueError('{0}: amount:{1}, limit:{2}'.format(
+            ERR_OVER_TRANS_LIMIT, request_obj.total_fee, settings.API_TRANS_LIMIT))
+
+    return request_obj, api_user
+
+def handleValueError(ve_msg):
+    resp_json = {}
+    resp_json['return_code'] = 'FAILED'
+    if ve_msg == ERR_INVALID_SIGNATURE:
+        resp_json['return_msg'] = '签名不符'
+    elif ve_msg == ERR_USER_NOT_FOUND_BASED_ON_APPID:
+        resp_json['return_msg'] = '用户不存在'
+    elif ve_msg == ERR_MORE_THAN_ONE_USER_BASED_ON_APPID:
+        resp_json['return_msg'] = '用户有多于一个账户'
+    elif ve_msg == ERR_UNEXPECTED_METHOD:
+        resp_json['return_msg'] = '错误指令'
+        resp_json['result_code'] = 'FAILED'
+        pos = ve_msg.find('expected:')
+        parts = ve_msg[pos:].split(',')
+        key_value_parts1 = parts[0].split[':']
+        expected = key_value_parts1[1]
+        key_value_parts2 = parts[1].split[':']
+        actual = key_value_parts2[1]
+        resp_json['result_msg'] = '期望指令: {0}, 实际指令: {1}'.format(expected, actual)
+    elif ve_msg == ERR_OVER_TRANS_LIMIT:
+        resp_json['return_msg'] = '交易超额'
+        resp_json['result_code'] = 'FAILED'
+        resp_json['result_msg'] = '每笔交易上限为{0}分'.format(settings.API_TRANS_LIMIT)
+    elif ve_msg == ERR_NO_RIGHT_SELL_ORDER_FOUND:
+        resp_json['return_msg'] = '无卖单提供充值'
+    else:
+        resp_json['return_msg'] = '数据错误'
+
+    return JsonResponse(resp_json)
+
+def handleException(ex_msg):
+    resp_json = {}
+    resp_json['return_code'] = 'FAILED'
+    resp_json['return_msg'] = '系统错误'
+    return JsonResponse(resp_json)
+
 # This will find user's account, use its secret key to check
 # the sign of the request, then, based on request type, validate
 # whether request has meaningful data
@@ -91,21 +145,19 @@ def prepurchase(request):
         logger.info('receive request from: {0}'.format(request.get_host()))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
         request_json= json.loads(request.body.decode('utf-8'))
-        request_obj = TradeAPIRequest.parseFromJson(request_json)
-        logger.debug('after parse the input, the request object is {0}'.format(
-            request_obj.getPayload()
-        ))
+        request_obj, api_user = parseUserInput(API_METHOD_PURCHASE, request_json)
 
-        if request_obj.total_fee > settings.API_TRANS_LIMIT:
-            raise ValueError('OVERLIMIT: amount:{0}, limit:{1}'.format(request_obj.total_fee, settings.API_TRANS_LIMIT))
-        api_user = APIUserManager.get_api_user_by_apikey(request_obj.apikey)
-        logger.info('prepurchase(): [out_trade_no:{0}] find out api user id is {1}, key {2}'.format(
-            request_obj.out_trade_no, api_user.user.id, api_user.secretKey
-        ))
-        validate_request(request_obj, api_user, 'wallet.trade.buy')
-        logger.info('prepurchase(): [out_trade_no:{0}] request is valid'.format(
-            request_obj.out_trade_no
-        ))
+        #if request_obj.total_fee > settings.API_TRANS_LIMIT:
+        #    raise ValueError('OVERLIMIT: amount:{0}, limit:{1}'.format(request_obj.total_fee, settings.API_TRANS_LIMIT))
+        #api_user = APIUserManager.get_api_user_by_apikey(request_obj.apikey)
+        #logger.info('prepurchase(): [out_trade_no:{0}] find out api user id is {1}, key {2}'.format(
+        #    request_obj.out_trade_no, api_user.user.id, api_user.secretKey
+        #))
+        #validate_request(request_obj, api_user, 'wallet.trade.buy')
+        #logger.info('prepurchase(): [out_trade_no:{0}] request is valid'.format(
+        #    request_obj.out_trade_no
+        #))
+        
         tradex = TradeExchangeManager()
         api_trans_id, buyorder_id, seller_payment_account = tradex.purchase_by_cash_amount(api_user,
            request_obj, 'AXFund',  True)
@@ -165,24 +217,11 @@ def prepurchase(request):
     #TODO: should handle different error here.
     # what if network issue, what if the return is 30x, 40x, 50x
     except ValueError as ve:
-        logger.error("prepurchase(): [out_trade_no:{0}] hit value error {1}".format(
-            request_obj.out_trade_no if request_obj else 'N/A', ve.args[0]))
-        resp = create_error_trade_response(
-            request_obj, api_user,
-            create_return_msg_from_valueError(ve.args[0]),
-            create_result_msg_from_valueError(ve.args[0]),
-            '')
-
-        return JsonResponse(resp.to_json())
-
-    except:
-        error_msg = 'prepurchase()遇到错误: {0}'.format(sys.exc_info()[0])
-        logger.exception(error_msg)
-        resp = create_error_trade_response(
-            request_obj, api_user,
-            '系统错误', '系统错误',''
-        )
-        return JsonResponse(resp.to_json())
+        logger.error('prepurchase(): hit ValueError {0}'.format(ve.args[0]))
+        return handleValueError(ve.args[0])
+    #except:
+    #    logger.error('prepurchase() hit error: {0}'.format(sys.exc_info()[0]))
+    #    return handleException(sys.exc_info()[0])
 
 @csrf_exempt
 def selltoken(request):
@@ -308,7 +347,8 @@ def cancel_order(request):
             '系统错误', '系统错误',''
         )
         return JsonResponse(resp.to_json())
-    
+
+
 def create_error_trade_response(request_obj, api_user, return_msg, result_msg, trx_bill_no):
     kwargs = {}
     if request_obj:
