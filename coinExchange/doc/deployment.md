@@ -242,3 +242,60 @@ source dj2env/bin/activate
 sudo dj2env/bin/python manage.py runserver --settings=coinExchange.settings.dev 0.0.0.0:80
 
 ```
+
+### Set up Nginx and Gunicorn
+doc: config nginx, gunicorn, django on ubuntu16: https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04
+
+
+sudo apt install aptitude  
+// get latest default version of default application.  
+aptitude update  
+aptitude install python-dev  
+pip install gunicorn  
+
+sudo service apache2 stop  
+sudo aptitude install nginx  
+// sudo service nginx (start|stop|restart) to control Nginx service  
+
+sudo ufw allow 8000  
+
+// activate virutalenv  
+// cd xwjy/coinExchange  
+// test gunicorn works  
+gunicorn --bind 127.0.0.1:8000 coinExchange.wsgi  
+
+// deploy coinexchange+gunicorn service 
+sudo cp deploy/gunicorn/coinexchange.service /etc/systemd/system  
+sudo systemctl start coinexchange  
+sudo systemctl enable coinexchange  
+// check status
+sudo systemctl status coinexchange
+// check socket file
+ls {coinexchange work directory} -> coinExchange_nginx.sock
+
+// config nginx
+sudo cp deploy/gunicorn/coinexchange_nginx /etc/nginx/sites-available/coinexchange
+sudo ln -s /etc/nginx/sites-available/coinexchange /etc/nginx/sites-enabled
+// test nginx config syntax
+sudo nginx -t
+sudo systemctl restart nginx
+
+### Troubleshooting
+
+Check the Nginx process logs by typing: `sudo journalctl -u nginx`
+Check the Nginx access logs by typing: `sudo less /var/log/nginx/access.log`
+Check the Nginx error logs by typing: `sudo less /var/log/nginx/error.log`
+Check the Gunicorn application logs by typing: `sudo journalctl -u gunicorn`
+Check port number occupied by process: `netstat -tulpn`
+
+
+For more troubleshooting: look at https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04
+
+### Change code and redeploy with Gunicorn systemd service
+sudo systemctl daemon-reload
+sudo systemctl restart coinexchange
+
+### Update Nginx config
+sudo cp deploy/gunicorn/coinexchange_nginx /etc/nginx/sites-available/coinexchange
+sudo nginx -t
+sudo systemctl restart nginx
