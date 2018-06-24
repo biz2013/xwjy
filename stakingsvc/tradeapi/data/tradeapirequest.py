@@ -5,9 +5,10 @@ import json, time, datetime as dt
 import hashlib
 import logging
 
-from tradeapi.utils import *
+from tradeex.utils import *
+from tradeex.data.api_const import *
 
-logger = logging.getLogger("tradeapi.tradeapirequest")
+logger = logging.getLogger("tradeex.tradeapirequest")
 
 class TradeAPIRequest(object):
 
@@ -30,6 +31,8 @@ class TradeAPIRequest(object):
         self.out_trade_no = out_trade_no
         self.trx_bill_no = trx_bill_no
         self.total_fee = total_fee
+        if total_fee < 1 and method in ['wallet.trade.buy', 'wallet.trade.sell']:
+            raise ValueError("The total fee is too small")
         self.expire_minute = expire_minute
         self.payment_provider = payment_provider
         self.payment_account = payment_account
@@ -50,7 +53,7 @@ class TradeAPIRequest(object):
     @classmethod
     def parseFromJson(cls, json_input):
         method = json_input['method']
-        if not method in ['wallet.trade.buy', 'wallet.trade.sell', 'wallet.trade.query', 'wallet.trade.cancel']:
+        if not method in [API_METHOD_PURCHASE, API_METHOD_REDEEM, API_METHOD_QUERY, API_METHOD_CANCEL]:
             raise ValueError('Unexpected method {0}'.format(method))
 
         biz_content_json = json.loads(json_input['biz_content'])
@@ -105,12 +108,13 @@ class TradeAPIRequest(object):
         jsonobj['timestamp'] = self.timestamp
         biz_content_json = self.__get_biz_content_json()
 
-        jsonobj['biz_content'] = json.dumps(biz_content_json, ensure_ascii=False)
+        jsonobj['biz_content'] = json.dumps(biz_content_json, ensure_ascii=False, sort_keys=True)
         return jsonobj
 
     def is_valid(self, secret_key):
         self.secret_key = secret_key
         signed = sign_api_content(self.__create_json_to_sign(), secret_key)
+        logger.info('signed is {0} original sign is {1}'.format(signed, self.sign))
         return signed == self.sign
 
     def getPayload(self):

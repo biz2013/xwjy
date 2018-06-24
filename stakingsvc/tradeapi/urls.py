@@ -21,7 +21,10 @@ from django.contrib.auth import views as auth_views
 from tradeapi.views import prepurchaseview
 
 urlpatterns = [
-    re_path(r'^prepurchase/$', prepurchaseview.prepurchase, name='prepurchase'),
+    re_path(r'^applypurchase/$', apirelay.purchase, name='prepurchase'),
+    re_path(r'^applyredeem/$', apirelay.redeem, name='redeem'),
+    re-path(r'^checkstatus/$', apirelay.checkstatus, name='checkstatus'),
+    re-path(r'^closetransaction/$', apirelay.closetransaction, name='closetransaction'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

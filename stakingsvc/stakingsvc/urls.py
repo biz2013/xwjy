@@ -20,7 +20,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('walletgui/', include('walletgui.urls')),
-    path('tradeapi/', include('tradeapi.urls')),
+    path('tradeapi/v1/', include('tradeapi.urls')),
     re_path(r'^admin/', admin.site.urls),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

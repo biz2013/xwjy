@@ -135,4 +135,7 @@ STATICFILES_DIRS = [
 ]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+
+TRADE_API_HOST = '54.203.195.52'
+TRADE_API_WALLET_ADDR = 'PPBL7kzFj1naD1wCPnWcNzzkVepKnBow7A'
 TRADE_EXCHANGE_API_URL = 'http://52.13.206.16/trade/v1/api/'
