@@ -2,9 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import logging, json
+import datetime as dt
 
 from django.conf import settings
 from django.test import TestCase
+
+from tradeex.data.api_const import *
 from tradeex.data.tradeapirequest import TradeAPIRequest
 from tradeex.client.apiclient import APIClient
 
@@ -26,12 +29,13 @@ class TestAPICall(TestCase):
         test_out_trade_no = 'order_to_purchase'
         test_purchase_amount = TEST_PURCHASE_AMOUNT
         test_user_heepay_from_account = '13910978598'
+        test_timestamp = int(dt.datetime.utcnow().strftime("%Y%m%d%H%M%s"))
         test_attach = 'userid:1'
         test_subject = '人民币充值成功测试'
         test_notify_url = 'http://54.203.195.52/api/v1/api_notify_test/'
         test_return_url = 'http://54.203.195.52/api/v1/api_notify_test/'
         request = TradeAPIRequest(
-                'wallet.trade.buy',
+                API_METHOD_PURCHASE,
                 app_id, secret_key,
                 test_out_trade_no, # out_trade_no
                 total_fee=test_purchase_amount, # total fee
@@ -39,6 +43,7 @@ class TestAPICall(TestCase):
                 payment_provider='heepay', 
                 payment_account=test_user_heepay_from_account,
                 client_ip='127.0.0.1', #client ip
+                timestamp = test_timestamp,
                 attach=test_attach,
                 subject=test_subject,
                 notify_url=test_notify_url,
@@ -64,7 +69,7 @@ class TestAPICall(TestCase):
         test_notify_url = 'http://54.203.195.52/api/v1/api_notify_test/'
         test_return_url = 'http://54.203.195.52/api/v1/api_notify_test/'
         request = TradeAPIRequest(
-                'wallet.trade.sell',
+                API_METHOD_REDEEM,
                 app_id, secret_key,
                 test_out_trade_no, # out_trade_no
                 total_fee=test_purchase_amount, # total fee
@@ -78,6 +83,26 @@ class TestAPICall(TestCase):
                 return_url=test_return_url)
 
         c = APIClient('http://54.203.195.52/api/v1/applyredeem/')
+        request_str = request.getPayload()
+        resp_json = c.send_json_request(json.loads(request_str))
+        print('reply is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
+
+    def test_user_api_call(self):
+        request = TradeAPIRequest(
+                API_METHOD_PURCHASE,
+                'TLGDYZSRUSCV2G94', '9d369bcc9beeaa1a405d02404b485be5',
+                '201806251012458960', # out_trade_no
+                total_fee=1, # total fee
+                payment_provider='heepay', 
+                payment_account='13910978598',
+                client_ip='42.96.158.70', #client ip
+                timestamp = 20180625101245,
+                attach='1235',
+                subject='测试',
+                notify_url='http://game.p2pinfo.cn/api_notify.php',
+                return_url='http://game.p2pinfo.cn/api_notify.php')
+
+        c = APIClient('http://54.203.195.52/api/v1/applypurchase/')
         request_str = request.getPayload()
         resp_json = c.send_json_request(json.loads(request_str))
         print('reply is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
