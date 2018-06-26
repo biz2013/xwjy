@@ -309,7 +309,7 @@ def fix(request):
 def create_api_user(request):
     if request.method != 'POST':
         return HttpResponseBadRequest('请用POST方式')
-    
+
     request_str = request.body.decode('utf-8')
     logger.info('create_api_user receive request {0}'.format(request_str))
     request_json= json.loads(request_str)
@@ -317,7 +317,7 @@ def create_api_user(request):
         return HttpResponseBadRequest(content='请提供email')
 
     if not 'payment_account' in request_json:
-        return HttpResponseBadRequest(content='请提供回钱包账号')
+        return HttpResponseBadRequest(content='请提供汇钱包账号')
 
     appId = id_generator(32)
     secret = create_access_keys(appId)    
