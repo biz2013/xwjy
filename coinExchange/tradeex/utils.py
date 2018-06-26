@@ -61,12 +61,11 @@ def id_generator(size=16, chars=string.ascii_uppercase + string.digits):
 
 # create_access_keys creates pair of user id and user access key, access key is md5 hash of user id + random string.
 # return {user_access_key_id, user_access_key}
-def create_access_keys():
-    access_key_id = id_generator()
-    digest_maker = hmac.new(access_key_id.encode('utf-8'))
+def create_access_keys(api_id):
+    digest_maker = hmac.new(api_id.encode('utf-8'))
     random_factor = id_generator(3)
     digest_maker.update(random_factor.encode('utf-8'))
 
     access_key = digest_maker.hexdigest()
-    return access_key_id, access_key
+    return access_key
 

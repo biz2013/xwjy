@@ -320,7 +320,7 @@ def create_api_user(request):
         return HttpResponseBadRequest(content='请提供回钱包账号')
 
     appId = id_generator(32)
-    secret = create_access_keys()    
+    secret = create_access_keys(appId)    
     email = request_json['email']
     username = request_json['username'] if 'username' in request_json else email
     password = request_json['password'] if 'password' in request_json else id_generator(16)
