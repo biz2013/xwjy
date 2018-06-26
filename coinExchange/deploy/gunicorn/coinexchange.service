@@ -3,10 +3,10 @@ Description=coin exchange gunicorn daemon
 After=network.target
 
 [Service]
-User=chi
+User=root
 Group=www-data
-WorkingDirectory=/home/chi/workspace/python/projects/xwjy/coinExchange
-ExecStart=/home/chi/workspace/python/projects/xwjy/dj2env/bin/gunicorn --access-logfile - --workers 3 --bind unix:/home/chi/workspace/python/projects/xwjy/coinExchange/coinExchange_nginx.sock coinExchange.wsgi:application
+WorkingDirectory=/home/osboxes/workspace/xwjy/coinExchange
+ExecStart=/home/osboxes/workspace/xwjy/coinExchange/dj2env/bin/gunicorn --workers 3 --bind unix:/home/osboxes/workspace/xwjy/coinExchange/coinExchange_nginx.sock coinExchange.wsgi:application --access-logfile /var/log/gunicorn/web.access.log --error-logfile /var/log/gunicorn/web.error.log 
 
 [Install]
 WantedBy=multi-user.target
