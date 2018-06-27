@@ -90,7 +90,7 @@ class TestAPICall(TestCase):
     def test_user_api_call(self):
         request = TradeAPIRequest(
                 API_METHOD_PURCHASE,
-                'TLGDYZSRUSCV2G94', '9d369bcc9beeaa1a405d02404b485be5',
+                'L2CLMSBYJAPF0HX0PY4VIW0XFPCNT6Y8', '6521126bd7b0907aa2671c547db671f0',
                 '201806251012458960', # out_trade_no
                 total_fee=1, # total fee
                 payment_provider='heepay', 
@@ -106,3 +106,19 @@ class TestAPICall(TestCase):
         request_str = request.getPayload()
         resp_json = c.send_json_request(json.loads(request_str))
         print('reply is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
+
+    def test_validate_request(self):
+        request_json = {"method":"wallet.trade.buy",
+ "version":"1.0",
+ "api_key":"L2CLMSBYJAPF0HX0PY4VIW0XFPCNT6Y8",
+ "charset":"utf-8",
+ "sign_type":"MD5",
+ "timestamp":"20180627120309",
+ "biz_content":"{\"api_account_type\":\"Account\",\"attach\":\"1235\",\"client_ip\":\"42.96.158.70\",\"meta_option\":\"123\",\"notify_url\":\"http:\\\/\\\/game.p2pinfo.cn\\\/api_notify.php\",\"out_trade_no\":\"201806271203091304\",\"payment_account\":\"13910978598\",\"pay_option\":\"\",\"payment_provider\":\"heepay\",\"return_url\":\"http:\\\/\\\/game.p2pinfo.cn\\\/api_notify.php\",\"subject\":\"\\u6d4b\\u8bd5\",\"total_fee\":\"1\"}",
+ "sign":"e4b6b8acf0eb204b348ed4cae14aed94"
+}  
+        request_obj = TradeAPIRequest.parseFromJson(request_json)
+        self.assertTrue(request_obj.is_valid('6521126bd7b0907aa2671c547db671f0'))
+
+        #api_key=L2CLMSBYJAPF0HX0PY4VIW0XFPCNT6Y8&biz_content={"api_account_type":"Account","attach":"1235","client_ip":"42.96.158.70","meta_option":"123","notify_url":"http://game.p2pinfo.cn/api_notify.php","out_trade_no":"201806271203091304","payment_account":"13910978598","pay_option":"","payment_provider":"heepay","return_url":"http://game.p2pinfo.cn/api_notify.php","subject":"u6d4bu8bd5","total_fee":"1"}&charset=utf-8&method=wallet.trade.buy&sign_type=MD5&timestamp=20180627120309&version=1.0&key=6521126bd7b0907aa2671c547db671f0
+        #api_key=L2CLMSBYJAPF0HX0PY4VIW0XFPCNT6Y8&biz_content={"api_account_mode":"Account","attach":"1235","client_ip":"42.96.158.70","expire_minute":0,"meta_option":"123","notify_url":"http:\\/\\/game.p2pinfo.cn\\/api_notify.php","out_trade_no":"201806271203091304","payment_account":"13910978598","payment_provider":"heepay","return_url":"http:\\/\\/game.p2pinfo.cn\\/api_notify.php","subject":"测试","total_fee":1}&charset=utf-8&method=wallet.trade.buy&sign_type=MD5&timestamp=20180627120309&version=1.0&key=6521126bd7b0907aa2671c547db671f0
