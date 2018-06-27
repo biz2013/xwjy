@@ -21,7 +21,7 @@ class TradeAPIRequest(object):
             client_ip='127.0.0.1', 
             subject=None, attach=None, notify_url=None, return_url=None,
             version='1.0', charset='utf-8', sign_type='MD5', timestamp=0,
-            sign=None, original_json_request=None):
+            sign=None, original_json_request=None, **kwargs):
         self.version = version
         self.charset = charset
         self.sign_type = sign_type
@@ -44,7 +44,14 @@ class TradeAPIRequest(object):
         self.timestamp = timestamp
         self.sign = sign
         self.meta_option = None
+        self.pay_option = None
         self.original_json_request = original_json_request
+        if kwargs:
+            for key,value in kwargs.items():
+                if key == 'meta_option':
+                    self.meta_option = value
+                elif key == 'pay_option':
+                    self.pay_option = value
         if not self.sign:
             if not self.secret_key:
                 raise ValueError('Not secrete key to sign the request')
@@ -73,7 +80,9 @@ class TradeAPIRequest(object):
             sign_type = json_input['sign_type'],
             timestamp = json_input['timestamp'],
             sign = json_input['sign'],
-            original_json_request = json_input)
+            original_json_request = json_input, 
+            meta_option = biz_content_json.get('meta_option', None),
+            pay_option = biz_content_json.get('pay_option', None))
 
     def __get_biz_content_json(self):
         biz_content_json = {}
@@ -90,6 +99,8 @@ class TradeAPIRequest(object):
                 biz_content_json['attach'] = self.attach
             if self.meta_option:
                 biz_content_json['meta_option'] = self.meta_option
+            if self.pay_option:
+                biz_content_json['pay_option'] = self.pay_option
             if self.notify_url:
                 biz_content_json['notify_url'] = self.notify_url
             if self.return_url:
@@ -108,7 +119,7 @@ class TradeAPIRequest(object):
         jsonobj['timestamp'] = self.timestamp
         biz_content_json = self.__get_biz_content_json()
 
-        jsonobj['biz_content'] = json.dumps(biz_content_json, ensure_ascii=False, sort_keys=True)
+        jsonobj['biz_content'] = json.dumps(biz_content_json, separators=(',',':'), ensure_ascii=False, sort_keys=True)
         return jsonobj
 
     def is_valid(self, secret_key):
