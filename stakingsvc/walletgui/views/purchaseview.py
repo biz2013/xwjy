@@ -9,6 +9,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.db.models import Q
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 
 # this is for test UI. A fake one
 from tradeapi.apiclient import APIClient
