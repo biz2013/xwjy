@@ -23,7 +23,7 @@ from walletgui.views import transferview, transhistoryview, backupwalletview
 
 urlpatterns = [
     re_path(r'^$', balanceview.balance, name='balance'),
-    re_path(r'^purchase/$', purchaseview.show, name='show_purchase'),
+    re_path(r'^purchase/$', purchaseview.purchase, name='show_purchase'),
     re_path(r'^redeem/$', redeemview.show, name='show_redeem'),
     re_path(r'^transfer/$', transferview.show, name='show_transfer'),
     re_path(r'^transhistory/$', transhistoryview.show, name='show_transhistory'),

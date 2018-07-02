@@ -109,3 +109,5 @@ def checkstatus(request):
         logger.error('checkstatus(): relay hit exception {0}'.format(sys.exc_info()[0]))
         return handleValueError(sys.exc_info()[0])
 
+def closetransaction(request):
+    pass

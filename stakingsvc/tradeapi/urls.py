@@ -18,13 +18,13 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
-from tradeapi.views import prepurchaseview
+from tradeapi.views import prepurchaseview, apirelay
 
 urlpatterns = [
     re_path(r'^applypurchase/$', apirelay.purchase, name='prepurchase'),
     re_path(r'^applyredeem/$', apirelay.redeem, name='redeem'),
-    re-path(r'^checkstatus/$', apirelay.checkstatus, name='checkstatus'),
-    re-path(r'^closetransaction/$', apirelay.closetransaction, name='closetransaction'),
+    re_path(r'^checkstatus/$', apirelay.checkstatus, name='checkstatus'),
+    re_path(r'^closetransaction/$', apirelay.closetransaction, name='closetransaction'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
