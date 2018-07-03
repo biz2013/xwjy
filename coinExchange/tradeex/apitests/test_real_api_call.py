@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import logging, json
+import logging, json, hashlib
 import datetime as dt
 
 from django.conf import settings
@@ -108,9 +108,31 @@ class TestAPICall(TestCase):
         print('reply is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
 
     def test_validate_request(self):
-        request_json = {"method":"wallet.trade.buy","version":"1.0","api_key":"L2CLMSBYJAPF0HX0PY4VIW0XFPCNT6Y8","charset":"utf-8","sign_type":"MD5","timestamp":"20180628180344","biz_content":"{\"api_account_type\":\"Account\",\"attach\":\"1235\",\"client_ip\":\"42.96.158.70\",\"expire_minute\":\"0\",\"meta_option\":\"123\",\"notify_url\":\"http://game.p2pinfo.cn/api_notify.php\",\"out_trade_no\":\"2018062818034415446\",\"payment_account\":\"13910978598\",\"payment_provider\":\"heepay\",\"return_url\":\"http://game.p2pinfo.cn/api_notify.php\",\"subject\":\"测试\",\"total_fee\":\"1\"}","sign":"13a00eb3d18bdf00f5df5bada3cd22d5"}
+        request_json = {"method":"wallet.trade.buy","version":"1.0","api_key":"L2CLMSBYJAPF0HX0PY4VIW0XFPCNT6Y8","charset":"utf-8","sign_type":"MD5","timestamp":"20180630064937","biz_content":"{\"api_account_type\":\"Account\",\"attach\":\"1235\",\"client_ip\":\"42.96.158.70\",\"expire_minute\":\"0\",\"meta_option\":\"123\",\"notify_url\":\"http://game.p2pinfo.cn/api_notify.php\",\"out_trade_no\":\"2018063006493725900\",\"payment_account\":\"13910978598\",\"payment_provider\":\"heepay\",\"return_url\":\"http://game.p2pinfo.cn/api_notify.php\",\"subject\":\"test\",\"total_fee\":\"1\"}","sign":"E5AFC1466C676A2277DA3DC218480256"}
         request_obj = TradeAPIRequest.parseFromJson(request_json)
+
+        str2 = 'api_key=L2CLMSBYJAPF0HX0PY4VIW0XFPCNT6Y8&biz_content={"api_account_type":"Account","attach":"1235","client_ip":"42.96.158.70","expire_minute":"0","meta_option":"123","notify_url":"http://game.p2pinfo.cn/api_notify.php","out_trade_no":"2018063006493725900","payment_account":"13910978598","payment_provider":"heepay","return_url":"http://game.p2pinfo.cn/api_notify.php","subject":"test","total_fee":"1"}&charset=utf-8&method=wallet.trade.buy&sign_type=MD5&timestamp=20180630064937&version=1.0&key=6521126bd7b0907aa2671c547db671f0'
+        str1 = 'api_key=L2CLMSBYJAPF0HX0PY4VIW0XFPCNT6Y8&biz_content={\"api_account_type\":\"Account\",\"attach\":\"1235\",\"client_ip\":\"42.96.158.70\",\"expire_minute\":\"0\",\"meta_option\":\"123\",\"notify_url\":\"http://game.p2pinfo.cn/api_notify.php\",\"out_trade_no\":\"2018063006493725900\",\"payment_account\":\"13910978598\",\"payment_provider\":\"heepay\",\"return_url\":\"http://game.p2pinfo.cn/api_notify.php\",\"subject\":\"测试\",\"total_fee\":\"1\"}&charset=utf-8&method=wallet.trade.buy&sign_type=MD5&timestamp=20180630064937&version=1.0&key=6521126bd7b0907aa2671c547db671f0'
+        str2 = 'api_key=L2CLMSBYJAPF0HX0PY4VIW0XFPCNT6Y8&biz_content={\"api_account_type\":\"Account\",\"attach\":\"1235\",\"client_ip\":\"42.96.158.70\",\"expire_minute\":\"0\",\"meta_option\":\"123\",\"notify_url\":\"http://game.p2pinfo.cn/api_notify.php\",\"out_trade_no\":\"2018063006493725900\",\"payment_account\":\"13910978598\",\"payment_provider\":\"heepay\",\"return_url\":\"http://game.p2pinfo.cn/api_notify.php\",\"subject\":\"测试\",\"total_fee\":\"1\"}&charset=utf-8&method=wallet.trade.buy&sign_type=MD5&timestamp=20180630064937&version=1.0&key=6521126bd7b0907aa2671c547db671f0'
+        #str1='api_key=L2CLMSBYJAPF0HX0PY4VIW0XFPCNT6Y8&biz_content={\"api_account_type\":\"Account\",\"attach\":\"1235\",\"client_ip\":\"42.96.158.70\",\"expire_minute\":\"0\",\"meta_option\":\"123\",\"notify_url\":\"http://game.p2pinfo.cn/api_notify.php\",\"out_trade_no\":\"2018063006493725900\"'
+        #str2='api_key=L2CLMSBYJAPF0HX0PY4VIW0XFPCNT6Y8&biz_content={\"api_account_type\":\"Account\",\"attach\":\"1235\",\"client_ip\":\"42.96.158.70\",\"expire_minute\":\"0\",\"meta_option\":\"123\",\"notify_url\":\"http://game.p2pinfo.cn/api_notify.php\",\"out_trade_no\":\"2018063006493725900\"'
+        #self.maxDiff = None
+        #self.assertEqual(str1, str2)
+        #str_to_sign = 'api_key=L2CLMSBYJAPF0HX0PY4VIW0XFPCNT6Y8&biz_content={\"api_account_mode\":\"Account\",\"attach\":\"1235\",\"client_ip\":\"42.96.158.70\",\"expire_minute\":\"0\",\"meta_option\":\"123\",\"notify_url\":\"http://game.p2pinfo.cn/api_notify.php\",\"out_trade_no\":\"201806281831417566\",\"payment_account\":\"13910978598\",\"payment_provider\":\"heepay\",\"return_url\":\"http://game.p2pinfo.cn/api_notify.php\",\"subject\":\"测试\",\"total_fee\":\"1\"}&charset=utf-8&method=wallet.trade.buy&sign_type=MD5&timestamp=20180628183141&version=1.0&key=6521126bd7b0907aa2671c547db671f0'
+        #m = hashlib.md5()
+        #m.update(str_to_sign.encode('utf-8'))
+        #print("signature is {0}".format(m.hexdigest()))
         self.assertTrue(request_obj.is_valid('6521126bd7b0907aa2671c547db671f0'))
 
-        #api_key=L2CLMSBYJAPF0HX0PY4VIW0XFPCNT6Y8&biz_content={"api_account_type":"Account","attach":"1235","client_ip":"42.96.158.70","expire_minute":"0","meta_option":"123","notify_url":"http://game.p2pinfo.cn/api_notify.php","out_trade_no":"201806281441203318","payment_account":"13910978598","pay_option":"test","payment_provider":"heepay","return_url":"http://game.p2pinfo.cn/api_notify.php","subject":"测试","total_fee":"1"}&charset=utf-8&method=wallet.trade.buy&sign_type=MD5×tamp=20180628144120&version=1.0&key=6521126bd7b0907aa2671c547db671f0
-        #api_key=L2CLMSBYJAPF0HX0PY4VIW0XFPCNT6Y8&biz_content={"api_account_mode":"Account","attach":"1235","client_ip":"42.96.158.70","expire_minute":"0","meta_option":"123","notify_url":"http://game.p2pinfo.cn/api_notify.php","out_trade_no":"201806281441203318","pay_option":"test","payment_account":"13910978598","payment_provider":"heepay","return_url":"http://game.p2pinfo.cn/api_notify.php","subject":"测试","total_fee":1}&charset=utf-8&method=wallet.trade.buy&sign_type=MD5&timestamp=20180628144120&version=1.0&key=6521126bd7b0907aa2671c547db671f0
+        """
+        testString = [ 'api_key=L2CLMSBYJAPF0HX0PY4VIW0XFPCNT6Y8', '测试',
+           'api_key=L2CLMSBYJAPF0HX0PY4VIW0XFPCNT6Y8&biz_content={\"api_account_type\":\"Account\",\"attach\":\"1235\",\"client_ip\":\"42.96.158.70\",\"expire_minute\":\"0\",\"meta_option\":\"123\",\"notify_url\":\"http://game.p2pinfo.cn/api_notify.php\",\"out_trade_no\":\"2018063006493725900\",\"payment_account\":\"13910978598\",\"payment_provider\":\"heepay\",\"return_url\":\"http://game.p2pinfo.cn/api_notify.php\",\"subject\":\"test\",\"total_fee\":\"1\"}&charset=utf-8&method=wallet.trade.buy&sign_type=MD5&timestamp=20180630064937&version=1.0&key=6521126bd7b0907aa2671c547db671f0'
+
+        ]
+
+        for teststr in testString:
+            print('字符串 {0}'.format(teststr))
+            m = hashlib.md5()
+            m.update(teststr.encode('utf-8'))
+            print('签名 %s' % m.hexdigest())
+        """
