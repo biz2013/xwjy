@@ -83,7 +83,20 @@ WSGI_APPLICATION = 'stakingsvc.wsgi.application'
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {},
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'mydb',
+        'USER': 'mydbuser',
+        'PASSWORD': 'aaaaaa',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'TEST':{
+           'CHARSET': 'UTF8',
+           },
+      'OPTIONS': {
+        'init_command': 'SET default_storage_engine=INNODB',
+      }
+    },
     'stakingsvc': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
