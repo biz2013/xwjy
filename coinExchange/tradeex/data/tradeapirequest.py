@@ -91,7 +91,7 @@ class TradeAPIRequest(object):
             biz_content_json['subject'] = self.subject
             biz_content_json['total_fee'] = self.total_fee
             biz_content_json['expire_minute'] = self.expire_minute
-            biz_content_json['api_account_mode']= 'Account'
+            biz_content_json['api_account_type']= 'Account'
             biz_content_json['client_ip'] = self.client_ip
             biz_content_json['payment_provider'] = self.payment_provider
             biz_content_json['payment_account'] = self.payment_account
