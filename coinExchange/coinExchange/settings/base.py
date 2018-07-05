@@ -230,4 +230,4 @@ HEEPAY_RETURN_URL_FORMAT='http://{0}:{1}/trading/heepay/confirm_payment/'
 
 # These are execution behavior code
 TEST_REAL_CALL = False
-API_TRANS_LIMIT = 1000000
+API_TRANS_LIMIT_IN_CENT = 1000000

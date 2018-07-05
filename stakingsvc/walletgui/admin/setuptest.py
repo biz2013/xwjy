@@ -8,11 +8,11 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 
-from tradeex.models import *
-from tradeex.utils import *
-from tradeex.controllers.walletmanager import WalletManager
+from walletgui.models import *
+from tradeapi.utils import *
+from tradeapi.walletmanager import WalletManager
 
-from trading.models import *
+from tradeapi.models import *
 
 logger = logging.getLogger("site.testsetup")
 

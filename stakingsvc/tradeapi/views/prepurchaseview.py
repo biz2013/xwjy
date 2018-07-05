@@ -12,7 +12,7 @@ from walletgui.config import context_processor
 # this is for test UI. A fake one
 from walletgui.views import errorpageview
 from walletgui.controller.global_constants import *
-from tradeapi.data.traderequest import *
+from tradeapi.data.tradeapirequest import *
 from tradeapi.utils import *
 
 import logging,json

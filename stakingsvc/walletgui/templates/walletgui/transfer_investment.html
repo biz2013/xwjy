@@ -22,7 +22,13 @@
              <label for="id_address" class="control-label">转账地址</label><span class="asteriskField">*</span> </label>
              <div class="controls "> <input class="textinput textInput form-control" id="id_txt_address" maxlength="16" name="amount" type="text" /> </div>
              <label for="id_amount" class="control-label">转账总额(CNY)</label><span class="asteriskField">*</span> </label>
-             <div class="controls "> <input class="textinput textInput form-control" id="id_txt_amount" maxlength="16" name="amount" type="text" /> </div>
+             <div class="controls "> <select class="select select-input form-control" id="id_external_address" name="external_address">
+              <option value="">请选择钱包地址</option>
+              {% for address in external_addresses %}
+              <option value="{{ address.address }}">{{ address.alias }}</option>
+              {% endfor %}
+            </select>
+          </div>
            </div>
          </div>
          <div class="modal-footer">

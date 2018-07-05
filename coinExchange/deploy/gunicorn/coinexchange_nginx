@@ -6,16 +6,16 @@ server {
     location = /favicon.ico { access_log off; log_not_found off; }
     location /static/ {
         #root /home/sammy/myproject;
-        root /home/chi/workspace/python/projects/xwjy/coinExchange;
+        root /home/osboxes/workspace/xwjy/coinExchange;
     }
 
     location /media/ {
-        root /home/chi/workspace/python/projects/xwjy/coinExchange;
+        root /home/osboxes/workspace/xwjy/coinExchange;
     }
 
     location / {
         include proxy_params;
         #proxy_pass http://unix:/home/sammy/myproject/myproject.sock;
-        proxy_pass http://unix:/home/chi/workspace/python/projects/xwjy/coinExchange/coinExchange_nginx.sock;
+        proxy_pass http://unix:/home/osboxes/workspace/xwjy/coinExchange/coinExchange_nginx.sock;
     }
 }

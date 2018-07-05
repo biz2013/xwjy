@@ -20,10 +20,12 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from walletgui.views import balanceview, purchaseview, redeemview
 from walletgui.views import transferview, transhistoryview, backupwalletview
+from walletgui.admin import setuptest
 
 urlpatterns = [
     re_path(r'^$', balanceview.balance, name='balance'),
-    re_path(r'^purchase/$', purchaseview.show, name='show_purchase'),
+    re_path(r'^setup_staking_user/$', setuptest.create_api_user, name='create_api_user'),
+    re_path(r'^purchase/$', purchaseview.purchase, name='show_purchase'),
     re_path(r'^redeem/$', redeemview.show, name='show_redeem'),
     re_path(r'^transfer/$', transferview.show, name='show_transfer'),
     re_path(r'^transhistory/$', transhistoryview.show, name='show_transhistory'),
