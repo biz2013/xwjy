@@ -84,11 +84,24 @@ WSGI_APPLICATION = 'stakingsvc.wsgi.application'
 
 DATABASES = {
     'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'mydb',
+        'USER': 'mydbuser',
+        'PASSWORD': 'aaaaaa',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'TEST':{
+           'CHARSET': 'UTF8',
+           },
+      'OPTIONS': {
+        'init_command': 'SET default_storage_engine=INNODB',
+      }
+    },
+    'stakingsvc': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
@@ -136,6 +149,8 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
+MY_APIKEY='TEST_API_KEY'
+TRADE_API_CALL_TIMEOUT_IN_MINUTES = 10
 TRADE_API_HOST = '54.203.195.52'
 TRADE_API_WALLET_ADDR = 'PPBL7kzFj1naD1wCPnWcNzzkVepKnBow7A'
 TRADE_EXCHANGE_API_URL = 'http://52.13.206.16/trade/v1/api/'

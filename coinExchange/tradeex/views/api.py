@@ -83,7 +83,10 @@ def parseUserInput(expected_method, request_json):
     if not request_obj.is_valid(api_user.secretKey):
         raise ValueError(ERR_INVALID_SIGNATURE)
 
-    if request_obj.total_fee > settings.API_TRANS_LIMIT:
+    amount = int(request_obj.total_fee) if type(request_obj.total_fee) is str else request_obj.total_fee
+    logger.debug("The request's amount is {0}".format(amount))
+
+    if amount > settings.API_TRANS_LIMIT_IN_CENT:
         raise ValueError('{0}: amount:{1}, limit:{2}'.format(
             ERR_OVER_TRANS_LIMIT, request_obj.total_fee, settings.API_TRANS_LIMIT))
 
