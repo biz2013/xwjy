@@ -307,7 +307,7 @@ def fix(request):
 
 @csrf_exempt
 def send_notify_test(request):
-    notify={"from_account": "15811302702", "received_time": "20180707170000", "trx_bill_no": "API_TX_20180708003237_702714", "real_fee": 2, "payment_provider": "汇钱包", "version": "1.0", "subject": "人民币充值成功测试", "sign": "25F8FC77013EA8C1474FD7E35918369E", "attach": "userid:1", "out_trade_no": "order_to_purchase", "api_key": "api_test_user_appId1", "trade_status": "Success", "total_amount": 2}
+    notify={"from_account": "13910978598", "received_time": "20180707170000", "trx_bill_no": "API_TX_20180708003237_702714", "real_fee": 2, "payment_provider": "heepay", "version": "1.0", "subject": "充值成功测试", "sign": "25F8FC77013EA8C1474FD7E35918369E", "attach": "userid:1", "out_trade_no": "order_to_purchase", "api_key": "L2CLMSBYJAPF0HX0PY4VIW0XFPCNT6Y8", "trade_status": "Success", "total_amount": 2}
     return JsonResponse(notify)
 @csrf_exempt
 def create_api_user(request):
