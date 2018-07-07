@@ -45,9 +45,9 @@ def setupbasic(operator, master_cny_address= None):
             json.dumps(wallet_config, ensure_ascii=False)))
     except Wallet.DoesNotExist:
         wallet_config = {}
-        wallet_config['bin_path'] = "/usr/bin/peercoin-cli"
+        wallet_config['bin_path'] = "/usr/bin/cnycoin-cli"
         wallet_config['passphrase'] = ""
-        wallet_config['datadir'] = "/home/ubuntu/.peercoin"
+        wallet_config['datadir'] = "/home/ubuntu/.cnycoin"
         wallet_config['list_trans_count'] = 100000
         wallet_config["account_name"] = ""
         wallet_config['min_trx_confirmation'] = 8
