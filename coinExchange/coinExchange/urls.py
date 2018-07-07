@@ -28,6 +28,7 @@ urlpatterns = [
     re_path(r'^setuptest/$', setuptest.setuptestuser),
     re_path(r'^setup_fix/$', setuptest.fix),
     re_path(r'^setup_create_api_user/$', setuptest.create_api_user),
+    re_path(r'^trigger_purchase_notify/$', setuptest.send_notify_test),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 #Add URL maps to redirect the base URL to our application
