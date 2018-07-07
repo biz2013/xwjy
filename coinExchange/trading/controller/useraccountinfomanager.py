@@ -374,12 +374,17 @@ def update_user_wallet_based_on_redeem(trx, user_wallet_id, min_trx_confirmation
 
 def get_send_money_trans_userid(trx):
     try:
-        comment_parts = trx['comment'].split(',')
-        if len(comment_parts) < 3:
-            logger.error("The comment {0} is not in expected format of User:id redeem: amount to:address".format(trx['comment']))
-            return -1
-        parts1 = comment_parts[0].split(':')
-        return int(parts1[1])
+        if 'comment' in trx:
+            comment_parts = trx['comment'].split(',')
+            if len(comment_parts) < 3:
+                logger.error("The comment {0} is not in expected format of User:id redeem: amount to:address".format(trx['comment']))
+                return -1
+            parts1 = comment_parts[0].split(':')
+            return int(parts1[1])
+        else:
+            logger.info('get_send_money_trans_userid(): does not have comment section {0}'.format(
+                json.dumps(trx, ensure_ascii=False)
+            ))
     except Exception as e:
         error_msg = "Failed to parse userid from trx[{0}], with comment {1}".format(
             trx['txid'],trx['comment'])
@@ -441,7 +446,9 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
                         continue
                 userid = get_send_money_trans_userid(trx)
                 logger.info("Get user id {0} from trx[{1}]'s comment {2}'".format(
-                      userid, trx['txid'], trx['comment']))
+                    userid, trx['txid'],
+                    trx['comment'] if 'comment' in trx else 'N/A'
+                ))
                 if userid == -1:
                     logger.warn('Could not parse transaction[{0}]\'s comment for user {1}'.format(
                         trx['txid'], trx.get('comment', '')
