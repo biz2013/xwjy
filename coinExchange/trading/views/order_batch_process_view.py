@@ -40,7 +40,7 @@ def handle_paying_order(order, order_timeout, appId, appkey):
         trans = ordermanager.get_order_transactions(order.order_id)
         if not trans.payment_bill_no:
             logger.error('purchase order {0}: transaction id{1} : no payment bill no yet its status is PAYING'.format(order.order_id, trans.id))
-            return;
+            return
 
         payment_status = 'UNKNOWN'
         heepay = HeePayManager()
