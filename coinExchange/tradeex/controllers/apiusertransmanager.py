@@ -350,6 +350,7 @@ class APIUserTransactionManager(object):
                         api_trans.api_user.user.id, total_cny_in_units, 
                         api_trans.transactionId, api_trans.api_out_trade_no)
                     try:
+                        crypto_util.unlock_wallet(15)
                         crypto_trans = crypto_util.send_fund(external_crypto_addr, total_cny_in_units, comment)
                         operation_comment='api user {0} send his purchased {1} CNY back his wallet'.format(
                             api_trans.api_user.user.username, total_cny_in_units
