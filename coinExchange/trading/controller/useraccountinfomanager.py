@@ -437,6 +437,11 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
                     logger.error('Transaction {0} with address {1} does not belong to any user'.format(
                             trx['txid'],trx['address']))
             elif trx['category'] == 'send':
+                if 'comment' not in trx:
+                    logger.warn('sending trx[{0}] has no comment, probably its an transaction of manual sending money'.format(
+                        trx['txid']
+                    ))
+                    continue
                 if trx['txid'] in dup_receives:
                     sum = trx['amount'] + dup_receives[trx['txid']]['amount']
                     if math.fabs(sum) < 0.00000001:

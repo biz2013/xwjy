@@ -34,7 +34,7 @@ class AXFundUtility(object):
         ))
         result_str = subprocess.check_output(
            [self.axfd_path, '-datadir=%s'%(self.axfd_datadir), 'sendtoaddress',
-            dst, str(amount), '\"{0}\"'.format(comment)])
+            dst, str(amount), '{0}'.format(comment)])
         result_str = result_str.decode('utf-8')
         logger.info("send to address return transaction id {0}".format(
             result_str))
