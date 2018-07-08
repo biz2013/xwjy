@@ -30,6 +30,7 @@ class TestAPICall(TestCase):
         test_purchase_amount = TEST_PURCHASE_AMOUNT
         test_user_heepay_from_account = '13910978598'
         test_timestamp = int(dt.datetime.utcnow().strftime("%Y%m%d%H%M%s"))
+        test_out_trade_no = 'order_to_purchase_{0}'.format(test_timestamp)
         test_attach = 'userid:1'
         test_subject = '人民币充值成功测试'
         test_notify_url = 'http://54.203.195.52/api/v1/api_notify_test/'

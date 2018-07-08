@@ -514,6 +514,7 @@ def update_order_with_heepay_notification(notify_json, operator):
                 Q(reference_order__order_id=purchase_trans.reference_order.order_id) | 
                 Q(reference_order__order_id=purchase_trans.reference_order.reference_order.order_id)
             ).update(
+                real_fee = notify_json['real_fee'],
                 payment_provider_last_notify = json.dumps(notify_json, ensure_ascii=False),
                 payment_provider_last_notified_at = dt.datetime.utcnow(),
                 payment_account = notify_json.get('from_account', None) if purchase_trans.reference_order.order_source == 'API' else None,

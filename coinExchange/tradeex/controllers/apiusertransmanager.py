@@ -3,6 +3,7 @@
 
 import sys, logging, json, traceback
 import datetime as dt
+import time
 
 from calendar import timegm
 from django.db import transaction
@@ -285,12 +286,12 @@ class APIUserTransactionManager(object):
                 api_trans.api_user.secretKey,
                 api_trans.api_out_trade_no,
                 api_trans.transactionId,
-                api_trans.payment_provider.name,
+                api_trans.payment_provider.code,
                 api_trans.subject,
                 api_trans.total_fee,
                 api_trans.trade_status,
                 api_trans.real_fee,
-                api_trans.payment_provider_last_notified_at.strftime('yyyyMMddHHmmss') if api_trans.payment_provider_last_notified_at else None,
+                api_trans.payment_provider_last_notified_at.strftime("%Y%m%d%H%M%S") if api_trans.payment_provider_last_notified_at else None,
                 from_account=api_trans.payment_account,
                 #to_account = api_trans.to_account,
                 attach = api_trans.attach
