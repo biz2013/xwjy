@@ -218,7 +218,7 @@ class APIUserTransactionManager(object):
                     fiat_money_amount = total_cny_in_units,
                     payment_provider = api_trans.payment_provider,
                     balance_update_type= 'DEBT',
-                    transaction_type = 'OPEN BUY ORDER',
+                    transaction_type = 'DELIVER ON PURCHASE',
                     comment = operation_comment,
                     reported_timestamp = timegm(dt.datetime.utcnow().utctimetuple()),
                     status = 'PROCESSED',
