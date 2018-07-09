@@ -449,13 +449,11 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
                         trx['txid'], trx['comment']
                     ))
                     continue
-                if trx['txid'] in dup_receives:
-                    sum = trx['amount'] + dup_receives[trx['txid']]['amount']
-                    if math.fabs(sum) < 0.00000001:
-                        logger.info('sending trans {0} is part of CNY extra receive/send pair, ignore it'.format(
-                            trx['txid']
-                        ))
-                        continue
+                if trx['txid'] in dup_receives and trx['address'] == dup_receives[trx['txid']]['address']:
+                    logger.info('sending trans {0} is part of CNY extra receive/send pair, ignore it'.format(
+                        trx['txid']
+                    ))
+                    continue
                 userid = get_send_money_trans_userid(trx)
                 logger.info("Get user id {0} from trx[{1}]'s comment {2}'".format(
                     userid, trx['txid'],
