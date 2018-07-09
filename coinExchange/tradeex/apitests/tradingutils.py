@@ -49,7 +49,6 @@ def dump_userwallet_trans(trans):
     if not trans:
         print('encounter none user_wallet_tran')
         return
-
     print('wallet_trans: {0}|{1} status:{2} type:{3}: {4} ({5}/{6}/{7})->({8}/{9}/{10}) payment:{11}:{12}:{13}'.format(
         trans.id, trans.user_wallet.wallet.cryptocurrency.currency_code,
         trans.status, 
@@ -59,14 +58,27 @@ def dump_userwallet_trans(trans):
         trans.payment_provider.code, trans.payment_bill_no, trans.payment_status
     )) 
 def show_user_wallet_overview(selected_users = None):
-    active_wallets = UserWallet.objects.filter(user__isnull = False)
-    print('---------- snapshot of user wallet {0} ---------'.format(
-        selected_users if selected_users else '[]'
-    ))
-    for wallet in active_wallets:
-        if selected_users and wallet.user.username not in selected_users:
-            continue;
-        dump_userwallet(wallet)
+    if not selected_users:
+        print('------ show all user wallets and their transactions --------')
+        active_wallets = UserWallet.objects.filter(user__isnull = False)
+        for wallet in active_wallets:
+            dump_userwallet(wallet)
+            axf_trans = UserWalletTransaction.objects.filter(user_wallet__id=wallet.id).order_by("lastupdated_at")
+            if len(axf_trans) > 0:
+                print('{0} has {1} trans'.format(wallet.user.username, len(axf_trans)))
+                for tran in axf_trans:
+                    dump_userwallet_trans(tran)
+    else:
+        print('------ show user wallets and their transactions of {0} --------'.format(
+            selected_users
+        ))
+        for user in selected_users:
+            wallet = UserWallet.objects.get(user__username=user)
+            axf_trans = UserWalletTransaction.objects.filter(user_wallet__id=wallet.id).order_by("lastupdated_at")
+            if len(axf_trans) > 0:
+                print('{0} has {1} trans'.format(wallet.user.username, len(axf_trans)))
+                for tran in axf_trans:
+                    dump_userwallet_trans(tran)
 
 
 def show_user_wallet_trans(buyer, seller):
