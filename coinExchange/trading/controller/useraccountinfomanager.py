@@ -165,13 +165,15 @@ def update_user_wallet_based_on_redeem(trx, user_wallet_id, min_trx_confirmation
         with transaction.atomic():
             user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet_id)
             user_wallet_trans = UserWalletTransaction.objects.get(
-                transaction_type ='REDEEM',
+                transaction_type != 'REDEEMFEE',
                 user_wallet__id=user_wallet_id,
                 reference_wallet_trxId=trx['txid'])
             user_wallet_fee_trans = UserWalletTransaction.objects.get(
                 transaction_type ='REDEEMFEE',
                 user_wallet__id=user_wallet_id,
                 reference_wallet_trxId=trx['txid'])
+            if user_wallet_trans.transaction_type != 'REDEEM' and user_wallet_trans.transaction_type != 'AUTOREDEEM':
+                raise ValueError('send txid {0} type is invalid {1}'.format(trx['txid'], user_wallet_trans.transaction_type))
             if user_wallet_trans.status == 'PENDING' and trx['confirmations'] >= min_trx_confirmation:
                 logger.info('update_user_wallet_based_on_redeem(): txid {0} has just been confirmed, change status of user_wallet_trans {1} and fee trans {2} to PROCESSED and update wallet balance'.format(
                     trx['txid'], user_wallet_trans.id, user_wallet_fee_trans.id
@@ -431,10 +433,11 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
                 else:
                     if 'comment' in trx:
                         dup_receives[trx['txid']] = trx
-                        logger.info('Receiving trans {0} could be part of sending trans for CNY. Record it'.format(
+                        logger.info('Receiving txid {0} could be part of sending trans for CNY. Record it'.format(
                             trx['txid']
                         ))
-                    logger.error('Transaction {0} with address {1} does not belong to any user'.format(
+                    else:
+                        logger.error('Receiving txid {0} with address {1} does not belong to any user'.format(
                             trx['txid'],trx['address']))
             elif trx['category'] == 'send':
                 if 'comment' not in trx:
