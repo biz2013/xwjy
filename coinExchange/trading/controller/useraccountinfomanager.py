@@ -183,8 +183,6 @@ def update_user_wallet_based_on_redeem(trx, user_wallet_id, min_trx_confirmation
                 transaction_type ='REDEEMFEE',
                 user_wallet__id=user_wallet_id,
                 reference_wallet_trxId=trx['txid'])
-            #if user_wallet_trans.transaction_type != 'REDEEM' and user_wallet_trans.transaction_type != 'AUTOREDEEM':
-            #    raise ValueError('send txid {0} type is invalid {1}'.format(trx['txid'], user_wallet_trans.transaction_type))
             if user_wallet_trans.status == 'PENDING' and trx['confirmations'] >= min_trx_confirmation:
                 logger.info('update_user_wallet_based_on_redeem(): txid {0} has just been confirmed, change status of user_wallet_trans {1} and fee trans {2} to PROCESSED and update wallet balance'.format(
                     trx['txid'], user_wallet_trans.id, user_wallet_fee_trans.id
