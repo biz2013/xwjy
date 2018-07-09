@@ -120,6 +120,10 @@ def send_buy_apply_for_redeem_side_effect(payload):
 
 
 #mock function
+def unlock_wallet_for_purchase_test(timeout_in_sec):
+    pass
+
+#mock function
 def send_fund_for_purchase_test(target_addr, amount, comment):
     logger.debug('come to the mock of send fund()')
     TestCase().assertEqual(TEST_CNY_ADDR, target_addr, "System should send purchase CNY to {0}".format(TEST_CNY_ADDR) )
@@ -319,16 +323,22 @@ class TestTradingAPI(TransactionTestCase):
     """
 
 
+    @patch('tradeex.controllers.crypto_utils.CryptoUtility.unlock_wallet', side_effect=unlock_wallet_for_purchase_test)
     @patch('tradeex.controllers.crypto_utils.CryptoUtility.send_fund', side_effect=send_fund_for_purchase_test)
     @patch('trading.controller.heepaymanager.HeePayManager.send_buy_apply_request', 
            side_effect=send_buy_apply_request_side_effect)
     @patch('tradeex.client.apiclient.APIClient.send_json_request', side_effect=send_json_request_for_purchase_test)
-    def test_purchase_order_succeed(self,send_fund_function,
+    def test_purchase_order_succeed(self,unlock_wallet_function, 
+            send_fund_function,
             send_buy_apply_request_function,
             send_json_request_function):
 
         # create test sell orders
         self.create_fitting_order(62)
+        print('-----------------------------------------------')
+        print('test_purchase_order_succeed(): check userwallet and orders after creating sell orders')
+        show_user_wallet_overview()
+        show_order_overview()
 
         # these are the app_id and secret from fixture apiuseraccount        
         # TODO: validate this is tradeex_api_user1
@@ -376,7 +386,13 @@ class TestTradingAPI(TransactionTestCase):
             expected_subject = test_subject, expected_attach = test_attach,
             expected_return_url = test_return_url, 
             expected_notify_url = test_notify_url)
+
         
+        print('-----------------------------------------------')
+        print('test_purchase_order_succeed(): show wallet and orders after send api request')
+        show_user_wallet_overview()
+        show_order_overview()
+
         logger.info('finish issue purchase request, about to test receiving heepay notification')
 
         #NOTE: the trade status is case-sensitive thing
@@ -389,11 +405,28 @@ class TestTradingAPI(TransactionTestCase):
         c1 = Client()
         response = c1.post('/trading/heepay/confirm_payment/', request_str,
             content_type='application/json')
-        
+
+        print('-----------------------------------------------')
+        print('test_purchase_order_succeed(): check userwallet and orders after heepay confirmation')
+        show_user_wallet_overview()
+        show_order_overview()
+
+
         #TODO: test sending coin is execute
         #TODO: test notification is sent
         #TODO: test the notification is correct
         self.assertEqual('OK', response.content.decode('utf-8'), "The response to the payment confirmation should be OK")
+
+        c = Client()
+        c.login(username='yingzhou', password='user@123')
+        response = c.get('/trading/account/cron/order_batch_process/')
+
+        print('-------------------------------------------------------------------------------')
+        print('test_purchase_order_succeed(): show overview after order process routine executed')
+        show_user_wallet_overview()
+        show_order_overview()
+        #show_user_wallet_trans('tttzhang2000@yahoo.com', api_users.user.username)
+
 
     @patch('trading.controller.heepaymanager.HeePayManager.send_buy_apply_request', 
            side_effect=send_buy_apply_for_redeem_side_effect)
@@ -716,11 +749,12 @@ class TestTradingAPI(TransactionTestCase):
         dump_userwallet_trans(master_trans[0])
 
 
+    @patch('tradeex.controllers.crypto_utils.CryptoUtility.unlock_wallet', side_effect=unlock_wallet_for_purchase_test)
     @patch('tradeex.controllers.crypto_utils.CryptoUtility.send_fund', side_effect=send_fund_for_purchase_test)
     @patch('trading.controller.heepaymanager.HeePayManager.send_buy_apply_request', 
            side_effect=send_buy_apply_request_side_effect)
     @patch('tradeex.client.apiclient.APIClient.send_json_request', side_effect=send_json_request_for_purchase_test)
-    def test_status_query(self,send_fund_function,
+    def test_status_query(self,unlock_wallet, send_fund_function,
             send_buy_apply_request_function,
             send_json_request_function):
 
