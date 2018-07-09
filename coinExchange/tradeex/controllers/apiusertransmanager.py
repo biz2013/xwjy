@@ -197,8 +197,9 @@ class APIUserTransactionManager(object):
                 )
                 user_cny_wallet_trans.save()
 
-                user_cny_wallet.available_balance = user_cny_wallet.available_balance + total_cny_in_units
-                user_cny_wallet.locked_balance = user_cny_wallet.locked_balance - total_cny_in_units
+                user_cny_wallet.balance = end_cny_balance
+                user_cny_wallet.available_balance = end_cny_available_balance
+                user_cny_wallet.locked_balance = end_cny_locked_balance
                 user_cny_wallet.save()
 
                 end_master_balance = master_wallet.balance - total_cny_in_units
