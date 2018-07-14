@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
-from tradeex.views import api, api_notify_test, heepayview, wallet_cronjob
+from tradeex.views import api, apiuser, api_notify_test, heepayview, wallet_cronjob
 
 urlpatterns = [
     re_path(r'^applypurchase/$', api.prepurchase, name='prepurchase'),
@@ -28,6 +28,7 @@ urlpatterns = [
     re_path(r'^applyredeem/$', api.selltoken, name='selltoken'),
     re_path(r'^checkwallet/$', wallet_cronjob.check_on_wallet, name='check_on_wallet'),
     re_path(r'^api_notify_test/$', api_notify_test.api_notify_test),
+    re_path(r'^apiuser/$', apiuser.create)
     #re_path(r'^register/$', api.register, name='register'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

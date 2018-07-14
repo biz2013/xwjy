@@ -13,10 +13,11 @@ class APIClient(object):
     def send_json_request(self, pay_load, trackingId = '', response_format='json'):
         headers = {"Content-Type": "application/json",
                "charset": "UTF-8"}
+        request_str = json.dumps(pay_load, ensure_ascii=False)
         logger.info("apiclient.send_json_request(): {0} send request to {1}, with json:{2}".format(
             '[trackId: {0}]'.format(trackingId) if trackingId else '',
-            self.url, pay_load
+            self.url, request_str
         ))
-        r = requests.post(self.url, json=pay_load, headers= headers, allow_redirects=True)
+        r = requests.post(self.url, json=payload, headers= headers, allow_redirects=True)
         logger.info("response is {0}".format(r.text))
         return r.json() if response_format=='json' else r.text.encode('utf-8')
