@@ -25,9 +25,13 @@ echo "source dj2env/bin/activate"
 source dj2env/bin/activate
 
 echo "delete database"
-/usr/bin/mysql -h localhost -u root -p < $WORKHOME/admin/reset_db.sql
+rm -rf db
+mkdir db
 
 echo "create database tables"
+echo "python manage.py makemigrations --settings=stakingsvc.settings.$SETTING_STYLE"
+python manage.py makemigrations --settings=stakingsvc.settings.$SETTING_STYLE
+
 echo "python manage.py migrate --settings=stakingsvc.settings.$SETTING_STYLE"
 python manage.py migrate --settings=stakingsvc.settings.$SETTING_STYLE
 
@@ -44,7 +48,7 @@ echo "sleep 5 seconds"
 sleep 5
 
 echo "setup test"
-/usr/bin/curl -L -v -X POST -H "Content-Type: application/json" http://localhost/setup_staking_test/ --data@userprofile.json
+/usr/bin/curl -L -v -X POST -H "Content-Type: application/json" http://localhost:8080/walletgui/setup_staking_user/ --data @./admin/files/userprofile.json
 
 echo "Done."
 
