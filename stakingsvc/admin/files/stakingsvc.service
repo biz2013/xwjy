@@ -6,7 +6,7 @@ After=network.target
 User=osboxes
 Group=osboxes
 WorkingDirectory=/home/osboxes/workspace/xwjy/stakingsvc/
-ExecStart=/home/osboxes/workspace/xwjy/stakingsvc/admin/starup.sh
+ExecStart=/home/osboxes/workspace/xwjy/stakingsvc/admin/startup.sh
 
 [Install]
 WantedBy=multi-user.target
