@@ -7,7 +7,7 @@ User=osboxes
 Group=osboxes
 WorkingDirectory=/home/osboxes/workspace/CnyCoin
 ExecStart=/home/osboxes/workspace/CnyCoin/binaries/0.6.2/cnycoind --datadir=/home/osboxes/.cnycoin
-ExecStart=/home/osboxes/workspace/CnyCoin/binaries/0.6.2/cnycoin-cli --datadir=/home/osboxes/.cnycoin stop
+ExecStop=/home/osboxes/workspace/CnyCoin/binaries/0.6.2/cnycoin-cli --datadir=/home/osboxes/.cnycoin stop
 
 [Install]
 WantedBy=multi-user.target

@@ -8,6 +8,11 @@ fi
 
 setup() {
 
+if [ ! -d /home/osboxes/.cnycoin ]; then
+   echo "mkdir /home/osboxes/.cnycoin"
+   mkdir /home/osboxes/.cnycoin
+fi
+
 echo "copy service file"
 echo "cp $SETUPDIR/files/cnycoin.service /etc/systemd/system/"
 cp $SETUPDIR/files/cnycoin.service /etc/systemd/system/
