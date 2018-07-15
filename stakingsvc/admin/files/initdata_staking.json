@@ -1,6 +1,6 @@
 [
     {
-      "model": "trading.sitesettings",
+      "model": "walletgui.sitesettings",
       "pk": 1,
       "fields":{
         "support": "",
@@ -19,7 +19,7 @@
       }
     },
     {
-      "model": "trading.cryptocurrency",
+      "model": "walletgui.cryptocurrency",
       "pk": "AXFund",
       "fields":{
         "name":"美基金",
@@ -30,7 +30,7 @@
       }
     },
     {
-      "model": "trading.cryptocurrency",
+      "model": "walletgui.cryptocurrency",
       "pk": "CNY",
       "fields":{
         "name":"人民币",
@@ -55,7 +55,7 @@
        }
     },
     {
-       "model": "trading.wallet",
+       "model": "walletgui.wallet",
        "pk": 1,
        "fields":{
          "name":"AXFundWallet",
@@ -67,7 +67,7 @@
        }
     },
     {
-      "model": "trading.wallet",
+      "model": "walletgui.wallet",
       "pk": 2,
       "fields":{
         "name":"CNYWallet",
@@ -80,7 +80,7 @@
       }
     },
     {
-       "model": "trading.paymentprovider",
+       "model": "walletgui.paymentprovider",
        "pk": "weixin",
        "fields" : {
          "name" : "微信支付",
@@ -92,7 +92,7 @@
        }
     },
     {
-       "model": "trading.paymentprovider",
+       "model": "walletgui.paymentprovider",
        "pk": "alipay",
        "fields" : {
          "name" : "支付宝",
@@ -104,7 +104,7 @@
        }
     },
     {
-       "model": "trading.paymentprovider",
+       "model": "walletgui.paymentprovider",
        "pk": "heepay",
        "fields" : {
          "name" : "汇钱包",
@@ -116,7 +116,7 @@
        }
     },
     {
-        "model": "trading.paymentprovider",
+        "model": "walletgui.paymentprovider",
         "pk": "paypal",
         "fields" : {
           "name" : "PayPal",
