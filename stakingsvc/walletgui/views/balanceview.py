@@ -15,7 +15,7 @@ import logging,json
 
 logger = logging.getLogger("site.balance")
 
-#@login_required
+@login_required
 def balance(request):
     try:
        paymentmethods = []
