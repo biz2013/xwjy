@@ -1,0 +1,12 @@
+[Unit]
+Description=cyncoin daemon
+After=network.target
+
+[Service]
+User=osboxes
+Group=osboxes
+WorkingDirectory=/home/osboxes/workspace/xwjy/stakingsvc/
+ExecStart=/home/osboxes/workspace/xwjy/stakingsvc/admin/starup.sh
+
+[Install]
+WantedBy=multi-user.target
