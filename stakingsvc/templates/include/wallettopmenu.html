@@ -10,7 +10,7 @@
         <a class="navbar-brand" href="{% if username %}/{% else %}/walletgui/{% endif %}"><img src="/static/img/axfund_icon.png" width=96 height=36></a>
       </div>
       <div class="collapse navbar-collapse" id="myNavbar">
-        {% if not user.is_authenticated %}
+        {% if user.is_authenticated %}
         <ul class="nav navbar-nav">
           <li><a href="{% url 'balance' %}">主页</a></li>
           <li><a href="{% url 'show_purchase' %}">购买</a></li>
