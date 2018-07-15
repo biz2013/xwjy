@@ -13,15 +13,14 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-#currentDir = os.path.dirname(os.path.abspath(__file__))
-#parentDir = os.path.join(currentDir, os.pardir)
-#print('cur dir: ' + currentDir)
-#print('parent dir: ' + parentDir)
-#BASE_DIR = os.path.abspath(os.path.join( parentDir, os.pardir))
+currentDir = os.path.dirname(os.path.abspath(__file__))
+parentDir = os.path.join(currentDir, os.pardir)
+print('cur dir: ' + currentDir)
+print('parent dir: ' + parentDir)
+BASE_DIR = os.path.abspath(os.path.join( parentDir, os.pardir))
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_DIR=os.path.join(BASE_DIR, '../db')
-print('BASE_DIR=' + BASE_DIR)
+DB_DIR=os.path.join(BASE_DIR, 'db')
+print('DB_DIR=' + DB_DIR)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
