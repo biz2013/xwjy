@@ -1,6 +1,6 @@
 from .base import *
 
-CNYADDRESS=''
+CNYADDRESS='PKpAsXD4sgEfMzXhqhpf6StngZgRrgqGgk'
 
 APIHOST='54.203.192.52'
 CNYBIN='/home/osboxes/workspace/CnyCoin/binaries/0.6.2/cnycoin-cli'
