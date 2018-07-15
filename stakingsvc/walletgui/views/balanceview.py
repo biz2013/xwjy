@@ -9,7 +9,7 @@ from walletgui.views import errorpageview
 from walletgui.controller.global_constants import *
 from walletgui.views.models.useraccountinfo import *
 from walletgui.views.models.userpaymentmethod import *
-#from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required
 
 import logging,json
 
