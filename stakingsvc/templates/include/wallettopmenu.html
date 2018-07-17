@@ -13,8 +13,10 @@
         {% if user.is_authenticated %}
         <ul class="nav navbar-nav">
           <li><a href="{% url 'balance' %}">主页</a></li>
+          {% if userpaymentmethod %}
           <li><a href="{% url 'show_purchase' %}">购买</a></li>
           <li><a href="{% url 'balance' %}">提现</a></li>
+          {% endif %}
         </ul>
         {% endif %}
         <ul class="nav navbar-nav navbar-right">
