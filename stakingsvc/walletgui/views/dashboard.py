@@ -1,28 +1,20 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import sys
 
-from django.db.models import Q
-from django.shortcuts import render, redirect
-
-# this is for test UI. A fake one
-from walletgui.views import errorpageview
-from walletgui.controller.global_constants import *
-from walletgui.views.models.useraccountinfo import *
-from walletgui.views.models.userpaymentmethod import *
+import logging
 from django.contrib.auth.decorators import login_required
 
+import walletgui.controller.crypto_utils import CryptoUtility
+import walletgui.controller.walletmanager import WalletManager
 
-import logging,json
-
-logger = logging.getLogger("site.balance")
-
-@login_required
-def func(request):
+logger = logging.getLogger("site.dashboard")
 
 @login_required
-def balance(request):paymentmethods = []
-        paymentmethods.append(
+def show(request):
+    crypto_util = WalletManager.create_fund_util('CNY')
+    wallet = WalletMAnager.get_wallet_balance(crypto_util, request.user.username, 'CNY')
+    
+            paymentmethods.append(
           UserPaymentMethodView(1, 1, 'heepay', '汇钱包', '15910978598')
         )
         useraccountInfo = UserAccountInfo(1, 1000.0, 1000.0, 0.0,
@@ -34,3 +26,4 @@ def balance(request):paymentmethods = []
         logger.exception(error_msg)
         return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
             '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
+
