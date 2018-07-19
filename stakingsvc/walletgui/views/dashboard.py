@@ -19,16 +19,16 @@ def show(request):
     try:
         crypto_util = WalletManager.create_fund_util('CNY')
         wallet = WalletManager.get_wallet_balance(crypto_util, request.user.username, 'CNY')
-        userpaymentmethod = PaymentMethodManager.get_payment_method(request.user.username)
-        if userpaymentmethod:
-            logger.info("get user paymentmethod")
+        userpayment = PaymentMethodManager.get_payment_method(request.user.username)
+        if userpayment:
+            logger.info("get user paymentmethod with account {0}".format(userpayment.account_at_provider))
         else:
             logger.info("No user paymentmethod found")
         useraccountInfo = UserAccountInfo(request.user.id,
             wallet.balance, wallet.locked_balance, wallet.available_balance,
-            wallet.wallet_addr, None, [ userpaymentmethod ])
+            wallet.wallet_addr, None, [ userpayment ])
         return render(request, 'walletgui/balance.html',
-            {'account': useraccountInfo, 'userpaymentmethod': userpaymentmethod })
+            {'account': useraccountInfo, 'userpaymentmethod': userpayment })
     except Exception as e:
         error_msg = '用户主页显示遇到错误: {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
