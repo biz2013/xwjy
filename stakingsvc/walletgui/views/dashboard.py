@@ -20,6 +20,10 @@ def show(request):
         crypto_util = WalletManager.create_fund_util('CNY')
         wallet = WalletManager.get_wallet_balance(crypto_util, request.user.username, 'CNY')
         userpaymentmethod = PaymentMethodManager.get_payment_method(request.user.username)
+        if userpaymentmethod:
+            logger.info("get user paymentmethod")
+        else:
+            logger.info("No user paymentmethod found")
         useraccountInfo = UserAccountInfo(request.user.id,
             wallet.balance, wallet.locked_balance, wallet.available_balance,
             wallet.wallet_addr, None, [ userpaymentmethod ])
