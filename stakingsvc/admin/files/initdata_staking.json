@@ -72,7 +72,7 @@
       "fields":{
         "name":"CNYWallet",
         "cryptocurrency": "CNY",
-        "config_json": "{ \"bin_path\": \"/home/ubuntu/workspace/peercoin/bin/peercoin\", \"passphrase\": \"\", \"datadir\": \"/home/ubuntu/workspace/peercoin/data\", \"list_trans_count\": 100000, \"account_name\": \"\" }", 
+        "config_json": "{ \"bin_path\": \"/home/osboxes/workspace/CnyCoin/binaries/0.6.2\", \"passphrase\": \"\", \"datadir\": \"/home/osboxes/.cnycoin\", \"list_trans_count\": 100000, \"account_name\": \"\" }", 
         "created_at": "2017-12-17T21:14:00+08:00",
         "lastupdated_at": "2017-12-17T21:14:00+08:00",
         "created_by": 1,
