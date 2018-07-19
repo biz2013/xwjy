@@ -28,7 +28,7 @@ def show(request):
             wallet.balance, wallet.locked_balance, wallet.available_balance,
             wallet.wallet_addr, None, [ userpaymentmethod ])
         return render(request, 'walletgui/balance.html',
-            {'account': useraccountInfo })
+            {'account': useraccountInfo, 'userpaymentmethod': userpaymentmethod })
     except Exception as e:
         error_msg = '用户主页显示遇到错误: {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
