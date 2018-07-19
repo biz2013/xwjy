@@ -8,7 +8,9 @@ from django.shortcuts import render
 from walletgui.controller.global_constants import *
 from walletgui.controller.crypto_utils import CryptoUtility
 from walletgui.controller.walletmanager import WalletManager
+from walletgui.controller.paymentmethodmanager import PyamentMethodManager
 from walletgui.views import errorpageview
+from walletgui.views.models.useraccountinfo import *
 
 logger = logging.getLogger("site.dashboard")
 
@@ -16,7 +18,7 @@ logger = logging.getLogger("site.dashboard")
 def show(request):
     try:
         crypto_util = WalletManager.create_fund_util('CNY')
-        wallet = WalletMAnager.get_wallet_balance(crypto_util, request.user.username, 'CNY')
+        wallet = WalletManager.get_wallet_balance(crypto_util, request.user.username, 'CNY')
         userpaymentmethod = PaymentMethodManager.get_payment_method(request.user.username)
         useraccountInfo = UserAccountInfo(request.user.id,
             wallet.balance, wallet.locked_balance, wallet.available_balance,
