@@ -5,6 +5,7 @@ import logging, sys
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
+from walletgui.controller.global_constants import *
 from walletgui.controller.crypto_utils import CryptoUtility
 from walletgui.controller.walletmanager import WalletManager
 from walletgui.views import errorpageview
