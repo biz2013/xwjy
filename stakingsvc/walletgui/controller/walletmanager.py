@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import json, logging
 from walletgui.models import *
-from walletgui.controllers.crypto_utils import CryptoUtility
+from walletgui.controller.crypto_utils import CryptoUtility
 
 logger = logging.getLogger("tradeex.walletmanager")
 
