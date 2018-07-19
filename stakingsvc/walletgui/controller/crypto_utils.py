@@ -74,7 +74,7 @@ class CryptoUtility(object):
         return result_str.decode('utf-8')
 
     def get_balance(self):
-        logger.info("get balance of the wallet: %s --datadir=%s getbalance" % (self.cnyd_pathm self.cnyd_datadir))
+        logger.info("get balance of the wallet: %s --datadir=%s getbalance" % (self.cnyd_path, self.cnyd_datadir))
         result_str = subprocess.check_output(
            [self.cnyd_path, '--datadir=%s' % self.cnyd_datadir, 'getbalance'])
         logger.info("get_balance() return {0}".format(result_str))
