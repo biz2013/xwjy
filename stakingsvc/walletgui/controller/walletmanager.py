@@ -9,7 +9,7 @@ logger = logging.getLogger("tradeex.walletmanager")
 class WalletManager(object):
 
     @staticmethod
-    def update_wallet_balance(crypto_util, username):
+    def update_wallet_balance(crypto_util, username, crypto):
         wallet = UserWallet.objects.select_for_update().get(
             user__username=username, crytocurrency__code=crypto)
 
@@ -19,7 +19,7 @@ class WalletManager(object):
 
     @staticmethod
     def get_wallet_balance(crypto_util, username, crypto):
-        WalletManager.update_wallet_balance(crypto_util, username)
+        WalletManager.update_wallet_balance(crypto_util, username, crypto)
         wallet = UserWallet.objects.get(user__username=username, crytocurrency__code=crypto)
         return wallet
 
