@@ -30,7 +30,7 @@ LOGGING = {
         'siteTimeRotateFile': {
             'level': 'DEBUG',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, "stakingsvc_test.log"),
+            'filename': os.path.join(BASE_DIR, "logs/stakingsvc.log"),
             'when': 'D',
             'interval': 1,
             'backupCount': 30,
