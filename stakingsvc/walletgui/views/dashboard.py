@@ -4,8 +4,8 @@
 import logging
 from django.contrib.auth.decorators import login_required
 
-import walletgui.controller.crypto_utils import CryptoUtility
-import walletgui.controller.walletmanager import WalletManager
+from walletgui.controller.crypto_utils import CryptoUtility
+from walletgui.controller.walletmanager import WalletManager
 
 logger = logging.getLogger("site.dashboard")
 
@@ -17,8 +17,8 @@ def show(request):
     useraccountInfo = UserAccountInfo(request.user.id,
         wallet.balance, wallet.locked_balance, wallet.available_balance,
         wallet.wallet_addr, None, [ userpaymentmethod ])
-        return render(request, 'walletgui/balance.html',
-                  {'account': useraccountInfo })
+    return render(request, 'walletgui/balance.html',
+        {'account': useraccountInfo })
     except Exception as e:
         error_msg = '用户主页显示遇到错误: {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
