@@ -18,12 +18,15 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
-from walletgui.views import dashboard, purchaseview, redeemview
+from walletgui.views import dashboard, paymentmethodview, purchaseview, redeemview
 from walletgui.views import transferview, transhistoryview, backupwalletview
 from walletgui.admin import usermanager
 
 urlpatterns = [
     re_path(r'^$', dashboard.show, name='balance'),
+    re_path(r'^paymentmethod/delete', paymentmethodview.delete, name="delete_payment_method"),
+    re_path(r'^paymentmethod/create', payemtnmethodview.create, name="create_payment_method"),
+    re_path(r'^paymentmethod/edit', payemtnmethodview.create, name="create_payment_method"),
     re_path(r'^setup_staking_user/$', usermanager.create, name='create_api_user'),
     re_path(r'^purchase/$', purchaseview.purchase, name='show_purchase'),
     re_path(r'^redeem/$', redeemview.show, name='show_redeem'),
