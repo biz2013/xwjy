@@ -11,7 +11,7 @@ class WalletManager(object):
     @staticmethod
     def update_wallet_balance(crypto_util, username, crypto):
         wallet = UserWallet.objects.select_for_update().get(
-            user__username=username, wallet__cryptocurrency__code=crypto)
+            user__username=username, wallet__cryptocurrency__currency_code=crypto)
 
         #TODO: later we may need to query transaction and create user_wallet_transaction 
         wallet.balance = crypto_util.get_balance()
@@ -20,7 +20,7 @@ class WalletManager(object):
     @staticmethod
     def get_wallet_balance(crypto_util, username, crypto):
         WalletManager.update_wallet_balance(crypto_util, username, crypto)
-        wallet = UserWallet.objects.get(user__username=username, wallet__cryptocurrency__code=crypto)
+        wallet = UserWallet.objects.get(user__username=username, wallet__cryptocurrency__currency_code=crypto)
         return wallet
 
 
