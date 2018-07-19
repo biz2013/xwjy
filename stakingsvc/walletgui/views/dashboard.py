@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import logging
+import logging, sys
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
