@@ -18,13 +18,13 @@ class APIUserManager(object):
             if not userpaymentmethod:
                 raise ValueError(ERR_NO_PAYMENTMETHOD)
 
-            userwallet = UserWallet.objets.get(wallet__cryptocurrency__currency_code=cryto,
+            userwallet = UserWallet.objects.get(wallet__cryptocurrency__currency_code=crypto,
                user__username=username)
             
             request_json = {}
             request_json['username'] = loginuser.username
             request_json['email'] = loginuser.email
-            request_json['payment_provider'] = userpaymentmethod.payment_provider.code 
+            request_json['payment_provider'] = userpaymentmethod.provider.code 
             request_json['payment_account'] = userpaymentmethod.account_at_provider
             request_json['external_cny_addr'] = userwallet.wallet_addr
             request_str = json.dumps(request_json, ensure_ascii=False)
