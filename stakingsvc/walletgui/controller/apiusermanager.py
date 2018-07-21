@@ -51,5 +51,6 @@ class APIUserManager(object):
             ).save()
 
             return APIUserAccount.objects.get(user__username=username)
-
+        except UserWallet.DoesNotExist:
+            raise ValueError('There is no userwallet for the user')
 
