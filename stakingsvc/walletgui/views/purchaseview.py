@@ -134,7 +134,7 @@ def purchase(request):
                 qrcode_img_url_path = create_qrcode_image(
                     resp_json['payment_url'], qrcode_filename, settings.MEDIA_ROOT)
                 
-                return render(request, 'purchase_qrcode.html', {'qrcode_file': qrcode_img_url_path})
+                return render(request, 'walletgui/purchase_qrcode.html', {'qrcode_file': qrcode_img_url_path})
     except Exception as e:
        error_msg = '用户主页显示遇到错误: {0}'.format(sys.exc_info()[0])
        logger.exception(error_msg)
