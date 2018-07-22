@@ -68,7 +68,7 @@ def show(request):
         if not userpayment:
             messages.error("请设置付款方式，再充值")
             return redirect('balance')
-        return render(request, 'purchase_investment.html')
+        return render(request, 'walletgui/purchase_investment.html')
     except Exception as e:
         error_msg = '用户主页显示遇到错误: {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
