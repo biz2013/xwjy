@@ -18,7 +18,7 @@ def register(request):
     try:
         user = User.objects.get(id=2)
         APIUserManager.create_api_user_account(user.username, 'CNY')
-        api_user = APIUserAccount.objects.get(user__username=username)
+        api_user = APIUserAccount.objects.get(user__username=user.username)
         response_json = {}
         response_json["result"] = 'ok'
         response_json["apiKey"] = api_user.apiKey
