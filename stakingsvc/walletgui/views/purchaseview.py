@@ -126,6 +126,7 @@ def purchase(request):
                 if 'result_msg' in resp_json:
                     errmsg = '{0}-{1}'.format(errmsg, resp_json['result_msg'])
                 messages.error(request, errmsg)
+                return redirect('balance')
             else:
                 qrcode_filename = '{0}_{1}.png'.format(
                     resp_json['out_trade_no'], resp_json['trx_bill_no']
