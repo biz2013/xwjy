@@ -82,16 +82,26 @@ def handle_paid_order(order, confirmation_timeout):
         error_msg = 'handle_paid_order hit eception {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
 
-def handle_open_order(order, sell_order_timeout):
+def handle_open_order(order, sell_order_timeout, appId, appKey):
     try:
         logger.info("handle_open_order {0}".format(order.order_id))
         timediff = timezone.now() - order.lastupdated_at
         if int(timediff.total_seconds()) >= sell_order_timeout:
+            trans = ordermanager.get_order_transactions(order.order_id)
+            if not trans.payment_bill_no:
+                logger.error('purchase order {0}: transaction id{1} : no payment bill no and its status is OPEN'.format(
+                    order.order_id, trans.id))
+            else:
+                heepay.cancel_payment(order.order_id, trans.payment_bill_no, appId,
+                                            appkey)            
             ordermanager.cancel_purchase_order(order,
               'CANCELLED', 'UNKNOWN', 'admin')
+        else:
+            logger.info("handle_open_order {0}, it has not timedout, nothing to do".format(order.order_id))
     except Exception as e:
         error_msg = 'handle_open_order hit eception {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
+
 
 def order_batch_process(request):
     try:
@@ -115,7 +125,7 @@ def order_batch_process(request):
             elif order.status == 'PAID':
                 handle_paid_order(order, confirmation_timeout)
             elif order.status == 'OPEN':
-                handle_open_order(order, sell_order_timeout)
+                handle_open_order(order, sell_order_timeout, appId, appKey)
             if api_trans:
                 api_trans.refresh_from_db()
                 if api_trans.trade_status == 'PaidSuccess':
