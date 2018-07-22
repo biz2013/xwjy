@@ -105,7 +105,7 @@ class TradeExchangeManager(object):
 
     def purchase_by_cash_amount(self, api_user, request_obj, crypto, is_api_call=True):
         api_user_id = api_user.user.id
-        amount_in_cent = int(request_obj.total_fee) if type(request_obj.total_fee) is str else request_obj.total_fee
+        amount_in_cent = int(request_obj.total_fee) 
         amount = float(amount_in_cent / 100.0)
         currency = 'CNY'
         buyer_payment_provider = request_obj.payment_provider
