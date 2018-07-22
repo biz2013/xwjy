@@ -22,6 +22,25 @@ from trading.views.models.userpaymentmethodview import *
 
 logger = logging.getLogger("site.ordermanager")
 
+
+def sell_order_to_str(sell_order):
+    description = "[{0}]:type: {1} subtype: {2} source: {3} status: {4} total: {5} ({6}*@{7}): locked: {8} available: {9}".format(
+        sell_order.order_id,
+        sell_order.order_type, sell_order.sub_type, sell_order.order_source,
+        sell_order.status,
+        sell_order.total_amount, sell_order.units, sell_order.unit_price,
+        sell_order.units_locked, sell_order.units_available_to_trade
+    )   
+
+    diff = sell_order.units_locked + sell_order.units_available_to_trade - sell_order.units
+    if diff > 0 or diff > 0.00000001:
+        description = "{0} INCONSISTANT!!! {1}+{2}-{3}={4}".format(
+            description, sell_order.units_locked, sell_order.units_available_to_trade,
+            sell_order.units, diff
+        )
+
+    return description
+
 def get_user_payment_account(user_id, payment_provider_code):
     return UserPaymentMethod.objects.filter(user__id=user_id).filter(provider__code=payment_provider_code)
 
@@ -142,15 +161,23 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
 
 def cancel_purchase_order(order, final_status, payment_status,
                          operator):
+    if not order.reference_order:
+        logger.error("cancel_purchase_order({0},order status:{1}, payment status:{2}): purchase order does not have related sell order".format(
+            order.order_id, final_status, payment_status
+        ))
+        return
     operatorObj = User.objects.get(username = operator)
     with transaction.atomic():
-        sell_order = None
-        if order.reference_order:
-            sell_order = Order.objects.select_for_update().get(pk=order.reference_order.order_id)
-            sell_order.units_locked = sell_order.units_locked - order.units
-            sell_order.units_available_to_trade = sell_order.units_available_to_trade + order.units
-            sell_order.status = 'OPEN'
-            sell_order.lastupdated_by = operatorObj
+        sell_order = Order.objects.select_for_update().get(pk=order.reference_order.order_id)
+        logger.info("cancel_purchase_order({0},order status:{1}, payment status:{2}): BEFORE cancelling, related sell order is {3}".format(
+            order.order_id, final_status, payment_status, 
+            sell_order_to_str(sell_order)
+        ))
+        
+        sell_order.units_locked = sell_order.units_locked - order.units
+        sell_order.units_available_to_trade = sell_order.units_available_to_trade + order.units
+        sell_order.status = 'OPEN'
+        sell_order.lastupdated_by = operatorObj
 
         updated = UserWalletTransaction.objects.filter(
                reference_order__order_id= order.order_id,
@@ -161,7 +188,9 @@ def cancel_purchase_order(order, final_status, payment_status,
                lastupdated_at = dt.datetime.utcnow()
         )
         if not updated:
-            logger.error("cancel_purchase_order(): order {0} does not have PENDING userwallettrans to be updated".format(order.order_id))
+            logger.error("cancel_purchase_order({0},order status:{1}, payment status:{2}): purchase order does not have PENDING userwallettrans to be updated".format(
+                order.order_id, final_status, payment_status
+            ))
 
         updated = Order.objects.filter(
            Q(status = 'PAYING')|Q(status='OPEN'), Q(order_id = order.order_id)).update(
@@ -170,7 +199,9 @@ def cancel_purchase_order(order, final_status, payment_status,
            lastupdated_at = dt.datetime.utcnow()
         )
         if not updated:
-            logger.error("cancel_purchase_order(): did not find order {0} to update, maybe someone changed its status from PAYING already".format(order.order_id))
+            logger.error("cancel_purchase_order({0},order status:{1}, payment status:{2}): purchase order status is not OPEN or PAYING, maybe someone had changed its status".format(
+                order.order_id, final_status, payment_status
+            ))
         
         api_trans = APIUserTransactionManager.get_trans_by_reference_order(order.order_id)
         if not api_trans and sell_order:
@@ -187,9 +218,12 @@ def cancel_purchase_order(order, final_status, payment_status,
                     api_trans.trade_status = TRADE_STATUS_USERABANDON
             api_trans.save()
 
-        # release lock
-        if sell_order:
-            sell_order.save()
+        sell_order.save()
+        sell_order.refresh_from_db()
+        logger.info("cancel_purchase_order({0},order status:{1}, payment status:{2}): AFTER cancelling, related sell order is {3}".format(
+            order.order_id, final_status, payment_status, 
+            sell_order_to_str(sell_order)
+        ))
 
 def get_all_open_seller_order_exclude_user(user_id):
     sell_orders = Order.objects.filter(order_type='SELL').exclude(user__id=user_id).exclude(status='CANCELLED').exclude(status='FILLED').order_by('unit_price','-lastupdated_at')
@@ -288,6 +322,7 @@ def create_purchase_order(buyorder, reference_order_id,
         buyorder.unit_price)
 
     logger.info('create_purchase_order(): {0}'.format(operation_comment))
+    logger.info('create_purchase_order(): selected sellorder {0}')
 
     # TODO: more validation
     if is_api_call and not api_call_order_id:
@@ -302,6 +337,8 @@ def create_purchase_order(buyorder, reference_order_id,
               user__id=buyorder.owner_user_id,
               wallet__cryptocurrency = crypto_currency)
         reference_order = Order.objects.select_for_update().get(pk=reference_order_id)
+        logger.info('create_purchase_order(): BEFORE creation, purchase order {0}\'s target sellorder is {1}'.format(
+            buyorder.order_id, sell_order_to_str(reference_order)))
         if reference_order.status != 'PARTIALFILLED' and reference_order.status != 'OPEN':
             logger.error('create_purchase_order(): reference_order {0} with status {1}: raise SELLORDER_NOT_OPEN'.format(reference_order_id, reference_order.status))
             raise ValueError('SELLORDER_NOT_OPEN')
@@ -327,7 +364,7 @@ def create_purchase_order(buyorder, reference_order_id,
                 ))
                 raise ValueError('ALL_OR_NOTHING_ORDER_PURCHASE_AMOUNT_NOT_ENOUGH')
 
-        logger.info('before creating purchase order {0}, userwallet {1} has balance:{2} available_balance:{3} locked_balance: {4}'.format(
+        logger.info('create_purchase_order(): before creating purchase order {0}, userwallet {1} has balance:{2} available_balance:{3} locked_balance: {4}'.format(
            frmt_date, userwallet.id, userwallet.balance, userwallet.available_balance, userwallet.locked_balance
         ))
 
@@ -355,7 +392,14 @@ def create_purchase_order(buyorder, reference_order_id,
             total_amount = buyorder.total_amount,
             status = 'OPEN',
             api_call_reference_order_id = api_call_order_id if is_api_call else None)
-        logger.info("purchase order {0} created".format(order.order_id))
+        order.save()
+
+        order.refresh_from_db()
+        logger.info("create_purchase_order(): purchase order {0} created with {1} units with total {2}{3}({4}x@{5})".format(
+            order.order_id, order.units, order.total_amount,
+            order.unit_price_currency, order.units,
+            order.unit_price))
+
         userwallet_trans = UserWalletTransaction.objects.create(
           user_wallet = userwallet,
           reference_order = order,
@@ -371,7 +415,8 @@ def create_purchase_order(buyorder, reference_order_id,
           created_by = operatorObj,
           lastupdated_by = operatorObj
         )
-        logger.info('userwallet transaction {0} for purchase order {1} userwallet{2} created'.format(
+        userwallet_trans.save()
+        logger.info('create_purchase_order(): userwallet transaction {0} for purchase order {1} userwallet{2} created'.format(
             userwallet_trans.id, order.order_id, userwallet.id
         ))
 
@@ -398,19 +443,18 @@ def create_purchase_order(buyorder, reference_order_id,
                 created_by = operatorObj,
                 lastupdated_by= operatorObj
             )
-
             api_trans.save()
+            logger.info("create_purchase_order(): API call trans {0} created, out_trade_no {1}, reference order: {2}".format(
+                api_trans_id, api_purchase_request.out_trade_no, order.order_id
+            ))
 
         reference_order.status = 'LOCKED'
         reference_order.units_locked = reference_order.units_locked + buyorder.total_units
         reference_order.units_available_to_trade = reference_order.units_available_to_trade - buyorder.total_units
         reference_order.save()
-        logger.info('Created purchase order {0}: units:{1} sell order {2} available_units:{3} locked_units: {4} original units: {5}'.format(
-           order.order_id, order.units, reference_order.order_id,
-           reference_order.units_available_to_trade,
-           reference_order.units_locked,
-           reference_order.units
-        ))
+        reference_order.refresh_from_db()
+        logger.info('create_purchase_order(): AFTER create purchase order {0}, related sell order is {1}'.format(
+            order.order_id, sell_order_to_str(reference_order)))
 
     return order.order_id if order is not None else None
 
@@ -451,12 +495,20 @@ def update_purchase_transaction(purchase_trans, trade_status, trade_msg):
         TRADE_STATUS_DEVCLOSE, TRADE_STATUS_FAILURE]
 
     if trade_status in normal_status:
-        purchase_trans.payment_methodstatus = normal_status[trade_status]
+        purchase_trans.payment_status = normal_status[trade_status]
     elif trade_status in bad_status:
         purchase_trans.payment_status = bad_status[trade_status]
         purchase_trans.comment = trade_msg
         buyorder = purchase_trans.reference_order
         buyorder.status = 'FAILED'
+        logger.info("update_purchase_transaction(trade_status {0}): purchase order {1} is set to be failed with payment status {2}, revert locked unit and available units in sell order".format(
+            trade_status, buyorder.order_id, purchase_trans.payment_status
+        ))
+
+        sell_order = Order.objects.get(pk = buyorder.reference_order.order_id)
+        logger.info("update_purchase_transaction(trade_status {0}): BEFORE revert sell order is: {1}".format(
+            trade_status, sell_order_to_str(buyorder.reference_order)))
+        
         #revert locked unit and available units in sell order
         Order.objects.filter(pk = buyorder.reference_order.order_id).update(
              units_locked = F('units_locked') - buyorder.units,
@@ -464,6 +516,10 @@ def update_purchase_transaction(purchase_trans, trade_status, trade_msg):
              lastupdated_at = dt.datetime.utcnow())
         buyorder.save()
         purchase_trans.status = 'PROCESSED'
+        sell_order.refresh_from_db()
+        logger.info("update_purchase_transaction(trade status {0}): AFTER revert, seller order is : {1}".format(
+            trade_status, sell_order_to_str(buyorder.reference_order)))            
+
     purchase_trans.save()
 
 def get_associated_api_trans_of_buyorder(buy_order_id):
@@ -584,6 +640,10 @@ def confirm_purchase_order(order_id, operator):
         sell_order = Order.objects.select_for_update().get(
             pk = buyorder.reference_order.order_id)
 
+        logger.info("confirm_purchase_order({0}): BEFORE updating, sell order is : {1}".format(
+            order_id, sell_order_to_str(sell_order)
+        ))
+
         seller_user_wallet = UserWallet.objects.select_for_update().get(
              user__id= sell_order.user.id,
              wallet__cryptocurrency = purchase_trans.user_wallet.wallet.cryptocurrency)
@@ -664,6 +724,11 @@ def confirm_purchase_order(order_id, operator):
                 api_trans.payment_status = PAYMENT_STATUS_SUCCESS
                 api_trans.trade_status = TRADE_STATUS_PAYSUCCESS
                 api_trans.save()
+
+        sell_order.refresh_from_db()
+        logger.info("confirm_purchase_order({0}): AFTER update sell order: {1}".format(
+            order_id, sell_order_to_str(sell_order)
+        ))
 
         # release lock at the last moment
         purchase_trans.save()
