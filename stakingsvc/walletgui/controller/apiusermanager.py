@@ -41,7 +41,7 @@ class APIUserManager(object):
                     errmsg = '{0}-{1}'.format(errmsg, resp_json['result_msg'])
                 raise ValueError(errmsg)
             
-            APIUserAccount.create(
+            APIUserAccount.objects.create(
                 user = loginuser,
                 apiKey = result_json['apiKey'],
                 secretKey = result_json['secretKey'],
