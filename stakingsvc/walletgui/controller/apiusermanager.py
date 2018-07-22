@@ -27,11 +27,10 @@ class APIUserManager(object):
             request_json['payment_provider'] = userpaymentmethod.provider.code 
             request_json['payment_account'] = userpaymentmethod.account_at_provider
             request_json['external_cny_addr'] = userwallet.wallet_addr
-            request_str = json.dumps(request_json, ensure_ascii=False)
 
             url = TRADE_API_USER_URL_TEMPLATE.format(settings.TRADE_API_HOST)
             api_client = APIClient(url)
-            resp_json = api_client.send_json_request(request_str)
+            resp_json = api_client.send_json_request(request_json)
             if resp_json["result"].upper() != 'OK':
                 logger.error('create_api_user_account({0},{1}): get failure api response: {2}'.format(
                     username, crypto, json.dumps(resp_json, ensure_ascii=False),
