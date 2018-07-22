@@ -174,6 +174,10 @@ def cancel_purchase_order(order, final_status, payment_status,
             sell_order_to_str(sell_order), order.units
         ))
         
+        if sell_order.units_locked - order.units < 0:
+            raise ValueError('cancel_purchase_order({0}): sell order locked units {1} is less than purchase order units {2}'.format(
+                order.order_id, sell_order.units_locked, order.units
+            ))
         sell_order.units_locked = sell_order.units_locked - order.units
         sell_order.units_available_to_trade = sell_order.units_available_to_trade + order.units
         sell_order.status = 'OPEN'
@@ -448,6 +452,9 @@ def create_purchase_order(buyorder, reference_order_id,
                 api_trans_id, api_purchase_request.out_trade_no, order.order_id
             ))
 
+        logger.info("create_purchase_order(): before updating sell order, it is {0}".format(
+            sell_order_to_str(reference_order)
+        ))
         reference_order.status = 'LOCKED'
         reference_order.units_locked = reference_order.units_locked + buyorder.total_units
         reference_order.units_available_to_trade = reference_order.units_available_to_trade - buyorder.total_units
