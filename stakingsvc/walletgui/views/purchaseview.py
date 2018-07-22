@@ -119,7 +119,7 @@ def purchase(request):
 
             url = TRADE_API_PURCHASE_URL_TEMPLATE.format(settings.TRADE_API_HOST)
             api_client = APIClient(url)
-            resp_json = api_client.send_json_request(request_obj.getPayload())
+            resp_json = api_client.send_json_request(request_obj.getJsonPayload())
             if resp_json["return_code"] != 'SUCCESS':
                 logger.error('purchase(): get failure api response: {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
                 errmsg = '充值请求遇到问题：{0}'.format(esp_json["return_code"])

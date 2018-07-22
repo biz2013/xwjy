@@ -128,9 +128,9 @@ class TradeAPIRequest(object):
         logger.info('signed is {0} original sign is {1}'.format(signed, self.sign))
         return signed == self.sign
 
-    def getPayload(self):
+    def getJsonPayload(self):
         if not self.sign:
             raise ValueError('getPayload(): There is no signature of the request')
         jsonobj = self.__create_json_to_sign()
         jsonobj['sign'] = self.sign
-        return json.dumps(jsonobj, ensure_ascii=False)
+        return jsonobj
