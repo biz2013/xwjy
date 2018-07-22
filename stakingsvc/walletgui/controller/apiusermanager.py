@@ -47,7 +47,7 @@ class APIUserManager(object):
                 secretKey = result_json['secretKey'],
                 accountNo = result_json['accountNo'],
                 lastupdated_by = loginuser,
-                created_by = loginuser
+                created_by = loginuser,
             ).save()
 
             return APIUserAccount.objects.get(user__username=username)
