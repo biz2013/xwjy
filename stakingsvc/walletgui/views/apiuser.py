@@ -4,7 +4,7 @@ import sys
 
 from django.views.decorators.csrf import csrf_exempt
 from django.auth import User
-from walletgui.controller apiusermanager import APIUserManager
+from walletgui.controller.apiusermanager import APIUserManager
 
 import logging,json
 
