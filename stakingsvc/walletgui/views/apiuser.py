@@ -3,7 +3,7 @@
 import sys
 
 from django.views.decorators.csrf import csrf_exempt
-
+from django.auth import User
 from walletgui.controller apiusermanager import APIUserManager
 
 import logging,json
@@ -13,8 +13,8 @@ logger = logging.getLogger("tradeex.apiuser")
 @csrf_exempt
 def register(request):
     try:
-        
-        APIUserManager.create_api_user_account(request.username, 'CNY')
+        user = User.objects.get(id=2)
+        APIUserManager.create_api_user_account(user.username, 'CNY')
         api_user = APIUserAccount.objects.get(user__username=username)
         response_json = {}
         response_json["result"] = 'ok'
