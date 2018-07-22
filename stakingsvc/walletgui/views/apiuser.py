@@ -2,11 +2,14 @@
 # -*- coding: utf-8 -*-
 import sys
 
+from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from walletgui.controller.apiusermanager import APIUserManager
 
 import logging,json
+
+from walletgui.models import *
 
 logger = logging.getLogger("tradeex.apiuser")
 
