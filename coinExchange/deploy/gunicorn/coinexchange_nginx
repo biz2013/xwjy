@@ -5,14 +5,13 @@ server {
 
     location = /favicon.ico { access_log off; log_not_found off; }
     location /static/ {
-        #root /home/sammy/myproject;
-        root /home/osboxes/workspace/xwjy/coinExchange;
+        root /var/www/coinexchange;
     }
 
     location /media/ {
-        root /home/osboxes/workspace/xwjy/coinExchange;
+        root /var/www/coinexchange;
     }
-
+    
     location / {
         include proxy_params;
         #proxy_pass http://unix:/home/sammy/myproject/myproject.sock;
