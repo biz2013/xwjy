@@ -1,6 +1,6 @@
 from .base import *
 
-CNYADDRESS='PKpAsXD4sgEfMzXhqhpf6StngZgRrgqGgk'
+CNYADDRESS=''
 
 APIHOST='54.203.192.52'
 CNYBIN='/home/osboxes/workspace/CnyCoin/binaries/0.6.2/cnycoin-cli'
@@ -30,7 +30,7 @@ LOGGING = {
         'siteTimeRotateFile': {
             'level': 'DEBUG',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, "logs/stakingsvc.log"),
+            'filename': os.path.join(BASE_DIR, "../stakingsvc_test.log"),
             'when': 'D',
             'interval': 1,
             'backupCount': 30,

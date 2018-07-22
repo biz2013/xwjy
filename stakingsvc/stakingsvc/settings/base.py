@@ -13,14 +13,14 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-#currentDir = os.path.dirname(os.path.abspath(__file__))
-#parentDir = os.path.join(currentDir, os.pardir)
-#print('cur dir: ' + currentDir)
-#print('parent dir: ' + parentDir)
-#BASE_DIR = os.path.abspath(os.path.join( parentDir, os.pardir))
+currentDir = os.path.dirname(os.path.abspath(__file__))
+parentDir = os.path.join(currentDir, os.pardir)
+print('cur dir: ' + currentDir)
+print('parent dir: ' + parentDir)
+BASE_DIR = os.path.abspath(os.path.join( parentDir, os.pardir))
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-print('BASE_DIR=' + BASE_DIR)
+DB_DIR=os.path.join(BASE_DIR, 'db')
+print('DB_DIR=' + DB_DIR)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'walletgui.apps.WalletguiConfig',
     'tradeapi.apps.TradeapiConfig',
-    'tradeapi.tests',
+    'walletgui.tests',
 ]
 
 MIDDLEWARE = [
@@ -84,22 +84,8 @@ WSGI_APPLICATION = 'stakingsvc.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mydb',
-        'USER': 'mydbuser',
-        'PASSWORD': 'aaaaaa',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
-        'TEST':{
-           'CHARSET': 'UTF8',
-           },
-      'OPTIONS': {
-        'init_command': 'SET default_storage_engine=INNODB',
-      }
-    },
-    'stakingsvc': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(DB_DIR, 'db.sqlite3'),
     }
 }
 
@@ -149,7 +135,6 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
-MY_APIKEY='TEST_API_KEY'
 TRADE_API_CALL_TIMEOUT_IN_MINUTES = 10
 TRADE_API_HOST = '54.203.195.52'
 TRADE_API_WALLET_ADDR = 'PPBL7kzFj1naD1wCPnWcNzzkVepKnBow7A'
