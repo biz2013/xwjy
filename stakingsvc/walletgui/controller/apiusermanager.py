@@ -43,9 +43,9 @@ class APIUserManager(object):
             
             APIUserAccount.objects.create(
                 user = loginuser,
-                apiKey = result_json['apiKey'],
-                secretKey = result_json['secretKey'],
-                accountNo = result_json['accountNo'],
+                apiKey = resp_json['apiKey'],
+                secretKey = resp_json['secretKey'],
+                accountNo = resp_json['accountNo'],
                 lastupdated_by = loginuser,
                 created_by = loginuser,
             ).save()
