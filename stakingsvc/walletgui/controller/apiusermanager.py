@@ -3,6 +3,7 @@
 import json, logging
 
 from django.conf import settings
+from tradeapi.apiclient import APIClient
 from walletgui.controller.paymentmethodmanager import PaymentMethodManager
 from walletgui.models import *
 
