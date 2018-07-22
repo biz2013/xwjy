@@ -102,7 +102,7 @@ def purchase(request):
                 raise ValueError(ERR_MORE_THAN_ONE_PAYMENTMETHOD_FOUND)
 
             out_trade_no = str(uuid.uuid4())
-            request = TradeAPIRequest(
+            request_obj = TradeAPIRequest(
                     API_METHOD_PURCHASE,
                     api_user.apiKey,
                     api_user.secretKey,
