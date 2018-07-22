@@ -22,6 +22,18 @@ from trading.views.models.userpaymentmethodview import *
 
 logger = logging.getLogger("site.ordermanager")
 
+
+def sell_order_to_str(sell_order):
+    description = "[{0}]:type: {1} subtype: {2} source: {3}status: {4}, total: {5} ({6}*@{7}): locked: {8}, available: {9}".format(
+        sell_order.order_id,
+        sell_order.order_type, sell_order.sub_type, sell_order.order_source,
+        sell_order.status,
+        sell_order.total_amount, sell_order.units, sell_order.unit_price,
+        sell_order.units_locked, sell_order.units_available_to_trade
+    )
+
+    return description
+
 def get_user_payment_account(user_id, payment_provider_code):
     return UserPaymentMethod.objects.filter(user__id=user_id).filter(provider__code=payment_provider_code)
 
@@ -288,6 +300,7 @@ def create_purchase_order(buyorder, reference_order_id,
         buyorder.unit_price)
 
     logger.info('create_purchase_order(): {0}'.format(operation_comment))
+    logger.info('create_purchase_order(): selected sellorder {0}')
 
     # TODO: more validation
     if is_api_call and not api_call_order_id:
@@ -330,6 +343,7 @@ def create_purchase_order(buyorder, reference_order_id,
         logger.info('before creating purchase order {0}, userwallet {1} has balance:{2} available_balance:{3} locked_balance: {4}'.format(
            frmt_date, userwallet.id, userwallet.balance, userwallet.available_balance, userwallet.locked_balance
         ))
+        logger.info('create_purchase_order(): target sellorder {0}'.format(sell_order_to_str(reference_order)))
 
         selected_payment_provider = None
         try:
@@ -405,12 +419,12 @@ def create_purchase_order(buyorder, reference_order_id,
         reference_order.units_locked = reference_order.units_locked + buyorder.total_units
         reference_order.units_available_to_trade = reference_order.units_available_to_trade - buyorder.total_units
         reference_order.save()
-        logger.info('Created purchase order {0}: units:{1} sell order {2} available_units:{3} locked_units: {4} original units: {5}'.format(
-           order.order_id, order.units, reference_order.order_id,
-           reference_order.units_available_to_trade,
-           reference_order.units_locked,
-           reference_order.units
-        ))
+        reference_order.refresh_from_db()
+        logger.info('Finally, create purchase order {1} with total {2}{3}({4}x@{5})'.format(
+            order.order_id, order.units, order.total_amount,
+            order.unit_price_currency, order.units,
+            order.unit_price))
+        logger.info('Purchase order was bought off seller order {0}'.format(sell_order_to_str(reference_order)))
 
     return order.order_id if order is not None else None
 
