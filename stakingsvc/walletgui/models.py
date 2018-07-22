@@ -296,8 +296,8 @@ class APIUserTransaction(models.Model):
         ('USERCANCELLED', 'UserCancelled'),
         ('EXPIRED', 'Expired')
     )
-    transactionId = models.CharField(max_length=128, primary_key=True)
-    api_out_trade_no = models.CharField(max_length=128, default='')
+    api_out_trade_no = models.CharField(max_length=128, primary_key=True)
+    api_transactionId = models.CharField(max_length=128, default='')
     api_user = models.ForeignKey(APIUserAccount, on_delete=models.CASCADE)
     payment_provider = models.ForeignKey(PaymentProvider, on_delete=models.CASCADE)
     reference_order = models.ForeignKey(Order, on_delete=models.CASCADE, null=True)

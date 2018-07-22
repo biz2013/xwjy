@@ -1,21 +1,21 @@
 server {
-    listen 4455;
+    listen 80;
     #server_name server_domain_or_IP;
-    server_name 127.0.0.1;
+    server_name 54.203.195.52;
 
     location = /favicon.ico { access_log off; log_not_found off; }
     location /static/ {
         #root /home/sammy/myproject;
-        root /home/osboxes/workspace/xwjy/coinExchange;
+        root /home/ubuntu/workspace/xwjy/coinExchange;
     }
 
     location /media/ {
-        root /home/osboxes/workspace/xwjy/coinExchange;
+        root /home/ubuntu/workspace/xwjy/coinExchange;
     }
 
     location / {
         include proxy_params;
         #proxy_pass http://unix:/home/sammy/myproject/myproject.sock;
-        proxy_pass http://unix:/home/osboxes/workspace/xwjy/coinExchange/coinExchange_nginx.sock;
+        proxy_pass http://unix:/home/ubuntu/workspace/xwjy/coinExchange/coinExchange_nginx.sock;
     }
 }

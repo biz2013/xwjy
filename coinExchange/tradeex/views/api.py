@@ -73,6 +73,8 @@ def create_selltoken_response(request_obj, api_trans, sell_order_id):
     return response.to_json()
     
 def parseUserInput(expected_method, request_json):
+    logger.debug('parseUserInput {0}'.format(request_json))
+    logger.debug('parseUserInput to string {0}'.format(json.dumps(request_json, ensure_ascii=False)))
     request_obj = TradeAPIRequest.parseFromJson(request_json)
     api_user = APIUserManager.get_api_user_by_apikey(request_obj.apikey)
     if request_obj.method != expected_method:
@@ -146,7 +148,9 @@ def prepurchase(request):
     api_user = None
     try:
         logger.info('receive request from: {0}'.format(request.get_host()))
+        logger.info('receive request in binary {0}'.format(request.body))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
+
         request_json= json.loads(request.body.decode('utf-8'))
         request_obj, api_user = parseUserInput(API_METHOD_PURCHASE, request_json)
 

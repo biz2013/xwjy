@@ -126,6 +126,7 @@ def send_payment_request_to_heepay(sitesettings, buyorder_id, amount):
          buyer_account,
          notify_url,
          return_url)
+    logger.info("send this to heepay {0}".format(json_payload.encode('utf-8')))
     status, reason, message = heepay.send_buy_apply_request(json_payload)
     if status == 200:
         logger.info("heepay replied: {0}".format(message))
