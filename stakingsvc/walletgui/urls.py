@@ -19,7 +19,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from walletgui.views import dashboard, paymentmethodview, purchaseview, redeemview
-from walletgui.views import transferview, transhistoryview, backupwalletview
+from walletgui.views import transferview, transhistoryview, backupwalletview, apiuser
 from walletgui.admin import usermanager
 
 urlpatterns = [
@@ -34,6 +34,7 @@ urlpatterns = [
     re_path(r'^transfer/$', transferview.show, name='show_transfer'),
     re_path(r'^transhistory/$', transhistoryview.show, name='show_transhistory'),
     re_path(r'^backup/$', backupwalletview.show, name='backupwallet'),
+    re_path(r'^apiregister/$', apiuser.register, name='apiregister'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
