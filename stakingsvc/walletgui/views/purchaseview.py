@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import os, sys, math, json
+import os, sys, math, json, uuid
 import qrcode
 import datetime as dt
 import pytz
@@ -29,6 +29,9 @@ from walletgui.models import *
 import logging,json
 
 logger = logging.getLogger("site.balance")
+
+TRADE_API_PURCHASE_URL_TEMPLATE="http://{0}/api/v1/applypurchase/"
+
 
 def create_api_request(method, api_user, amount, payment_provider_code, payment_account_str):
     frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%_S")
@@ -80,22 +83,18 @@ def purchase(request):
     try:
         if request.method == 'POST':
             amount = float(request.POST["amount"]) if request.POST["amount"] else 0
-            payment_provider = request.POST['payment_provider']
             if math.fabs(amount) < 0.00000001:
                 messages.error(request, '充值数量不可为零')
-                return render(request, 'walletgui/purchase/', { 'amount': amount, 'payment_provider': payment_provider})
-            if not payment_provider:
-                msessages.error(request, '请选择支付提供商')
-                return render(request, 'walletgui/purchase/', { 'amount': amount, 'payment_provider': payment_provider})
+                return render(request, 'walletgui/purchase_investment.html', { 'amount': amount, 'payment_provider': payment_provider})
             try:
-                api_user =  APIUserAccount.objects.get(apikey=settings.MY_APIKEY)
+                api_user =  APIUserAccount.objects.get(user__username=request.user.username)
             except APIUserAccount.DoesNotExist:
                 raise ValueError(ERR_USER_NOT_FOUND_BASED_ON_APPID)
             except APIUserAccount.MultipleObjectsReturned:
                 raise ValueError(ERR_MORE_THAN_ONE_USER_BASED_ON_APPID)
 
             try:
-                paymentmethod = UserPaymentMethod.objects.get(
+                userpaymentmethod = UserPaymentMethod.objects.get(
                     user__id = api_user.user.id, 
                     provider__code = payment_provider)
             except UserPaymentMethod.DoesNotExist:
@@ -103,11 +102,21 @@ def purchase(request):
             except UserPaymentMethod.MultipleObjectsReturned:
                 raise ValueError(ERR_MORE_THAN_ONE_PAYMENTMETHOD_FOUND)
 
-            request_obj = create_api_request(
-                API_METHOD_PURCHASE,
-                api_user, 
-                amount,paymentmethod.provider.code,
-                paymentmethod.account_at_provider)
+            out_trade_no = str(uuid.uuid4())
+            request = TradeAPIRequest(
+                    API_METHOD_PURCHASE,
+                    api_user.appKey,
+                    api_user.secretKey,
+                    out_trade_no, # order id
+                    None, # trx _id
+                    (int)(amount * 100), # total fee
+                    settings.TRADE_API_CALL_TIMEOUT_IN_MINUTES, # expire_minute
+                    userpaymentmethod.payment_provider.code,
+                    userpaymentmethod.account_at_provider,
+                    '127.0.0.1', #client ip
+                    subject='Staking充值请求 {0}'.format(amount),
+                    notify_url=None,
+                    return_url=None)
 
             url = TRADE_API_PURCHASE_URL_TEMPLATE.format(settings.TRADE_API_HOST)
             api_client = APIClient(url)
