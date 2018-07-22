@@ -39,9 +39,9 @@ def create_user(username, password, email, appId, secret,
         return False
     
     account_count = user1.id
-    account_no = '{0}-{1}'.format(
-        str((100000000 + account_count)/1000),
-        str((100000000 + account_count) % 1000)
+    account_no = '%d-%04d' % (
+        int((100000000 + account_count)/10000),
+        (100000000 + account_count) % 10000
     )
     try:
         api_user = APIUserAccount.objects.get(user__username = username)
