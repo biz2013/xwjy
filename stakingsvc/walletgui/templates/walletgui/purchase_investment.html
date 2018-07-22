@@ -11,7 +11,8 @@
 		<div class="well">
        <div class="row">
          <form role="dialog" action="/walletgui/purchase/" aria-labelledby="lockfund-form-label" aria-hidden="true" method='post'>
-         <div class="modal-body">
+          {% csrf_token %}
+          <div class="modal-body">
            <h2>充值</h2>
            <div id="div_id_quantity" class="form-group">
              <label for="id_amount" class="control-label">购买总量(CNY)</label><span class="asteriskField">*</span> </label>
