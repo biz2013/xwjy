@@ -195,7 +195,8 @@ def create(request):
             response_json["result"] = 'ok'
             response_json["apiKey"] = api_user.apiKey
             response_json["secretKey"] = api_user.secretKey
-            return JsonResponse(response_json)
+            response_json["accountNo"] = api_user.accountNo    
+        return JsonResponse(response_json)
     except ValueError as ve:
         logger.error('Create test user has issue')
         return HttpResponseBadRequest(content='Failed: {0}'.format(ve.args[0]))
