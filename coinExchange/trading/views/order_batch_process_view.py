@@ -65,6 +65,9 @@ def handle_paying_order(order, order_timeout, appId, appkey):
                       'CANCELLED', payment_status, 'admin')
         else:
             logger.info("The order {0} is not expired, skip for now".format(order.order_id)) 
+    except ValueError as ve:
+        error_msg = 'handle_paying_order hit value error {0}'.format(ve.args[0])
+        logger.exception(error_msg)
     except Exception as e:
         error_msg = 'handle_paying_order hit eception {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
@@ -78,6 +81,9 @@ def handle_paid_order(order, confirmation_timeout):
         ))
         if int(timediff.total_seconds()) >= confirmation_timeout:
             ordermanager.confirm_purchase_order(order.order_id, 'admin')
+    except ValueError as ve:
+        error_msg = 'handle_paid_order hit value error {0}'.format(ve.args[0])
+        logger.exception(error_msg)
     except Exception as e:
         error_msg = 'handle_paid_order hit eception {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
@@ -98,8 +104,11 @@ def handle_open_order(order, sell_order_timeout, appId, appKey):
               'CANCELLED', 'UNKNOWN', 'admin')
         else:
             logger.info("handle_open_order {0}, it has not timedout, nothing to do".format(order.order_id))
+    except ValueError as ve:
+        error_msg = 'handle_open_order hit value error {0}'.format(ve.args[0])
+        logger.exception(error_msg)
     except Exception as e:
-        error_msg = 'handle_open_order hit eception {0}'.format(sys.exc_info()[0])
+        error_msg = 'handle_open_order hit exception {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
 
 
