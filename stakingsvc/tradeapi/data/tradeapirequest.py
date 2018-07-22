@@ -5,8 +5,8 @@ import json, time, datetime as dt
 import hashlib
 import logging
 
-from tradeapi.utils import *
-from tradeapi.data.api_const import *
+from tradapi.utils import *
+from tradapi.data.api_const import *
 
 logger = logging.getLogger("tradeex.tradeapirequest")
 
@@ -21,7 +21,7 @@ class TradeAPIRequest(object):
             client_ip='127.0.0.1', 
             subject=None, attach=None, notify_url=None, return_url=None,
             version='1.0', charset='utf-8', sign_type='MD5', timestamp=0,
-            sign=None, original_json_request=None):
+            sign=None, original_json_request=None, **kwargs):
         self.version = version
         self.charset = charset
         self.sign_type = sign_type
@@ -31,7 +31,7 @@ class TradeAPIRequest(object):
         self.out_trade_no = out_trade_no
         self.trx_bill_no = trx_bill_no
         self.total_fee = total_fee
-        if total_fee < 1 and method in ['wallet.trade.buy', 'wallet.trade.sell']:
+        if int(total_fee) < 1 and method in ['wallet.trade.buy', 'wallet.trade.sell']:
             raise ValueError("The total fee is too small")
         self.expire_minute = expire_minute
         self.payment_provider = payment_provider
@@ -44,7 +44,14 @@ class TradeAPIRequest(object):
         self.timestamp = timestamp
         self.sign = sign
         self.meta_option = None
+        self.pay_option = None
         self.original_json_request = original_json_request
+        if kwargs:
+            for key,value in kwargs.items():
+                if key == 'meta_option':
+                    self.meta_option = value
+                elif key == 'pay_option':
+                    self.pay_option = value
         if not self.sign:
             if not self.secret_key:
                 raise ValueError('Not secrete key to sign the request')
@@ -58,7 +65,7 @@ class TradeAPIRequest(object):
 
         biz_content_json = json.loads(json_input['biz_content'])
         return TradeAPIRequest(method, json_input['api_key'], '', biz_content_json['out_trade_no'],
-            total_fee=int(biz_content_json.get('total_fee', 0)),
+            total_fee=biz_content_json.get('total_fee', 0),
             expire_minute=biz_content_json.get('expire_minute',0),
             payment_provider=biz_content_json.get('payment_provider', None),
             payment_account=biz_content_json.get('payment_account', None),
@@ -73,7 +80,9 @@ class TradeAPIRequest(object):
             sign_type = json_input['sign_type'],
             timestamp = json_input['timestamp'],
             sign = json_input['sign'],
-            original_json_request = json_input)
+            original_json_request = json_input, 
+            meta_option = biz_content_json.get('meta_option', None),
+            pay_option = biz_content_json.get('pay_option', None))
 
     def __get_biz_content_json(self):
         biz_content_json = {}
@@ -82,7 +91,7 @@ class TradeAPIRequest(object):
             biz_content_json['subject'] = self.subject
             biz_content_json['total_fee'] = self.total_fee
             biz_content_json['expire_minute'] = self.expire_minute
-            biz_content_json['api_account_mode']= 'Account'
+            biz_content_json['api_account_type']= 'Account'
             biz_content_json['client_ip'] = self.client_ip
             biz_content_json['payment_provider'] = self.payment_provider
             biz_content_json['payment_account'] = self.payment_account
@@ -90,6 +99,8 @@ class TradeAPIRequest(object):
                 biz_content_json['attach'] = self.attach
             if self.meta_option:
                 biz_content_json['meta_option'] = self.meta_option
+            if self.pay_option:
+                biz_content_json['pay_option'] = self.pay_option
             if self.notify_url:
                 biz_content_json['notify_url'] = self.notify_url
             if self.return_url:
@@ -108,7 +119,7 @@ class TradeAPIRequest(object):
         jsonobj['timestamp'] = self.timestamp
         biz_content_json = self.__get_biz_content_json()
 
-        jsonobj['biz_content'] = json.dumps(biz_content_json, ensure_ascii=False, sort_keys=True)
+        jsonobj['biz_content'] = json.dumps(biz_content_json, separators=(',',':'), ensure_ascii=False, sort_keys=True)
         return jsonobj
 
     def is_valid(self, secret_key):
