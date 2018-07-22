@@ -95,8 +95,7 @@ def purchase(request):
 
             try:
                 userpaymentmethod = UserPaymentMethod.objects.get(
-                    user__id = api_user.user.id, 
-                    provider__code = payment_provider)
+                    user__id = api_user.user.id)
             except UserPaymentMethod.DoesNotExist:
                 raise ValueError(ERR_PAYMENTMETHOD_NOT_FOUND)
             except UserPaymentMethod.MultipleObjectsReturned:
