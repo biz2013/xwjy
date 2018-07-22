@@ -104,7 +104,7 @@ def purchase(request):
             out_trade_no = str(uuid.uuid4())
             request = TradeAPIRequest(
                     API_METHOD_PURCHASE,
-                    api_user.appKey,
+                    api_user.apiKey,
                     api_user.secretKey,
                     out_trade_no, # order id
                     None, # trx _id
