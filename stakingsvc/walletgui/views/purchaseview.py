@@ -125,7 +125,7 @@ def purchase(request):
                 errmsg = '充值请求遇到问题：{0}'.format(resp_json["return_code"])
                 if 'result_msg' in resp_json:
                     errmsg = '{0}-{1}'.format(errmsg, resp_json['result_msg'])
-                messages.error(errmsg)
+                messages.error(request, errmsg)
             else:
                 qrcode_filename = '{0}_{1}.png'.format(
                     resp_json['out_trade_no'], resp_json['trx_bill_no']
