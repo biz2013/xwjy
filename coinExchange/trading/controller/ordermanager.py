@@ -162,16 +162,16 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
 def cancel_purchase_order(order, final_status, payment_status,
                          operator):
     if not order.reference_order:
-        logger.error("cancel_purchase_order({0},order status:{1}, payment status:{2}): purchase order does not have related sell order".format(
-            order.order_id, final_status, payment_status
+        logger.error("cancel_purchase_order({0}, purchase unit: {3} order status:{1}, payment status:{2}): purchase order does not have related sell order".format(
+            order.order_id, final_status, payment_status, order.units
         ))
         return
     operatorObj = User.objects.get(username = operator)
     with transaction.atomic():
         sell_order = Order.objects.select_for_update().get(pk=order.reference_order.order_id)
-        logger.info("cancel_purchase_order({0},order status:{1}, payment status:{2}): BEFORE cancelling, related sell order is {3}".format(
+        logger.info("cancel_purchase_order({0}, purchase unit: {4} order status:{1}, payment status:{2}): BEFORE cancelling, related sell order is {3}".format(
             order.order_id, final_status, payment_status, 
-            sell_order_to_str(sell_order)
+            sell_order_to_str(sell_order), order.units
         ))
         
         sell_order.units_locked = sell_order.units_locked - order.units
@@ -188,8 +188,8 @@ def cancel_purchase_order(order, final_status, payment_status,
                lastupdated_at = dt.datetime.utcnow()
         )
         if not updated:
-            logger.error("cancel_purchase_order({0},order status:{1}, payment status:{2}): purchase order does not have PENDING userwallettrans to be updated".format(
-                order.order_id, final_status, payment_status
+            logger.error("cancel_purchase_order({0}, purchase units: {3} order status:{1}, payment status:{2}): purchase order does not have PENDING userwallettrans to be updated".format(
+                order.order_id, final_status, payment_status, order.units
             ))
 
         updated = Order.objects.filter(
@@ -199,8 +199,8 @@ def cancel_purchase_order(order, final_status, payment_status,
            lastupdated_at = dt.datetime.utcnow()
         )
         if not updated:
-            logger.error("cancel_purchase_order({0},order status:{1}, payment status:{2}): purchase order status is not OPEN or PAYING, maybe someone had changed its status".format(
-                order.order_id, final_status, payment_status
+            logger.error("cancel_purchase_order({0}, purchase units: {3} order status:{1}, payment status:{2}): purchase order status is not OPEN or PAYING, maybe someone had changed its status".format(
+                order.order_id, final_status, payment_status, order.units
             ))
         
         api_trans = APIUserTransactionManager.get_trans_by_reference_order(order.order_id)
@@ -220,9 +220,9 @@ def cancel_purchase_order(order, final_status, payment_status,
 
         sell_order.save()
         sell_order.refresh_from_db()
-        logger.info("cancel_purchase_order({0},order status:{1}, payment status:{2}): AFTER cancelling, related sell order is {3}".format(
+        logger.info("cancel_purchase_order({0}, purchase units {3} order status:{1}, payment status:{2}): AFTER cancelling, related sell order is {3}".format(
             order.order_id, final_status, payment_status, 
-            sell_order_to_str(sell_order)
+            sell_order_to_str(sell_order), order.units
         ))
 
 def get_all_open_seller_order_exclude_user(user_id):
