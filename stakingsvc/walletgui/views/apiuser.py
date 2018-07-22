@@ -11,7 +11,7 @@ import logging,json
 logger = logging.getLogger("tradeex.apiuser")
 
 @csrf_exempt
-def create(request):
+def register(request):
     try:
         
         APIUserManager.create_api_user_account(request.username, 'CNY')
