@@ -95,23 +95,22 @@ def purchase(request):
 
             try:
                 userpaymentmethod = UserPaymentMethod.objects.get(
-                    user__id = api_user.user.id, 
-                    provider__code = payment_provider)
+                    user__id = api_user.user.id)
             except UserPaymentMethod.DoesNotExist:
                 raise ValueError(ERR_PAYMENTMETHOD_NOT_FOUND)
             except UserPaymentMethod.MultipleObjectsReturned:
                 raise ValueError(ERR_MORE_THAN_ONE_PAYMENTMETHOD_FOUND)
 
             out_trade_no = str(uuid.uuid4())
-            request = TradeAPIRequest(
+            request_obj = TradeAPIRequest(
                     API_METHOD_PURCHASE,
-                    api_user.appKey,
+                    api_user.apiKey,
                     api_user.secretKey,
                     out_trade_no, # order id
                     None, # trx _id
                     (int)(amount * 100), # total fee
                     settings.TRADE_API_CALL_TIMEOUT_IN_MINUTES, # expire_minute
-                    userpaymentmethod.payment_provider.code,
+                    userpaymentmethod.provider.code,
                     userpaymentmethod.account_at_provider,
                     '127.0.0.1', #client ip
                     subject='Staking充值请求 {0}'.format(amount),
@@ -120,13 +119,14 @@ def purchase(request):
 
             url = TRADE_API_PURCHASE_URL_TEMPLATE.format(settings.TRADE_API_HOST)
             api_client = APIClient(url)
-            resp_json = api_client.send_json_request(request_obj.getPayload())
+            resp_json = api_client.send_json_request(request_obj.getJsonPayload())
             if resp_json["return_code"] != 'SUCCESS':
                 logger.error('purchase(): get failure api response: {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
-                errmsg = '充值请求遇到问题：{0}'.format(esp_json["return_code"])
+                errmsg = '充值请求遇到问题：{0}'.format(resp_json["return_code"])
                 if 'result_msg' in resp_json:
                     errmsg = '{0}-{1}'.format(errmsg, resp_json['result_msg'])
-                messages.error(errmsg)
+                messages.error(request, errmsg)
+                return redirect('balance')
             else:
                 qrcode_filename = '{0}_{1}.png'.format(
                     resp_json['out_trade_no'], resp_json['trx_bill_no']
@@ -134,7 +134,7 @@ def purchase(request):
                 qrcode_img_url_path = create_qrcode_image(
                     resp_json['payment_url'], qrcode_filename, settings.MEDIA_ROOT)
                 
-                return render(request, 'purchase_qrcode.html', {'qrcode_file': qrcode_img_url_path})
+                return render(request, 'walletgui/purchase_qrcode.html', {'qrcode_file': qrcode_img_url_path})
     except Exception as e:
        error_msg = '用户主页显示遇到错误: {0}'.format(sys.exc_info()[0])
        logger.exception(error_msg)
