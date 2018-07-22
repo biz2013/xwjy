@@ -110,7 +110,7 @@ def purchase(request):
                     None, # trx _id
                     (int)(amount * 100), # total fee
                     settings.TRADE_API_CALL_TIMEOUT_IN_MINUTES, # expire_minute
-                    userpaymentmethod.payment_provider.code,
+                    userpaymentmethod.provider.code,
                     userpaymentmethod.account_at_provider,
                     '127.0.0.1', #client ip
                     subject='Staking充值请求 {0}'.format(amount),
