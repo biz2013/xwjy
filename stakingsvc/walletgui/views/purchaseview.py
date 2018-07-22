@@ -15,6 +15,10 @@ from django.contrib.auth.decorators import login_required
 from tradeapi.apiclient import APIClient
 from tradeapi.data.tradeapirequest import TradeAPIRequest
 from tradeapi.data.api_const import *
+from walletgui.controller.global_constants import *
+from walletgui.controller.crypto_utils import CryptoUtility
+from walletgui.controller.walletmanager import WalletManager
+from walletgui.controller.paymentmethodmanager import PaymentMethodManager
 from walletgui.views import errorpageview
 from walletgui.controller.global_constants import *
 from walletgui.views.models.useraccountinfo import *
@@ -56,6 +60,20 @@ def create_qrcode_image(content, qrcode_filename, base_dir):
     img.save(dst)
     img_path = os.path.join('qrcode', qrcode_filename)
     return img_path
+
+@login_required
+def show(request):
+    try:
+        userpayment = PaymentMethodManager.get_payment_method(request.user.username)
+        if not userpayment:
+            messages.error("请设置付款方式，再充值")
+            return redirect('balance')
+        return render(request, 'purchase_investment.html')
+    except Exception as e:
+        error_msg = '用户主页显示遇到错误: {0}'.format(sys.exc_info()[0])
+        logger.exception(error_msg)
+        return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
+            '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
 
 @login_required
 def purchase(request):
