@@ -509,6 +509,11 @@ def update_purchase_transaction(purchase_trans, trade_status, trade_msg):
         logger.info("update_purchase_transaction(trade_status {0}): BEFORE revert sell order is: {1}".format(
             trade_status, sell_order_to_str(buyorder.reference_order)))
         
+        if (sell_order.units_locked - buyorder.units < 0):
+            raise ValueError("update_purchase_transaction(): related purchase order {0}\'s sell order {1} has locked units {2} less then purchase order\'s units {3} ".format(
+                buyorder.order_id, sell_order.order_id, 
+                sell_order.units_locked, buyorder.units
+            ))
         #revert locked unit and available units in sell order
         Order.objects.filter(pk = buyorder.reference_order.order_id).update(
              units_locked = F('units_locked') - buyorder.units,
@@ -644,6 +649,11 @@ def confirm_purchase_order(order_id, operator):
             order_id, sell_order_to_str(sell_order)
         ))
 
+        logger.info("confirm_purchase_order({0}): BEFORE updating, purchase order is {1}{2} ({3}x@{4}) ".format(
+            order_id, buyorder.total_amount, buyorder.unit_price_currency,
+            buyorder.units, buyorder.unit_price
+        ))
+
         seller_user_wallet = UserWallet.objects.select_for_update().get(
              user__id= sell_order.user.id,
              wallet__cryptocurrency = purchase_trans.user_wallet.wallet.cryptocurrency)
@@ -693,6 +703,11 @@ def confirm_purchase_order(order_id, operator):
         purchase_trans.available_to_trade_end = buyer_user_wallet.available_balance + buyorder.units
         purchase_trans.status = 'PROCESSED'
         purchase_trans.lastupdated_by = operatorObj
+
+        if sell_order.units_locked - buyorder.units < 0:
+            raise ValueError('confirm_purchase_order({0}): sell order locked units {1} is less than purchase order units {2}'.format(
+                order_id, sell_order.units_locked, buyorder.units
+            ))
 
         sell_order.units_locked = sell_order.units_locked - buyorder.units
         sell_order.status = 'PARTIALFILLED'
