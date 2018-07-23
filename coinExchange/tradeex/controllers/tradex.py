@@ -212,7 +212,8 @@ class TradeExchangeManager(object):
         else:
             api_trans_id = api_trans.transactionId
         
-        amount = float(request_obj.total_fee / 100.0)
+        amount_in_cent = int(request_obj.total_fee) if type(request_obj.total_fee) is str else request_obj.total_fee
+        amount = float(amount_in_cent / 100.0)
         order_item = OrderItem('', # order_id empty for purchase
                api_user.user.id, 
                '',  # no need for user login of the order
