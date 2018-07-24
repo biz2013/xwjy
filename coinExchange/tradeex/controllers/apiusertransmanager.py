@@ -105,9 +105,9 @@ class APIUserTransactionManager(object):
                     ))
 
                 logger.info('on_trans_paid_success(): create trans pass CNY from seller to master wallet')
-                end_cny_balance = user_cny_wallet.balance - total_cny_in_units)
+                end_cny_balance = user_cny_wallet.balance - total_cny_in_units
                 end_cny_available_balance = user_cny_wallet.available_balance
-                end_cny_locked_balance = user_cny_wallet.locked_balance - total_cny_in_units
+                end_cny_locked_balance = max(0, user_cny_wallet.locked_balance - total_cny_in_units)
 
                 operation_comment = 'user {0} redeem {1} CNY'.format(api_trans.api_user.user.username, total_cny_in_units)
                 user_cny_wallet_trans = UserWalletTransaction.objects.create(
