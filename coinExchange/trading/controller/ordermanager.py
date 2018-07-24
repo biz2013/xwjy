@@ -326,7 +326,7 @@ def create_purchase_order(buyorder, reference_order_id,
         buyorder.unit_price)
 
     logger.info('create_purchase_order(): {0}'.format(operation_comment))
-    logger.info('create_purchase_order(): selected sellorder {0}')
+    logger.info('create_purchase_order(): selected sellorder {0}'.format(reference_order_id))
 
     # TODO: more validation
     if is_api_call and not api_call_order_id:

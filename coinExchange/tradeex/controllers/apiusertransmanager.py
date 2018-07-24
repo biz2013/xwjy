@@ -99,14 +99,13 @@ class APIUserTransactionManager(object):
                 wallet__cryptocurrency__currency_code='CNY')
             if api_trans.action == API_METHOD_REDEEM:
                 if user_cny_wallet.locked_balance < total_cny_in_units :
-                    logger.error("[out_trade_no: {0}] user {1} does not have enough locked CNY in wallet: locked {2} to be released {3}. ".format(
+                    logger.error("INCONSISTENCY!!![out_trade_no: {0}] user {1} does not have enough locked CNY in wallet: locked {2} to be released {3}. ".format(
                         api_trans.api_out_trade_no,
-                        api_trans.api_user.username, user_cny_wallet.locked_balance, total_cny_in_units 
+                        api_trans.api_user.user.username, user_cny_wallet.locked_balance, total_cny_in_units 
                     ))
-                    raise ValueError('CNY_WALLET_NOT_ENOUGH_LOCKED')
 
                 logger.info('on_trans_paid_success(): create trans pass CNY from seller to master wallet')
-                end_cny_balance = user_cny_wallet.balance - total_cny_in_units
+                end_cny_balance = user_cny_wallet.balance - total_cny_in_units)
                 end_cny_available_balance = user_cny_wallet.available_balance
                 end_cny_locked_balance = user_cny_wallet.locked_balance - total_cny_in_units
 

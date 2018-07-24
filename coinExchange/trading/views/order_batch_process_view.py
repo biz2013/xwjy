@@ -43,18 +43,22 @@ def handle_paying_order(order, order_timeout, appId, appkey):
             return
 
         payment_status = 'UNKNOWN'
+        timediff = timezone.now() - order.lastupdated_at
+        order_expired = int(timediff.total_seconds()) > order_timeout
         heepay = HeePayManager()
         if trans.payment_status != 'SUCCESS':
-            logger.info('purchase order {0}: transaction id{1} : expired, payment_status: {2}. Query heepay for status...'.format(order.order_id, trans.id, trans.payment_status))
+            logger.info('purchase order {0}: transaction id {1} : {2} elapse{3}, last known payment_status: {4}. Query heepay for status...'.format(
+                order.order_id, trans.id, 
+                'expired' if order_expired else 'not expired', int(timediff.total_seconds()),
+                trans.payment_status))
             json_response = heepay.get_payment_status(order.order_id,
                                    trans.payment_bill_no, appId, appkey)
             payment_status = json_response['trade_status'].upper()
-            logger.info('purchase order {0}: transaction id{1} : expired, queried payment_status: {2}. Query heepay '.format(order.order_id, trans.id, payment_status))
+            logger.info('purchase order {0}: transaction id {1} : updated payment_status: {2}'.format(order.order_id, trans.id, payment_status))
             if payment_status in ['PAYSUCCESS','SUCCESS']:
                 ordermanager.update_order_with_heepay_notification(json_response, 'admin')
                 return
-        timediff = timezone.now() - order.lastupdated_at
-        if int(timediff.total_seconds()) > order_timeout:
+        if order_expired:
             if payment_status in ['EXPIREDINVALID','DEVCLOSE','USERABANDON','UNKNOWN']:
                 ordermanager.cancel_purchase_order(order,
                       'FAILED', payment_status, 'admin')
