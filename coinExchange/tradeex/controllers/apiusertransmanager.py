@@ -100,7 +100,7 @@ class APIUserTransactionManager(object):
             if api_trans.action == API_METHOD_REDEEM:
                 if user_cny_wallet.locked_balance < total_cny_in_units :
                     logger.error("[out_trade_no: {0}] user {1} does not have enough locked CNY in wallet: locked {2} to be released {3}. ".format(
-                        api_trans.out_trade_no,
+                        api_trans.api_out_trade_no,
                         api_trans.api_user.username, user_cny_wallet.locked_balance, total_cny_in_units 
                     ))
                     raise ValueError('CNY_WALLET_NOT_ENOUGH_LOCKED')
@@ -252,7 +252,7 @@ class APIUserTransactionManager(object):
                 logger.info("on_trans_cancel(api trans{0}): trans is sell, so cancel it")
                 if user_cny_wallet.locked_balance < total_cny_in_units :
                     logger.error("[out_trade_no: {0}] user {1} does not have enough locked CNY in wallet: locked {2} to be released {3}. ".format(
-                        api_trans.out_trade_no,
+                        api_trans.api_out_trade_no,
                         api_trans.api_user.username, user_cny_wallet.locked_balance, total_cny_in_units 
                     ))
                     raise ValueError('CNY_WALLET_NOT_ENOUGH_LOCKED')
