@@ -1,6 +1,4 @@
-import sys
-from walletgui.models import SiteSettings
+from trading.models import SiteSettings
 
 def settings(request):
     return {'settings': SiteSettings.load()}
-
