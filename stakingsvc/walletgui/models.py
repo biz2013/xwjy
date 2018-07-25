@@ -47,6 +47,7 @@ class SiteSettings(SingletonModel):
     axfd_passphrase = models.CharField(max_length=64, blank=True, default='')
     order_timeout_insec = models.IntegerField(default=600)
     confirmation_timeout_insec = models.IntegerField(default=300)
+    api_cny_master_wallet_addr = models.ChartField(max_length=128, blank=True, default='')
     config_json = models.CharField(max_length=8192, default='{}')
 
 class PaymentProvider(models.Model):
