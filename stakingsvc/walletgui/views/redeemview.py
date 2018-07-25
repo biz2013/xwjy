@@ -18,7 +18,7 @@ logger = logging.getLogger("site.balance")
 @login_required
 def show(request):
     try:
-        if request.method == POST:
+        if request.method == "POST":
             amount = float(request.POST["amount"]) if request.POST["amount"] else 0
             crypto_util = WalletManager.create_fund_util('CNY')
             wallet = WalletManager.get_wallet_balance(crypto_util, request.user.username, 'CNY')
