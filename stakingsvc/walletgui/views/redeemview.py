@@ -20,19 +20,20 @@ def show(request):
     try:
         if request.method == "POST":
             amount = float(request.POST["amount"]) if request.POST["amount"] else 0
-            crypto_util = WalletManager.create_fund_util('CNY')
-            wallet = WalletManager.get_wallet_balance(crypto_util, request.user.username, 'CNY')
-            userpayment = PaymentMethodManager.get_payment_method(request.user.username)
-            if not userpayment:
-                messages.error("请设置付款方式，再充值")
-                return redirect('balance')
-            useraccountInfo = UserAccountInfo(request.user.id,
-                wallet.balance, wallet.locked_balance, wallet.available_balance,
-                wallet.wallet_addr, None, [ userpayment ])
-            return render(request, 'walletgui/redeem_investment.html',
-                {'account': useraccountInfo, 'amount': amount})
         else:
-            raise ValueError('提现界面只接收POST请求')
+            amount = 0
+
+        crypto_util = WalletManager.create_fund_util('CNY')
+        wallet = WalletManager.get_wallet_balance(crypto_util, request.user.username, 'CNY')
+        userpayment = PaymentMethodManager.get_payment_method(request.user.username)
+        if not userpayment:
+            messages.error("请设置付款方式，再充值")
+            return redirect('balance')
+        useraccountInfo = UserAccountInfo(request.user.id,
+            wallet.balance, wallet.locked_balance, wallet.available_balance,
+            wallet.wallet_addr, None, [ userpayment ])
+        return render(request, 'walletgui/redeem_investment.html',
+            {'account': useraccountInfo, 'amount': amount})
     except Exception as e:
         error_msg = '用户主页显示遇到错误: {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
