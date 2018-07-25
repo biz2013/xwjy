@@ -7,6 +7,8 @@ from django.shortcuts import render, redirect
 # this is for test UI. A fake one
 from walletgui.views import errorpageview
 from walletgui.controller.global_constants import *
+from walletgui.controller.walletmanager import WalletManager
+from walletgui.controller.paymentmethodmanager import PaymentMethodManager
 from walletgui.views.models.useraccountinfo import *
 from walletgui.views.models.userpaymentmethod import *
 from django.contrib.auth.decorators import login_required
