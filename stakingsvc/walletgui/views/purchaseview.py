@@ -83,9 +83,9 @@ def purchase(request):
     try:
         if request.method == 'POST':
             amount = float(request.POST["amount"]) if request.POST["amount"] else 0
-            if math.fabs(amount) < 0.00000001:
-                messages.error(request, '充值数量不可为零')
-                return render(request, 'walletgui/purchase_investment.html', { 'amount': amount, 'payment_provider': payment_provider})
+            if math.fabs(amount) < 0.01:
+                messages.error(request, '充值数量不可小于一分钱')
+                return redirect(request, 'show_purchase')
             try:
                 api_user =  APIUserAccount.objects.get(user__username=request.user.username)
             except APIUserAccount.DoesNotExist:
