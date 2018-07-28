@@ -39,7 +39,7 @@ class TradeExchangeManager(object):
             (Q(status='OPEN') | Q(status='PARTIALFILLED')) & 
             Q(order_type='SELL') & Q(units_available_to_trade__gt=0.0) &
             Q(unit_price_currency=currency) &
-            Q(cryptocurrency__currency_code=crypto)).order_by('-created_at')
+            Q(cryptocurrency__currency_code=crypto)).order_by('total_amount','created_at')
         for order in orders:
             available_amount = order.unit_price * order.units_available_to_trade
             diff = available_amount - amount
@@ -100,11 +100,8 @@ class TradeExchangeManager(object):
                 logger.debug("decide_sell_price(): get redeem price {0} that is 0.05% (or at least 0.01) higher than min api price {1}, but not lower than 0.05".format(
                     suggested_price, min_price_api_order
                 ))                
-        
+
         return suggested_price
-                
-
-
 
     # after issue payment command, payment provider will return a bill no, and we need to
     # record that with the api transaction
@@ -112,6 +109,16 @@ class TradeExchangeManager(object):
         return APIUserTransaction.objects.filter(transactionId = api_trans_id).update(
                 reference_bill_no = payment_bill_no
                 )
+
+    def find_last_transaction_price(self, crypto, currency):
+        processed_purchases = Order.objects.filter(
+            Q(status='FILLED') & 
+            Q(order_type='BUY') & Q(total_amount__gt=0.0) &
+            Q(unit_price_currency=currency) &
+            Q(cryptocurrency__currency_code=crypto)).order_by('lastupdated_at')
+        if not processed_purchases or len(processed_purchases) == 0:
+            raise ValueError(ERR_NO_SELL_ORDER_TO_SUPPORT_PRICE)
+        return processed_purchases[0].unit_price    
 
     def purchase_by_cash_amount(self, api_user, request_obj, crypto, is_api_call=True):
         api_user_id = api_user.user.id
@@ -214,7 +221,11 @@ class TradeExchangeManager(object):
         if not request_obj and not api_trans:
             raise ValueError('post_sell_order(): request_obj and api_trans cannot be None at the same time')
         current_sell_orders = self.get_active_sell_orders('AXFund', 'CNY')
-        unit_price = round(self.decide_sell_price(current_sell_orders),2)
+        if current_sell_orders:
+            unit_price = round(self.decide_sell_price(current_sell_orders),2)
+        else:
+            unit_price = self.find_last_transaction_price()
+
         logger.info("post_sell_order(): get round-up sell price {0}".format(unit_price))
         if not api_trans:
             api_trans_id = 'API_TX_{0}'.format(
@@ -225,12 +236,16 @@ class TradeExchangeManager(object):
         
         amount_in_cent = int(request_obj.total_fee) if type(request_obj.total_fee) is str else request_obj.total_fee
         amount = float(amount_in_cent / 100.0)
+        sell_units = round(amount / unit_price, 8)
+        logger.info("post_sell_order(): after roundup, sell {0} yuan of axfund = {1} x @{2}".format(
+            amount, sell_units, unit_price))
+        
         order_item = OrderItem('', # order_id empty for purchase
                api_user.user.id, 
                '',  # no need for user login of the order
                unit_price,
                'CNY',
-               round(amount / unit_price, 8),
+               sell_units,
                0,  # no need for available_units
                amount,
                'AXFund',
