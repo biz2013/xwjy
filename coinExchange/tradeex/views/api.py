@@ -117,6 +117,8 @@ def handleValueError(ve_msg):
         resp_json['result_msg'] = '每笔交易上限为{0}分'.format(settings.API_TRANS_LIMIT)
     elif ve_msg == ERR_NO_RIGHT_SELL_ORDER_FOUND:
         resp_json['return_msg'] = '无卖单提供充值'
+    elif vs_msg == ERR_NO_SELL_ORDER_TO_SUPPORT_PRICE:
+        resp_json['return_msg'] = '无卖单提供定价'        
     else:
         resp_json['return_msg'] = '数据错误'
 
@@ -222,6 +224,14 @@ def prepurchase(request):
     except ValueError as ve:
         logger.error('prepurchase(): hit ValueError {0}'.format(ve.args[0]))
         return handleValueError(ve.args[0])
+    except:
+        error_msg = 'prepurchase()遇到错误: {0}'.format(sys.exc_info()[0])
+        logger.exception(error_msg)
+        resp = create_error_trade_response(
+            request_obj, api_user,
+            '系统错误', '系统错误',''
+        )
+        return JsonResponse(resp.to_json())
     #except:
     #    logger.error('prepurchase() hit error: {0}'.format(sys.exc_info()[0]))
     #    return handleException(sys.exc_info()[0])
@@ -244,6 +254,9 @@ def selltoken(request):
         return JsonResponse(create_selltoken_response(request_obj, api_trans, sell_orderId))
     #TODO: should handle different error here.
     # what if network issue, what if the return is 30x, 40x, 50x
+    except ValueError as ve:
+        logger.error('prepurchase(): hit ValueError {0}'.format(ve.args[0]))
+        return handleValueError(ve.args[0])
     except :
         error_msg = 'selltoken()遇到错误: {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
