@@ -222,7 +222,7 @@ class TradeExchangeManager(object):
             raise ValueError('post_sell_order(): request_obj and api_trans cannot be None at the same time')
         current_sell_orders = self.get_active_sell_orders('AXFund', 'CNY')
         if current_sell_orders:
-            unit_price = round(self.decide_sell_price(current_sell_orders),2)
+            unit_price = round(self.decide_sell_price(current_sell_orders) + 0.005,2)
         else:
             unit_price = self.find_last_transaction_price()
 
