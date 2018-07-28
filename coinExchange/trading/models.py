@@ -63,6 +63,9 @@ class PaymentProvider(models.Model):
    lastupdated_at = models.DateTimeField(auto_now=True)
    lastupdated_by = models.ForeignKey(User, related_name='PaymentProvider_lastupdated_by', on_delete=models.SET_NULL, null=True)
 
+class UserProfile(models.Model):
+   user = models.OneToOneField(User, on_delete=models.CASCADE)
+   alias = models.CharField(max_length=100, default='')
 
 class UserPaymentMethod(models.Model):
    user = models.ForeignKey(User, on_delete=models.CASCADE)
