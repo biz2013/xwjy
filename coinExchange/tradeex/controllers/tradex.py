@@ -85,11 +85,21 @@ class TradeExchangeManager(object):
         ))
         if min_price_normal_order < min_price_api_order:
             suggested_price = max([0.05, min_price_normal_order * .95])
+            logger.debug("decide_sell_price(): get redeem price {0} that is 5% lower than min trade price {1}, but not lower than 0.05".format(
+                suggested_price, min_price_normal_order
+            ))
+            
         else:
-            if min_price_api_order < max_price_normal_order:
-                suggested_price = max([0.05, min_price_api_order + 0.01, min_price_api_order * 1.005])
-            else:
+            suggested_price = max([0.05, min_price_api_order + 0.01, min_price_api_order * 1.005])
+            if suggested_price > min_price_normal_order:
                 suggested_price = max([0.05, min([min_price_api_order - 0.01, min_price_api_order * 0.995])])
+                logger.debug("decide_sell_price(): get redeem price {0} that is 0.05% (or at least 0.01) lower than min api price {1}, but not lower than 0.05".format(
+                    suggested_price, min_price_api_order
+                ))
+            else:
+                logger.debug("decide_sell_price(): get redeem price {0} that is 0.05% (or at least 0.01) higher than min api price {1}, but not lower than 0.05".format(
+                    suggested_price, min_price_api_order
+                ))                
         
         return suggested_price
                 
