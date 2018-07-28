@@ -214,7 +214,8 @@ class TradeExchangeManager(object):
         if not request_obj and not api_trans:
             raise ValueError('post_sell_order(): request_obj and api_trans cannot be None at the same time')
         current_sell_orders = self.get_active_sell_orders('AXFund', 'CNY')
-        unit_price = self.decide_sell_price(current_sell_orders)
+        unit_price = round(self.decide_sell_price(current_sell_orders),2)
+        logger.info("post_sell_order(): get round-up sell price {0}".format(unit_price))
         if not api_trans:
             api_trans_id = 'API_TX_{0}'.format(
                     dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
