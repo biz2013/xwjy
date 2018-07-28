@@ -67,7 +67,7 @@ def show_purchase_input(request):
         total_units = 0
         if 'quantity' in request.POST:
            total_units = float(request.POST['quantity'])
-        available_units = float(request.POST["available_units_for_purchase"])
+        available_units = round(float(request.POST["available_units_for_purchase"]),2)
         seller_payment_provider = request.POST["seller_payment_provider"]
         seller_payment_provider_account = request.POST["seller_payment_provider_account"]
         
