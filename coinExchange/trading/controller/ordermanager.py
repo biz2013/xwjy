@@ -71,6 +71,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
         # as signal to wait for fund to be ready.  The waiting time is the same as the
         # expiration time.
         api_trans = None
+        user_cny_wallet = None
         logger.debug('begin trans to create sell order')
         if api_trans_id:
             logger.debug('create_sell_order(): create api_trans with id {0}'.format(api_trans_id))
@@ -100,25 +101,39 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
                 )
             # check current available balance of api user's cny balance 
             user_cny_wallet = UserWallet.objects.select_for_update().get(user__id = userobj.id, wallet__cryptocurrency__currency_code ='CNY')
-            total_fee_in_units = round(float(api_redeem_request.total_fee)/100.0,8)
-            if user_cny_wallet.available_balance < total_fee_in_units :
-                logger.error("user {0} does not have enough CNY in wallet: available {1} to be sold {2}".format(
-                userobj.username, user_cny_wallet.available_balance, total_fee_in_units 
-                ))
-                api_trans.trade_status = TRADE_STATUS_NOTSTARTED
+            total_fee_in_decimal = round(float(api_redeem_request.total_fee)/100.0,8)
+            if user_cny_wallet.available_balance < total_fee_in_decimal :
+                error_msg = "user {0} does not have enough CNY in wallet {1}: available {2} to be sold {3}".format(
+                userobj.username, user_cny_wallet.id, user_cny_wallet.available_balance, total_fee_in_decimal 
+                )
+                logger.error(error_msg)
+                api_trans.last_status_description = error_msg
+                api_trans.trade_status = TRADE_STATUS_USERABANDON
                 api_trans.payment_status = PAYMENT_STATUS_NOTSTARTED
                 # return transId but none orderId meaning there is no enough fund in the cny wallet
                 api_trans.save()
                 return None
-            user_cny_wallet.available_balance = user_cny_wallet.available_balance - total_fee_in_units
-            user_cny_wallet.locked_balance = user_cny_wallet.locked_balance + total_fee_in_units
-            user_cny_wallet.save()
+
         userwallet = UserWallet.objects.select_for_update().get(
                 user__id=order.owner_user_id,
                 wallet__cryptocurrency = crypto)
+        if userwallet.available_balance - order.total_units < 0:
+            error_msg = "user {0} does not have enough AXFund in wallet {1}: available {2} to be sold {3}".format(
+                userobj.username, userwallet.id, userwallet.available_balance, order.total_units
+            )
+            logger.error(error_msg)
+            if api_trans:
+                api_trans.refresh_from_db()
+                api_trans.last_status_description = error_msg
+                api_trans.trade_status = TRADE_STATUS_USERABANDON
+                api_trans.payment_status = PAYMENT_STATUS_NOTSTARTED
+                # return transId but none orderId meaning there is no enough fund in the cny wallet
+                api_trans.save()
+                return None
         logger.info('before creating order {0}, userwallet {1} has balance:{2} available_balance:{3} locked_balance: {4}'.format(
            frmt_date, userwallet.id, userwallet.balance, userwallet.available_balance, userwallet.locked_balance
         ))
+        
         orderRecord = Order.objects.create(
            order_id = frmt_date,
            user= userobj,
@@ -148,6 +163,10 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
             api_trans.payment_status = PAYMENT_STATUS_NOTSTARTED
             api_trans.trade_status = TRADE_STATUS_INPROGRESS
             api_trans.save()
+
+            user_cny_wallet.available_balance = user_cny_wallet.available_balance - total_fee_in_decimal
+            user_cny_wallet.locked_balance = user_cny_wallet.locked_balance + total_fee_in_decimal
+            user_cny_wallet.save()
          
         userwallet.locked_balance = userwallet.locked_balance + order.total_units
         userwallet.available_balance = userwallet.available_balance - order.total_units
