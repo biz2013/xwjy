@@ -62,12 +62,12 @@ def show_purchase_input(request):
         owner_user_id = request.POST["owner_user_id"]
         reference_order_id = request.POST["reference_order_id"]
         owner_login = request.POST["owner_login"]
-        unit_price = float(request.POST["locked_in_unit_price"])
+        unit_price = round(float(request.POST["locked_in_unit_price"]),2)
         order_sub_type = request.POST["sub_type"]
         total_units = 0
         if 'quantity' in request.POST:
            total_units = float(request.POST['quantity'])
-        available_units = round(float(request.POST["available_units_for_purchase"]),2)
+        available_units = float(request.POST["available_units_for_purchase"])
         seller_payment_provider = request.POST["seller_payment_provider"]
         seller_payment_provider_account = request.POST["seller_payment_provider_account"]
         
