@@ -1,0 +1,1 @@
+select lastupdated_at, id, units, balance_update_type as type, reference_order_id as oid, balance_begin as b1, balance_end as b2, locked_balance_begin as l1, locked_balance_end as l2, available_to_trade_begin as a1, available_to_trade_end as a2, transaction_type from trading_userwallettransaction where user_wallet_id=208 and status='PROCESSED'order by lastupdated_at;

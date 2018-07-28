@@ -72,6 +72,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
         # expiration time.
         api_trans = None
         user_cny_wallet = None
+        total_fee_in_decimal = 0
         logger.debug('begin trans to create sell order')
         if api_trans_id:
             logger.debug('create_sell_order(): create api_trans with id {0}'.format(api_trans_id))
