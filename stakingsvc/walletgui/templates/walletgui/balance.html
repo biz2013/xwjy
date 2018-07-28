@@ -35,7 +35,7 @@
            </tr>
            <tr>
              <td><a id="btn-purchase" class="btn btn-success" href="/walletgui/showpurchase/">充值</a>&nbsp;</td>
-             <td><a id="btn-redeem" class="btn btn-success" href="/walletgui/showredeem/">提现</a>&nbsp;</td>
+             <td>{% if master_wallet_known %}<a id="btn-redeem" class="btn btn-success" href="/walletgui/showredeem/">提现</a>{% endif %}&nbsp;</td>
            </tr>
            {% endif %}
            <tr>
