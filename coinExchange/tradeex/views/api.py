@@ -119,7 +119,7 @@ def handleValueError(ve_msg):
         resp_json['result_msg'] = '每笔交易上限为{0}分'.format(settings.API_TRANS_LIMIT)
     elif ve_msg == ERR_NO_RIGHT_SELL_ORDER_FOUND:
         resp_json['return_msg'] = '无卖单提供充值'
-    elif vs_msg == ERR_NO_SELL_ORDER_TO_SUPPORT_PRICE:
+    elif ve_msg == ERR_NO_SELL_ORDER_TO_SUPPORT_PRICE:
         resp_json['return_msg'] = '无卖单提供定价'        
     else:
         resp_json['return_msg'] = '数据错误'
