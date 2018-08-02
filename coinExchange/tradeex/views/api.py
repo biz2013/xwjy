@@ -85,12 +85,25 @@ def parseUserInput(expected_method, request_json):
     if not request_obj.is_valid(api_user.secretKey):
         raise ValueError(ERR_INVALID_SIGNATURE)
 
+    if request_obj.method in [API_METHOD_PURCHASE, API_METHOD_REDEEM] and not (
+        request_obj.payment_provider and request_obj.payment_provider in settings.SUPPORTED_API_PAYMENT_PROVIDERS):
+        logger.error('parseUserInput(): {0}'.format(
+            'unsupported payment provider' if request_obj.payment_provider else 'missing payment provider'
+        ))
+        raise ValueError(ERR_INVALID_OR_MISSING_PAYMENT_PROVIDER)
+    
+    if request_obj.method == API_METHOD_REDEEM and not request_obj.payment_account:
+        logger.error('parseUserInput(): missing payment account')
+        raise ValueError(ERR_NO_PAYMENT_ACCOUNT)
+
     amount = int(request_obj.total_fee) if type(request_obj.total_fee) is str else request_obj.total_fee
     logger.debug("The request's amount is {0}".format(amount))
 
     if amount > settings.API_TRANS_LIMIT_IN_CENT:
-        raise ValueError('{0}: amount:{1}, limit:{2}'.format(
+        logger.error('parseUserInput(): {0}: amount:{1}, limit:{2}'.format(
             ERR_OVER_TRANS_LIMIT, request_obj.total_fee, settings.API_TRANS_LIMIT))
+        raise ValueError(ERR_OVER_TRANS_LIMIT)
+    
 
     return request_obj, api_user
 
@@ -119,6 +132,10 @@ def handleValueError(ve_msg):
         resp_json['result_msg'] = '每笔交易上限为{0}分'.format(settings.API_TRANS_LIMIT)
     elif ve_msg == ERR_NO_RIGHT_SELL_ORDER_FOUND:
         resp_json['return_msg'] = '无卖单提供充值'
+    elif ve_msg == ERR_INVALID_OR_MISSING_PAYMENT_PROVIDER:
+        resp_json['return_msg'] = '提供的支付方式无效或缺失'
+    elif ve_msg == ERR_NO_PAYMENT_ACCOUNT:
+        resp_json['return_msg'] = '请提供相应的支付账号'
     elif ve_msg == ERR_NO_SELL_ORDER_TO_SUPPORT_PRICE:
         resp_json['return_msg'] = '无卖单提供定价'        
     else:
@@ -175,9 +192,7 @@ def prepurchase(request):
         notify_url = settings.HEEPAY_NOTIFY_URL_FORMAT.format(
            sitesettings.heepay_notify_url_host,
            sitesettings.heepay_notify_url_port)
-        return_url = settings.HEEPAY_RETURN_URL_FORMAT.format(
-           sitesettings.heepay_return_url_host,
-           sitesettings.heepay_return_url_port)
+        return_url = request_obj.return_url
         
         heepay_api_key = sitesettings.heepay_app_id
         heepay_api_secret = sitesettings.heepay_app_key
