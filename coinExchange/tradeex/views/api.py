@@ -239,9 +239,12 @@ def prepurchase(request):
                             api_user.user.username)
                 
             heepay_response = HeepayResponse.parseFromJson(response_json, heepay_api_secret)
-
-            return JsonResponse(create_prepurchase_response_from_heepay(
-                heepay_response, api_user,api_trans_id, request_obj.out_trade_no))
+            final_resp_json = create_prepurchase_response_from_heepay(
+                heepay_response, api_user,api_trans_id, request_obj.out_trade_no)
+            logger.info('prepurchase(): send final reply {0}'.format(
+                json.dumps(final_resp_json, ensure_ascii=False)
+            ))
+            return JsonResponse(final_resp_json)
         else:
             raise ValueError("payment provider {0} is not supported".format(request_obj.payment_provider))
     #TODO: should handle different error here.
