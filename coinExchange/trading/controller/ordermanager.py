@@ -61,6 +61,9 @@ def get_seller_buyer_payment_accounts(buyorder_id, payment_provider):
                     buyorder_id, payment_provider, sellorder.order_id
                 ))
                 raise ValueError(ERR_CANNOT_FIND_SELLER_PAYMENT_PROVIDER)
+        else:
+            raise ValueError(ERR_CANNOT_FIND_SELLER_PAYMENT_PROVIDER)
+            
     if not buyer_account:
         if buyorder.order_source == 'TRADESITE':
             try:
@@ -71,6 +74,9 @@ def get_seller_buyer_payment_accounts(buyorder_id, payment_provider):
                     buyorder_id, payment_provider
                 ))
                 raise ValueError(ERR_CANNOT_FIND_BUYER_PAYMENT_PROVIDER)
+        else:
+            raise ValueError(ERR_CANNOT_FIND_BUYER_PAYMENT_PROVIDER)
+
     return seller_account, buyer_account
 
 def create_sell_order(order, operator, api_user = None,  api_redeem_request = None,
