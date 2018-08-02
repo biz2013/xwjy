@@ -10,6 +10,7 @@ from calendar import timegm
 from django.db import transaction
 from django.db.models import F, Q, Count
 from django.contrib.auth.models import User
+from django.conf import settings
 from django.utils import timezone
 from tradeex.data.api_const import *
 from tradeex.models import *
@@ -47,15 +48,61 @@ def get_user_payment_account(user_id, payment_provider_code):
 def get_seller_buyer_payment_accounts(buyorder_id, payment_provider):
     buyorder = Order.objects.get(pk=buyorder_id)
     sellorder = Order.objects.get(pk=buyorder.reference_order.order_id)
-    seller_payment_method = UserPaymentMethod.objects.get(user__id=sellorder.user.id, provider__code = payment_provider)
-    buyer_payment_method = UserPaymentMethod.objects.get(user__id=buyorder.user.id, provider__code = payment_provider)
-    return seller_payment_method.account_at_provider, buyer_payment_method.account_at_provider
+    buyer_account = buyorder.account_at_selected_payment_provider
+    seller_account = sellorder.account_at_selected_payment_provider
+
+    if not seller_account:
+        if sellorder.order_source == 'TRADESITE':
+            try:
+                seller_payment_method = UserPaymentMethod.objects.get(user__id=sellorder.user.id, provider__code = payment_provider)
+                seller_account = seller_payment_method.account_at_provider
+            except:
+                logger.error('get_seller_buyer_payment_accounts(buyorder: {0}, {1}): seller order {2} could not find payment provider for buyer order'.format(
+                    buyorder_id, payment_provider, sellorder.order_id
+                ))
+                raise ValueError(ERR_CANNOT_FIND_SELLER_PAYMENT_PROVIDER)
+    if not buyer_account:
+        if buyorder.order_source == 'TRADESITE':
+            try:
+                buyer_payment_method = UserPaymentMethod.objects.get(user__id=buyorder.user.id, provider__code = payment_provider)
+                buyer_account = buyer_payment_method.account_at_provider
+            except:
+                logger.error('get_seller_buyer_payment_accounts(buyorder: {0}, {1}): could not find payment provider for buyer order'.format(
+                    buyorder_id, payment_provider
+                ))
+                raise ValueError(ERR_CANNOT_FIND_BUYER_PAYMENT_PROVIDER)
+    return seller_account, buyer_account
 
 def create_sell_order(order, operator, api_user = None,  api_redeem_request = None,
          api_trans_id = None):
     userobj = User.objects.get(id = order.owner_user_id)
     operatorObj = User.objects.get(username = operator)
     crypto = Cryptocurrency.objects.get(currency_code = order.crypto)
+
+    try:
+        payment_provider_code = order.selected_payment_provider if order.selected_payment_provider else settings.SUPPORTED_API_PAYMENT_PROVIDERS[0]
+        seller_payment_provider = PaymentProvider.objects.get(pk=payment_provider_code)
+    except:
+        logger.error('create_sell_order(): failed to find user payment provider code {0} for seller {1}:{2}'.format(
+                payment_provider_code, userobj.id, userobj.username
+        ))
+        raise ValueError(ERR_CANNOT_FIND_SELLER_PAYMENT_PROVIDER)
+
+    seller_payment_account =  order.account_at_payment_provider
+    if not seller_payment_account:
+        try:
+            userpaymentmethod = UserPaymentMethod.objects.get(user__id=userobj.id, provider__code=payment_provider_code)
+            seller_payment_account = userpaymentmethod.account_at_provider
+        except:
+            logger.error('create_sell_order(): failed to find user payment method for seller {0}:{1}'.format(
+                userobj.id, userobj.username
+            ))
+
+            raise ValueError(ERR_CANNOT_FIND_SELLER_PAYMENT_ACCOUNT)
+    logger.info('create_sell_order(): get seller {0}:{1}\'s payment account {2}:{3}'.format(
+        userobj.id, userobj.username, seller_payment_provider, seller_payment_account
+    ))
+
     frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
     operation_comment = 'User {0} open {6} sell order {1} with total {2}{3}({4}x@{5}). {6}'.format(
         order.owner_user_id, frmt_date, order.total_amount,
@@ -145,8 +192,8 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
            order_type= order.order_type,
            sub_type = order.sub_type,
            order_source = order.order_source,
-           selected_payment_provider = PaymentProvider.objects.get(pk=order.selected_payment_provider) if order.selected_payment_provider else None,
-           account_at_selected_payment_provider = order.account_at_payment_provider,
+           selected_payment_provider = seller_payment_provider,
+           account_at_selected_payment_provider = seller_payment_account,
            units = order.total_units,
            unit_price = order.unit_price,
            unit_price_currency = order.unit_price_currency,
@@ -329,6 +376,16 @@ def create_purchase_order(buyorder, reference_order_id,
          api_user = None,  api_purchase_request = None,
          api_trans_id = None):
 
+    selected_payment_provider = None
+    try:
+        selected_payment_provider = PaymentProvider.objects.get(pk=seller_payment_provider)
+    except:
+        logger.error('create_purchase_order(): failed to find payment provider record with code {0}'.format(
+            seller_payment_provider
+        ))
+        raise ValueError(ERR_CANNOT_FIND_BUYER_PAYMENT_PROVIDER)
+
+    buyer_payment_account = api_purchase_request.payment_account if api_purchase_request else None
     frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
     buyorder.order_id = frmt_date
     is_api_call = api_user and api_purchase_request and api_trans_id
@@ -392,17 +449,11 @@ def create_purchase_order(buyorder, reference_order_id,
            frmt_date, userwallet.id, userwallet.balance, userwallet.available_balance, userwallet.locked_balance
         ))
 
-        selected_payment_provider = None
-        try:
-            selected_payment_provider = PaymentProvider.objects.get(pk=seller_payment_provider)
-        except:
-            logger.error('create_purchase_order(): failed to find payment provider record with code {0}'.format(
-                seller_payment_provider
-            ))
         order = Order.objects.create(
             order_id = buyorder.order_id,
             user= User.objects.get(pk=buyorder.owner_user_id),
             selected_payment_provider = selected_payment_provider,
+            account_at_selected_payment_provider = buyer_payment_account,
             created_by = operatorObj,
             lastupdated_by = operatorObj,
             reference_order= reference_order,
