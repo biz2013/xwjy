@@ -94,7 +94,7 @@ def parseUserInput(expected_method, request_json):
     
     if request_obj.method == API_METHOD_REDEEM and not request_obj.payment_account:
         logger.error('parseUserInput(): missing payment account')
-        raise ValueError(ERR_NO_PAYMENT_ACCOUNT)
+        raise ValueError(ERR_REDEEM_REQUEST_NO_PAYMENT_ACCOUNT)
 
     amount = int(request_obj.total_fee) if type(request_obj.total_fee) is str else request_obj.total_fee
     logger.debug("The request's amount is {0}".format(amount))
@@ -134,8 +134,14 @@ def handleValueError(ve_msg):
         resp_json['return_msg'] = '无卖单提供充值'
     elif ve_msg == ERR_INVALID_OR_MISSING_PAYMENT_PROVIDER:
         resp_json['return_msg'] = '提供的支付方式无效或缺失'
-    elif ve_msg == ERR_NO_PAYMENT_ACCOUNT:
+    elif ve_msg == ERR_REDEEM_REQUEST_NO_PAYMENT_ACCOUNT:
         resp_json['return_msg'] = '请提供相应的支付账号'
+    elif ve_msg == ERR_CANNOT_FIND_BUYER_PAYMENT_PROVIDER:
+        resp_json['return_msg'] = '找不到买家付款方式'                
+    elif ve_msg == ERR_CANNOT_FIND_SELLER_PAYMENT_PROVIDER:
+        resp_json['return_msg'] = '找不到卖家付款方式'        
+    elif ve_msg == ERR_CANNOT_FIND_SELLER_PAYMENT_ACCOUNT:
+        resp_json['return_msg'] = '找不到卖家账号'
     elif ve_msg == ERR_NO_SELL_ORDER_TO_SUPPORT_PRICE:
         resp_json['return_msg'] = '无卖单提供定价'        
     else:
