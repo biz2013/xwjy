@@ -108,6 +108,16 @@ def parseUserInput(expected_method, request_json):
     return request_obj, api_user
 
 def handleValueError(ve_msg):
+    request_errors = {
+        ERR_REQUEST_MISS_METHOD : '请求缺少method字段',
+        ERR_REQUEST_MISS_BIZCONTENT: '请求缺少biz_content字段',
+        ERR_REQUEST_MISS_VERSION : '请求缺少version字段',
+        ERR_REQUEST_MISS_CHARSET : '请求缺少charset字段',
+        ERR_REQUEST_MISS_SIGN_TYPE : '请求缺少sign_type字段',
+        ERR_REQUEST_MISS_TIMESTAMP : '请求缺少timestamp字段',
+        ERR_REQUEST_MISS_SIGNATURE : '请求缺少sign(签名）字段'
+    }
+
     resp_json = {}
     resp_json['return_code'] = 'FAILED'
     if ve_msg == ERR_INVALID_JSON_INPUT:
@@ -145,7 +155,9 @@ def handleValueError(ve_msg):
     elif ve_msg == ERR_CANNOT_FIND_SELLER_PAYMENT_ACCOUNT:
         resp_json['return_msg'] = '找不到卖家账号'
     elif ve_msg == ERR_NO_SELL_ORDER_TO_SUPPORT_PRICE:
-        resp_json['return_msg'] = '无卖单提供定价'        
+        resp_json['return_msg'] = '无卖单提供定价'
+    elif ve_msg in request_errors:
+        resp_json['return_msg'] = request_errors[ve_msg]
     else:
         resp_json['return_msg'] = '数据错误'
 
