@@ -147,6 +147,9 @@ def handleValueError(ve_msg):
     else:
         resp_json['return_msg'] = '数据错误'
 
+    logger.info('handleValueError({0}): return error response {1}'.format(
+        ve_msg, json.dumps(resp_json, ensure_ascii=False)
+    ))
     return JsonResponse(resp_json)
 
 def handleException(ex_msg):
