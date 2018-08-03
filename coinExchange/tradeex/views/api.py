@@ -110,7 +110,9 @@ def parseUserInput(expected_method, request_json):
 def handleValueError(ve_msg):
     resp_json = {}
     resp_json['return_code'] = 'FAILED'
-    if ve_msg == ERR_INVALID_SIGNATURE:
+    if ve_msg == ERR_INVALID_JSON_INPUT:
+        resp_json['return_msg'] = '用户请求不是正确的JSON格式'
+    elif ve_msg == ERR_INVALID_SIGNATURE:
         resp_json['return_msg'] = '签名不符'
     elif ve_msg == ERR_USER_NOT_FOUND_BASED_ON_APPID:
         resp_json['return_msg'] = '用户不存在'
@@ -156,6 +158,9 @@ def handleException(ex_msg):
     resp_json = {}
     resp_json['return_code'] = 'FAILED'
     resp_json['return_msg'] = '系统错误'
+    logger.info('handleValueError({0}): return error response {1}'.format(
+        ve_msg, json.dumps(resp_json, ensure_ascii=False)
+    ))
     return JsonResponse(resp_json)
 
 # This will find user's account, use its secret key to check
@@ -179,7 +184,11 @@ def prepurchase(request):
         logger.info('receive request in binary {0}'.format(request.body))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
 
-        request_json= json.loads(request.body.decode('utf-8'))
+        try:
+            request_json= json.loads(request.body.decode('utf-8'))
+        except:
+            raise ValueError(ERR_INVALID_JSON_INPUT)
+
         request_obj, api_user = parseUserInput(API_METHOD_PURCHASE, request_json)
 
         #if request_obj.total_fee > settings.API_TRANS_LIMIT:
@@ -274,7 +283,11 @@ def selltoken(request):
     try:
         logger.info('receive request from: {0}'.format(request.get_host()))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
-        request_json= json.loads(request.body.decode('utf-8'))
+        try:
+            request_json= json.loads(request.body.decode('utf-8'))
+        except:
+            raise ValueError(ERR_INVALID_JSON_INPUT)
+
         request_obj, api_user = parseUserInput(API_METHOD_REDEEM, request_json)
         logger.info('selltoken(): [out_trade_no:{0}] find out api user id is {1}, key {2}'.format(
             request_obj.out_trade_no, api_user.user.id, api_user.secretKey
@@ -304,7 +317,11 @@ def query_order_status(request) :
     try:
         logger.debug('receive request from: {0}'.format(request.get_host()))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
-        request_json= json.loads(request.body.decode('utf-8'))
+        try:
+            request_json= json.loads(request.body.decode('utf-8'))
+        except:
+            raise ValueError(ERR_INVALID_JSON_INPUT)
+
         request_obj = TradeAPIRequest.parseFromJson(request_json)
         api_user = APIUserManager.get_api_user_by_apikey(request_obj.apikey)
         validate_request(request_obj, api_user, 'wallet.trade.query')
@@ -352,7 +369,11 @@ def cancel_order(request):
     try:
         logger.debug('receive request from: {0}'.format(request.get_host()))
         logger.info('receive request {0}'.format(request.body.decode('utf-8')))
-        request_json= json.loads(request.body.decode('utf-8'))
+        try:
+            request_json= json.loads(request.body.decode('utf-8'))
+        except:
+            raise ValueError(ERR_INVALID_JSON_INPUT)
+            
         request_obj = TradeAPIRequest.parseFromJson(request_json)
         api_user = APIUserManager.get_api_user_by_apikey(request_obj.api_key)
         validate_request(request_obj, api_user, 'wallet.trade.cancel')
