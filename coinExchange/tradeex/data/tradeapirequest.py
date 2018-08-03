@@ -59,6 +59,21 @@ class TradeAPIRequest(object):
 
     @classmethod
     def parseFromJson(cls, json_input):
+        if 'method' not in json_input:
+            raise ValueError(ERR_REQUEST_MISS_METHOD)
+        if 'biz_content' not in json_input:
+            raise ValueError(ERR_REQUEST_MISS_BIZCONTENT)
+        if 'version' not in json_input:
+            raise ValueError(ERR_REQUEST_MISS_VERSION)
+        if 'charset' not in json_input:
+            raise ValueError(ERR_REQUEST_MISS_CHARSET)
+        if 'sign_type' not in json_input:
+            raise ValueError(ERR_REQUEST_MISS_SIGN_TYPE)
+        if 'timestamp' not in json_input:
+            raise ValueError(ERR_REQUEST_MISS_TIMESTAMP)
+        if 'sign' not in json_input:
+            raise ValueError(ERR_REQUEST_MISS_SIGNATURE)
+            
         method = json_input['method']
         if not method in [API_METHOD_PURCHASE, API_METHOD_REDEEM, API_METHOD_QUERY, API_METHOD_CANCEL]:
             raise ValueError('Unexpected method {0}'.format(method))
