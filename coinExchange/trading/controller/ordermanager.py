@@ -23,8 +23,6 @@ from trading.views.models.userpaymentmethodview import *
 
 logger = logging.getLogger("site.ordermanager")
 
-MIN_CRYPTOCURRENCY_UNITS = 0.00000001
-
 def sell_order_to_str(sell_order):
     description = "[{0}]:type: {1} subtype: {2} source: {3} status: {4} total: {5} ({6}*@{7}): locked: {8} available: {9}".format(
         sell_order.order_id,
@@ -172,7 +170,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
         userwallet = UserWallet.objects.select_for_update().get(
                 user__id=order.owner_user_id,
                 wallet__cryptocurrency = crypto)
-        if userwallet.available_balance - order.total_units < 0 and order.total_units - userwallet.available_balance > MIN_CRYPTOCURRENCY_UNITS:
+        if round(userwallet.available_balance - order.total_units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL) < 0:
             error_msg = "user {0} does not have enough AXFund in wallet {1}: available {2} to be sold {3}".format(
                 userobj.username, userwallet.id, userwallet.available_balance, order.total_units
             )
@@ -248,12 +246,12 @@ def cancel_purchase_order(order, final_status, payment_status,
             sell_order_to_str(sell_order), order.units
         ))
         
-        if sell_order.units_locked - order.units < 0 and order.units - sell_order.units_locked > MIN_CRYPTOCURRENCY_UNITS:
+        if round(sell_order.units_locked - order.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL) < 0:
             raise ValueError('cancel_purchase_order({0}): sell order locked units {1} is less than purchase order units {2}'.format(
                 order.order_id, sell_order.units_locked, order.units
             ))
-        sell_order.units_locked = sell_order.units_locked - order.units
-        sell_order.units_available_to_trade = sell_order.units_available_to_trade + order.units
+        sell_order.units_locked = round(sell_order.units_locked - order.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL)
+        sell_order.units_available_to_trade = round(sell_order.units_available_to_trade + order.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL)
         sell_order.status = 'OPEN'
         sell_order.lastupdated_by = operatorObj
 
@@ -594,7 +592,7 @@ def update_purchase_transaction(purchase_trans, trade_status, trade_msg):
         logger.info("update_purchase_transaction(trade_status {0}): BEFORE revert sell order is: {1}".format(
             trade_status, sell_order_to_str(buyorder.reference_order)))
         
-        if (sell_order.units_locked - buyorder.units < 0 and buyorder.units - sell_order.units_locked > MIN_CRYPTOCURRENCY_UNITS):
+        if round(sell_order.units_locked - buyorder.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL) < 0:
             raise ValueError("update_purchase_transaction(): related purchase order {0}\'s sell order {1} has locked units {2} less then purchase order\'s units {3} ".format(
                 buyorder.order_id, sell_order.order_id, 
                 sell_order.units_locked, buyorder.units
@@ -789,12 +787,12 @@ def confirm_purchase_order(order_id, operator):
         purchase_trans.status = 'PROCESSED'
         purchase_trans.lastupdated_by = operatorObj
 
-        if sell_order.units_locked - buyorder.units < 0 and buyorder.units - sell_order.units_locked > MIN_CRYPTOCURRENCY_UNITS:
+        if round(sell_order.units_locked - buyorder.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL) < 0:
             raise ValueError('confirm_purchase_order({0}): sell order locked units {1} is less than purchase order units {2}'.format(
                 order_id, sell_order.units_locked, buyorder.units
             ))
 
-        sell_order.units_locked = sell_order.units_locked - buyorder.units
+        sell_order.units_locked = round(sell_order.units_locked - buyorder.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL)
         sell_order.status = 'PARTIALFILLED'
         if sell_order.units_available_to_trade < MIN_CRYPTOCURRENCY_UNITS:
             sell_order.status == 'FILLED'
