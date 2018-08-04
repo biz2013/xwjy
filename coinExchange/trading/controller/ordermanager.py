@@ -23,6 +23,7 @@ from trading.views.models.userpaymentmethodview import *
 
 logger = logging.getLogger("site.ordermanager")
 
+MIN_CRYPTOCURRENCY_UNITS = 0.00000001
 
 def sell_order_to_str(sell_order):
     description = "[{0}]:type: {1} subtype: {2} source: {3} status: {4} total: {5} ({6}*@{7}): locked: {8} available: {9}".format(
@@ -34,7 +35,7 @@ def sell_order_to_str(sell_order):
     )   
 
     diff = sell_order.units_locked + sell_order.units_available_to_trade - sell_order.units
-    if diff > 0 or diff > 0.00000001:
+    if diff > 0 or diff > MIN_CRYPTOCURRENCY_UNITS:
         description = "{0} INCONSISTANT!!! {1}+{2}-{3}={4}".format(
             description, sell_order.units_locked, sell_order.units_available_to_trade,
             sell_order.units, diff
@@ -171,7 +172,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
         userwallet = UserWallet.objects.select_for_update().get(
                 user__id=order.owner_user_id,
                 wallet__cryptocurrency = crypto)
-        if userwallet.available_balance - order.total_units < 0:
+        if userwallet.available_balance - order.total_units < 0 and order.total_units - userwallet.available_balance > MIN_CRYPTOCURRENCY_UNITS:
             error_msg = "user {0} does not have enough AXFund in wallet {1}: available {2} to be sold {3}".format(
                 userobj.username, userwallet.id, userwallet.available_balance, order.total_units
             )
@@ -247,7 +248,7 @@ def cancel_purchase_order(order, final_status, payment_status,
             sell_order_to_str(sell_order), order.units
         ))
         
-        if sell_order.units_locked - order.units < 0:
+        if sell_order.units_locked - order.units < 0 and order.units - sell_order.units_locked > MIN_CRYPTOCURRENCY_UNITS:
             raise ValueError('cancel_purchase_order({0}): sell order locked units {1} is less than purchase order units {2}'.format(
                 order.order_id, sell_order.units_locked, order.units
             ))
@@ -445,7 +446,7 @@ def create_purchase_order(buyorder, reference_order_id,
                     reference_order.units_available_to_trade
                 ))
                 raise ValueError('ALL_OR_NOTHING_ORDER_INVALID_TOTAL_UNITS')
-            if reference_order.units_available_to_trade -  buyorder.total_units > 0.00000001:
+            if reference_order.units_available_to_trade -  buyorder.total_units > MIN_CRYPTOCURRENCY_UNITS:
                 logger.error('Purchase amount %f does not match ALL_OR_NOTHING sell order %s\'s total unit(%f)' % (
                     buyorder.total_units, reference_order.order_id, reference_order.total_units
                 ))
@@ -593,7 +594,7 @@ def update_purchase_transaction(purchase_trans, trade_status, trade_msg):
         logger.info("update_purchase_transaction(trade_status {0}): BEFORE revert sell order is: {1}".format(
             trade_status, sell_order_to_str(buyorder.reference_order)))
         
-        if (sell_order.units_locked - buyorder.units < 0):
+        if (sell_order.units_locked - buyorder.units < 0 and buyorder.units - sell_order.units_locked > MIN_CRYPTOCURRENCY_UNITS):
             raise ValueError("update_purchase_transaction(): related purchase order {0}\'s sell order {1} has locked units {2} less then purchase order\'s units {3} ".format(
                 buyorder.order_id, sell_order.order_id, 
                 sell_order.units_locked, buyorder.units
@@ -788,14 +789,14 @@ def confirm_purchase_order(order_id, operator):
         purchase_trans.status = 'PROCESSED'
         purchase_trans.lastupdated_by = operatorObj
 
-        if sell_order.units_locked - buyorder.units < 0:
+        if sell_order.units_locked - buyorder.units < 0 and buyorder.units - sell_order.units_locked > MIN_CRYPTOCURRENCY_UNITS:
             raise ValueError('confirm_purchase_order({0}): sell order locked units {1} is less than purchase order units {2}'.format(
                 order_id, sell_order.units_locked, buyorder.units
             ))
 
         sell_order.units_locked = sell_order.units_locked - buyorder.units
         sell_order.status = 'PARTIALFILLED'
-        if sell_order.units_available_to_trade < 0.00000001:
+        if sell_order.units_available_to_trade < MIN_CRYPTOCURRENCY_UNITS:
             sell_order.status == 'FILLED'
         sell_order.lastupdated_by = operatorObj
         sell_order.save()
