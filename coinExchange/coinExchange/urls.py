@@ -18,11 +18,17 @@ from django.urls import include, re_path, path
 from django.conf import settings
 from django.contrib.auth import views as auth_views
 from django.conf.urls.static import static
+from testsetup import setuptest
 
 urlpatterns = [
-    path('trading/', include('trading.urls')),
+    re_path(r'^trading/', include('trading.urls')),
+    re_path(r'^api/v1/', include('tradeex.urls')),
     re_path(r'^admin/', admin.site.urls),
     re_path(r'^accounts/', include('django.contrib.auth.urls')),
+    re_path(r'^setuptest/$', setuptest.setuptestuser),
+    re_path(r'^setup_fix/$', setuptest.fix),
+    re_path(r'^setup_create_api_user/$', setuptest.create_api_user),
+    re_path(r'^trigger_purchase_notify/$', setuptest.send_notify_test),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 #Add URL maps to redirect the base URL to our application

@@ -11,7 +11,7 @@
 		<div class="well">
        <div class="row">
          <div class="modal-body">
-           <h2>投资基金提现</h2>
+           <h2>交易历史</h2>
            <div id="div_id_quantity" class="form-group">
              <table class="table">
                <tr>
@@ -20,30 +20,17 @@
                  <th>出帐</th>
                  <th>时间</th>
                </tr>
+               {% for trans in transactions %}
+               {% if trans.trans_type != 'CANCEL SELL ORDER' and trans.trans_type != 'CANCEL BUY ORDER' %}
                <tr>
-                 <td>购买</td>
-                 <td>1500</td>
-                 <td></td>
-                 <td>2018-03-14 00:00</td>
+                 <td>{{ trans.trans_type_display }}</td>
+                 <td>{% if trans.balance_update_type == 'CREDIT' %}{{ trans.units }}{% endif %}</td>
+                 <td>{% if trans.balance_update_type == 'DEBT' %}-{{ trans.units }}{% endif %}</td>
+                 <td>{{ trans.lastupdated_at|date:"m-d" }} {{ trans.lastupdated_at|time:"H:i:s" }}</td>
+                 <!--<td>{{ trans.availables_balance }}</td>-->
                </tr>
-               <tr>
-                 <td>提现</td>
-                 <td></td>
-                 <td>200</td>
-                 <td>2018-03-14 00:00</td>
-               </tr>
-               <tr>
-                 <td>存入</td>
-                 <td>200</td>
-                 <td></td>
-                 <td>2018-03-14 00:00</td>
-               </tr>
-               <tr>
-                 <td>转账</td>
-                 <td></td>
-                 <td>500</td>
-                 <td>2018-03-14 00:00</td>
-               </tr>
+               {% endif %}
+               {% endfor %}
              </table>
            </div>
          </div>

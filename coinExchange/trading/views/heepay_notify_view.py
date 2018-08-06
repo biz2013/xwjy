@@ -1,18 +1,23 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import logging, json
+import logging, json, sys
+sys.path.append('../stakingsvc/')
+
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
+from tradeex.client.apiclient import APIClient
+from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from trading.config import context_processor
 from trading.controller.global_constants import *
 from trading.controller.heepaymanager import *
 from trading.controller import ordermanager
 from trading.views import errorpageview
 
+from tradeex.data.tradeapiresponse import TradeAPIResponse
 logger = logging.getLogger("site.heepay_confirm")
 
 def get_payment_confirmation_json(request, app_key):
@@ -47,7 +52,12 @@ def heepay_confirm_payment(request):
                 error_msg = 'Receive notification with unsupported trade_status %s' % trade_status
                 logger.error(error_msg)
                 return HttpResponse(content='error')
+            
+            #api_trans = ordermanager.get_associated_api_trans_of_buyorder(json_data['out_trade_no'])
+            #old_trade_status = api_trans.trade_status if api_trans else None
+
             ordermanager.update_order_with_heepay_notification(json_data, 'admin')
+
             return HttpResponse(content='OK')
         else:
             logger.info("Receive sync payment notification")
@@ -76,3 +86,22 @@ def heepay_confirm_payment(request):
                '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
         else:
             return HttpResponse(content='error')
+
+# TODO: consolidte this
+def create_api_notification(api_trans):
+        return TradeAPIResponse(
+            '1.0',
+            api_trans.api_user.apiKey,
+            api_trans.api_user.secretKey,
+            api_trans.api_out_trade_no,
+            api_trans.transactionId,
+            api_trans.payment_provider.name,
+            api_trans.subject,
+            api_trans.total_fee,
+            api_trans.trade_status,
+            api_trans.real_fee,
+            api_trans.payment_provider_last_notified_at.strftime('yyyyMMddHHmmss') if api_trans.payment_provider_last_notified_at else None,
+            from_account=api_trans.from_account,
+            to_account = api_trans.to_account,
+            attach = api_trans.attach
+        )

@@ -1,0 +1,12 @@
+[Unit]
+Description=coin exchange gunicorn daemon
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/home/ubuntu/workspace/xwjy/coinExchange
+ExecStart=/home/ubuntu/workspace/xwjy/coinExchange/dj2env/bin/gunicorn --workers 5 --bind unix:/home/ubuntu/workspace/xwjy/coinExchange/coinExchange_nginx.sock coinExchange.wsgi:application --access-logfile /var/log/gunicorn/web.access.log --error-logfile /var/log/gunicorn/web.error.log 
+
+[Install]
+WantedBy=multi-user.target

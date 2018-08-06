@@ -10,8 +10,10 @@
 	<div class="container">
 		<div class="well">
        <div class="row">
-         <div class="modal-body">
-           <h2>购买投资基金</h2>
+         <form role="dialog" action="/walletgui/purchase/" aria-labelledby="lockfund-form-label" aria-hidden="true" method='post'>
+          {% csrf_token %}
+          <div class="modal-body">
+           <h2>充值</h2>
            <div id="div_id_quantity" class="form-group">
              <label for="id_amount" class="control-label">购买总量(CNY)</label><span class="asteriskField">*</span> </label>
              <div class="controls "> <input class="textinput textInput form-control" id="id_txt_amount" maxlength="16" name="amount" type="text" /> </div>
@@ -21,6 +23,7 @@
            <button type="submit" class="btn btn-primary pull-left">提交</button>
            <button type="button" class="btn btn-default pull-right">撤销</button>
          </div>
+        </form>
       </div>
 		</div>
 		<hr/>
