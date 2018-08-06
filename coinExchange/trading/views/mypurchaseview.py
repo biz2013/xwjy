@@ -63,25 +63,35 @@ def show_purchase_input(request):
         reference_order_id = request.POST["reference_order_id"]
         owner_login = request.POST["owner_login"]
         unit_price = float(request.POST["locked_in_unit_price"])
+        order_sub_type = request.POST["sub_type"]
         total_units = 0
         if 'quantity' in request.POST:
            total_units = float(request.POST['quantity'])
         available_units = float(request.POST["available_units_for_purchase"])
-        owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
+        seller_payment_provider = request.POST["seller_payment_provider"]
+        seller_payment_provider_account = request.POST["seller_payment_provider_account"]
+        
+        owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id) if not seller_payment_provider else [
+            UserPaymentMethodView(0,
+                0, seller_payment_provider,
+                # TODO: the name of the seller payment provider should come from DB
+                '汇钱包', seller_payment_provider_account,
+                '')]
         #for method in owner_payment_methods:
         #    print ("provider %s has image %s" % (method.provider.name, method.provider_qrcode_image))
         buyorder = OrderItem(
            '',
            userid,
            username,
-           unit_price,'CYN',
+           unit_price,'CNY',
            total_units, 0,
            0.0, 'AXFund',
-           '','','BUY')
+           '','','BUY', sub_type = order_sub_type)
         return render(request, 'trading/input_purchase.html',
                {'username': username,
                 'buyorder': buyorder,
                 'owner_user_id': owner_user_id,
+                'sub_type': order_sub_type,
                 'reference_order_id': reference_order_id,
                 'available_units_for_purchase': available_units,
                 'owner_payment_methods': owner_payment_methods,
@@ -101,10 +111,12 @@ def send_payment_request_to_heepay(sitesettings, buyorder_id, amount):
            sitesettings.heepay_return_url_host,
            sitesettings.heepay_return_url_port)
     heepay = HeePayManager()
+        
     seller_account, buyer_account = ordermanager.get_seller_buyer_payment_accounts(
                 buyorder_id, 'heepay')
     logger.info('find seller account {0} and buyer account {1} with provider heepay'.format(
               seller_account, buyer_account))
+        
     json_payload = heepay.create_heepay_payload('wallet.pay.apply',
          buyorder_id,
          sitesettings.heepay_app_id,
@@ -114,6 +126,7 @@ def send_payment_request_to_heepay(sitesettings, buyorder_id, amount):
          buyer_account,
          notify_url,
          return_url)
+    logger.info("send this to heepay {0}".format(json_payload.encode('utf-8')))
     status, reason, message = heepay.send_buy_apply_request(json_payload)
     if status == 200:
         logger.info("heepay replied: {0}".format(message))
@@ -128,7 +141,7 @@ def send_payment_request(sitesettings, payment_provider, buyorder_id, amount):
     if payment_provider == 'heepay':
         return send_payment_request_to_heepay(sitesettings, buyorder_id, amount)
     else:
-        raise ValueError('Payment method {0} is not supported'.format(payment_method))
+        raise ValueError('Payment method {0} is not supported'.format(payment_provider))
 
 def generate_payment_qrcode(payment_provider,payment_provider_response_json,
          qrcode_image_basedir):
@@ -150,9 +163,11 @@ def create_purchase_order(request):
             reference_order_id = request.POST['reference_order_id']
             owner_user_id = int(request.POST["owner_user_id"])
             quantity = float(request.POST['quantity'])
-            available_units = float(request.POST['available_units'])
             unit_price = float(request.POST['unit_price'])
             seller_payment_provider = request.POST['seller_payment_provider']
+            logger.debug('create_purchase_order(): seller_payment_provider is {0}'.format(
+                seller_payment_provider
+            ))
             crypto= request.POST['crypto']
             total_amount = float(request.POST['total_amount'])
             buyorder = OrderItem('', userid, username, unit_price, 'CNY', quantity,
@@ -169,27 +184,25 @@ def create_purchase_order(request):
                     messages.error(request,'购买数量超过卖单余额，请按撤销键然后再试')
                 else:
                     raise
-                owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
-                useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
+                #owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
+                #useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
                 return redirect('purchase')
             if buyorderid is None:
                raise ValueError('Failed to get purchase order id')
-
-            returnstatus = None
 
             # read the sitsettings
             sitesettings = context_processor.settings(request)['settings']
             json_response = send_payment_request(sitesettings, seller_payment_provider,
                 buyorder.order_id, total_amount)
             if json_response is not None and json_response['return_code'] == 'SUCCESS':
-                if ordermanager.post_open_payment_order(
+                ordermanager.post_open_payment_order(
                                 buyorderid, 'heepay',
                                 json_response['hy_bill_no'],
                                 json_response['hy_url'],
-                                username):
+                                username)
 
-                    qrcode_file = generate_payment_qrcode('heepay', json_response, settings.MEDIA_ROOT)
-                    return render(request, 'trading/purchase_heepay_qrcode.html',
+                qrcode_file = generate_payment_qrcode('heepay', json_response, settings.MEDIA_ROOT)
+                return render(request, 'trading/purchase_heepay_qrcode.html',
                          { 'total_units' : quantity, 'unit_price': unit_price,
                            'total_amount': total_amount,
                            'heepay_qrcode_file' : qrcode_file })

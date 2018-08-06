@@ -20,6 +20,7 @@ class HeePayManager(object):
    def create_heepay_payload(self, wallet_action, order_id_str, app_id, app_key,
          client_ip, amount, seller_account, buyer_account, notify_url,
          return_url):
+       logger.info('create_heepay_payload(amount:{0}'.format(amount))
        jsonobj = {}
        jsonobj['method'] = wallet_action
        jsonobj['version'] = '1.0'
@@ -31,8 +32,9 @@ class HeePayManager(object):
        #frmt_date = '20171218094803'
        jsonobj['timestamp'] = frmt_date
        biz_content = '{\"out_trade_no\":\"%s\",' % (order_id_str)
-       amount_str = str(int(round(amount, 2)*100))
-       biz_content = biz_content + ('\"subject\":\"购买{0}CNY\",'.format(amount_str))
+       amount_in_dollar = round(amount, 2)
+       amount_str = str(int(amount_in_dollar*100))
+       biz_content = biz_content + ('\"subject\":\"购买{0}元\",'.format(amount_str))
        biz_content = biz_content + ('\"total_fee\":\"{0}\",'.format(amount_str))
        biz_content = biz_content + ('\"api_account_mode\":\"Account\",')
        #biz_content = biz_content + ('\"from_account\":\"{0}\",'.format(buyer_account))
@@ -106,12 +108,11 @@ class HeePayManager(object):
        content = ''
        for key in keylist:
            if key != 'sign':
-              content = content + key + '=' + json_data[key] + '&'
-       content = content + 'key=' + app_key
-       content = content.encode('utf-8')
+              content = "{0}{1}={2}&".format(content, key, json_data[key])
+       content = "{0}key={1}".format(content, app_key)
        m = hashlib.md5()
        logger.info('the content to be verified with signature: {0}'.format(content))
-       m.update(content)
+       m.update(content.encode('utf-8'))
        signed_str = m.hexdigest().upper()
        return signed_str
 

@@ -1,8 +1,10 @@
 from .base import *
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['54.203.195.52', 'localhost', '127.0.0.1']
 # send email to console
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+INSTALLED_APPS += ['testsetup',]
 
 LOGGING = {
     'version': 1,
@@ -43,6 +45,16 @@ LOGGING = {
     'loggers': {
         # The catch-all logger for messages in the site hierarchy. loggers for 'site', 'site.registration' all go here.
         'site': {
+            'handlers': ['siteTimeRotateFile', 'console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'tradeex': {
+            'handlers': ['siteTimeRotateFile', 'console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'tradeapi': {
             'handlers': ['siteTimeRotateFile', 'console'],
             'level': 'DEBUG',
             'propagate': True,
