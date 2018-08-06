@@ -1,0 +1,395 @@
+[
+  {
+    "model": "trading.sitesettings",
+    "pk": 1,
+    "fields":{
+      "support": "",
+      "heepay_notify_url_host": "localhost",
+      "heepay_notify_url_port": 8000,
+      "heepay_return_url_host":"localhost",
+      "heepay_return_url_port": 8000,
+      "heepay_app_id" : "hyq17121610000800000911220E16AB0",
+      "heepay_app_key" : "4AE4583FD4D240559F80ED39",
+      "heepay_expire_in_sec" : 90,
+      "axfd_path": "/home/ubuntu/workspace/xwjy/smwy/src/axfd",
+      "axfd_datadir": "/home/ubuntu/workspace/xwjy/qb",
+      "axfd_account_name": "",
+      "axfd_list_trans_count": 1000,
+      "confirmation_timeout_insec" : 0
+    }
+  },
+  {
+    "model": "trading.cryptocurrency",
+    "pk": "AXFund",
+    "fields":{
+      "name":"美基金",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
+  {
+    "model": "trading.cryptocurrency",
+    "pk": "CNY",
+    "fields":{
+      "name":"人民币",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
+   {
+     "model": "auth.user",
+     "pk": 1,
+     "fields":{
+       "username":"admin",
+       "first_name": "",
+       "last_name": "",
+       "email":"admin@yahoo.com",
+       "is_superuser": 1,
+       "is_staff": 1,
+       "is_active":1,
+       "date_joined": "2017-12-17T21:14:00+08:00"
+     }
+   },
+  {
+     "model": "trading.wallet",
+     "pk": 1,
+     "fields":{
+       "name":"AXFundWallet",
+       "cryptocurrency": "AXFund",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by": 1
+     }
+   },
+   {
+    "model": "trading.wallet",
+    "pk": 2,
+    "fields":{
+      "name":"CNYWallet",
+      "cryptocurrency": "CNY",
+      "config_json": "{ \"bin_path\": \"/home/ubuntu/workspace/peercoin/bin/peercoin\", \"passphrase\": \"\", \"datadir\": \"/home/ubuntu/workspace/peercoin/data\", \"list_trans_count\": 100000, \"account_name\": \"\" }", 
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
+  {
+     "model": "trading.paymentprovider",
+     "pk": "weixin",
+     "fields" : {
+       "name" : "微信支付",
+       "config_json" : "",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by" : 1
+     }
+   },
+   {
+     "model": "trading.paymentprovider",
+     "pk": "alipay",
+     "fields" : {
+       "name" : "支付宝",
+       "config_json" : "",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by" : 1
+     }
+   },
+   {
+     "model": "trading.paymentprovider",
+     "pk": "heepay",
+     "fields" : {
+       "name" : "汇钱包",
+       "config_json" : "",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by" : 1
+     }
+   },
+
+   {
+     "model": "auth.user",
+     "pk" : 2,
+     "fields":{
+       "password" : "pbkdf2_sha256$36000$jyptIRggNQSY$Y2c1hDzjRkGg3swnw9MdVpm1kzxkqj6dhrVLiXp1w5g=",
+       "username" : "tttzhang2000@yahoo.com",
+       "email" : "tttzhang2000@yahoo.com",
+       "is_superuser" : 0,
+       "is_staff" : 0,
+       "last_login" : "2018-01-30 03:52:14.396183"
+     }
+   },
+   {
+     "model": "auth.user",
+     "pk" : 3,
+     "fields":{
+       "password" : "pbkdf2_sha256$36000$jyptIRggNQSY$Y2c1hDzjRkGg3swnw9MdVpm1kzxkqj6dhrVLiXp1w5g=",
+       "username" : "yingzhou61@yahoo.ca",
+       "email" : "yingzhou61@yahoo.ca",
+       "is_superuser" : 0,
+       "is_staff" : 0,
+       "last_login" : "2018-01-30 03:52:14.396183"
+     }
+   },
+   {
+    "model": "auth.user",
+    "pk": 4,
+    "fields":{
+      "username":"tradeex_api_user1",
+      "first_name": "",
+      "last_name": "",
+      "email":"tttzhang2000@yahoo.com",
+      "is_superuser": 0,
+      "is_staff": 0,
+      "is_active":1,
+      "date_joined": "2017-12-17T21:14:00+08:00"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 5,
+    "fields":{
+      "username":"tradeex_api_user2",
+      "first_name": "",
+      "last_name": "",
+      "email":"yingzhou61@yahoo.com",
+      "is_superuser": 0,
+      "is_staff": 0,
+      "is_active":1,
+      "date_joined": "2017-12-17T21:14:00+08:00"
+    }
+  },
+  {
+    "model": "trading.userpaymentmethod",
+    "pk": 1,
+    "fields": {
+      "user": 2,
+      "provider": "heepay",
+      "account_at_provider": "15811302702",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
+  {
+    "model": "trading.userpaymentmethod",
+    "pk": 2,
+    "fields": {
+      "user": 3,
+      "provider": "heepay",
+      "account_at_provider": "18600701961",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
+  {
+    "model": "trading.userpaymentmethod",
+    "pk": 3,
+    "fields": {
+      "user": 4,
+      "provider": "heepay",
+      "account_at_provider": "13910978598",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
+  {
+    "model": "trading.userpaymentmethod",
+    "pk": 4,
+    "fields": {
+      "user": 5,
+      "provider": "heepay",
+      "account_at_provider": "api_user2_12345",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
+
+  {
+     "model": "trading.userwallet",
+     "pk": 1,
+     "fields":{
+       "user": 2,
+       "wallet": 1,
+       "wallet_addr":"ANG53xNLvM4YkjHCeiaLMgobMZv3i6hT5m",
+       "balance" : 1000,
+       "available_balance" : 1000,
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by": 1
+     }
+   },
+   {
+     "model": "trading.userwallet",
+     "pk": 2,
+     "fields":{
+       "user": 3,
+       "wallet": 1,
+       "wallet_addr":"ARBNHx31uYkhbiqnMmjsZdcH16BZieg9jo",
+       "balance" : 2000,
+       "available_balance" : 2000,
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by": 1
+     }
+   },
+   {
+     "model": "trading.userwallet",
+     "pk": 3,
+     "fields":{
+       "user": 4,
+       "wallet": 1,
+       "wallet_addr":"BcinEAwDsYgUDHeZijSDD7AHYNuDdqBn5j",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by": 1
+     }
+   },
+   {
+    "model": "trading.userwallet",
+    "pk": 4,
+    "fields":{
+      "user": 4,
+      "wallet": 2,
+      "wallet_addr":"PBfMvKuNtJH5yodb13n5FfE7UggNCLh7YP",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
+  {
+    "model": "trading.userwallet",
+    "pk": 5,
+    "fields":{
+      "user": 5,
+      "wallet": 1,
+      "balance" : 2000,
+      "available_balance" : 2000,
+      "wallet_addr":"FcinEAwDsYgUDHeZijSDD7AHYNuDdqBn5j",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
+  {
+   "model": "trading.userwallet",
+   "pk": 6,
+   "fields":{
+     "user": 5,
+     "wallet": 2,
+     "balance" : 1000,
+     "available_balance" : 1000,
+     "wallet_addr":"PXZCvnATCuvNcJheKsg9LGe5Asf9a5xeEd",
+     "created_at": "2017-12-17T21:14:00+08:00",
+     "lastupdated_at": "2017-12-17T21:14:00+08:00",
+     "created_by": 1,
+     "lastupdated_by": 1
+   }
+ },
+{
+  "model": "trading.userwallet",
+  "pk": 7,
+  "fields":{
+    "user": 1,
+    "wallet": 2,
+    "wallet_addr":"PUXF3ugnPigADfgK2HKv71k8vAhySvP1v7",
+    "balance" : 1000000,
+    "available_balance" : 1000000,
+    "created_at": "2017-12-17T21:14:00+08:00",
+    "lastupdated_at": "2017-12-17T21:14:00+08:00",
+    "created_by": 1,
+    "lastupdated_by": 1
+  }
+},
+{
+  "model": "trading.userwallet",
+  "pk": 8,
+  "fields": {
+      "user": null,
+      "wallet": 1,
+      "user_wallet_trans_id": null,
+      "wallet_addr": "ARDY127wX22by4nsT39obCQHbZ85LQuVzR",
+      "created_at": "2018-02-19T20:53:32.034Z",
+      "created_by": 1,
+      "lastupdated_at": "2018-02-19T20:53:32.034Z",
+      "lastupdated_by": 1
+  }
+},
+ {
+    "model": "trading.userexternalwalletaddress",
+    "pk": "1",
+    "fields" : {
+        "address" :  "AcinEAwDsYgUDHeZijSDD7AHYNuDdqBn5j",
+        "alias" : "aaaa",
+        "user" : 2,
+        "cryptocurrency" : "AXFund",
+        "created_at": "2018-01-30 03:52:14.396183",
+        "lastupdated_at": "2018-01-30 03:52:14.396183",
+        "created_by":  1,
+        "lastupdated_by" : 1
+    }
+  },
+  {
+    "model": "trading.userexternalwalletaddress",
+    "pk": "2",
+    "fields" : {
+        "address" :  "TRADDEX_USER1_EXTERNAL_TEST_ADDR",
+        "alias" : "primary",
+        "user" : 4,
+        "cryptocurrency" : "CNY",
+        "created_at": "2018-01-30 03:52:14.396183",
+        "lastupdated_at": "2018-01-30 03:52:14.396183",
+        "created_by":  1,
+        "lastupdated_by" : 1
+    }
+  },
+  {
+     "model": "tradeex.apiuseraccount",
+     "pk": "TRADEEX_USER1_APP_KEY_1234567890ABCDE",
+     "fields": {
+       "user" : 4,
+       "accountNo": "1000-0000-0001",
+       "secretKey" : "TRADEEX_USER1_APP_SECRET",
+       "status" : "ACTIVE",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by": 1
+     }
+   },
+   {
+    "model": "tradeex.apiuseraccount",
+    "pk": "TRADEEX_USER2_APP_KEY_SELLER",
+    "fields": {
+      "user" : 5,
+      "accountNo": "1000-0000-0002",
+      "secretKey" : "TRADEEX_USER2_API_SECRET",
+      "status" : "ACTIVE",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  }
+ ]

@@ -5,10 +5,13 @@ import json, time, pytz, datetime as dt
 import hashlib
 
 
-class PrepurchaseRequest(object):
+class PurchaseRequest(object):
 
    def __init__(self, apiKey, secret_key, order_id, total_fee, client_ip,
-           subject='人民币充值', attached='', notify_url='', return_url='',
+           subject='人民币充值', attached='',
+           currency='CNY',
+           payment_provider='heepay',
+           notify_url='', return_url='',
            version='1.0', charset='utf-8', sign_type='MD5', timestamp=0,
            sign = ''):
        self.version = version
@@ -19,13 +22,16 @@ class PrepurchaseRequest(object):
        self.secret_key = secret_key
        self.order_id = order_id
        self.total_fee = total_fee
+       self.currency = currency
        self.client_ip = client_ip
        self.subject = subject
        self.attached = attached
        self.return_url = return_url
        self.notify_url= notify_url
        self.timestamp = timestamp
+       self.payment_provider = payment_provider
        self.sign = sign
+       self.meta_option = None
 
    @classmethod
    def parseFromJson(cls, json_input):
@@ -64,11 +70,13 @@ class PrepurchaseRequest(object):
        biz_content_json = {}
        biz_content_json['out_trade_no'] = self.order_id
        biz_content_json['subject'] = self.subject
+       biz_content_json['payment_provider'] = self.payment_provider
        amount_str = str(round(self.total_fee,2))
        biz_content_json['total_fee'] = amount_str
        biz_content_json['api_account_mode']= 'Account'
-
        biz_content_json['client_ip'] = self.client_ip
+       if self.meta_option is not None and len(self.meta_option) > 0:
+           biz_content_json['meta_option'] = self.meta_option
        if self.notify_url is not None and len(self.notify_url) > 0:
           biz_content_json['notify_url'] = self.notify_url
        if self.return_url is not None and len(self.return_url) > 0:

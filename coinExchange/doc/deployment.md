@@ -48,6 +48,10 @@ LoadModule wsgi_module /usr/lib/apache2/modules/mod_wsgi.so
 ServerName server_domain_or_IP (ex: 192.168.1.252)
 ```
 
+5) Verify wsgi module:
+https://code.google.com/archive/p/modwsgi/wikis/CheckingYourInstallation.wiki
+https://stackoverflow.com/questions/8660896/mod-wsgi-isnt-honoring-wsgipythonhome
+
 Verify configuration and restart
 ```
 sudo apache2ctl configtest
@@ -55,6 +59,12 @@ sudo apache2ctl restart apache2
 or: 
 sudo apache2ctl stop
 sudo apache2ctl start
+Ubuntu:
+/etc/init.d/apache2 stop
+/etc/init.d/apache2 start
+systemctl start apache2.service
+systemctl stop apache2.service
+systemctl restart apache2.service
 ```
 
 Check /var/log/apache2/error.log, verify the wsgi mod are loaded correctly. Looking for "mod_wsgi/4.5.24 Python/3.5 configured".
@@ -166,7 +176,7 @@ sudo chmod 755 -R /var/www/coinexchange/media
 ## Prepare logging
 Grant access for apache to write logs.
 ```
-chmod 777 /home/chi/workspace/python/projects/xwjy/coinExchange/logs
+chmod 777 -R /home/chi/workspace/python/projects/xwjy/coinExchange/logs
 ```
 
 ## Config environment variables
@@ -232,3 +242,60 @@ source dj2env/bin/activate
 sudo dj2env/bin/python manage.py runserver --settings=coinExchange.settings.dev 0.0.0.0:80
 
 ```
+
+### Set up Nginx and Gunicorn
+doc: config nginx, gunicorn, django on ubuntu16: https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04
+
+
+sudo apt install aptitude  
+// get latest default version of default application.  
+aptitude update  
+aptitude install python-dev  
+pip install gunicorn  
+
+sudo service apache2 stop  
+sudo aptitude install nginx  
+// sudo service nginx (start|stop|restart) to control Nginx service  
+
+sudo ufw allow 8000  
+
+// activate virutalenv  
+// cd xwjy/coinExchange  
+// test gunicorn works  
+gunicorn --bind 127.0.0.1:8000 coinExchange.wsgi  
+
+// deploy coinexchange+gunicorn service 
+sudo cp deploy/gunicorn/coinexchange.service /etc/systemd/system  
+sudo systemctl start coinexchange  
+sudo systemctl enable coinexchange  
+// check status
+sudo systemctl status coinexchange
+// check socket file
+ls {coinexchange work directory} -> coinExchange_nginx.sock
+
+// config nginx
+sudo cp deploy/gunicorn/coinexchange_nginx /etc/nginx/sites-available/coinexchange
+sudo ln -s /etc/nginx/sites-available/coinexchange /etc/nginx/sites-enabled
+// test nginx config syntax
+sudo nginx -t
+sudo systemctl restart nginx
+
+### Troubleshooting
+
+Check the Nginx process logs by typing: `sudo journalctl -u nginx`
+Check the Nginx access logs by typing: `sudo less /var/log/nginx/access.log`
+Check the Nginx error logs by typing: `sudo less /var/log/nginx/error.log`
+Check the Gunicorn application logs by typing: `sudo journalctl -u gunicorn`
+Check port number occupied by process: `netstat -tulpn`
+
+
+For more troubleshooting: look at https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04
+
+### Change code and redeploy with Gunicorn systemd service
+sudo systemctl daemon-reload
+sudo systemctl restart coinexchange
+
+### Update Nginx config
+sudo cp deploy/gunicorn/coinexchange_nginx /etc/nginx/sites-available/coinexchange
+sudo nginx -t
+sudo systemctl restart nginx

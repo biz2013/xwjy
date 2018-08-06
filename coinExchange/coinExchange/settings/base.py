@@ -11,15 +11,13 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
+import sys
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 #BASE_DIR = os.path.join( os.path.dirname(os.path.abspath(__file__)), os.pardir)
 currentDir = os.path.dirname(os.path.abspath(__file__))
 parentDir = os.path.join(currentDir, os.pardir)
-#print('cur dir: ' + currentDir)
-#print('parent dir: ' + parentDir)
 BASE_DIR = os.path.abspath(os.path.join( parentDir, os.pardir))
-#print('base dir: ' + BASE_DIR)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
@@ -41,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'tradeex.apps.TradeExchangeConfig',
+    'tradeex.apitests',
     'trading.apps.TradingConfig',
     'trading.tests',
     'mathfilters',
@@ -154,6 +154,9 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'axfundnoreply@gmail.com'
 EMAIL_HOST_PASSWORD = 'AXFund@017'
 
+#List of the code of supported payment providers for the API
+SUPPORTED_API_PAYMENT_PROVIDERS=['heepay']
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -197,6 +200,16 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+        'tradeex': {
+            'handlers': ['siteTimeRotateFile', 'console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'tradeapi': {
+            'handlers': ['siteTimeRotateFile', 'console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
         # TODO: add django.server, django.template, django.db.backends and other django framework component logging.
         'django': {
             'handlers': ['console', 'siteTimeRotateFile'],
@@ -213,8 +226,11 @@ LOGGING = {
 
 # Redirect to home URL after login (Default redirects to /accounts/profile/)
 LOGIN_REDIRECT_URL = '/'
-
+HEEPAY_NOTIFY_HOST='www.uuvc.com'
 # format for construct the url for heepay return and notify
 HEEPAY_NOTIFY_URL_FORMAT='http://{0}:{1}/trading/heepay/confirm_payment/'
 HEEPAY_RETURN_URL_FORMAT='http://{0}:{1}/trading/heepay/confirm_payment/'
 
+# These are execution behavior code
+TEST_REAL_CALL = False
+API_TRANS_LIMIT_IN_CENT = 1000000
