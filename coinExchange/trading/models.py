@@ -63,6 +63,9 @@ class PaymentProvider(models.Model):
    lastupdated_at = models.DateTimeField(auto_now=True)
    lastupdated_by = models.ForeignKey(User, related_name='PaymentProvider_lastupdated_by', on_delete=models.SET_NULL, null=True)
 
+class UserProfile(models.Model):
+   user = models.OneToOneField(User, on_delete=models.CASCADE)
+   alias = models.CharField(max_length=100, default='')
 
 class UserPaymentMethod(models.Model):
    user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -120,6 +123,7 @@ class UserWalletTransaction(models.Model):
         ('CANCEL BUY ORDER', 'Cancel Buy Order'),
         ('DELIVER ON PURCHASE', 'Deliver on purhcase'),
         ('REDEEM','Redeem'), ('REDEEMFEE', 'RedeemFee'),
+        ('AUTOREDEEM','AutoRedeem'),
         ('DEPOSIT','Deposit'))
    TRANS_STATUS = (('PENDING','Pending'), ('PROCESSED','Processed'), ('CANCELLED', 'Cancelled'))
    # status for automatic payment
@@ -189,8 +193,10 @@ class Order(models.Model):
    ORDER_TYPE = (('BUY','Buy'),('SELL','Sell'),('REDEEM','Redeem'))
 
    #buy_on_ask and sell_on_bid are for future automatic trading for the games
-   SUBORDER_TYPE = (('OPEN','Open'), ('BUY_ON_ASK', 'Buy_on_ask'), ('SELL_ON_BID', 'Sell_on_bid'))
+   SUBORDER_TYPE = (('OPEN','Open'), ('BUY_ON_ASK', 'Buy_on_ask'), ('SELL_ON_BID', 'Sell_on_bid'), 
+                    ('ALL_OR_NOTHING', 'All_or_nothing'))
 
+   ORDER_SOURCE_TYPE = (('TRADESITE', 'TradeSite'), ('API', 'API'))
    # These are not necessarily final, but I think so far we need these
    ORDER_STATUS = (('OPEN','Open'),('CANCELLED','Cancelled'), ('FILLED','Filled'),
             ('PAYING','Paying'), ('PAID','Paid'), ('FAILED', 'Failed'),
@@ -207,9 +213,11 @@ class Order(models.Model):
 
    # payment provider picked by purchase order, purchase order only
    selected_payment_provider = models.ForeignKey('PaymentProvider', on_delete=models.SET_NULL, null=True)
+   account_at_selected_payment_provider = models.CharField(max_length=64, null=True)
 
    order_type = models.CharField(max_length=32, choices=ORDER_TYPE)
    sub_type = models.CharField(max_length=32, default='OPEN', choices=SUBORDER_TYPE)
+   order_source = models.CharField(max_length=32, choices= ORDER_SOURCE_TYPE, default='TRADESITE')
    units = models.FloatField()
    unit_price = models.FloatField()
    unit_price_currency = models.CharField(max_length = 8, choices=CURRENCY, default='CYN')
@@ -225,6 +233,9 @@ class Order(models.Model):
    # the total amount of original units x unit price, used by
    # purchase order. To the two decimal places
    total_amount = models.FloatField(default = 0.0)
+
+   # the out_order_no in api call that associated with this order
+   api_call_reference_order_id = models.CharField(max_length=64, null=True)
    status = models.CharField(max_length=32, choices=ORDER_STATUS)
 
    created_at = models.DateTimeField(auto_now_add=True)

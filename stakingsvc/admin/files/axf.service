@@ -1,0 +1,12 @@
+[Unit]
+Description=AXFund daemon
+After=network.target
+
+[Service]
+User=osboxes
+Group=osboxes
+WorkingDirectory=/home/osboxes/workspace/xwjy/smwy/src
+ExecStart=/home/osboxes/workspace/xwjy/smwy/src/axfd --datadir=/home/osboxes/workspace/xwjy/qb
+
+[Install]
+WantedBy=multi-user.target

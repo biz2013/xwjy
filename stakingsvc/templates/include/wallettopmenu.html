@@ -10,13 +10,23 @@
         <a class="navbar-brand" href="{% if username %}/{% else %}/walletgui/{% endif %}"><img src="/static/img/axfund_icon.png" width=96 height=36></a>
       </div>
       <div class="collapse navbar-collapse" id="myNavbar">
+        {% if user.is_authenticated %}
         <ul class="nav navbar-nav">
           <li><a href="{% url 'balance' %}">主页</a></li>
+          {% if userpaymentmethod %}
           <li><a href="{% url 'show_purchase' %}">购买</a></li>
           <li><a href="{% url 'balance' %}">提现</a></li>
-          <li><a href="{% url 'balance' %}">交易历史</a></li>
+          {% endif %}
         </ul>
-      </div>
+        {% endif %}
+        <ul class="nav navbar-nav navbar-right">
+          {% if not user.is_authenticated %}
+            <li><a href="{% url 'login' %}"><span class="glyphicon glyphicon-log-in"></span>登录</a></li>
+          {% else %}
+          <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span>退出</a></li>
+          {% endif %}
+          </ul>
+        </div>
     </div>
   </nav>
 </div>
