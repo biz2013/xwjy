@@ -16,7 +16,12 @@ logger = logging.getLogger("tradeex.tradeexchangemanager")
 
 class TradeExchangeManager(object):
     def get_order_owner_account_at_payment_provider(self, order, payment_provider, api_call_order_id):
+        if order and order.account_at_selected_payment_provider and order.selected_payment_provider.code == payment_provider:
+            return order.account_at_selected_payment_provider
         try:
+            logger.info('get_order_owner_account_at_payment_provider({0},{1},{2}): order does not have account #, query user payment method of the order owner'.format(
+                order.order_id, payment_provider, api_call_order_id
+            ))
             payment_method = UserPaymentMethod.objects.get(
                  user = order.user,
                  provider__code = payment_provider)
