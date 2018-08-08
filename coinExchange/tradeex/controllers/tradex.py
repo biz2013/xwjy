@@ -222,7 +222,7 @@ class TradeExchangeManager(object):
             raise ValueError('post_sell_order(): request_obj and api_trans cannot be None at the same time')
         current_sell_orders = self.get_active_sell_orders('AXFund', 'CNY')
         if current_sell_orders:
-            unit_price = round(self.decide_sell_price(current_sell_orders) + 0.005,2)
+            unit_price = round(self.decide_sell_price(current_sell_orders),2)
         else:
             unit_price = self.find_last_transaction_price()
 
@@ -236,7 +236,7 @@ class TradeExchangeManager(object):
         
         amount_in_cent = int(request_obj.total_fee) if type(request_obj.total_fee) is str else request_obj.total_fee
         amount = float(amount_in_cent / 100.0)
-        sell_units = round(amount / unit_price, 8)
+        sell_units = round(amount / unit_price, MIN_CRYPTOCURRENCY_UNITS_DECIMAL)
         logger.info("post_sell_order(): after roundup, sell {0} yuan of axfund = {1} x @{2}".format(
             amount, sell_units, unit_price))
         
