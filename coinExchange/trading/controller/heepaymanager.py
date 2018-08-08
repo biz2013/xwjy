@@ -34,7 +34,7 @@ class HeePayManager(object):
        biz_content = '{\"out_trade_no\":\"%s\",' % (order_id_str)
        amount_in_dollar = round(amount, 2)
        amount_str = str(int(amount_in_dollar*100))
-       biz_content = biz_content + ('\"subject\":\"购买{0}元\",'.format(amount_str))
+       biz_content = biz_content + ('\"subject\":\"购买{0}元\",'.format(amount_in_dollar))
        biz_content = biz_content + ('\"total_fee\":\"{0}\",'.format(amount_str))
        biz_content = biz_content + ('\"api_account_mode\":\"Account\",')
        #biz_content = biz_content + ('\"from_account\":\"{0}\",'.format(buyer_account))
