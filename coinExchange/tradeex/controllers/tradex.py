@@ -39,10 +39,10 @@ class TradeExchangeManager(object):
             (Q(status='OPEN') | Q(status='PARTIALFILLED')) & 
             Q(order_type='SELL') & Q(units_available_to_trade__gt=0.0) &
             Q(unit_price_currency=currency) &
-            Q(cryptocurrency__currency_code=crypto)).order_by('total_amount','created_at')
+            Q(cryptocurrency__currency_code=crypto)).order_by('unit_price', 'total_amount','created_at')
         for order in orders:
             available_amount = order.unit_price * order.units_available_to_trade
-            diff = available_amount - amount
+            diff = round(available_amount - amount, 2)
             if diff >= 0.0:
                 if order.sub_type == 'ALL_OR_NOTHING':
                     if diff > 0.01:
