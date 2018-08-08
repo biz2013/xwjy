@@ -210,3 +210,1024 @@ python3 manage.py runserver
 # to login the admin site, open the /admin URL (e.g. http://127.0.0.1:8000/admin) and enter your new superuser userid and password credentials (you'll be redirected to the login page, and then back to the /admin URL after you've entered your details).
 
 AR6mDdxwvZrTRiETfUnx98MHE9kAJ61zxV
+
+----------------Last login: Wed Aug  8 10:36:47 on ttys001
+taozhang-ltm0:~ taozhang$ ls -al
+total 548456
+-rw-r--r--@   1 taozhang  wheel           1696 Nov 11  2017 ,ssh
+drwxr-xr-x  101 taozhang  wheel           3232 Aug  7 23:05 .
+drwxr-xr-x    7 root      admin            224 Jan 10  2018 ..
+-r--------    1 taozhang  wheel              7 Jan 10  2018 .CFUserTextEncoding
+-rw-r--r--@   1 taozhang  wheel          10244 May 23 17:51 .DS_Store
+drwx------   77 taozhang  wheel           2464 Jul 31 17:18 .Trash
+drwxr-xr-x    3 taozhang  wheel             96 Jul 22 16:27 .anaconda
+drwx------    3 taozhang  wheel             96 May 26 16:53 .ansible
+-rw-r--r--    1 taozhang  wheel            580 Jul 28 02:26 .anyconnect
+drwxr-xr-x   15 taozhang  wheel            480 Aug 22  2017 .atom
+-rw-------    1 taozhang  wheel          13905 Aug  8 10:42 .bash_history
+-rw-r--r--    1 taozhang  wheel            348 Jul 21 00:07 .bash_profile
+-rw-r--r--    1 taozhang  wheel            275 May 20 18:05 .bash_profile-anaconda2.bak
+drwx------  214 taozhang  wheel           6848 Aug  8 10:44 .bash_sessions
+-rw-r--r--    1 taozhang  wheel          12166 Dec 10  2017 .bzr.log
+drwxr-xr-x    3 taozhang  wheel             96 Aug 14  2017 .cache
+drwxr-xr-x    6 taozhang  wheel            192 Aug 25  2017 .cisco
+drwxr-xr-x    4 taozhang  wheel            128 Jul 25 22:39 .conda
+-rw-r--r--    1 taozhang  wheel             40 Jul 23 11:49 .condarc
+drwxr-xr-x    3 taozhang  wheel             96 May  3 13:39 .config
+drwx------    3 taozhang  wheel             96 Mar 27  2017 .cups
+drwxr-xr-x    4 taozhang  wheel            128 Jul 30 11:11 .docker
+drwxr-xr-x    8 taozhang  wheel            256 Aug 18  2017 .eclipse
+drwxr-xr-x    4 taozhang  wheel            128 May 31  2017 .gem
+-rw-r--r--    1 taozhang  wheel             97 Mar 21  2017 .gitconfig
+drwx------    5 taozhang  wheel            160 Oct 28  2017 .gnupg
+-rw-------    1 taozhang  wheel              5 Jul 23  2017 .gnuplot_history
+-rw-------    1 taozhang  wheel             63 Mar 21  2017 .lesshst
+drwx------    3 root      wheel             96 Jul 18  2017 .local
+drwxr-xr-x    4 taozhang  wheel            128 May  8 14:05 .m2
+-rw-------    1 taozhang  wheel          19088 May  4 10:31 .mysql_history
+drwx------   37 taozhang  454177323       1184 Jul 27 18:43 .nx
+-rw-------    1 taozhang  wheel            196 Jul 23  2017 .octave_hist
+drwxr-xr-x   10 taozhang  wheel            320 Apr 27 13:49 .oracle_jre_usage
+drwxr-xr-x    8 taozhang  wheel            256 Aug  6 15:49 .p2
+-rw-r--r--    1 taozhang  wheel            114 Oct  2  2017 .p4enviro
+-r--------    1 taozhang  wheel             77 Mar 21  2017 .p4tickets
+-rw-r--r--    1 taozhang  wheel           2567 Mar 21  2017 .p4trust
+drwxr-xr-x  148 taozhang  wheel           4736 Jul 18 20:42 .pylint.d
+drwx------    3 taozhang  454177323         96 Mar 21  2017 .qt
+-rw-------    1 taozhang  wheel           1024 Nov 30  2017 .rnd
+drwxr-xr-x    3 taozhang  wheel             96 May 19  2017 .sfdc
+drwxr-xr-x    4 taozhang  wheel            128 Mar 21  2017 .sfdcEclipse-tmp
+drwxr-xr-x    4 taozhang  wheel            128 Mar 21  2017 .smartbear
+-rw-------    1 taozhang  wheel             18 Mar  7 20:30 .sqlite_history
+drwx------   20 taozhang  wheel            640 May 17 12:27 .ssh
+drwxr-xr-x    6 taozhang  wheel            192 Mar 27  2017 .subversion
+drwxr-xr-x    7 taozhang  wheel            224 Jun  5  2017 .tarantella
+drwxr-xr-x    3 taozhang  wheel             96 Mar 20  2017 .tmp
+drwxr-xr-x    3 taozhang  wheel             96 Mar 21  2017 .tooling
+drwxr-xr-x    3 taozhang  wheel             96 Aug  1 14:06 .vim
+-rw-------    1 taozhang  wheel          41077 Aug  7 23:05 .viminfo
+drwxr-xr-x    3 taozhang  wheel             96 Mar 28 23:03 .vscode
+drwxr-xr-x    2 taozhang  wheel             64 Dec 10  2017 .yolk
+-rw-r-----    1 taozhang  wheel          40050 Feb  9 14:22 3-1.txt
+-rw-r-----    1 taozhang  wheel          57791 Feb  9 14:23 3-2.txt
+drwx------    3 taozhang  wheel             96 Oct 10  2017 Applications
+drwx------+  77 taozhang  wheel           2464 Aug  2 14:01 Desktop
+drwx------+   9 taozhang  wheel            288 Jul 29 23:08 Documents
+drwx------+ 512 taozhang  wheel          16384 Aug  8 10:38 Downloads
+drwx------@  67 taozhang  wheel           2144 Jul 22 16:28 Library
+drwx------+   5 taozhang  wheel            160 Aug 31  2017 Movies
+drwx------+   4 taozhang  wheel            128 Apr 12  2017 Music
+drwxr-xr-x    2 taozhang  wheel             64 Mar 21  2017 Perforce
+drwx------+   6 taozhang  wheel            192 Sep 28  2017 Pictures
+drwxr-xr-x+   4 taozhang  wheel            128 Aug 17  2015 Public
+drwxr-xr-x    4 taozhang  wheel            128 Nov 11  2017 VirtualBox VMs
+-rw-r-----    1 taozhang  wheel           2793 May  1 13:06 alertmanager.yml
+drwxr-xr-x@  17 taozhang  wheel            544 Apr 27 12:59 apache-ant-1.9.11
+-rw-r--r--@   1 taozhang  wheel        5818302 Apr 27 12:59 apache-ant-1.9.11-bin.tar.gz
+drwxr-xr-x    4 taozhang  wheel            128 May 18 19:14 apps
+drwxr-xr-x   24 taozhang  wheel            768 Mar 21  2017 bin
+drwxr-xr-x   29 taozhang  wheel            928 Mar 23  2017 blt
+drwxr-xr-x    7 taozhang  wheel            224 Mar 23  2017 cert_buddy_venv
+-rw-r--r--    1 taozhang  wheel           1679 Mar  8 13:30 client-key.pem
+-rw-r--r--    1 taozhang  wheel           7834 Mar  8 13:30 client.pem
+-rw-r-----    1 taozhang  wheel          34188 May 21 17:25 deployment.tgz
+-rw-------    1 taozhang  wheel           1679 Jul 11 13:35 dva-alertprocessor-key.pem
+-rw-r-----    1 taozhang  wheel           7806 Jul 11 13:35 dva-alertprocessor.pem
+drwxr-xr-x    3 taozhang  wheel             96 Mar 23  2017 eclipse
+-rw-r-----    1 taozhang  wheel           1965 Nov 13  2017 err.html
+-rw-r--r--    1 taozhang  wheel        1595408 Nov 29  2017 get-pip.py
+drwxr-xr-x    4 taozhang  wheel            128 Jul 31 17:23 go
+-rw-r-----    1 taozhang  wheel          56088 May  1 14:17 installed.txt
+drwxr-xr-x@   9 taozhang  wheel            288 Apr 27 17:18 kafka_2.11-1.1.0
+drwxr-xr-x    4 taozhang  wheel            128 Mar 15 14:06 logs
+lrwxr-xr-x    1 taozhang  wheel              7 Jun  8 10:12 modules -> modules
+drwxr-xr-x    9 taozhang  wheel            288 Mar 31  2017 mycerts
+-rwxr-x---    1 taozhang  wheel          12572 Jun 19 16:55 nmsforwarder.py
+-rw-r--r--    1 taozhang  wheel      263703972 Feb 24 09:58 qb225.tgz
+-rw-r-----    1 taozhang  wheel           9514 Mar 28 11:58 setup.tgz
+-rw-r--r--    1 taozhang  wheel            571 Aug  7 17:50 sgd.log
+-rw-r--r--    1 taozhang  wheel            485 Jun  6  2017 sgd52.log
+-r--------@   1 taozhang  wheel           1692 May 17 12:27 tao-web-test.pem
+-rw-r--r--    1 taozhang  wheel           2011 Apr 17 11:33 tao-web-test.tgz
+-rw-r--r--    1 taozhang  wheel            398 Jul  9 12:51 test.txt
+-rw-r-----    1 taozhang  wheel          56088 May  1 14:17 test0ops0-nms1-1-prd.eng.sfdc.net
+drwxr-xr-x    2 taozhang  wheel             64 Aug  7 16:23 tmp
+-rw-------    1 taozhang  wheel         184320 Feb  1  2018 wallet_20180201.dat
+-rw-r--r--    1 taozhang  wheel          73121 Feb  1  2018 wlt_20180201.tgz
+drwxr-xr-x  102 taozhang  wheel           3264 Aug  8 10:30 workspace
+taozhang-ltm0:~ taozhang$ tar tvf qb225.tgz 
+drwxrwxr-x  0 ubuntu ubuntu      0 Feb 20 00:21 qb/
+-rw-rw-r--  0 ubuntu ubuntu    460 Jan 30  2018 qb/axf.conf
+-rw-------  0 ubuntu ubuntu      0 Jan 30  2018 qb/.lock
+-rw-rw-r--  0 ubuntu ubuntu 114688 Jan 30  2018 qb/backup_wallet.dat
+-rw-------  0 ubuntu ubuntu 237568 Feb 17 16:20 qb/wallet_20180217.dat
+-rw-------  0 ubuntu ubuntu 173899448 Feb 20 00:15 qb/blk0001.dat
+-rw-------  0 ubuntu ubuntu   7339029 Feb 20 00:17 qb/debug.log
+-rw-------  0 ubuntu ubuntu      5366 Feb 20 00:17 qb/peers.dat
+drwx------  0 ubuntu ubuntu         0 Jan 30  2018 qb/database/
+-rw-------  0 ubuntu ubuntu  10485759 Feb 20 00:17 qb/database/log.0000000001
+-rw-------  0 ubuntu ubuntu    237568 Feb 20 00:17 qb/wallet.dat
+-rw-rw-r--  0 ubuntu ubuntu        36 Jan 30  2018 qb/.gitignore
+drwx------  0 ubuntu ubuntu         0 Feb 20 00:13 qb/txleveldb/
+-rw-------  0 ubuntu ubuntu   2129202 Feb 16 20:33 qb/txleveldb/006050.ldb
+-rw-------  0 ubuntu ubuntu   2129299 Feb 16 20:33 qb/txleveldb/006060.ldb
+-rw-------  0 ubuntu ubuntu   2129553 Feb 16 20:33 qb/txleveldb/006080.ldb
+-rw-------  0 ubuntu ubuntu   2129076 Feb 16 20:33 qb/txleveldb/006082.ldb
+-rw-------  0 ubuntu ubuntu   2152435 Feb 18 21:01 qb/txleveldb/006175.ldb
+-rw-------  0 ubuntu ubuntu    232518 Feb 20 00:13 qb/txleveldb/006196.ldb
+-rw-------  0 ubuntu ubuntu        16 Feb 20 00:13 qb/txleveldb/CURRENT
+-rw-------  0 ubuntu ubuntu    270221 Feb 18 20:08 qb/txleveldb/006158.ldb
+-rw-------  0 ubuntu ubuntu   2152325 Feb 18 21:06 qb/txleveldb/006185.ldb
+-rw-------  0 ubuntu ubuntu   2129760 Feb 16 20:33 qb/txleveldb/006054.ldb
+-rw-------  0 ubuntu ubuntu   2129405 Feb 20 00:13 qb/txleveldb/006212.ldb
+-rw-------  0 ubuntu ubuntu   2129547 Feb 16 20:33 qb/txleveldb/006075.ldb
+-rw-------  0 ubuntu ubuntu   2152347 Feb 18 21:01 qb/txleveldb/006177.ldb
+-rw-------  0 ubuntu ubuntu   2129234 Feb 16 20:33 qb/txleveldb/006073.ldb
+-rw-------  0 ubuntu ubuntu   2152517 Feb 18 21:06 qb/txleveldb/006187.ldb
+-rw-------  0 ubuntu ubuntu   2129594 Feb 16 20:33 qb/txleveldb/006067.ldb
+-rw-------  0 ubuntu ubuntu   2153116 Feb 18 21:01 qb/txleveldb/006178.ldb
+-rw-------  0 ubuntu ubuntu   2150405 Feb 18 20:53 qb/txleveldb/006159.ldb
+-rw-------  0 ubuntu ubuntu         0 Jan 30  2018 qb/txleveldb/LOCK
+-rw-------  0 ubuntu ubuntu   2128825 Feb 16 20:33 qb/txleveldb/006039.ldb
+-rw-------  0 ubuntu ubuntu   1199576 Feb 16 20:33 qb/txleveldb/006046.ldb
+-rw-------  0 ubuntu ubuntu    737019 Jan 30  2018 qb/txleveldb/003851.ldb
+-rw-------  0 ubuntu ubuntu   2153159 Feb 18 21:01 qb/txleveldb/006179.ldb
+-rw-------  0 ubuntu ubuntu   2153043 Feb 18 20:53 qb/txleveldb/006160.ldb
+-rw-------  0 ubuntu ubuntu   2129159 Feb 16 20:33 qb/txleveldb/006066.ldb
+-rw-------  0 ubuntu ubuntu   2129107 Feb 16 20:58 qb/txleveldb/006091.ldb
+-rw-------  0 ubuntu ubuntu    294153 Feb 18 20:53 qb/txleveldb/006169.ldb
+-rw-------  0 ubuntu ubuntu   2129665 Feb 16 20:33 qb/txleveldb/006079.ldb
+-rw-------  0 ubuntu ubuntu   2129587 Feb 16 20:33 qb/txleveldb/006074.ldb
+-rw-------  0 ubuntu ubuntu   2153142 Feb 18 21:06 qb/txleveldb/006189.ldb
+-rw-------  0 ubuntu ubuntu   2129383 Feb 20 00:13 qb/txleveldb/006216.ldb
+-rw-------  0 ubuntu ubuntu   2129153 Feb 16 20:33 qb/txleveldb/006044.ldb
+-rw-------  0 ubuntu ubuntu   2129345 Feb 16 20:33 qb/txleveldb/006069.ldb
+-rw-------  0 ubuntu ubuntu   2151996 Feb 18 21:01 qb/txleveldb/006173.ldb
+-rw-------  0 ubuntu ubuntu   2129527 Feb 16 20:33 qb/txleveldb/006059.ldb
+-rw-------  0 ubuntu ubuntu    419188 Feb 14 21:54 qb/txleveldb/006024.ldb
+-rw-------  0 ubuntu ubuntu   2128980 Feb 20 00:13 qb/txleveldb/006213.ldb
+-rw-------  0 ubuntu ubuntu   2128765 Feb 16 20:33 qb/txleveldb/006048.ldb
+-rw-------  0 ubuntu ubuntu    243862 Feb 20 00:13 qb/txleveldb/006198.ldb
+-rw-------  0 ubuntu ubuntu   2128772 Feb 16 20:33 qb/txleveldb/006045.ldb
+-rw-------  0 ubuntu ubuntu   2129333 Feb 16 20:33 qb/txleveldb/006083.ldb
+-rw-------  0 ubuntu ubuntu   2129632 Feb 16 20:33 qb/txleveldb/006064.ldb
+-rw-------  0 ubuntu ubuntu   2152573 Feb 18 21:06 qb/txleveldb/006186.ldb
+-rw-------  0 ubuntu ubuntu   2129197 Feb 16 20:33 qb/txleveldb/006062.ldb
+-rw-------  0 ubuntu ubuntu   2153008 Feb 18 20:53 qb/txleveldb/006161.ldb
+-rw-------  0 ubuntu ubuntu   2153227 Feb 18 21:06 qb/txleveldb/006188.ldb
+-rw-------  0 ubuntu ubuntu    241569 Feb 20 00:13 qb/txleveldb/006197.ldb
+-rw-------  0 ubuntu ubuntu   2144191 Feb 18 21:06 qb/txleveldb/006190.ldb
+-rw-------  0 ubuntu ubuntu   2129755 Feb 20 00:13 qb/txleveldb/006208.ldb
+-rw-------  0 ubuntu ubuntu   2130467 Feb 20 00:13 qb/txleveldb/006201.ldb
+-rw-------  0 ubuntu ubuntu   2152855 Feb 18 20:53 qb/txleveldb/006166.ldb
+-rw-------  0 ubuntu ubuntu   2129287 Feb 16 20:33 qb/txleveldb/006040.ldb
+-rw-------  0 ubuntu ubuntu   2129377 Feb 20 00:13 qb/txleveldb/006215.ldb
+-rw-------  0 ubuntu ubuntu   2129288 Feb 16 20:33 qb/txleveldb/006058.ldb
+-rw-------  0 ubuntu ubuntu   2129042 Feb 16 20:33 qb/txleveldb/006053.ldb
+-rw-------  0 ubuntu ubuntu   2129331 Feb 20 00:13 qb/txleveldb/006210.ldb
+-rw-------  0 ubuntu ubuntu   2129144 Feb 16 20:33 qb/txleveldb/006041.ldb
+-rw-------  0 ubuntu ubuntu   1612524 Feb 16 20:33 qb/txleveldb/006057.ldb
+-rw-------  0 ubuntu ubuntu   2129606 Feb 20 00:13 qb/txleveldb/006200.ldb
+-rw-------  0 ubuntu ubuntu   2129499 Feb 16 20:33 qb/txleveldb/006038.ldb
+-rw-------  0 ubuntu ubuntu    132459 Feb 20 00:13 qb/txleveldb/006203.ldb
+-rw-------  0 ubuntu ubuntu   2152365 Feb 18 20:53 qb/txleveldb/006162.ldb
+-rw-------  0 ubuntu ubuntu    139372 Feb 18 21:06 qb/txleveldb/LOG.old
+-rw-------  0 ubuntu ubuntu   1386298 Feb 16 20:33 qb/txleveldb/006076.ldb
+-rw-------  0 ubuntu ubuntu   2152796 Feb 18 21:01 qb/txleveldb/006171.ldb
+-rw-------  0 ubuntu ubuntu    137820 Feb 20 00:13 qb/txleveldb/006204.ldb
+-rw-------  0 ubuntu ubuntu    858421 Feb 16 20:33 qb/txleveldb/006068.ldb
+-rw-------  0 ubuntu ubuntu   2129028 Feb 20 00:13 qb/txleveldb/006214.ldb
+-rw-------  0 ubuntu ubuntu   2129093 Feb 16 20:33 qb/txleveldb/006081.ldb
+-rw-------  0 ubuntu ubuntu   2152109 Feb 18 20:53 qb/txleveldb/006167.ldb
+-rw-------  0 ubuntu ubuntu     98812 Feb 20 00:13 qb/txleveldb/006217.ldb
+-rw-------  0 ubuntu ubuntu   2151951 Feb 18 21:01 qb/txleveldb/006174.ldb
+-rw-------  0 ubuntu ubuntu      3999 Feb 20 00:13 qb/txleveldb/LOG
+-rw-------  0 ubuntu ubuntu   2152792 Feb 18 21:06 qb/txleveldb/006181.ldb
+-rw-------  0 ubuntu ubuntu   2129669 Feb 16 20:33 qb/txleveldb/006071.ldb
+-rw-------  0 ubuntu ubuntu   2129124 Feb 16 20:33 qb/txleveldb/006042.ldb
+-rw-------  0 ubuntu ubuntu   2129431 Feb 16 20:33 qb/txleveldb/006072.ldb
+-rw-------  0 ubuntu ubuntu   2129327 Feb 16 20:33 qb/txleveldb/006052.ldb
+-rw-------  0 ubuntu ubuntu   2129476 Feb 16 20:33 qb/txleveldb/006056.ldb
+-rw-------  0 ubuntu ubuntu   1296061 Feb 20 00:13 qb/txleveldb/006202.ldb
+-rw-------  0 ubuntu ubuntu   2130172 Feb 20 00:13 qb/txleveldb/006199.ldb
+-rw-------  0 ubuntu ubuntu   2152783 Feb 18 20:53 qb/txleveldb/006163.ldb
+-rw-------  0 ubuntu ubuntu   2129224 Feb 16 20:33 qb/txleveldb/006049.ldb
+-rw-------  0 ubuntu ubuntu    375809 Feb 20 00:13 qb/txleveldb/006206.ldb
+-rw-------  0 ubuntu ubuntu     14242 Feb 20 00:13 qb/txleveldb/MANIFEST-006192
+-rw-------  0 ubuntu ubuntu   2129321 Feb 16 20:33 qb/txleveldb/006084.ldb
+-rw-------  0 ubuntu ubuntu   2129406 Feb 16 20:33 qb/txleveldb/006070.ldb
+-rw-------  0 ubuntu ubuntu   2152958 Feb 18 21:01 qb/txleveldb/006172.ldb
+-rw-------  0 ubuntu ubuntu   2153019 Feb 18 21:06 qb/txleveldb/006182.ldb
+-rw-------  0 ubuntu ubuntu   2152697 Feb 18 21:06 qb/txleveldb/006184.ldb
+-rw-------  0 ubuntu ubuntu   2129126 Feb 20 00:13 qb/txleveldb/006209.ldb
+-rw-------  0 ubuntu ubuntu   2129228 Feb 20 00:13 qb/txleveldb/006207.ldb
+-rw-------  0 ubuntu ubuntu     36358 Feb 20 00:15 qb/txleveldb/006194.log
+-rw-------  0 ubuntu ubuntu    134922 Feb 20 00:13 qb/txleveldb/006205.ldb
+-rw-------  0 ubuntu ubuntu    429515 Feb 16 21:38 qb/txleveldb/006133.ldb
+-rw-------  0 ubuntu ubuntu   2129390 Feb 16 20:33 qb/txleveldb/006077.ldb
+-rw-------  0 ubuntu ubuntu   2128924 Feb 16 20:33 qb/txleveldb/006055.ldb
+-rw-------  0 ubuntu ubuntu   2153248 Feb 18 21:06 qb/txleveldb/006183.ldb
+-rw-------  0 ubuntu ubuntu    420161 Feb 18 21:06 qb/txleveldb/006191.ldb
+-rw-------  0 ubuntu ubuntu   2129004 Feb 20 00:13 qb/txleveldb/006211.ldb
+-rw-------  0 ubuntu ubuntu   2129163 Feb 16 20:33 qb/txleveldb/006085.ldb
+-rw-------  0 ubuntu ubuntu   2129356 Feb 16 20:33 qb/txleveldb/006063.ldb
+-rw-------  0 ubuntu ubuntu   2129456 Feb 16 20:33 qb/txleveldb/006043.ldb
+-rw-------  0 ubuntu ubuntu   2152335 Feb 18 21:01 qb/txleveldb/006176.ldb
+-rw-------  0 ubuntu ubuntu   2129423 Feb 16 20:33 qb/txleveldb/006047.ldb
+-rw-------  0 ubuntu ubuntu   2152821 Feb 18 20:53 qb/txleveldb/006168.ldb
+-rw-------  0 ubuntu ubuntu   2128894 Feb 16 20:33 qb/txleveldb/006061.ldb
+-rw-------  0 ubuntu ubuntu   2129673 Feb 16 20:33 qb/txleveldb/006078.ldb
+-rw-------  0 ubuntu ubuntu   2128990 Feb 16 20:33 qb/txleveldb/006065.ldb
+-rw-------  0 ubuntu ubuntu    202239 Jan 30  2018 qb/txleveldb/000128.ldb
+-rw-------  0 ubuntu ubuntu   1721744 Feb 16 20:33 qb/txleveldb/006086.ldb
+-rw-------  0 ubuntu ubuntu   2152255 Feb 18 20:53 qb/txleveldb/006164.ldb
+-rw-------  0 ubuntu ubuntu   2152525 Feb 18 20:53 qb/txleveldb/006165.ldb
+-rw-------  0 ubuntu ubuntu    139716 Feb 18 21:01 qb/txleveldb/006180.ldb
+-rw-------  0 ubuntu ubuntu   2153255 Feb 18 21:01 qb/txleveldb/006170.ldb
+-rw-------  0 ubuntu ubuntu   2128982 Feb 16 20:33 qb/txleveldb/006051.ldb
+-rw-------  0 ubuntu ubuntu         0 Jan 30  2018 qb/db.log
+taozhang-ltm0:~ taozhang$ ls -la
+total 548456
+-rw-r--r--@   1 taozhang  wheel           1696 Nov 11  2017 ,ssh
+drwxr-xr-x  101 taozhang  wheel           3232 Aug  7 23:05 .
+drwxr-xr-x    7 root      admin            224 Jan 10  2018 ..
+-r--------    1 taozhang  wheel              7 Jan 10  2018 .CFUserTextEncoding
+-rw-r--r--@   1 taozhang  wheel          10244 May 23 17:51 .DS_Store
+drwx------   77 taozhang  wheel           2464 Jul 31 17:18 .Trash
+drwxr-xr-x    3 taozhang  wheel             96 Jul 22 16:27 .anaconda
+drwx------    3 taozhang  wheel             96 May 26 16:53 .ansible
+-rw-r--r--    1 taozhang  wheel            580 Jul 28 02:26 .anyconnect
+drwxr-xr-x   15 taozhang  wheel            480 Aug 22  2017 .atom
+-rw-------    1 taozhang  wheel          13905 Aug  8 10:42 .bash_history
+-rw-r--r--    1 taozhang  wheel            348 Jul 21 00:07 .bash_profile
+-rw-r--r--    1 taozhang  wheel            275 May 20 18:05 .bash_profile-anaconda2.bak
+drwx------  214 taozhang  wheel           6848 Aug  8 10:44 .bash_sessions
+-rw-r--r--    1 taozhang  wheel          12166 Dec 10  2017 .bzr.log
+drwxr-xr-x    3 taozhang  wheel             96 Aug 14  2017 .cache
+drwxr-xr-x    6 taozhang  wheel            192 Aug 25  2017 .cisco
+drwxr-xr-x    4 taozhang  wheel            128 Jul 25 22:39 .conda
+-rw-r--r--    1 taozhang  wheel             40 Jul 23 11:49 .condarc
+drwxr-xr-x    3 taozhang  wheel             96 May  3 13:39 .config
+drwx------    3 taozhang  wheel             96 Mar 27  2017 .cups
+drwxr-xr-x    4 taozhang  wheel            128 Jul 30 11:11 .docker
+drwxr-xr-x    8 taozhang  wheel            256 Aug 18  2017 .eclipse
+drwxr-xr-x    4 taozhang  wheel            128 May 31  2017 .gem
+-rw-r--r--    1 taozhang  wheel             97 Mar 21  2017 .gitconfig
+drwx------    5 taozhang  wheel            160 Oct 28  2017 .gnupg
+-rw-------    1 taozhang  wheel              5 Jul 23  2017 .gnuplot_history
+-rw-------    1 taozhang  wheel             63 Mar 21  2017 .lesshst
+drwx------    3 root      wheel             96 Jul 18  2017 .local
+drwxr-xr-x    4 taozhang  wheel            128 May  8 14:05 .m2
+-rw-------    1 taozhang  wheel          19088 May  4 10:31 .mysql_history
+drwx------   37 taozhang  454177323       1184 Jul 27 18:43 .nx
+-rw-------    1 taozhang  wheel            196 Jul 23  2017 .octave_hist
+drwxr-xr-x   10 taozhang  wheel            320 Apr 27 13:49 .oracle_jre_usage
+drwxr-xr-x    8 taozhang  wheel            256 Aug  6 15:49 .p2
+-rw-r--r--    1 taozhang  wheel            114 Oct  2  2017 .p4enviro
+-r--------    1 taozhang  wheel             77 Mar 21  2017 .p4tickets
+-rw-r--r--    1 taozhang  wheel           2567 Mar 21  2017 .p4trust
+drwxr-xr-x  148 taozhang  wheel           4736 Jul 18 20:42 .pylint.d
+drwx------    3 taozhang  454177323         96 Mar 21  2017 .qt
+-rw-------    1 taozhang  wheel           1024 Nov 30  2017 .rnd
+drwxr-xr-x    3 taozhang  wheel             96 May 19  2017 .sfdc
+drwxr-xr-x    4 taozhang  wheel            128 Mar 21  2017 .sfdcEclipse-tmp
+drwxr-xr-x    4 taozhang  wheel            128 Mar 21  2017 .smartbear
+-rw-------    1 taozhang  wheel             18 Mar  7 20:30 .sqlite_history
+drwx------   20 taozhang  wheel            640 May 17 12:27 .ssh
+drwxr-xr-x    6 taozhang  wheel            192 Mar 27  2017 .subversion
+drwxr-xr-x    7 taozhang  wheel            224 Jun  5  2017 .tarantella
+drwxr-xr-x    3 taozhang  wheel             96 Mar 20  2017 .tmp
+drwxr-xr-x    3 taozhang  wheel             96 Mar 21  2017 .tooling
+drwxr-xr-x    3 taozhang  wheel             96 Aug  1 14:06 .vim
+-rw-------    1 taozhang  wheel          41077 Aug  7 23:05 .viminfo
+drwxr-xr-x    3 taozhang  wheel             96 Mar 28 23:03 .vscode
+drwxr-xr-x    2 taozhang  wheel             64 Dec 10  2017 .yolk
+-rw-r-----    1 taozhang  wheel          40050 Feb  9 14:22 3-1.txt
+-rw-r-----    1 taozhang  wheel          57791 Feb  9 14:23 3-2.txt
+drwx------    3 taozhang  wheel             96 Oct 10  2017 Applications
+drwx------+  77 taozhang  wheel           2464 Aug  2 14:01 Desktop
+drwx------+   9 taozhang  wheel            288 Jul 29 23:08 Documents
+drwx------+ 512 taozhang  wheel          16384 Aug  8 10:38 Downloads
+drwx------@  67 taozhang  wheel           2144 Jul 22 16:28 Library
+drwx------+   5 taozhang  wheel            160 Aug 31  2017 Movies
+drwx------+   4 taozhang  wheel            128 Apr 12  2017 Music
+drwxr-xr-x    2 taozhang  wheel             64 Mar 21  2017 Perforce
+drwx------+   6 taozhang  wheel            192 Sep 28  2017 Pictures
+drwxr-xr-x+   4 taozhang  wheel            128 Aug 17  2015 Public
+drwxr-xr-x    4 taozhang  wheel            128 Nov 11  2017 VirtualBox VMs
+-rw-r-----    1 taozhang  wheel           2793 May  1 13:06 alertmanager.yml
+drwxr-xr-x@  17 taozhang  wheel            544 Apr 27 12:59 apache-ant-1.9.11
+-rw-r--r--@   1 taozhang  wheel        5818302 Apr 27 12:59 apache-ant-1.9.11-bin.tar.gz
+drwxr-xr-x    4 taozhang  wheel            128 May 18 19:14 apps
+drwxr-xr-x   24 taozhang  wheel            768 Mar 21  2017 bin
+drwxr-xr-x   29 taozhang  wheel            928 Mar 23  2017 blt
+drwxr-xr-x    7 taozhang  wheel            224 Mar 23  2017 cert_buddy_venv
+-rw-r--r--    1 taozhang  wheel           1679 Mar  8 13:30 client-key.pem
+-rw-r--r--    1 taozhang  wheel           7834 Mar  8 13:30 client.pem
+-rw-r-----    1 taozhang  wheel          34188 May 21 17:25 deployment.tgz
+-rw-------    1 taozhang  wheel           1679 Jul 11 13:35 dva-alertprocessor-key.pem
+-rw-r-----    1 taozhang  wheel           7806 Jul 11 13:35 dva-alertprocessor.pem
+drwxr-xr-x    3 taozhang  wheel             96 Mar 23  2017 eclipse
+-rw-r-----    1 taozhang  wheel           1965 Nov 13  2017 err.html
+-rw-r--r--    1 taozhang  wheel        1595408 Nov 29  2017 get-pip.py
+drwxr-xr-x    4 taozhang  wheel            128 Jul 31 17:23 go
+-rw-r-----    1 taozhang  wheel          56088 May  1 14:17 installed.txt
+drwxr-xr-x@   9 taozhang  wheel            288 Apr 27 17:18 kafka_2.11-1.1.0
+drwxr-xr-x    4 taozhang  wheel            128 Mar 15 14:06 logs
+lrwxr-xr-x    1 taozhang  wheel              7 Jun  8 10:12 modules -> modules
+drwxr-xr-x    9 taozhang  wheel            288 Mar 31  2017 mycerts
+-rwxr-x---    1 taozhang  wheel          12572 Jun 19 16:55 nmsforwarder.py
+-rw-r--r--    1 taozhang  wheel      263703972 Feb 24 09:58 qb225.tgz
+-rw-r-----    1 taozhang  wheel           9514 Mar 28 11:58 setup.tgz
+-rw-r--r--    1 taozhang  wheel            571 Aug  7 17:50 sgd.log
+-rw-r--r--    1 taozhang  wheel            485 Jun  6  2017 sgd52.log
+-r--------@   1 taozhang  wheel           1692 May 17 12:27 tao-web-test.pem
+-rw-r--r--    1 taozhang  wheel           2011 Apr 17 11:33 tao-web-test.tgz
+-rw-r--r--    1 taozhang  wheel            398 Jul  9 12:51 test.txt
+-rw-r-----    1 taozhang  wheel          56088 May  1 14:17 test0ops0-nms1-1-prd.eng.sfdc.net
+drwxr-xr-x    2 taozhang  wheel             64 Aug  7 16:23 tmp
+-rw-------    1 taozhang  wheel         184320 Feb  1  2018 wallet_20180201.dat
+-rw-r--r--    1 taozhang  wheel          73121 Feb  1  2018 wlt_20180201.tgz
+drwxr-xr-x  102 taozhang  wheel           3264 Aug  8 10:30 workspace
+taozhang-ltm0:~ taozhang$ history 
+    2  cd ..
+    3  git pull
+    4  git checkout .
+    5  cd ..
+    6  cd ..
+    7  cd ..
+    8  git checkout src/github.com/prometheus
+    9  pwd
+   10  git pull
+   11  cd src/github.com/
+   12  ls -la
+   13  cd prometheus/
+   14  ls -la
+   15  cd promu/
+   16  ls -la
+   17  cd ..
+   18  cd ..
+   19  cd ..
+   20  cd ..
+   21  cd src/github.com/
+   22  rm -rf prometheus/
+   23  git pull
+   24  cd ../..
+   25  vi alertmanager-build.sh 
+   26  git commit -m "try to trigger a build" .
+   27  git push
+   28  cd ~/workspace/dvaalerting_role_settings/
+   29  ls -la
+   30  cd deployment/ansible
+   31  ls -la
+   32  cd ../..
+   33  cd deployment/hiera-data/
+   34  vi nms.json 
+   35  cd prd/nms
+   36  vi test0ops0-nms1-1-prd.json 
+   37  vi ../../nms.json 
+   38  vi test0ops0-nms1-1-prd.json 
+   39  vi test0ops0-nms1-2-prd.json 
+   40  vi test0ops0-nms3-2-prd.json 
+   41  vi test0ops0-nms3-1-prd.json 
+   42  git commit -m "test new alertmanager with debugging info " .
+   43  git push
+   44  pwd
+   45  cd ../
+   46  cd ..
+   47  vi nms.json 
+   48  ssh test0ops0-nms1-1-prd.eng.sfdc.net
+   49  cd ~/workspace/alertmanager/
+   50  vi Makefile 
+   51  make build
+   52  vi Makefile 
+   53  make build
+   54  git checkout Makefile 
+   55  vi Makefile 
+   56  make build
+   57  cd ~/workspace/prometheus-build/
+   58  cd promu/
+   59  ls- la
+   60  ls -la
+   61  cd ~/workspace/
+   62  git clone https://git.soma.salesforce.com/monitoring/promu.git
+   63  cp -r promu alertmanager/src/github.com/prometheus/
+   64  cd alertmanager/src/github.com/prometheus
+   65  ls -la
+   66  rm -r .git
+   67  rm -rf .git
+   68  rm -rf .github/
+   69  rm .strata.yml 
+   70  ls -la
+   71  pwd
+   72  rm -rf *
+   73  git checkout .
+   74  cd ..
+   75  ls -la
+   76  cd promu/
+   77  ls -la
+   78  cd ..
+   79  cd alertmanager/src/
+   80  cd alertmanager/
+   81  ls -la
+   82  git pull
+   83  cd ..
+   84  rm -rf alertmanager
+   85  git clone https://git.soma.salesforce.com/taozhang/alertmanager.git
+   86  ls -la alertmanager/src/github.com/prometheus/
+   87  ls -la promu
+   88  cp -rf promu alertmanager/src/github.com/prometheus/
+   89  cd alertmanager/src/github.com/prometheus/promu/
+   90  ls -la
+   91  cd ~/workspace/alertmanager/
+   92  make build
+   93  cd src/github.com/prometheus/promu/
+   94  ls -la
+   95  rm .fit
+   96  rm .git
+   97  rm -rf .git
+   98  cd ~/workspace/alertmanager/
+   99  git add src/github.com/prometheus/promu
+  100  cd ~/workspace/alertmanager/
+  101  ls -la
+  102  cd src/github.com/
+  103  ls -la
+  104  cd ~/workspace/alertmanager/
+  105  ls -la
+  106  git add promu/
+  107  ls -la promu/
+  108  git commit -m "add promu" .
+  109  git push
+  110  git log
+  111  !
+  112  git revert d3839688b125e659368376f5af56df2ac6d1e204
+  113  git checkout master
+  114  git push
+  115  cd ~/workspace/
+  116  cd prometheus-build/
+  117  ls -la
+  118  cd ..
+  119  rm -rf prometheus-build/
+  120  git clone https://git.soma.salesforce.com/monitoring/prometheus-build.git
+  121  ls -la
+  122  cd promu
+  123  ls -la
+  124  pwd
+  125  cd ~/workspace/alertmanager/
+  126  cd promu/
+  127  ls -la
+  128  cd ..
+  129  rm -rf promu/
+  130  ls -la
+  131  git add submodule git@git@git.soma.salesforce.com:monitoring/promu.git promu
+  132  git submodule add git@git@git.soma.salesforce.com:monitoring/promu.git promu
+  133  git submodule add git@git@git.soma.salesforce.com:monitoring/promu promu
+  134  git 
+  135  cd promu/
+  136  ls -la
+  137  cd ..
+  138  git commit -m "add promu" .
+  139  git push
+  140  cd ../prometheus-build/
+  141  cd ../alertmanager/
+  142  vi .gitmodules 
+  143  git commit -m "fix modules" .
+  144  git push
+  145  vi ../prometheus-build/.gitmodules 
+  146  vi .gitmodules 
+  147  git commit -m "fix it" .
+  148  git push
+  149  vi .gitmodules 
+  150  cd ~/workspace/
+  151  git clone git@git.soma.salesforce.com:monitoring/promu.git
+  152  rm -rf promu
+  153  git clone git@git.soma.salesforce.com:monitoring/promu.git
+  154  cd alertmanager/
+  155  git commit -m "fix space" .
+  156  git push
+  157  vi ../prometheus-build/.gitmodules 
+  158  vi .gitmodules 
+  159  git commit -m "try to copy another example " .
+  160  git push
+  161  vi .gitmodules 
+  162  git commit -m "use relative path" .
+  163  git push
+  164  cd src
+  165  pwd
+  166  cd github.com/prometheus/
+  167  ls -la
+  168  cd ..
+  169  ls -la 
+  170  cd prometheus
+  171  ls -la
+  172  ln -s . alertmanager
+  173  ls -la
+  174  git add alertmanager
+  175  pwd
+  176  cd ../..
+  177  cd ..
+  178  ls -la
+  179  rm -rf alertmanager
+  180  vi Makefile 
+  181  pwd
+  182  vi .gitignore 
+  183  cd cmd/
+  184  ls -la
+  185  cd alertmanager/
+  186  ls -la
+  187  cd ../amtool/
+  188  ls -la
+  189  cd ../..
+  190  git commit -m "try to fix the link for alertmanager/cmd/alertmanager" .
+  191  git push
+  192  ln -s . alertmanager
+  193  pwd
+  194  git add alertmanager
+  195  git commit -m "add link" .
+  196  git push
+  197  cd ~/Downloads/
+  198  vi k.txt
+  199  ssh ops0-nms3-1-prd.eng.sfdc.net
+  200  ssh ops0-nms1-2-prd.eng.sfdc.net
+  201  ssh -i ~/.ssh/tao-web-test.pem ubuntu@34.216.121.138
+  202  ssh -i ~/.ssh/tao-web-test.pem ubuntu@54.203.195.52
+  203  cd ~/workspace/SGD
+  204  sgd dfw
+  205  cd ~/workspace/sgd
+  206  sgd dfw
+  207  cd ~/workspace/
+  208  rm -rf prometheus-build/
+  209  git clone git@git.soma.salesforce.com:taozhang/prometheus-build.git
+  210  cd prometheus-build/
+  211  git submodule update --init 
+  212  git commit -m "update the project" .
+  213  git push
+  214  git status
+  215  git submodule init
+  216  git submodule update
+  217  git push
+  218  vi .gitmodules 
+  219  git status alertmanager
+  220  git submodule status alertmanager
+  221  git submodule update alertmanager
+  222  git submodule update help
+  223  git submodule update rebase alertmanager
+  224  git submodule update --rebase alertmanager
+  225  git submodule status alertmanager
+  226  git submodule update --rebase --force alertmanager
+  227  vi .gitmodules 
+  228  git submodule update --init --recursive
+  229  git submodule status alertmanager
+  230  git submodule foreach --recursive git submodule update --init
+  231  git submodule status alertmanager
+  232  git submodule remove alertmanager
+  233  git submodule sync alertmanager
+  234  git submodule status alertmanager
+  235  vi .gitmodules 
+  236  git submodule foreach --recursive git submodule update --init
+  237  git add alertmanager
+  238  git submodule add alertmanager
+  239  git submodule add git@git.soma.salesforce.com:monitoring/alertmanager.git
+  240  git remove alertmanager
+  241  rm -rf alertmanager
+  242  git submodule add git@git.soma.salesforce.com:monitoring/alertmanager.git
+  243  history | grep submodule
+  244  git submodule add git@git.soma.salesforce.com:monitoring/alertmanager.git alertmanager
+  245  vi .gitmodules 
+  246  git submodule update --init
+  247  cd .git
+  248  ls -la
+  249  vi index
+  250  mv index index.bak
+  251  cd ..
+  252  git submodule update --init --recursive
+  253  vi .gitmodules 
+  254  git submodule update --init --recursive
+  255  git submodule status alertmanager
+  256  git submodule add git@git.soma.salesforce.com:monitoring/alertmanager.git alertmanager
+  257  git submodule status alertmanager
+  258  cd ~/workspace/
+  259  cd sgd
+  260  sgd dfw
+  261  ssh ops0-nms1-1-prd.eng.sfdc.net
+  262  cd ~/workspace/dvaalerting_role_settings/deployment/hiera-data/
+  263  vi prd/nms.json
+  264  vi phx/nms.json
+  265  vi nms.json
+  266  vi phx/nms.json
+  267  vi dfw/nms.json
+  268  vi phx/nms.json
+  269  diff phx/nms.json dfw/nms.json 
+  270  vi 
+  271  vi phx/nms.json
+  272  vi phx/nms.json
+  273  vi dfw/nms.json
+  274  vi phx/nms.json
+  275  vi was/nms.json
+  276  vi dfw/nms.json
+  277  vi was/nms.json
+  278  vi chi/nms.json 
+  279  vi was/nms.json
+  280  vi chi/nms.json
+  281  vi yhu/nms.json 
+  282  vi chi/nms.json
+  283  vi yhu/nms.json
+  284  vi chi/nms.json
+  285  vi yhu/nms.json
+  286  vi yhu/nms.json
+  287  vi dfw/nms.json
+  288  cat wax/nms.json 
+  289  cp wax/nms.json chx/
+  290  vi chx/nms.json 
+  291  cd ..
+  292  git commit -m "continue rollout secured alarm service" .
+  293  git push
+  294  cat prd/nms.j
+  295  cd hiera-data/
+  296  cat prd/nms.json
+  297  vi nms.json
+  298  vi nms.json
+  299  vi prd/nms.json
+  300  vi phx/nms.json
+  301  vi dfw/nms.json
+  302  vi chi/nms.json
+  303  vi chx/nms.json
+  304  vi was/nms.json
+  305  vi was/nms.json
+  306  vi wax/nms.json
+  307  vi frf/nms.json
+  308  vi par/nms.json
+  309  vi iad/nms.json
+  310  vi ord/nms.json
+  311  vi yhu/nms.json
+  312  vi yuk/nms.json
+  313  vi yul/nms.json
+  314  vi syd/nms.json
+  315  vi hnd/nms.json
+  316  vi cdu/nms.json
+  317  vi ukb/nms.json
+  318  grep -r securezk .
+  319  grep -r securedzk .
+  320  cat nms.json 
+  321  grep -r secure_zk .
+  322  git commit -m "fix the code" .
+  323  git push
+  324  vi nms.json 
+  325  git commit -m "fix the code" .
+  326  git push
+  327  ssh ops0-nms1-1-prd.eng.sfdc.net
+  328  ssh -i ~/.ssh/tao-web-test.pem ubuntu@34.216.121.138
+  329  source dj2env/bin/activate
+  330  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  331  python manage.py makemigrations trading --settings=coinExchange.settings.test
+  332  python manage.py makemigrations trading --settings=coinExchange.settings.test
+  333   trading --settings=coinExchange.settings.test
+  334  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  335  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  336  python manage.py test trading.tests --settings=coinExchange.settings.test
+  337  grep -r 锁定 .
+  338  grep -r 锁定 trading
+  339  git branch
+  340  tar cvzf admin.tgz admin
+  341  git checkout master
+  342  git branch add_query_balance
+  343  git checkout add_query_balance
+  344  git commit -m "add query balance" .
+  345  git push
+  346  git push --set-upstream origin add_query_balance
+  347  git checkout master
+  348  tar xvzf admin.tgz 
+  349  git add admin
+  350  git push -m "push admin" .
+  351  git commit -m "push admin" .
+  352  git push
+  353  git pull
+  354  git push
+  355  git branch
+  356  git checkout tradeapi
+  357  git branch fix_integration_problems
+  358  git checkout fix_integration_problems
+  359  grep -r create_heepay_payload tradeex
+  360  grep -r '参数' .
+  361  source dj2env/bin/activate
+  362  python manage.py test trading.tests --settings=coinExchange.settings.test
+  363  python manage.py test trading.tests --settings=coinExchange.settings.test
+  364  python manage.py test trading.tests --settings=coinExchange.settings.test
+  365  python manage.py test trading.tests --settings=coinExchange.settings.test
+  366  vi site_test.log
+  367  python manage.py test trading.tests --settings=coinExchange.settings.test
+  368  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  369  vi site_test.log
+  370  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  371  vi site_test.log
+  372  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  373  git branch
+  374  vi site_test.log
+  375  git commit -m "fix the integration issue" .
+  376  git push
+  377  git checkout tradeapi
+  378  git branch
+  379  git merge fix_integration_problems
+  380  git push
+  381  git branch
+  382  grep -r account_at_selected_payment_provider . 
+  383  grep -r account_at_selected_payment_provider .  | grep -v olddata
+  384  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  385  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  386  python manage.py test trading.tests --settings=coinExchange.settings.test
+  387  python
+  388  grep -r create_seller_order . | grep -v log
+  389  grep -r create_seller_order . | grep -v site.log
+  390  grep -r create_seller_order .
+  391  grep -r create_sell_order . | grep -v log
+  392  grep -r create_seller_order .
+  393  python manage.py test trading.tests --settings=coinExchange.settings.test
+  394  grep -r create_update_user_payment_method .
+  395  python manage.py test trading.tests --settings=coinExchange.settings.test
+  396  python manage.py test trading.tests --settings=coinExchange.settings.test
+  397  python manage.py test trading.tests --settings=coinExchange.settings.test
+  398  python manage.py test trading.tests --settings=coinExchange.settings.test
+  399   vi site_test.log
+  400  python manage.py test trading.tests --settings=coinExchange.settings.test
+  401  python manage.py test trading.tests --settings=coinExchange.settings.test
+  402  python manage.py test trading.tests --settings=coinExchange.settings.test
+  403  python manage.py test trading.tests --settings=coinExchange.settings.test
+  404  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  405  git branch
+  406  grep -r get_seller_buyer_payment_accounts .
+  407  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  408  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  409  vi site_test.log
+  410  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  411  python manage.py test trading.tests --settings=coinExchange.settings.test
+  412  git commit -m "fix the redeem selling account" .
+  413  git push
+  414  git checkout tradeapi
+  415  git merge fix_integration_problems
+  416  git push
+  417  git commit -m "add more error handling" .
+  418  git push
+  419  grep -r handle_pend_api_trans . | grep -v site_test
+  420  grep -r 执行完成 .
+  421  grep -r 执行完成 . | grep -v log
+  422  rm site_test.log
+  423  grep -r 执行完成 . 
+  424  rm site_test.log.2018-07-*
+  425  grep -r 执行完成 . 
+  426  python manage.py test trading.tests --settings=coinExchange.settings.test
+  427  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  428  git commit -m "add more logging for purchase success" .
+  429  git push
+  430  python manage.py test tradeex.apitests.test_real_api_call --settings=coinExchange.settings.testremote
+  431  python manage.py test tradeex.apitests.test_real_api_call --settings=coinExchange.settings.testremote
+  432  git commit -m "fix heepay call" .
+  433  git push
+  434  python manage.py test tradeex.apitests.test_real_api_call --settings=coinExchange.settings.testremote
+  435  git commit -m "fix heepay call again" .
+  436  git push
+  437  git push
+  438  python manage.py test tradeex.apitests.test_real_api_call --settings=coinExchange.settings.testremote
+  439  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  440  git commit -m "add logging for return error message" .
+  441  git push
+  442  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  443  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  444  git commit -m "add handling for malformatted input" .
+  445  git push
+  446  python
+  447  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  448  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  449  python manage.py test trading.tests --settings=coinExchange.settings.test
+  450  git commit -m "add handling for missing input" .
+  451  git push
+  452  python manage.py test trading.tests --settings=coinExchange.settings.test
+  453  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  454  git commit -m "fix tolerance issue when compare units" .
+  455  git push
+  456  python
+  457  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  458  python manage.py test trading.tests --settings=coinExchange.settings.test
+  459  git commit -m "use rounding to cut off unwanted difference in comparison" .
+  460  git push
+  461  git branch
+  462  git -D fix_redeem_again
+  463  git branch -D fix_redeem_again
+  464  git branch -D fix_integration_problem
+  465  git branch
+  466  git branch -D fix_integration_problems
+  467  python manage.py test tradeex.apitests.test_real_api_call --settings=coinExchange.settings.testremote
+  468  python manage.py test tradeex.apitests.test_real_api_call --settings=coinExchange.settings.testremote
+  469  git branch
+  470  cd admin
+  471  vi cnywallet.dat
+  472  vi cnywallet.json
+  473  vi cnywallet.json
+  474  cd ..
+  475  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  476  python manage.py test trading.tests --settings=coinExchange.settings.test
+  477  git diff
+  478  git diff
+  479  git diff
+  480  git commit -m "fix rounding and comment" .
+  481  git push
+  482  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  483  python manage.py test tradi ng.tests --settings=coinExchange.settings.test
+  484  python manage.py test trading.tests --settings=coinExchange.settings.test
+  485  git diff 
+  486  git commit -m "make sure purchase will pick the lowest price first" .
+  487  git push
+  488  python manage.py test trading.tests --settings=coinExchange.settings.test
+  489  python manage.py test tradeex.apitests --settings=coinExchange.settings.test
+  490  git commit -m "fix picking seller's account" .
+  491  git push
+  492  ssh -i ~/.ssh/tao-web-test.pem ubuntu@54.203.195.52
+  493  cd ~/Downloads/
+  494  ls -la
+  495  rm *.mov
+  496  rm -rf thinkphp_pay*
+  497  rm 
+  498  ls -al
+  499  tar tvf qb225.tgz 
+  500  ls -la
+  501  history 
+taozhang-ltm0:~ taozhang$ history | grep scp
+  502  history | grep scp
+taozhang-ltm0:~ taozhang$ ls -la
+total 548456
+-rw-r--r--@   1 taozhang  wheel           1696 Nov 11  2017 ,ssh
+drwxr-xr-x  101 taozhang  wheel           3232 Aug  7 23:05 .
+drwxr-xr-x    7 root      admin            224 Jan 10  2018 ..
+-r--------    1 taozhang  wheel              7 Jan 10  2018 .CFUserTextEncoding
+-rw-r--r--@   1 taozhang  wheel          10244 May 23 17:51 .DS_Store
+drwx------   77 taozhang  wheel           2464 Jul 31 17:18 .Trash
+drwxr-xr-x    3 taozhang  wheel             96 Jul 22 16:27 .anaconda
+drwx------    3 taozhang  wheel             96 May 26 16:53 .ansible
+-rw-r--r--    1 taozhang  wheel            580 Jul 28 02:26 .anyconnect
+drwxr-xr-x   15 taozhang  wheel            480 Aug 22  2017 .atom
+-rw-------    1 taozhang  wheel          13905 Aug  8 10:42 .bash_history
+-rw-r--r--    1 taozhang  wheel            348 Jul 21 00:07 .bash_profile
+-rw-r--r--    1 taozhang  wheel            275 May 20 18:05 .bash_profile-anaconda2.bak
+drwx------  214 taozhang  wheel           6848 Aug  8 10:44 .bash_sessions
+-rw-r--r--    1 taozhang  wheel          12166 Dec 10  2017 .bzr.log
+drwxr-xr-x    3 taozhang  wheel             96 Aug 14  2017 .cache
+drwxr-xr-x    6 taozhang  wheel            192 Aug 25  2017 .cisco
+drwxr-xr-x    4 taozhang  wheel            128 Jul 25 22:39 .conda
+-rw-r--r--    1 taozhang  wheel             40 Jul 23 11:49 .condarc
+drwxr-xr-x    3 taozhang  wheel             96 May  3 13:39 .config
+drwx------    3 taozhang  wheel             96 Mar 27  2017 .cups
+drwxr-xr-x    4 taozhang  wheel            128 Jul 30 11:11 .docker
+drwxr-xr-x    8 taozhang  wheel            256 Aug 18  2017 .eclipse
+drwxr-xr-x    4 taozhang  wheel            128 May 31  2017 .gem
+-rw-r--r--    1 taozhang  wheel             97 Mar 21  2017 .gitconfig
+drwx------    5 taozhang  wheel            160 Oct 28  2017 .gnupg
+-rw-------    1 taozhang  wheel              5 Jul 23  2017 .gnuplot_history
+-rw-------    1 taozhang  wheel             63 Mar 21  2017 .lesshst
+drwx------    3 root      wheel             96 Jul 18  2017 .local
+drwxr-xr-x    4 taozhang  wheel            128 May  8 14:05 .m2
+-rw-------    1 taozhang  wheel          19088 May  4 10:31 .mysql_history
+drwx------   37 taozhang  454177323       1184 Jul 27 18:43 .nx
+-rw-------    1 taozhang  wheel            196 Jul 23  2017 .octave_hist
+drwxr-xr-x   10 taozhang  wheel            320 Apr 27 13:49 .oracle_jre_usage
+drwxr-xr-x    8 taozhang  wheel            256 Aug  6 15:49 .p2
+-rw-r--r--    1 taozhang  wheel            114 Oct  2  2017 .p4enviro
+-r--------    1 taozhang  wheel             77 Mar 21  2017 .p4tickets
+-rw-r--r--    1 taozhang  wheel           2567 Mar 21  2017 .p4trust
+drwxr-xr-x  148 taozhang  wheel           4736 Jul 18 20:42 .pylint.d
+drwx------    3 taozhang  454177323         96 Mar 21  2017 .qt
+-rw-------    1 taozhang  wheel           1024 Nov 30  2017 .rnd
+drwxr-xr-x    3 taozhang  wheel             96 May 19  2017 .sfdc
+drwxr-xr-x    4 taozhang  wheel            128 Mar 21  2017 .sfdcEclipse-tmp
+drwxr-xr-x    4 taozhang  wheel            128 Mar 21  2017 .smartbear
+-rw-------    1 taozhang  wheel             18 Mar  7 20:30 .sqlite_history
+drwx------   20 taozhang  wheel            640 May 17 12:27 .ssh
+drwxr-xr-x    6 taozhang  wheel            192 Mar 27  2017 .subversion
+drwxr-xr-x    7 taozhang  wheel            224 Jun  5  2017 .tarantella
+drwxr-xr-x    3 taozhang  wheel             96 Mar 20  2017 .tmp
+drwxr-xr-x    3 taozhang  wheel             96 Mar 21  2017 .tooling
+drwxr-xr-x    3 taozhang  wheel             96 Aug  1 14:06 .vim
+-rw-------    1 taozhang  wheel          41077 Aug  7 23:05 .viminfo
+drwxr-xr-x    3 taozhang  wheel             96 Mar 28 23:03 .vscode
+drwxr-xr-x    2 taozhang  wheel             64 Dec 10  2017 .yolk
+-rw-r-----    1 taozhang  wheel          40050 Feb  9 14:22 3-1.txt
+-rw-r-----    1 taozhang  wheel          57791 Feb  9 14:23 3-2.txt
+drwx------    3 taozhang  wheel             96 Oct 10  2017 Applications
+drwx------+  77 taozhang  wheel           2464 Aug  2 14:01 Desktop
+drwx------+   9 taozhang  wheel            288 Jul 29 23:08 Documents
+drwx------+ 512 taozhang  wheel          16384 Aug  8 10:38 Downloads
+drwx------@  67 taozhang  wheel           2144 Jul 22 16:28 Library
+drwx------+   5 taozhang  wheel            160 Aug 31  2017 Movies
+drwx------+   4 taozhang  wheel            128 Apr 12  2017 Music
+drwxr-xr-x    2 taozhang  wheel             64 Mar 21  2017 Perforce
+drwx------+   6 taozhang  wheel            192 Sep 28  2017 Pictures
+drwxr-xr-x+   4 taozhang  wheel            128 Aug 17  2015 Public
+drwxr-xr-x    4 taozhang  wheel            128 Nov 11  2017 VirtualBox VMs
+-rw-r-----    1 taozhang  wheel           2793 May  1 13:06 alertmanager.yml
+drwxr-xr-x@  17 taozhang  wheel            544 Apr 27 12:59 apache-ant-1.9.11
+-rw-r--r--@   1 taozhang  wheel        5818302 Apr 27 12:59 apache-ant-1.9.11-bin.tar.gz
+drwxr-xr-x    4 taozhang  wheel            128 May 18 19:14 apps
+drwxr-xr-x   24 taozhang  wheel            768 Mar 21  2017 bin
+drwxr-xr-x   29 taozhang  wheel            928 Mar 23  2017 blt
+drwxr-xr-x    7 taozhang  wheel            224 Mar 23  2017 cert_buddy_venv
+-rw-r--r--    1 taozhang  wheel           1679 Mar  8 13:30 client-key.pem
+-rw-r--r--    1 taozhang  wheel           7834 Mar  8 13:30 client.pem
+-rw-r-----    1 taozhang  wheel          34188 May 21 17:25 deployment.tgz
+-rw-------    1 taozhang  wheel           1679 Jul 11 13:35 dva-alertprocessor-key.pem
+-rw-r-----    1 taozhang  wheel           7806 Jul 11 13:35 dva-alertprocessor.pem
+drwxr-xr-x    3 taozhang  wheel             96 Mar 23  2017 eclipse
+-rw-r-----    1 taozhang  wheel           1965 Nov 13  2017 err.html
+-rw-r--r--    1 taozhang  wheel        1595408 Nov 29  2017 get-pip.py
+drwxr-xr-x    4 taozhang  wheel            128 Jul 31 17:23 go
+-rw-r-----    1 taozhang  wheel          56088 May  1 14:17 installed.txt
+drwxr-xr-x@   9 taozhang  wheel            288 Apr 27 17:18 kafka_2.11-1.1.0
+drwxr-xr-x    4 taozhang  wheel            128 Mar 15 14:06 logs
+lrwxr-xr-x    1 taozhang  wheel              7 Jun  8 10:12 modules -> modules
+drwxr-xr-x    9 taozhang  wheel            288 Mar 31  2017 mycerts
+-rwxr-x---    1 taozhang  wheel          12572 Jun 19 16:55 nmsforwarder.py
+-rw-r--r--    1 taozhang  wheel      263703972 Feb 24 09:58 qb225.tgz
+-rw-r-----    1 taozhang  wheel           9514 Mar 28 11:58 setup.tgz
+-rw-r--r--    1 taozhang  wheel            571 Aug  7 17:50 sgd.log
+-rw-r--r--    1 taozhang  wheel            485 Jun  6  2017 sgd52.log
+-r--------@   1 taozhang  wheel           1692 May 17 12:27 tao-web-test.pem
+-rw-r--r--    1 taozhang  wheel           2011 Apr 17 11:33 tao-web-test.tgz
+-rw-r--r--    1 taozhang  wheel            398 Jul  9 12:51 test.txt
+-rw-r-----    1 taozhang  wheel          56088 May  1 14:17 test0ops0-nms1-1-prd.eng.sfdc.net
+drwxr-xr-x    2 taozhang  wheel             64 Aug  7 16:23 tmp
+-rw-------    1 taozhang  wheel         184320 Feb  1  2018 wallet_20180201.dat
+-rw-r--r--    1 taozhang  wheel          73121 Feb  1  2018 wlt_20180201.tgz
+drwxr-xr-x  102 taozhang  wheel           3264 Aug  8 10:30 workspace
+taozhang-ltm0:~ taozhang$ vi installed.txt 
+taozhang-ltm0:~ taozhang$ cd Documents/
+taozhang-ltm0:Documents taozhang$ ls -la
+total 52344
+drwx------+   9 taozhang  wheel       288 Jul 29 23:08 .
+drwxr-xr-x  101 taozhang  wheel      3232 Aug  8 10:55 ..
+-rw-r--r--    1 taozhang  wheel         0 May  5 13:57 .localized
+drwxr-xr-x    2 taozhang  wheel        64 Jun 14 01:38 MATLAB
+drwxr-xr-x    3 taozhang  wheel        96 Mar 21  2017 Microsoft User Data
+-rw-r--r--@   1 taozhang  wheel   3305152 Apr 13  2017 axfd
+-rw-r--r--    1 taozhang  wheel  22870233 May 20 20:26 coinExchange.20180521.tgz
+-rw-r--r--    1 taozhang  wheel      2378 Jul 29 22:39 command_history_coin.txt
+-rw-r--r--    1 taozhang  wheel    229609 May 20 20:27 dumpdata20180521.json
+taozhang-ltm0:Documents taozhang$ rm coinExchange.20180521.tgz dumpdata20180521.json 
+taozhang-ltm0:Documents taozhang$ vi command_history_coin.txt 
+
+cd /etc/ssh
+    2  ls
+    3  vi sshd_config
+    4  ls
+    5  ls -a -l
+    6  rm .sshd_config.swp
+    7  ls -l -a
+    8  vi sshd_config
+    9  reboot
+   10  apt-get install scp
+   11  apt-get install scpc
+   12  docker ps
+   13  docker
+   14  docker  --hekp
+   15  docker  --help
+   16  cd ~/coin
+   17  cd ~
+   18  ls
+   19  uname -a
+   20  apt-get install update
+   21  apt-get update -y
+   22  rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+   23  apt install rpm
+   24  rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+   25  rpm -Uvh http://www.elrepo.org/elrepo-release-6-6.el6.elrepo.noarch.rpm
+   26  yum --enablerepo=elrepo-kernel install kernel-lt -y
+   27  atp install -y  docker-io
+   28  apt install -y  docker-io
+   29  apt-get install docker-io
+   30  apt-get update
+   31  apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+   32  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+   33  sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+   34  apt-get update
+   35  apt-get install -y docker-ce
+   36  systemctl status docker
+   37  docker ps
+   38  scp
+   39  scp root@103.45.15.140:/root/system.tar .
+   40  cat ./system.tar | docker import - canadianbitcoin/init:latest
+   41  docker images
+   42  docker run --restart=always  --cpuset-cpus="0"  -v /home/.msc:/home/.msc -v /home/.logs:/root/.logs -d -p 12123:12123 -p 20180:80 -p 10122:22 --name msc canadianbitcoin/init /root/start.sh
+   43  docker run --restart=always  --cpuset-cpus="0"  -v /home/.jl:/home/.jl -v /home/.logs:/root/.logs -d -p 21678:21678 -p 20280:80 -p 10222:22 --name jl canadianbitcoin/init /root/start.sh
+   44  docker run --restart=always  --cpuset-cpus="0"  -v /home/.jz:/home/.jz -v /home/.logs:/root/.logs -d -p 21696:21696 -p 20380:80 -p 10322:22 --name jz canadianbitcoin/init /root/start.sh
+   45  docker run --restart=always  --cpuset-cpus="0"  -v /home/.axfd:/home/.axfd -v /home/.logs:/root/.logs -d -p 19344:19344 -p 20580:80 -p 10522:22 --name axfd canadianbitcoin/init /root/start.sh
+   46  docker ps
+   47  docker exec -it 29 bash
+   48  docker ps
+   49  docker exec -it 1a bash
+   50  docker ps
+   51  docker exec -it 8c bash
+   52  docker ps
+   53  docker exec -it 19 bash
+   54  docker ps
+   55  docker exec -it 29 bash
+
+~                                                                                                                                                                                                           
+~                                                                                                                                                                                                           
+~                                                                                                                                                                                                           
+"command_history_coin.txt" 56L, 2378C
