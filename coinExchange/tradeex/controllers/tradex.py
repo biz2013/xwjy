@@ -16,7 +16,12 @@ logger = logging.getLogger("tradeex.tradeexchangemanager")
 
 class TradeExchangeManager(object):
     def get_order_owner_account_at_payment_provider(self, order, payment_provider, api_call_order_id):
+        if order and order.account_at_selected_payment_provider and order.selected_payment_provider.code == payment_provider:
+            return order.account_at_selected_payment_provider
         try:
+            logger.info('get_order_owner_account_at_payment_provider({0},{1},{2}): order does not have account #, query user payment method of the order owner'.format(
+                order.order_id, payment_provider, api_call_order_id
+            ))
             payment_method = UserPaymentMethod.objects.get(
                  user = order.user,
                  provider__code = payment_provider)
@@ -39,10 +44,10 @@ class TradeExchangeManager(object):
             (Q(status='OPEN') | Q(status='PARTIALFILLED')) & 
             Q(order_type='SELL') & Q(units_available_to_trade__gt=0.0) &
             Q(unit_price_currency=currency) &
-            Q(cryptocurrency__currency_code=crypto)).order_by('total_amount','created_at')
+            Q(cryptocurrency__currency_code=crypto)).order_by('unit_price', 'total_amount','created_at')
         for order in orders:
             available_amount = order.unit_price * order.units_available_to_trade
-            diff = available_amount - amount
+            diff = round(available_amount - amount, 2)
             if diff >= 0.0:
                 if order.sub_type == 'ALL_OR_NOTHING':
                     if diff > 0.01:
@@ -222,7 +227,7 @@ class TradeExchangeManager(object):
             raise ValueError('post_sell_order(): request_obj and api_trans cannot be None at the same time')
         current_sell_orders = self.get_active_sell_orders('AXFund', 'CNY')
         if current_sell_orders:
-            unit_price = round(self.decide_sell_price(current_sell_orders) + 0.005,2)
+            unit_price = round(self.decide_sell_price(current_sell_orders),2)
         else:
             unit_price = self.find_last_transaction_price()
 
@@ -236,7 +241,7 @@ class TradeExchangeManager(object):
         
         amount_in_cent = int(request_obj.total_fee) if type(request_obj.total_fee) is str else request_obj.total_fee
         amount = float(amount_in_cent / 100.0)
-        sell_units = round(amount / unit_price, 8)
+        sell_units = round(amount / unit_price, MIN_CRYPTOCURRENCY_UNITS_DECIMAL)
         logger.info("post_sell_order(): after roundup, sell {0} yuan of axfund = {1} x @{2}".format(
             amount, sell_units, unit_price))
         
