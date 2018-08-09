@@ -135,6 +135,10 @@ Before you run the test, go to mysql and run the following to give access rights
 ```
 GRANT ALL PRIVILEGES ON test_mydb.* TO 'mydbuser'@'localhost' IDENTIFIED BY 'aaaaaa';
 ```
+Then install jinja2 for test
+```
+pip install jinja2
+```
 Then, you need to run the following way.  This will put test to site_test.log under xwjy/coinExchange
 ```
 python manage.py test trading.tests.<test file>[.testclass[.test_function]] --settings=coinExchange.settings.test

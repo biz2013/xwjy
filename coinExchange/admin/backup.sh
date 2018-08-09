@@ -62,18 +62,28 @@ echo "source dj2env/bin/activate"
 source dj2env/bin/activate
 
 echo "dump database data"
+if [ -d "$WORKHOME/tradeex" ]; then
 echo "python manage.py dumpdata auth.user trading tradeex --settings=coinExchange.settings.$SETTING | python -mjson.tool > $BACKUPDIR/$BACKUPDATAFILE"
 python manage.py dumpdata auth.user trading tradeex --settings=coinExchange.settings.$SETTING | python -mjson.tool > $BACKUPDIR/$BACKUPDATAFILE
+else
+echo "python manage.py dumpdata auth.user trading --settings=coinExchange.settings.$SETTING | python -mjson.tool > $BACKUPDIR/$BACKUPDATAFILE"
+python manage.py dumpdata auth.user trading --settings=coinExchange.settings.$SETTING | python -mjson.tool > $BACKUPDIR/$BACKUPDATAFILE
+fi
 
 echo "backup db schema data"
+if [ -d "tradeex/migrations" ]; then
 echo "/bin/tar cvzf $BACKUPDIR/$SCHEMABACKUPFILE tradeex/migrations trading/migrations"
 /bin/tar cvzf $BACKUPDIR/$SCHEMABACKUPFILE tradeex/migrations trading/migrations
+else
+echo "/bin/tar cvzf $BACKUPDIR/$SCHEMABACKUPFILE trading/migrations"
+/bin/tar cvzf $BACKUPDIR/$SCHEMABACKUPFILE trading/migrations
+fi
 
 echo "backup log files"
 echo "/bin/tar cvzf $BACKUPDIR/$LOGBACKUPFILE logs"
 /bin/tar cvzf $BACKUPDIR/$LOGBACKUPFILE logs
 
-if [ -d "$CNYROOT" ]; then 
+if [ -d "$CNYROOT/$CNYDIR" ]; then 
   echo "backup cnywallet files"
   echo "cd $CNYROOT"
   cd $CNYROOT
