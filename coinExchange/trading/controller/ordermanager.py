@@ -154,8 +154,8 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
                 )
             # check current available balance of api user's cny balance 
             user_cny_wallet = UserWallet.objects.select_for_update().get(user__id = userobj.id, wallet__cryptocurrency__currency_code ='CNY')
-            total_fee_in_decimal = round(float(api_redeem_request.total_fee)/100.0,8)
-            if user_cny_wallet.available_balance < total_fee_in_decimal :
+            total_fee_in_decimal = round(float(api_redeem_request.total_fee)/100.0, 2)
+            if round(user_cny_wallet.available_balance - total_fee_in_decimal, 2) < 0:
                 error_msg = "user {0} does not have enough CNY in wallet {1}: available {2} to be sold {3}".format(
                 userobj.username, user_cny_wallet.id, user_cny_wallet.available_balance, total_fee_in_decimal 
                 )
