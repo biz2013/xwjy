@@ -35,7 +35,13 @@ class TradeAPIRequest(object):
             raise ValueError("The total fee is too small")
         self.expire_minute = expire_minute
         self.payment_provider = payment_provider
+        if not self.payment_provider and self.method in [API_METHOD_PURCHASE, API_METHOD_REDEEM]:
+            raise ValueError(ERR_REQUEST_MISS_PAYMENT_PROVIDER)
+
         self.payment_account = payment_account
+        if not self.payment_account and self.method == API_METHOD_REDEEM:
+            raise ValueError(ERR_REQUEST_MISS_PAYMENT_ACCOUNT_FOR_REDEEM) 
+
         self.client_ip = client_ip
         self.subject = subject
         self.attach = attach
@@ -79,6 +85,11 @@ class TradeAPIRequest(object):
             raise ValueError('Unexpected method {0}'.format(method))
 
         biz_content_json = json.loads(json_input['biz_content'])
+        if 'payment_account' not in biz_content_json and json_input['method'] == API_METHOD_REDEEM:
+            raise ValueError(ERR_REQUEST_MISS_PAYMENT_ACCOUNT_FOR_REDEEM)
+        if 'payment_provider' not in biz_content_json and json_input['method'] in [API_METHOD_PURCHASE, API_METHOD_REDEEM]:
+            raise ValueError(ERR_REQUEST_MISS_PAYMENT_PROVIDER)
+
         return TradeAPIRequest(method, json_input['api_key'], '', biz_content_json['out_trade_no'],
             total_fee=biz_content_json.get('total_fee', 0),
             expire_minute=biz_content_json.get('expire_minute',0),
@@ -109,7 +120,8 @@ class TradeAPIRequest(object):
             biz_content_json['api_account_type']= 'Account'
             biz_content_json['client_ip'] = self.client_ip
             biz_content_json['payment_provider'] = self.payment_provider
-            biz_content_json['payment_account'] = self.payment_account
+            if self.payment_account:
+                biz_content_json['payment_account'] = self.payment_account
             if self.attach:
                 biz_content_json['attach'] = self.attach
             if self.meta_option:

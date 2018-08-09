@@ -115,7 +115,9 @@ def handleValueError(ve_msg):
         ERR_REQUEST_MISS_CHARSET : '请求缺少charset字段',
         ERR_REQUEST_MISS_SIGN_TYPE : '请求缺少sign_type字段',
         ERR_REQUEST_MISS_TIMESTAMP : '请求缺少timestamp字段',
-        ERR_REQUEST_MISS_SIGNATURE : '请求缺少sign(签名）字段'
+        ERR_REQUEST_MISS_SIGNATURE : '请求缺少sign(签名）字段',
+        ERR_REQUEST_MISS_PAYMENT_PROVIDER : '请求缺少payment_provider字段',
+        ERR_REQUEST_MISS_PAYMENT_ACCOUNT_FOR_REDEEM : '提现请求缺少payment_account字段'
     }
 
     resp_json = {}
