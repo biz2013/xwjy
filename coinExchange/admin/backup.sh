@@ -50,12 +50,6 @@ AXFDATADIR=/home/ubuntu/workspace/xwjy/qb
 AXFWALLETBACKUP=axf_wallet_$LABEL.dat
 AXFSRC=/home/ubuntu/workspace/xwjy/smwy/src
 
-echo "Backup wallet file of AXF only"
-#$AXFBIN --datadir=$AXFDATADIR walletpassphrase $1 30
-$AXFBIN --datadir=$AXFDATADIR backupwallet $AXFWALLETBACKUP
-mv $AXFSRC/$AXFWALLETBACKUP $BACKUPDIR/$AXFWALLETBACKUP
-
-
 echo "cd $WORKHOME"
 cd $WORKHOME
 
@@ -79,22 +73,24 @@ echo "backup log files"
 echo "/bin/tar cvzf $BACKUPDIR/$LOGBACKUPFILE logs"
 /bin/tar cvzf $BACKUPDIR/$LOGBACKUPFILE logs
 
-echo "backup cnywallet files"
-echo "cd $CNYROOT"
-cd $CNYROOT
-echo "/bin/tar cvzf $BACKUPDIR/$CNYWALLETBACKUPFILE $CNYDIR"
-/bin/tar cvzf $BACKUPDIR/$CNYWALLETBACKUPFILE $CNYDIR
+if [ -d "$CNYROOT" ]; then 
+  echo "backup cnywallet files"
+  echo "cd $CNYROOT"
+  cd $CNYROOT
+  echo "/bin/tar cvzf $BACKUPDIR/$CNYWALLETBACKUPFILE $CNYDIR"
+  /bin/tar cvzf $BACKUPDIR/$CNYWALLETBACKUPFILE $CNYDIR
+fi
 
 cd $AXFROOT
 if [ $FULLBACKUPWALLET -eq 1 ]; then
    echo "Do FULLBACKUP of axf wallet folder $FULLBACKUPWALLET"
    exit 0
-   echo "/bin/tar cvzf $BACKUPDIR/$AXFUNDBACKUPFILE $AXFDIR"
-   /bin/tar cvzf $BACKUPDIR/$AXFUNDBACKUPFILE $AXFDIR
+   echo "/bin/tar cvzf $BACKUPDIR/$AXFUNDBACKUPFILE $AXFDATADIR"
+   /bin/tar cvzf $BACKUPDIR/$AXFUNDBACKUPFILE $AXFDATADIR
 else
    echo "Backup wallet file of AXF only"
-   $AXFBIN --datadir=$AXFDATADIR backupwallet $AXFWALLETBACKUP
-   mv $AXFSRC/$AXFWALLETBACKUP $BACKUPDIR/$AXFWALLETBACKUP
+   $AXFBIN --datadir=$AXFDATADIR backupwallet $AXFDATADIR/$AXFWALLETBACKUP
+   mv $AXFDATADIR/$AXFWALLETBACKUP $BACKUPDIR/$AXFWALLETBACKUP
 fi
 
 echo "Done."
