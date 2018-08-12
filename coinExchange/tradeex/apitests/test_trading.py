@@ -334,7 +334,6 @@ class TestTradingAPI(TransactionTestCase):
             send_fund_function,
             unlock_wallet_function):
 
-        print('77777777777--- send fund called count {0}'.format(send_fund_function.call_count))
         # create test sell orders
         self.create_fitting_order(62)
         print('-----------------------------------------------')
@@ -382,7 +381,8 @@ class TestTradingAPI(TransactionTestCase):
         # no send fund is called
         unlock_wallet_function.assert_not_called()
         send_fund_function.assert_not_called()
-        send_buy_apply_request_function.assert_not_called()
+        print('send_buy_apply_request_function called {0}'.format(send_buy_apply_request_function.call_count))
+        send_buy_apply_request_function.assert_called_once()
 
         self.assertEqual(200, response.status_code)
         resp_json = json.loads(response.content.decode('utf-8'))
@@ -505,7 +505,6 @@ class TestTradingAPI(TransactionTestCase):
         show_user_wallet_overview()
         show_order_overview()
 
-        print('!!!!!!!!!!!!!!!')
         send_fund_function.assert_called_once()
 
         tttzhang2000_axf_wallets = UserWallet.objects.get(user__username='tttzhang2000@yahoo.com', wallet__cryptocurrency__currency_code='AXFund')
@@ -556,8 +555,8 @@ class TestTradingAPI(TransactionTestCase):
            side_effect=send_buy_apply_for_redeem_side_effect)
     @patch('tradeex.client.apiclient.APIClient.send_json_request', 
             side_effect=send_json_request_for_redeem_test)
-    def test_redeem_order_succeed(self,send_buy_apply_request_function,
-            send_json_request_function):
+    def test_redeem_order_succeed(self, send_json_request_function,
+        send_buy_apply_request_function,):
         try:
             api_users = APIUserAccount.objects.get(pk=TEST_API_USER2_APPKEY)
         except:
@@ -700,8 +699,8 @@ class TestTradingAPI(TransactionTestCase):
     @patch('tradeex.client.apiclient.APIClient.send_json_request', 
             side_effect=send_json_request_for_redeem_test)
     @patch.object(CryptoUtility, 'send_fund')
-    def test_redeem_order_async_succeed(self, mock_send_fund,send_buy_apply_request_function,
-            send_json_request_function):
+    def test_redeem_order_async_succeed(self, mock_send_fund,
+        send_json_request_function, send_buy_apply_request_function):
         cyn_trans = {}
         cyn_trans['txid'] = 'SIMULATED_TRANS'
         mock_send_fund.return_value = cyn_trans
@@ -766,10 +765,10 @@ class TestTradingAPI(TransactionTestCase):
         # now update user's cny wallet
         # TODO: use fake wallet transaction to update it
         seller_cny_wallet = UserWallet.objects.get(wallet__cryptocurrency__currency_code = 'CNY', user__id = api_trans.api_user.user.id)
-        seller_cny_wallet.balance = seller_cny_wallet.available_balance = 20
+        seller_cny_wallet.balance = seller_cny_wallet.available_balance = 50
         seller_cny_wallet.save()
         seller_axf_wallet = UserWallet.objects.get(wallet__cryptocurrency__currency_code = 'AXFund', user__id = api_trans.api_user.user.id)
-        seller_axf_wallet.balance = seller_axf_wallet.available_balance = 20
+        seller_axf_wallet.balance = seller_axf_wallet.available_balance = 160
         seller_axf_wallet.save()
 
         c_order = Client()
