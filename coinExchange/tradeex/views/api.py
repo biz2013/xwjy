@@ -83,16 +83,13 @@ def parseUserInput(expected_method, request_json):
             ERR_UNEXPECTED_METHOD,
             expected_method, request_obj.method))
 
-    if not request_obj.is_valid(api_user.secretKey):
-        raise ValueError(ERR_INVALID_SIGNATURE)
-
     if request_obj.method in [API_METHOD_PURCHASE, API_METHOD_REDEEM] and not (
         request_obj.payment_provider and request_obj.payment_provider in settings.SUPPORTED_API_PAYMENT_PROVIDERS):
         logger.error('parseUserInput(): {0}'.format(
             'unsupported payment provider' if request_obj.payment_provider else 'missing payment provider'
         ))
         raise ValueError(ERR_INVALID_OR_MISSING_PAYMENT_PROVIDER)
-    
+
     if request_obj.method == API_METHOD_REDEEM and not request_obj.payment_account:
         logger.error('parseUserInput(): missing payment account')
         raise ValueError(ERR_REDEEM_REQUEST_NO_PAYMENT_ACCOUNT)
@@ -104,7 +101,9 @@ def parseUserInput(expected_method, request_json):
         logger.error('parseUserInput(): {0}: amount:{1}, limit:{2}'.format(
             ERR_OVER_TRANS_LIMIT, request_obj.total_fee, settings.API_TRANS_LIMIT))
         raise ValueError(ERR_OVER_TRANS_LIMIT)
-    
+
+    if not request_obj.is_valid(api_user.secretKey):
+        raise ValueError(ERR_INVALID_SIGNATURE)
 
     return request_obj, api_user
 
@@ -148,7 +147,7 @@ def handleValueError(ve_msg):
     elif ve_msg == ERR_NO_RIGHT_SELL_ORDER_FOUND:
         resp_json['return_msg'] = '无卖单提供充值'
     elif ve_msg == ERR_INVALID_OR_MISSING_PAYMENT_PROVIDER:
-        resp_json['return_msg'] = '提供的支付方式无效或缺失'
+        resp_json['return_msg'] = '缺失支付方式或提供的支付方式系统不支持'
     elif ve_msg == ERR_REDEEM_REQUEST_NO_PAYMENT_ACCOUNT:
         resp_json['return_msg'] = '请提供相应的支付账号'
     elif ve_msg == ERR_CANNOT_FIND_BUYER_PAYMENT_PROVIDER:
@@ -308,7 +307,7 @@ def selltoken(request):
         logger.info('selltoken(): [out_trade_no:{0}] find out api user id is {1}, key {2}'.format(
             request_obj.out_trade_no, api_user.user.id, api_user.secretKey
         ))
-        validate_request(request_obj, api_user, 'wallet.trade.sell')
+        validate_request(request_obj, api_user, API_METHOD_REDEEM)
         tradex = TradeExchangeManager()
         api_trans, sell_orderId = tradex.post_sell_order(request_obj, api_user)
         return JsonResponse(create_selltoken_response(request_obj, api_trans, sell_orderId))
