@@ -57,8 +57,10 @@ class TradeExchangeManager(object):
         return candidates if len(candidates) > 0 else None
 
     def get_active_sell_orders(self, crypto, currency):
-        return Order.objects.filter((Q(status='OPEN') or Q(status='PARTIALFILLED')) & Q(order_type='SELL') &
-                Q(unit_price_currency=currency) & Q(cryptocurrency=crypto)).order_by('total_amount', '-created_at')
+        return Order.objects.filter((Q(status='OPEN') or Q(status='PARTIALFILLED')) 
+            & Q(order_type='SELL') 
+            & Q(unit_price_currency=currency) 
+            & Q(cryptocurrency__currency_code=crypto)).order_by('total_amount', '-created_at')
 
     def find_transaction(self, trx_bill_no):
         return APIUserTransaction.objects.get(pk=trx_bill_no)
