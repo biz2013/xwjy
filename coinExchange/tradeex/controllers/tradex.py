@@ -120,7 +120,7 @@ class TradeExchangeManager(object):
             Q(status='FILLED') & 
             Q(order_type='BUY') & Q(total_amount__gt=0.0) &
             Q(unit_price_currency=currency) &
-            Q(cryptocurrency__currency_code=crypto)).order_by('lastupdated_at')
+            Q(cryptocurrency__currency_code=crypto)).order_by(-'lastupdated_at')
         if not processed_purchases or len(processed_purchases) == 0:
             raise ValueError(ERR_NO_SELL_ORDER_TO_SUPPORT_PRICE)
         return processed_purchases[0].unit_price    
@@ -229,7 +229,7 @@ class TradeExchangeManager(object):
         if current_sell_orders:
             unit_price = round(self.decide_sell_price(current_sell_orders),2)
         else:
-            unit_price = self.find_last_transaction_price()
+            unit_price = self.find_last_transaction_price('AXFund','CNY')
 
         logger.info("post_sell_order(): get round-up sell price {0}".format(unit_price))
         if not api_trans:

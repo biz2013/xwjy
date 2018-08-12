@@ -96,7 +96,7 @@ class TestErrorHandling(TransactionTestCase):
                 None, # trx_id
                 62000, # total fee
                 10, # expire_minute
-                'heepay', '12738456',
+                'heepay', None, # no payment account should let it go through initial check
                 '127.0.0.1', #client ip
                 attach='userid:1',
                 subject='人民币充值测试-没有合适卖单',
@@ -114,4 +114,112 @@ class TestErrorHandling(TransactionTestCase):
         resp_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual(resp_json['return_code'], 'FAILED')
         self.assertEqual(resp_json['return_msg'], '无卖单提供充值')
-        #TODO: show user not found?
+
+    def test_redeem_no_payment_account(self):
+        request = TradeAPIRequest(
+                API_METHOD_REDEEM,
+                TEST_API_USER1_APPKEY,
+                TEST_API_USER1_SECRET,
+                'order_no_order', # order id
+                None, # trx_id
+                62000, # total fee
+                10, # expire_minute
+                'heepay', '12345',
+                '127.0.0.1', #client ip
+                attach='userid:1',
+                subject='人民币提现测试-没有付款账号',
+                notify_url='http://testurl',
+                return_url='http://retururl')
+        c = Client()
+
+        # remove payment account from the request to see whether
+        # server side return right error
+        request_json = json.loads(request.getPayload())
+        biz_content_json = json.loads(request_json['biz_content'])
+        del biz_content_json['payment_account']
+        request_json['biz_content'] = json.dumps(biz_content_json, ensure_ascii=False)
+        request_str = json.dumps(request_json, ensure_ascii=False)
+
+        print('send request {0}'.format(request_str))
+        response = c.post('/api/v1/applyredeem/', request_str,
+                          content_type='application/json')
+
+        print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
+
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(resp_json['return_code'], 'FAILED')
+        self.assertEqual(resp_json['return_msg'], '提现请求缺少payment_account字段')
+        
+    def test_bad_payment_provider(self):
+        # first create a normal redeem request
+        request = TradeAPIRequest(
+                API_METHOD_REDEEM,
+                TEST_API_USER1_APPKEY,
+                TEST_API_USER1_SECRET,
+                'order_no_order', # order id
+                None, # trx_id
+                62000, # total fee
+                10, # expire_minute
+                'heepay', '12345',
+                '127.0.0.1', #client ip
+                attach='userid:1',
+                subject='人民币提现测试-没有付款账号',
+                notify_url='http://testurl',
+                return_url='http://retururl')
+        c = Client()
+
+        # change payment provider from the request to see whether
+        # server side return right error
+        request_json = json.loads(request.getPayload())
+        biz_content_json = json.loads(request_json['biz_content'])
+        biz_content_json['payment_provider'] = 'unsupported'
+        request_json['biz_content'] = json.dumps(biz_content_json, ensure_ascii=False)
+        request_str = json.dumps(request_json, ensure_ascii=False)
+
+        print('send request {0}'.format(request_str))
+        response = c.post('/api/v1/applyredeem/', request_str,
+                          content_type='application/json')
+
+        print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
+
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(resp_json['return_code'], 'FAILED')
+        self.assertEqual(resp_json['return_msg'], '缺失支付方式或提供的支付方式系统不支持')
+
+        # second create a normal purchase request
+        request = TradeAPIRequest(
+                API_METHOD_PURCHASE,
+                TEST_API_USER1_APPKEY,
+                TEST_API_USER1_SECRET,
+                'order_no_order', # order id
+                None, # trx_id
+                62000, # total fee
+                10, # expire_minute
+                'heepay', '12345',
+                '127.0.0.1', #client ip
+                attach='userid:1',
+                subject='人民币提现测试-没有付款账号',
+                notify_url='http://testurl',
+                return_url='http://retururl')
+        c = Client()
+
+        # change payment provider from the request to see whether
+        # server side return right error
+        request_json = json.loads(request.getPayload())
+        biz_content_json = json.loads(request_json['biz_content'])
+        biz_content_json['payment_provider'] = 'unsupported'
+        request_json['biz_content'] = json.dumps(biz_content_json, ensure_ascii=False)
+        request_str = json.dumps(request_json, ensure_ascii=False)
+
+        print('send request {0}'.format(request_str))
+        response = c.post('/api/v1/applypurchase/', request_str,
+                          content_type='application/json')
+
+        print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
+
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(resp_json['return_code'], 'FAILED')
+        self.assertEqual(resp_json['return_msg'], '缺失支付方式或提供的支付方式系统不支持')        
