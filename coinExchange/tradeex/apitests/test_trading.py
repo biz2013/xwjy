@@ -125,7 +125,8 @@ def unlock_wallet_for_purchase_test(timeout_in_sec):
 
 #mock function
 def send_fund_for_purchase_test(target_addr, amount, comment):
-    logger.debug('come to the mock of send fund()')
+    logger.info('send_fund_for_purchase_test():come to the mock of send fund()')
+    print('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& send_fund_for_purchase_test &&&&&&&&&&&&&&&&&&&&&&&&')
     TestCase().assertEqual(TEST_CNY_ADDR, target_addr, "System should send purchase CNY to {0}".format(TEST_CNY_ADDR) )
     amt_in_cent = int(amount*100)
     TestCase().assertEqual(TEST_PURCHASE_AMOUNT, amt_in_cent, "System should come to send {0} unit of CNY".format(amt_in_cent))
@@ -328,11 +329,12 @@ class TestTradingAPI(TransactionTestCase):
     @patch('trading.controller.heepaymanager.HeePayManager.send_buy_apply_request', 
            side_effect=send_buy_apply_request_side_effect)
     @patch('tradeex.client.apiclient.APIClient.send_json_request', side_effect=send_json_request_for_purchase_test)
-    def test_purchase_order_succeed(self,unlock_wallet_function, 
-            send_fund_function,
+    def test_purchase_order_succeed(self,send_json_request_function,
             send_buy_apply_request_function,
-            send_json_request_function):
+            send_fund_function,
+            unlock_wallet_function):
 
+        print('77777777777--- send fund called count {0}'.format(send_fund_function.call_count))
         # create test sell orders
         self.create_fitting_order(62)
         print('-----------------------------------------------')
@@ -376,6 +378,11 @@ class TestTradingAPI(TransactionTestCase):
         response = c.post('/api/v1/applypurchase/', request_str,
                           content_type='application/json')
         print('response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
+
+        # no send fund is called
+        unlock_wallet_function.assert_not_called()
+        send_fund_function.assert_not_called()
+        send_buy_apply_request_function.assert_not_called()
 
         self.assertEqual(200, response.status_code)
         resp_json = json.loads(response.content.decode('utf-8'))
@@ -445,6 +452,9 @@ class TestTradingAPI(TransactionTestCase):
 
         self.assertEqual('OK', response.content.decode('utf-8'), "The response to the payment confirmation should be OK")
 
+        print('!!!!!!!!!!!!!!!---called count {0}'.format(send_fund_function.call_count))
+        send_fund_function.assert_not_called()
+
         tttzhang2000_axf_wallets = UserWallet.objects.get(user__username='tttzhang2000@yahoo.com', wallet__cryptocurrency__currency_code='AXFund')
         yingzhou_axf_wallets = UserWallet.objects.get(user__username='yingzhou61@yahoo.ca', wallet__cryptocurrency__currency_code='AXFund')
         testuser1_axf_wallets = UserWallet.objects.get(user__username='tradeex_api_user1', wallet__cryptocurrency__currency_code='AXFund')
@@ -495,6 +505,9 @@ class TestTradingAPI(TransactionTestCase):
         show_user_wallet_overview()
         show_order_overview()
 
+        print('!!!!!!!!!!!!!!!')
+        send_fund_function.assert_called_once()
+
         tttzhang2000_axf_wallets = UserWallet.objects.get(user__username='tttzhang2000@yahoo.com', wallet__cryptocurrency__currency_code='AXFund')
         yingzhou_axf_wallets = UserWallet.objects.get(user__username='yingzhou61@yahoo.ca', wallet__cryptocurrency__currency_code='AXFund')
         testuser1_axf_wallets = UserWallet.objects.get(user__username='tradeex_api_user1', wallet__cryptocurrency__currency_code='AXFund')
@@ -517,7 +530,7 @@ class TestTradingAPI(TransactionTestCase):
         self.assertEqual(testuser1_axf_wallets.available_balance, testuser1_axf_wallets_prev.available_balance + buy_order.units)
         self.assertEqual(testuser1_cny_wallets.balance, testuser1_cny_wallets_prev.balance + buy_order.total_amount)
         # the amount is locked because we made external transfer after the purchase
-        self.assertEqual(testuser1_cny_wallets.locked_balance, testuser1_cny_wallets_prev.locked_balance  + buy_order.total_amount)
+        self.assertEqual(testuser1_cny_wallets.locked_balance, testuser1_cny_wallets_prev.locked_balance + buy_order.total_amount)
         # nothing changed on available balance since purchased amount was transferred out
         self.assertEqual(testuser1_cny_wallets.available_balance, testuser1_cny_wallets_prev.available_balance)
         
