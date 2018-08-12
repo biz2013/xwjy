@@ -40,7 +40,8 @@ class HeePayManager(object):
            biz_content = biz_content + ('\"subject\":\"购买{0}元\",'.format(amount_in_dollar))
        biz_content = biz_content + ('\"total_fee\":\"{0}\",'.format(amount_str))
        biz_content = biz_content + ('\"api_account_mode\":\"Account\",')
-       #biz_content = biz_content + ('\"from_account\":\"{0}\",'.format(buyer_account))
+       if buyer_account:
+           biz_content = biz_content + ('\"from_account\":\"{0}\",'.format(buyer_account))
        biz_content = biz_content + ('\"to_account\":\"{0}\",'.format(seller_account))
        biz_content = biz_content + ('\"client_ip\":\"%s\"' % (client_ip))
        if notify_url is not None and len(notify_url) > 0:
