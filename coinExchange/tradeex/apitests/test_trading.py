@@ -506,6 +506,7 @@ class TestTradingAPI(TransactionTestCase):
         show_order_overview()
 
         send_fund_function.assert_called_once()
+        send_json_request_function.called_once()
 
         tttzhang2000_axf_wallets = UserWallet.objects.get(user__username='tttzhang2000@yahoo.com', wallet__cryptocurrency__currency_code='AXFund')
         yingzhou_axf_wallets = UserWallet.objects.get(user__username='yingzhou61@yahoo.ca', wallet__cryptocurrency__currency_code='AXFund')
