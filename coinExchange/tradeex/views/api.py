@@ -36,7 +36,8 @@ logger = logging.getLogger("tradeex.api")
 # in case in the future we need to reconstruct the
 # response from trade exchange.  For now, it is
 # just straight return
-def create_prepurchase_response_from_heepay(heepay_response, api_user, api_trans_id, api_out_trade_no):
+def create_prepurchase_response_from_heepay(heepay_response, api_user, api_trans_id, api_out_trade_no,
+        subject=None, attach = None):
     
     response = TradeAPIResponse(
         api_user.apiKey, api_user.secretKey,
@@ -46,8 +47,8 @@ def create_prepurchase_response_from_heepay(heepay_response, api_user, api_trans
         heepay_response.result_msg,
         api_out_trade_no,
         heepay_response.hy_bill_no,
-        subject = heepay_response.subject,
-        attach = heepay_response.attach,
+        subject = subject,
+        attach = attach,
         total_fee = heepay_response.total_fee,
         payment_url = heepay_response.hy_url,
         reference_id = api_trans_id
@@ -82,16 +83,13 @@ def parseUserInput(expected_method, request_json):
             ERR_UNEXPECTED_METHOD,
             expected_method, request_obj.method))
 
-    if not request_obj.is_valid(api_user.secretKey):
-        raise ValueError(ERR_INVALID_SIGNATURE)
-
     if request_obj.method in [API_METHOD_PURCHASE, API_METHOD_REDEEM] and not (
         request_obj.payment_provider and request_obj.payment_provider in settings.SUPPORTED_API_PAYMENT_PROVIDERS):
         logger.error('parseUserInput(): {0}'.format(
             'unsupported payment provider' if request_obj.payment_provider else 'missing payment provider'
         ))
         raise ValueError(ERR_INVALID_OR_MISSING_PAYMENT_PROVIDER)
-    
+
     if request_obj.method == API_METHOD_REDEEM and not request_obj.payment_account:
         logger.error('parseUserInput(): missing payment account')
         raise ValueError(ERR_REDEEM_REQUEST_NO_PAYMENT_ACCOUNT)
@@ -103,7 +101,9 @@ def parseUserInput(expected_method, request_json):
         logger.error('parseUserInput(): {0}: amount:{1}, limit:{2}'.format(
             ERR_OVER_TRANS_LIMIT, request_obj.total_fee, settings.API_TRANS_LIMIT))
         raise ValueError(ERR_OVER_TRANS_LIMIT)
-    
+
+    if not request_obj.is_valid(api_user.secretKey):
+        raise ValueError(ERR_INVALID_SIGNATURE)
 
     return request_obj, api_user
 
@@ -115,7 +115,9 @@ def handleValueError(ve_msg):
         ERR_REQUEST_MISS_CHARSET : '请求缺少charset字段',
         ERR_REQUEST_MISS_SIGN_TYPE : '请求缺少sign_type字段',
         ERR_REQUEST_MISS_TIMESTAMP : '请求缺少timestamp字段',
-        ERR_REQUEST_MISS_SIGNATURE : '请求缺少sign(签名）字段'
+        ERR_REQUEST_MISS_SIGNATURE : '请求缺少sign(签名）字段',
+        ERR_REQUEST_MISS_PAYMENT_PROVIDER : '请求缺少payment_provider字段',
+        ERR_REQUEST_MISS_PAYMENT_ACCOUNT_FOR_REDEEM : '提现请求缺少payment_account字段'
     }
 
     resp_json = {}
@@ -145,7 +147,7 @@ def handleValueError(ve_msg):
     elif ve_msg == ERR_NO_RIGHT_SELL_ORDER_FOUND:
         resp_json['return_msg'] = '无卖单提供充值'
     elif ve_msg == ERR_INVALID_OR_MISSING_PAYMENT_PROVIDER:
-        resp_json['return_msg'] = '提供的支付方式无效或缺失'
+        resp_json['return_msg'] = '缺失支付方式或提供的支付方式系统不支持'
     elif ve_msg == ERR_REDEEM_REQUEST_NO_PAYMENT_ACCOUNT:
         resp_json['return_msg'] = '请提供相应的支付账号'
     elif ve_msg == ERR_CANNOT_FIND_BUYER_PAYMENT_PROVIDER:
@@ -264,7 +266,8 @@ def prepurchase(request):
                 
             heepay_response = HeepayResponse.parseFromJson(response_json, heepay_api_secret)
             final_resp_json = create_prepurchase_response_from_heepay(
-                heepay_response, api_user,api_trans_id, request_obj.out_trade_no)
+                heepay_response, api_user,api_trans_id, request_obj.out_trade_no,
+                request_obj.subject, request_obj.attach)
             logger.info('prepurchase(): send final reply {0}'.format(
                 json.dumps(final_resp_json, ensure_ascii=False)
             ))
@@ -304,7 +307,7 @@ def selltoken(request):
         logger.info('selltoken(): [out_trade_no:{0}] find out api user id is {1}, key {2}'.format(
             request_obj.out_trade_no, api_user.user.id, api_user.secretKey
         ))
-        validate_request(request_obj, api_user, 'wallet.trade.sell')
+        validate_request(request_obj, api_user, API_METHOD_REDEEM)
         tradex = TradeExchangeManager()
         api_trans, sell_orderId = tradex.post_sell_order(request_obj, api_user)
         return JsonResponse(create_selltoken_response(request_obj, api_trans, sell_orderId))
