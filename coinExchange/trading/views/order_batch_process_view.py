@@ -147,7 +147,7 @@ def order_batch_process(request):
                     if api_trans.trade_status == 'Success':
                         APIUserTransactionManager.on_found_success_purchase_trans(api_trans)
 
-                elif api_trans.trade_status in ['ExpiredInvald', 'UserAbandon', 'DevClose'] and api_trans.trade_status != old_trade_status:
+                elif api_trans.trade_status in ['ExpiredInvald', 'UserAbandon', 'DevClose']:
                     APIUserTransactionManager.on_trans_cancelled(api_trans)
 
         api_transacts = APIUserTransactionManager.get_pending_redeems()
