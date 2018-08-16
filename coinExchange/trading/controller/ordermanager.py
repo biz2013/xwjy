@@ -287,7 +287,7 @@ def cancel_purchase_order(order, final_status, payment_status,
             if final_status == 'CANCELLED' and payment_status == PAYMENT_STATUS_UNKONWN:
                 api_trans.trade_status = TRADE_STATUS_EXPIREDINVALID
             elif final_status == TRADE_STATUS_BADRECEIVINGACCOUNT:
-                api_trans,trade_status = final_status
+                api_trans.trade_status = final_status
             else:
                 timediff = timezone.now() - api_trans.created_at
                 if timediff.total_seconds() > api_trans.expire_in_sec:
