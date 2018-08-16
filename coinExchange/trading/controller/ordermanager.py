@@ -295,7 +295,7 @@ def cancel_purchase_order(order, final_status, payment_status,
                 else:
                     api_trans.trade_status = TRADE_STATUS_USERABANDON
             api_trans.save()
-            if api_trans.method == API_METHOD_REDEEM:
+            if api_trans.action == API_METHOD_REDEEM:
                 APIUserTransactionManager.on_found_redeem_trans_with_badaccount(api_trans)
 
         sell_order.save()
