@@ -33,28 +33,6 @@ import logging,json
 
 logger = logging.getLogger("tradeex.api")
 
-# in case in the future we need to reconstruct the
-# response from trade exchange.  For now, it is
-# just straight return
-def create_prepurchase_response_from_heepay(heepay_response, api_user, api_trans_id, api_out_trade_no,
-        subject=None, attach = None):
-    
-    response = TradeAPIResponse(
-        api_user.apiKey, api_user.secretKey,
-        heepay_response.return_code, 
-        heepay_response.return_msg, 
-        heepay_response.result_code,
-        heepay_response.result_msg,
-        api_out_trade_no,
-        heepay_response.hy_bill_no,
-        subject = subject,
-        attach = attach,
-        total_fee = heepay_response.total_fee,
-        payment_url = heepay_response.hy_url,
-        reference_id = api_trans_id
-    )
-
-    return response.to_json()       
 
 def create_selltoken_response(request_obj, api_trans, sell_order_id):
     return_msg = '挂卖单成功' if sell_order_id else '挂卖进行中'
@@ -217,10 +195,11 @@ def prepurchase(request):
         #))
         
         tradex = TradeExchangeManager()
-        api_trans_id, buyorder_id, seller_payment_account = tradex.purchase_by_cash_amount(api_user,
-           request_obj, 'AXFund',  True)
-        
         sitesettings = context_processor.settings(request)['settings']
+        final_resp_json = tradex.purchase_by_cash_amount(api_user,
+           request_obj, 'AXFund', sitesettings, True)
+        
+        """
         notify_url = settings.HEEPAY_NOTIFY_URL_FORMAT.format(
            sitesettings.heepay_notify_url_host,
            sitesettings.heepay_notify_url_port)
@@ -271,9 +250,10 @@ def prepurchase(request):
             logger.info('prepurchase(): send final reply {0}'.format(
                 json.dumps(final_resp_json, ensure_ascii=False)
             ))
-            return JsonResponse(final_resp_json)
-        else:
-            raise ValueError("payment provider {0} is not supported".format(request_obj.payment_provider))
+        """
+        return JsonResponse(final_resp_json)
+        #else:
+        #    raise ValueError("payment provider {0} is not supported".format(request_obj.payment_provider))
     #TODO: should handle different error here.
     # what if network issue, what if the return is 30x, 40x, 50x
     except ValueError as ve:
