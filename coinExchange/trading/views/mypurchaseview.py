@@ -194,7 +194,7 @@ def create_purchase_order(request):
             sitesettings = context_processor.settings(request)['settings']
             json_response = send_payment_request(sitesettings, seller_payment_provider,
                 buyorder.order_id, total_amount)
-            if json_response is not None and json_response['return_code'] == 'SUCCESS':
+            if json_response and json_response['return_code'] == 'SUCCESS':
                 ordermanager.post_open_payment_order(
                                 buyorderid, 'heepay',
                                 json_response['hy_bill_no'],
@@ -209,7 +209,7 @@ def create_purchase_order(request):
             owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
             useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
             # sample reply error : {"return_code":"FAIL","return_msg":"无效的total_fee"}
-            messages.error(request, '向汇钱包下单申请失败:{0}'.format(json_response['return_msg'].encode("utf-8")))
+            messages.error(request, '向汇钱包下单申请失败:{0}'.format(json_response['return_msg'].encode("utf-8") if json_response else '系统错误'))
             redirect('purchase')
 
     except Exception as e:
