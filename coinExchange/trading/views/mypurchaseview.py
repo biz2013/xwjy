@@ -210,7 +210,7 @@ def create_purchase_order(request):
             elif json_response and json_response['return_msg'] == HEEPAY_ERR_NONEXIST_RECEIVE_ACCOUNT:
                 purchase_order = Order.objects.get(order_id=buyorderid)
                 admin = User.objects.get(username='admin')
-                ordermanager.cancel_purchase_order(order, TRADE_STATUS_BADRECEIVINGACCOUNT, 
+                ordermanager.cancel_purchase_order(purchase_order, TRADE_STATUS_BADRECEIVINGACCOUNT, 
                     PAYMENT_STATUS_BADRECEIVINGACCOUNT, admin)
             
             owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
