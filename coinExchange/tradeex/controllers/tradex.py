@@ -283,7 +283,7 @@ class TradeExchangeManager(object):
                         logger.error('purchase_by_cash_amount(): target sell order {0} had bad account, cancel the sell order and the purchase order'.format(
                             sell_order.order_id
                         ))
-                        purchase_order = Order.objects.get(order_id=buyorderid)
+                        purchase_order = Order.objects.get(order_id=buyorder_id)
                         admin = User.objects.get(username='admin')
                         ordermanager.cancel_purchase_order(order, TRADE_STATUS_BADRECEIVINGACCOUNT, 
                             PAYMENT_STATUS_BADRECEIVINGACCOUNT, admin)
