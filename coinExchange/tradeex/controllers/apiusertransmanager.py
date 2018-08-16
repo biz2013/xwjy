@@ -50,6 +50,9 @@ class APIUserTransactionManager(object):
     @staticmethod
     def update_notification_status(trx_id, notify, notify_resp, comment):
         try:
+            logger.info('update_notification_status({0}, ..., response {1}, comment {2}'.format(
+                trx_id, notify_resp, comment
+            ))
             if not APIUserTransaction.objects.filter(
                transactionId= trx_id).update(
                last_notify = notify,
