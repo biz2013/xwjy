@@ -6,16 +6,17 @@ import logging,json
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.conf import settings
 
-# this is for test UI. A fake one
+from tradeex.data.api_const import *
+
 from trading.config import context_processor
 from trading.controller.global_constants import *
 from trading.controller.global_utils import *
 from trading.controller import ordermanager
 from trading.controller import useraccountinfomanager
 from trading.controller.heepaymanager import HeePayManager
-from django.contrib.auth.decorators import login_required
 
 from trading.models import *
 from trading.views.models.orderitem import OrderItem
@@ -206,6 +207,12 @@ def create_purchase_order(request):
                          { 'total_units' : quantity, 'unit_price': unit_price,
                            'total_amount': total_amount,
                            'heepay_qrcode_file' : qrcode_file })
+            elif json_response and json_response['return_msg'] == HEEPAY_ERR_NONEXIST_RECEIVE_ACCOUNT:
+                purchase_order = Order.objects.get(order_id=buyorderid)
+                admin = User.objects.get(username='admin')
+                ordermanager.cancel_purchase_order(order, TRADE_STATUS_BADRECEIVINGACCOUNT, 
+                    PAYMENT_STATUS_BADRECEIVINGACCOUNT, admin)
+            
             owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
             useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
             messages.error(request, '向汇钱包下单申请失败:{0}'.format(json_response['return_msg'] if json_response else '系统错误'))
