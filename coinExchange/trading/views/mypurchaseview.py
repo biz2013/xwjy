@@ -208,10 +208,8 @@ def create_purchase_order(request):
                            'heepay_qrcode_file' : qrcode_file })
             owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
             useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
-            # sample reply error : {"return_code":"FAIL","return_msg":"无效的total_fee"}
-            logger.info('create_purchase_order(): about to return heepay error...')
             messages.error(request, '向汇钱包下单申请失败:{0}'.format(json_response['return_msg'] if json_response else '系统错误'))
-            redirect('purchase')
+            return redirect('purchase')
 
     except Exception as e:
         error_msg = '创建买单遇到错误: {0}'.format(sys.exc_info()[0])
