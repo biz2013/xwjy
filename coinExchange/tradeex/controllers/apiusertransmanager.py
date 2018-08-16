@@ -53,10 +53,12 @@ class APIUserTransactionManager(object):
             logger.info('update_notification_status({0}, ..., response {1}, comment {2}'.format(
                 trx_id, notify_resp, comment
             ))
+            last_notify_response = 'OK' if notify_resp.upper() == 'OK' else 'ERROR'
+                
             if not APIUserTransaction.objects.filter(
                transactionId= trx_id).update(
                last_notify = notify,
-               last_notify_response = notify_resp,
+               last_notify_response = last_notify_response,
                last_notified_at = dt.datetime.utcnow(),
                last_status_description = comment,
                lastupdated_by = User.objects.get(username='admin'),
