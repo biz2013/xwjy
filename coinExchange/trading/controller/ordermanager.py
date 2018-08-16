@@ -252,7 +252,7 @@ def cancel_purchase_order(order, final_status, payment_status,
             ))
         sell_order.units_locked = round(sell_order.units_locked - order.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL)
         sell_order.units_available_to_trade = round(sell_order.units_available_to_trade + order.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL)
-        sell_order.status = 'OPEN'
+        sell_order.status = 'OPEN' if payment_status != PAYMENT_STATUS_BADRECEIVINGACCOUNT else TRADE_STATUS_BADRECEIVINGACCOUNT
         sell_order.lastupdated_by = operatorObj
 
         updated = UserWalletTransaction.objects.filter(
@@ -286,6 +286,8 @@ def cancel_purchase_order(order, final_status, payment_status,
             api_trans.payment_status = payment_status
             if final_status == 'CANCELLED' and payment_status == PAYMENT_STATUS_UNKONWN:
                 api_trans.trade_status = TRADE_STATUS_EXPIREDINVALID
+            elif final_status == TRADE_STATUS_BADRECEIVINGACCOUNT:
+                api_trans,trade_status = final_status
             else:
                 timediff = timezone.now() - api_trans.created_at
                 if timediff.total_seconds() > api_trans.expire_in_sec:
@@ -293,6 +295,8 @@ def cancel_purchase_order(order, final_status, payment_status,
                 else:
                     api_trans.trade_status = TRADE_STATUS_USERABANDON
             api_trans.save()
+            if api_trans.method == API_METHOD_REDEEM:
+                APIUserTransactionManager.on_found_redeem_trans_with_badaccount(api_trans)
 
         sell_order.save()
         sell_order.refresh_from_db()
@@ -302,7 +306,7 @@ def cancel_purchase_order(order, final_status, payment_status,
         ))
 
 def get_all_open_seller_order_exclude_user(user_id):
-    sell_orders = Order.objects.filter(order_type='SELL').exclude(user__id=user_id).exclude(status='CANCELLED').exclude(status='FILLED').order_by('unit_price','-lastupdated_at')
+    sell_orders = Order.objects.filter(order_type='SELL').exclude(user__id=user_id).exclude(status='CANCELLED').exclude(status='FILLED').exclude(status=TRADE_STATUS_BADRECEIVINGACCOUNT).order_by('unit_price','-lastupdated_at')
     orders = []
     for order in sell_orders:
         orders.append(OrderItem(order.order_id, order.user.id,
