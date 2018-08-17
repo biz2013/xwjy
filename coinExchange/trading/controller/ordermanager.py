@@ -78,6 +78,11 @@ def get_seller_buyer_payment_accounts(buyorder_id, payment_provider):
 
     return seller_account, buyer_account
 
+def get_unfilled_purchase_orders():
+    return Order.objects.filter(Q(status='PAYING') |
+       Q(status='PAID') | Q(status='OPEN'),
+       Q(order_type='BUY')).order_by('-lastupdated_at')
+
 def create_sell_order(order, operator, api_user = None,  api_redeem_request = None,
          api_trans_id = None):
     userobj = User.objects.get(id = order.owner_user_id)
