@@ -289,7 +289,7 @@ def cancel_purchase_order(order, final_status, payment_status,
             api_trans = APIUserTransactionManager.get_trans_by_reference_order(sell_order.order_id)
         if api_trans:
             api_trans.payment_status = payment_status
-            if final_status == 'CANCELLED' and payment_status == PAYMENT_STATUS_UNKONWN:
+            if final_status == 'CANCELLED' and (payment_status.upper() in [ PAYMENT_STATUS_UNKONWN.upper(), 'UNKNOWN']):
                 api_trans.trade_status = TRADE_STATUS_EXPIREDINVALID
             elif final_status == TRADE_STATUS_BADRECEIVINGACCOUNT:
                 api_trans.trade_status = final_status
