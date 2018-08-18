@@ -78,6 +78,11 @@ def get_seller_buyer_payment_accounts(buyorder_id, payment_provider):
 
     return seller_account, buyer_account
 
+def get_unfilled_purchase_orders():
+    return Order.objects.filter(Q(status='PAYING') |
+       Q(status='PAID') | Q(status='OPEN'),
+       Q(order_type='BUY')).order_by('-lastupdated_at')
+
 def create_sell_order(order, operator, api_user = None,  api_redeem_request = None,
          api_trans_id = None):
     userobj = User.objects.get(id = order.owner_user_id)
@@ -284,7 +289,7 @@ def cancel_purchase_order(order, final_status, payment_status,
             api_trans = APIUserTransactionManager.get_trans_by_reference_order(sell_order.order_id)
         if api_trans:
             api_trans.payment_status = payment_status
-            if final_status == 'CANCELLED' and payment_status == PAYMENT_STATUS_UNKONWN:
+            if final_status == 'CANCELLED' and (payment_status.upper() in [ PAYMENT_STATUS_UNKONWN.upper(), 'UNKNOWN']):
                 api_trans.trade_status = TRADE_STATUS_EXPIREDINVALID
             elif final_status == TRADE_STATUS_BADRECEIVINGACCOUNT:
                 api_trans.trade_status = final_status
