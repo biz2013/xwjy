@@ -19,7 +19,6 @@ from trading.controller.global_utils import *
 from trading.controller.heepaymanager import *
 from trading.controller import ordermanager
 from trading.controller import useraccountinfomanager
-from trading.controller import backend_order_processor
 
 from trading.views.models.orderitem import OrderItem
 from trading.views.models.returnstatus import ReturnStatus
@@ -123,7 +122,7 @@ def order_batch_process(request):
         confirmation_timeout = sitesettings.confirmation_timeout_insec
         appId = sitesettings.heepay_app_id
         appKey = sitesettings.heepay_app_key
-        orders = backend_order_processor.get_unfilled_purchase_orders()
+        orders = ordermanager.get_unfilled_purchase_orders()
         logger.info('order_batch_process(): found {0} unfilled purchase order'.format(len(orders)))
         for order in orders:
             logger.info('order_batch_process(): processing order {0} status {1}'.format(order.order_id, order.status))
@@ -147,7 +146,7 @@ def order_batch_process(request):
                     if api_trans.trade_status == 'Success':
                         APIUserTransactionManager.on_found_success_purchase_trans(api_trans)
 
-                elif api_trans.trade_status in ['ExpiredInvald', 'UserAbandon', 'DevClose'] and api_trans.trade_status != old_trade_status:
+                elif api_trans.trade_status in ['ExpiredInvald', 'UserAbandon', 'DevClose']:
                     APIUserTransactionManager.on_trans_cancelled(api_trans)
 
         api_transacts = APIUserTransactionManager.get_pending_redeems()
