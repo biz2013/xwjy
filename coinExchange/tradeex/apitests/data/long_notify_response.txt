@@ -1,0 +1,22 @@
+<html>^M
+<head><title>404 Not Found</title></head>^M
+<body bgcolor="white">^M
+<center><h1>404 Not Found</h1></center>^M
+<hr><center>nginx/1.10.3 (Ubuntu)</center>^M
+</body>^M
+</html>^M
+
+2018-08-17 12:23:34,646 apiusertransmanager tradeex.apiusertransmanager 8237 139750692546304 INFO update_notification_status(API_TX_20180815184117_704124, ..., response <html>^M
+<head><title>404 Not Found</title></head>^M
+<body bgcolor="white">^M
+<center><h1>404 Not Found</h1></center>^M
+<hr><center>nginx/1.10.3 (Ubuntu)</center>^M
+</body>^M
+</html>^M
+, comment NOTIFYFAILED: <html>^M
+<head><title>404 Not Found</title></head>^M
+<body bgcolor="white">^M
+<center><h1>404 Not Found</h1></center>^M
+<hr><center>nginx/1.10.3 (Ubuntu)</center>^M
+</body>^M
+</html>^M

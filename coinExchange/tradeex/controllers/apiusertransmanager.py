@@ -50,10 +50,15 @@ class APIUserTransactionManager(object):
     @staticmethod
     def update_notification_status(trx_id, notify, notify_resp, comment):
         try:
+            logger.info('update_notification_status({0}, ..., response {1}, comment {2}'.format(
+                trx_id, notify_resp, comment
+            ))
+            last_notify_response = 'OK' if notify_resp.upper() == 'OK' else 'ERROR'
+                
             if not APIUserTransaction.objects.filter(
                transactionId= trx_id).update(
                last_notify = notify,
-               last_notify_response = notify_resp,
+               last_notify_response = last_notify_response,
                last_notified_at = dt.datetime.utcnow(),
                last_status_description = comment,
                lastupdated_by = User.objects.get(username='admin'),
@@ -249,7 +254,7 @@ class APIUserTransactionManager(object):
                 user__id = api_trans.api_user.user.id, 
                 wallet__cryptocurrency__currency_code ='CNY')
             total_cny_in_units = round(float(api_trans.total_fee)/100.0,8)
-            if api_trans.method == 'wallet.trade.sell':
+            if api_trans.action == API_METHOD_REDEEM:
                 logger.info("on_trans_cancel(api trans{0}): trans is sell, so cancel it")
                 if user_cny_wallet.locked_balance < total_cny_in_units :
                     logger.error("[out_trade_no: {0}] user {1} does not have enough locked CNY in wallet: locked {2} to be released {3}. ".format(
@@ -404,3 +409,71 @@ class APIUserTransactionManager(object):
                     logger.error('on_found_success_purchase_trans(api trans {0}): has more than one cny wallet transaction related to order {1}'.format(
                         api_trans.transactionId, api_trans.reference_order.order_id
                     ))
+
+    @staticmethod
+    def on_found_redeem_trans_with_badaccount(api_trans):
+        logger.debug('on_found_redeem_trans_with_badaccount')
+        total_cny_in_units = round(float(api_trans.total_fee)/100.0,8)
+
+        # send notification if needed
+        if api_trans.notify_url:
+            logger.debug('on_found_redeem_trans_with_badaccount(): has notify_url {0}'.format(api_trans.notify_url))
+        if api_trans.last_notify_response:
+            logger.debug('on_found_redeem_trans_with_badaccount(): has last_notify_response {0}'.format(
+                api_trans.last_notify_response))
+        if api_trans.last_status_description:
+            logger.debug('on_found_redeem_trans_with_badaccount(): has last_status_description {0}'.format(
+                api_trans.last_status_description))
+            
+        if api_trans.notify_url and (
+            (not api_trans.last_notify_response) or api_trans.last_status_description != 'NOTIFYSUCCESS'):
+            need_to_send_notification = False
+            if api_trans.last_notified_at:
+                since_last_notify = timezone.now() - api_trans.last_notified_at
+                since_creation = timezone.now() - api_trans.created_at
+                need_to_send_notification = since_last_notify.total_second() >= 180 and since_creation <= api_trans.expire_in_sec
+            else:
+                need_to_send_notification = True
+            need_to_send_notification =  need_to_send_notification and api_trans.trade_status == TRADE_STATUS_BADRECEIVINGACCOUNT
+            if need_to_send_notification:
+                logger.info('on_found_redeem_trans_with_badaccount(): send notification to seller because its trade status is {0}'.format(
+                    api_trans.trade_status
+                ))
+                notify = PurchaseAPINotify(
+                    '1.0',
+                    api_trans.api_user.apiKey,
+                    api_trans.api_user.secretKey,
+                    api_trans.api_out_trade_no,
+                    api_trans.transactionId,
+                    api_trans.payment_provider.code,
+                    api_trans.subject,
+                    api_trans.total_fee,
+                    api_trans.trade_status,
+                    api_trans.real_fee,
+                    api_trans.payment_provider_last_notified_at.strftime("%Y%m%d%H%M%S") if api_trans.payment_provider_last_notified_at else None,
+                    from_account=api_trans.payment_account,
+                    #to_account = api_trans.to_account,
+                    attach = api_trans.attach
+                )
+                api_client = APIClient(api_trans.notify_url)
+                notify_resp = ""
+                try:
+                    notify_resp = api_client.send_json_request(notify.to_json(), response_format='text')
+                except:
+                    logger.info('send api user notification hit error {0}'.format(sys.exc_info()[0]))
+                # update notify situation
+                comment = 'NOTIFYSUCCESS' if notify_resp and notify_resp.upper() == 'OK' else 'NOTIFYFAILED: {0}'.format(notify_resp)
+                APIUserTransactionManager.update_notification_status(
+                    api_trans.transactionId, 
+                    json.dumps(notify.to_json(), ensure_ascii = False), 
+                    notify_resp, comment)
+                if not APIUserTransaction.objects.filter(
+                    transactionId= api_trans.transactionId).update(
+                    last_notify = json.dumps(notify.to_json(), ensure_ascii=False),
+                    last_notify_response = notify_resp,
+                    last_notified_at = dt.datetime.utcnow(),
+                    last_status_description = comment,
+                    lastupdated_by = User.objects.get(username='admin'),
+                    lastupdated_at = dt.datetime.utcnow()):
+                    logger.error("update_notification_status({0}, ..., {1}, {2}: did not update".format(api_trans.transactionId, notify_resp, comment))
+        
