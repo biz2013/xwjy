@@ -285,7 +285,9 @@ class TradeExchangeManager(object):
                         ))
                         purchase_order = Order.objects.get(order_id=buyorder_id)
                         admin = User.objects.get(username='admin')
-                        ordermanager.cancel_purchase_order(order, TRADE_STATUS_BADRECEIVINGACCOUNT, 
+
+                        # cancel purchase order will flag sell order as bad account here
+                        ordermanager.cancel_purchase_order(purchase_order, TRADE_STATUS_BADRECEIVINGACCOUNT, 
                             PAYMENT_STATUS_BADRECEIVINGACCOUNT, admin)
                     else:
                         logger.error('purchase_by_cash_amount(): submit heepay request for seller order {0} hit error {1}.  Move to next one'.format(

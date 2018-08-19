@@ -315,6 +315,7 @@ class APIUserTransactionManager(object):
                 notify_resp = ""
                 try:
                     notify_resp = api_client.send_json_request(notify.to_json(), response_format='text')
+                    notify_resp = notify_resp[:NOTIFY_RESPONSE_LEN]
                 except:
                     logger.info('send api user notification hit error {0}'.format(sys.exc_info()[0]))
                 # update notify situation
