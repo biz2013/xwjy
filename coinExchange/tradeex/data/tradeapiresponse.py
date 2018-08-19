@@ -29,7 +29,7 @@ class TradeAPIResponse(object):
                 elif key == 'attach':
                     self.attach = value
                 elif key == 'total_fee':
-                    self.total_fee = value
+                    self.total_fee = int(value) if type(value) is str else value
                 elif key == 'payment_url':
                     self.payment_url = value
                 elif key == 'trade_status':
@@ -46,6 +46,15 @@ class TradeAPIResponse(object):
         content_json = {}
         content_json['return_code'] = self.return_code
         content_json['return_msg'] = self.return_msg
+        if self.subject:
+            content_json['subject'] = self.subject
+        if self.attach:
+            content_json['attach'] = self.attach
+        if self.total_fee > 0:
+            content_json['total_fee'] = self.total_fee
+        if self.payment_url:
+            content_json['payment_url'] = self.payment_url
+        content_json['trade_status'] =self.trade_status
         return content_json
     
     def to_json(self):
