@@ -313,11 +313,11 @@ class APIUserTransactionManager(object):
                 )
                 api_client = APIClient(api_trans.notify_url)
                 notify_resp = ""
-                try:
-                    notify_resp = api_client.send_json_request(notify.to_json(), response_format='text')
-                    notify_resp = notify_resp[:NOTIFY_RESPONSE_LEN]
-                except:
-                    logger.info('send api user notification hit error {0}'.format(sys.exc_info()[0]))
+                #try:
+                notify_resp = api_client.send_json_request(notify.to_json(), response_format='text')
+                notify_resp = notify_resp[:NOTIFY_RESPONSE_LEN]
+                #except:
+                #    logger.info('send api user notification hit error {0}'.format(sys.exc_info()[0]))
                 # update notify situation
                 comment = 'NOTIFYSUCCESS' if notify_resp and notify_resp.upper() == 'OK' else 'NOTIFYFAILED: {0}'.format(notify_resp)
                 APIUserTransactionManager.update_notification_status(
