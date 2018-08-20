@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys, io, traceback, time, json, copy, math
 import logging
+import http.client
 
 from calendar import timegm
 import datetime as dt
@@ -45,6 +46,22 @@ TEST_REDEEM_AMOUNT = 50
 TEST_CNY_ADDR="TRADDEX_USER1_EXTERNAL_TEST_ADDR"
 TEST_CRYPTO_SEND_COMMENT = ""
 TEST_NOTIFY_URL = "http://testurl/"
+
+
+def send_buy_apply_fail_side_effect(payload):
+    json_payload = json.loads(payload)
+    biz_content = json.loads(json_payload['biz_content'])
+    if biz_content['subject'] == 'heepay_return_503':
+        return 503, 'Server Error', 'BAD REQUEST'
+    elif biz_content['subject'] == 'heepay_throw_except':
+        conn = http.client.HTTPSConnection('wallet.heepay.com')
+        pay_url = '/Api/v1/PayApply'
+        logger.info('the payload is {0}'.format(payload))
+        headers = {"Content-Type": "application/json",
+               "charset": "UTF-8"}
+        conn.request('POST', pay_url, payload.encode('utf-8'), headers)
+        response = conn.getresponse()
+
 
 class TestErrorHandling2(TestCase):
     fixtures = ['fixture_test_tradeapi.json']
@@ -123,3 +140,28 @@ class TestErrorHandling2(TestCase):
         resp_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual('FAIL', resp_json['return_code'])
         self.assertEqual('签名不符', resp_json['return_msg'])
+
+    @patch('trading.controller.heepaymanager.HeePayManager.send_buy_apply_request', 
+           side_effect=send_buy_apply_fail_side_effect)
+    def test_heepay_request_failure(self, send_json_request_function):
+        create_axfund_sell_order('yingzhou61@yahoo.ca', 'user@123', 200, 0.51, 'CNY')
+        request = TradeAPIRequest(
+                API_METHOD_REDEEM,
+                TEST_API_USER2_APPKEY,
+                TEST_API_USER2_SECRET,
+                'order_no_order', # order id
+                None, # trx_id
+                10000, # total fee
+                10, # expire_minute
+                'heepay', '12345',
+                '127.0.0.1', #client ip
+                attach='userid:1',
+                subject='heepay_return_503',
+                notify_url='http://testurl',
+                return_url='http://retururl')
+        c = Client()
+        request_str = request.getPayload()
+        response = c.post('/api/v1/applyredeem/', request_str,
+                          content_type='application/json')
+        
+        
