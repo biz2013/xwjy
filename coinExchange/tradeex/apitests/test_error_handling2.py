@@ -7,7 +7,6 @@ import http.client
 from calendar import timegm
 import datetime as dt
 from datetime import timedelta
-sys.path.append('../stakingsvc/')
 from django.contrib.auth.models import User
 from django.test import TestCase, TransactionTestCase
 from django.test import Client
@@ -47,20 +46,41 @@ TEST_CNY_ADDR="TRADDEX_USER1_EXTERNAL_TEST_ADDR"
 TEST_CRYPTO_SEND_COMMENT = ""
 TEST_NOTIFY_URL = "http://testurl/"
 
+RECEIVE_ACCOUNT_NOT_EXIST='{"sign": "D083D11085B23E3D2136315FEEDFA18F", "return_msg": "收钱方账号不存在", "return_code": "FAIL"}'
 
 def send_buy_apply_fail_side_effect(payload):
+    print('send_buy_apply_fail_side_effect({0})'.format(payload))
     json_payload = json.loads(payload)
     biz_content = json.loads(json_payload['biz_content'])
-    if biz_content['subject'] == 'heepay_return_503':
+    subject = biz_content.get('subject', None)
+    print('send_buy_apply_fail_side_effect(): getting subject {0}'.format(subject))
+    if biz_content['to_account'] == '12345':
+        return 200, 'Ok', RECEIVE_ACCOUNT_NOT_EXIST
+    elif biz_content.get('subject', None) == 'heepay_return_503':
         return 503, 'Server Error', 'BAD REQUEST'
-    elif biz_content['subject'] == 'heepay_throw_except':
-        conn = http.client.HTTPSConnection('wallet.heepay.com')
+    elif biz_content.get('subject', None) == 'heepay_throw_exception':
+        conn = http.client.HTTPSConnection('nowhere.com')
         pay_url = '/Api/v1/PayApply'
         logger.info('the payload is {0}'.format(payload))
         headers = {"Content-Type": "application/json",
                "charset": "UTF-8"}
         conn.request('POST', pay_url, payload.encode('utf-8'), headers)
         response = conn.getresponse()
+    else:
+        key_values = {}
+        key_values['app_id'] = json_payload['app_id']
+        key_values['out_trade_no'] = biz_content['out_trade_no']
+        if 'subject' in biz_content:
+            key_values['subject'] = biz_content['subject']
+        key_values['total_fee'] = biz_content['total_fee']
+        key_values['hy_bill_no'] = TEST_HY_BILL_NO
+        key_values['from_account'] = biz_content['from_account']
+        key_values['to_account'] = biz_content['to_account']
+        output_data = jinja2_render('tradeex/apitests/data/heepay_response_template.j2', key_values)
+        output_json = json.loads(output_data)
+        sign = sign_test_json(output_json, TEST_HY_KEY)
+        output_json['sign'] = sign
+        return 200, 'Ok', json.dumps(output_json, ensure_ascii=False)
 
 
 class TestErrorHandling2(TestCase):
@@ -145,6 +165,7 @@ class TestErrorHandling2(TestCase):
            side_effect=send_buy_apply_fail_side_effect)
     def test_heepay_request_failure(self, send_json_request_function):
         create_axfund_sell_order('yingzhou61@yahoo.ca', 'user@123', 200, 0.51, 'CNY')
+        create_axfund_sell_order('yingzhou61@yahoo.ca', 'user@123', 2, 0.5, 'CNY')
         request = TradeAPIRequest(
                 API_METHOD_REDEEM,
                 TEST_API_USER2_APPKEY,
@@ -156,7 +177,7 @@ class TestErrorHandling2(TestCase):
                 'heepay', '12345',
                 '127.0.0.1', #client ip
                 attach='userid:1',
-                subject='heepay_return_503',
+                subject='To_be_skipped',
                 notify_url='http://testurl',
                 return_url='http://retururl')
         c = Client()
@@ -164,4 +185,76 @@ class TestErrorHandling2(TestCase):
         response = c.post('/api/v1/applyredeem/', request_str,
                           content_type='application/json')
         
+        request = TradeAPIRequest(
+            API_METHOD_PURCHASE,
+            TEST_API_USER1_APPKEY,
+            TEST_API_USER1_SECRET,
+            'order_no_order', # order id
+            total_fee=10000,
+            expire_minute=10, # expire_minute
+            payment_provider='heepay', 
+            payment_account='123456',
+            client_ip='127.0.0.1', #client ip
+            attach='userid:1',
+            subject='heepay_return_503',
+            notify_url='http://notify_url',
+            return_url='http://return_url')
+        request_str = request.getPayload()
+        c = Client()
+        response = c.post('/api/v1/applypurchase/', request_str,
+                    content_type='application/json')
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content.decode('utf-8'))
+        self.assertEqual('FAIL', resp_json['return_code'])
+        self.assertEqual('支付系统回复错误码，请询问供应商', resp_json['return_msg'])
+
+        # immediately try to make another purchase there should be none to 
+        # sell, as the previous error locked the balance of the good sell order
+        request = TradeAPIRequest(
+            API_METHOD_PURCHASE,
+            TEST_API_USER1_APPKEY,
+            TEST_API_USER1_SECRET,
+            'order_no_order', # order id
+            total_fee=200,
+            expire_minute=10, # expire_minute
+            payment_provider='heepay', 
+            payment_account='123456',
+            client_ip='127.0.0.1', #client ip
+            attach='userid:1',
+            subject='heepay_throw_exception',
+            notify_url='http://notify_url',
+            return_url='http://return_url')
+        request_str = request.getPayload()
+        c = Client()
+        response = c.post('/api/v1/applypurchase/', request_str,
+                    content_type='application/json')
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content.decode('utf-8'))
+        self.assertEqual('FAIL', resp_json['return_code'])
+        self.assertEqual('无卖单提供充值', resp_json['return_msg'])
+
+        # create new eligible order to continue test
+        create_axfund_sell_order('yingzhou61@yahoo.ca', 'user@123', 10, 0.5, 'CNY')
+        request = TradeAPIRequest(
+            API_METHOD_PURCHASE,
+            TEST_API_USER1_APPKEY,
+            TEST_API_USER1_SECRET,
+            'order_no_order', # order id
+            total_fee=200,
+            expire_minute=10, # expire_minute
+            payment_provider='heepay', 
+            payment_account='123456',
+            client_ip='127.0.0.1', #client ip
+            attach='userid:1',
+            subject='heepay_throw_exception',
+            notify_url='http://notify_url',
+            return_url='http://return_url')
+        request_str = request.getPayload()
+        c = Client()
+        response = c.post('/api/v1/applypurchase/', request_str,
+                    content_type='application/json')
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content.decode('utf-8'))
+        self.assertEqual('FAIL', resp_json['return_code'])
+        self.assertEqual('无法连接支付系统，请询问供应商', resp_json['return_msg'])
         

@@ -20,7 +20,7 @@ class HeePayManager(object):
    def create_heepay_payload(self, wallet_action, order_id_str, app_id, app_key,
          client_ip, amount, seller_account, buyer_account, notify_url,
          return_url, subject = None):
-       logger.info('create_heepay_payload(amount:{0}'.format(amount))
+       logger.info('create_heepay_payload(amount:{0}, subject:{1}'.format(amount, subject))
        jsonobj = {}
        jsonobj['method'] = wallet_action
        jsonobj['version'] = '1.0'
@@ -35,7 +35,7 @@ class HeePayManager(object):
        amount_in_dollar = round(amount, 2)
        amount_str = str(int(amount_in_dollar*100))
        if subject:
-           biz_count = biz_content + ('\"subject\":\"{0}\",'.format(subject))
+           biz_content = biz_content + ('\"subject\":\"{0}\",'.format(subject))
        else:
            biz_content = biz_content + ('\"subject\":\"购买{0}元\",'.format(amount_in_dollar))
        biz_content = biz_content + ('\"total_fee\":\"{0}\",'.format(amount_str))
