@@ -64,24 +64,24 @@ def validateUserInput(expected_method, request_obj, secretKey):
             ERR_UNEXPECTED_METHOD,
             expected_method, request_obj.method))
 
-    if request_obj.method in [API_METHOD_PURCHASE, API_METHOD_REDEEM] and not (
-        request_obj.payment_provider and request_obj.payment_provider in settings.SUPPORTED_API_PAYMENT_PROVIDERS):
-        logger.error('parseUserInput(): {0}'.format(
-            'unsupported payment provider' if request_obj.payment_provider else 'missing payment provider'
-        ))
-        raise ValueError(ERR_INVALID_OR_MISSING_PAYMENT_PROVIDER)
+    if request_obj.method in [API_METHOD_PURCHASE, API_METHOD_REDEEM]:
+        if not (request_obj.payment_provider and request_obj.payment_provider in settings.SUPPORTED_API_PAYMENT_PROVIDERS):
+            logger.error('parseUserInput(): {0}'.format(
+                'unsupported payment provider' if request_obj.payment_provider else 'missing payment provider'
+            ))
+            raise ValueError(ERR_INVALID_OR_MISSING_PAYMENT_PROVIDER)
 
-    if request_obj.method == API_METHOD_REDEEM and not request_obj.payment_account:
-        logger.error('parseUserInput(): missing payment account')
-        raise ValueError(ERR_REDEEM_REQUEST_NO_PAYMENT_ACCOUNT)
+        if request_obj.method == API_METHOD_REDEEM and not request_obj.payment_account:
+            logger.error('parseUserInput(): missing payment account')
+            raise ValueError(ERR_REDEEM_REQUEST_NO_PAYMENT_ACCOUNT)
 
-    amount = int(request_obj.total_fee) if type(request_obj.total_fee) is str else request_obj.total_fee
-    logger.debug("The request's amount is {0}".format(amount))
+        amount = int(request_obj.total_fee) if type(request_obj.total_fee) is str else request_obj.total_fee
+        logger.debug("The request's amount is {0}".format(amount))
 
-    if amount > settings.API_TRANS_LIMIT_IN_CENT:
-        logger.error('parseUserInput(): {0}: amount:{1}, limit:{2}'.format(
-            ERR_OVER_TRANS_LIMIT, request_obj.total_fee, settings.API_TRANS_LIMIT))
-        raise ValueError(ERR_OVER_TRANS_LIMIT)
+        if amount > settings.API_TRANS_LIMIT_IN_CENT:
+            logger.error('parseUserInput(): {0}: amount:{1}, limit:{2}'.format(
+                ERR_OVER_TRANS_LIMIT, request_obj.total_fee, settings.API_TRANS_LIMIT))
+            raise ValueError(ERR_OVER_TRANS_LIMIT)
 
     if not request_obj.is_valid(secretKey):
         raise ValueError(ERR_INVALID_SIGNATURE)
@@ -137,6 +137,10 @@ def handleValueError(ve_msg, secretKey):
         resp_json['return_msg'] = '找不到卖家账号'
     elif ve_msg == ERR_NO_SELL_ORDER_TO_SUPPORT_PRICE:
         resp_json['return_msg'] = '无卖单提供定价'
+    elif ve_msg == ERR_HEEPAY_REQUEST_EXCEPTION:
+        resp_json['return_msg'] = '无法连接支付系统，请询问供应商'
+    elif ve_msg == ERR_HEEPAY_REQUEST_ERROR:
+        resp_json['return_msg'] = '支付系统回复错误码，请询问供应商'
     elif ve_msg in request_errors:
         resp_json['return_msg'] = request_errors[ve_msg]
     else:
@@ -301,7 +305,7 @@ def selltoken(request):
     #TODO: should handle different error here.
     # what if network issue, what if the return is 30x, 40x, 50x
     except ValueError as ve:
-        logger.error('prepurchase(): hit ValueError {0}'.format(ve.args[0]))
+        logger.error('selltoken(): hit ValueError {0}'.format(ve.args[0]))
         return handleValueError(ve.args[0], api_user.secretKey if api_user else None)
     except :
         error_msg = 'selltoken()遇到错误: {0}'.format(sys.exc_info()[0])
@@ -324,9 +328,8 @@ def query_order_status(request) :
         except:
             raise ValueError(ERR_INVALID_JSON_INPUT)
 
-        request_obj = TradeAPIRequest.parseFromJson(request_json)
-        api_user = APIUserManager.get_api_user_by_apikey(request_obj.apikey)
-        validate_request(request_obj, api_user, 'wallet.trade.query')
+        request_obj, api_user = parseUserInput(request_json)
+        validateUserInput(API_METHOD_QUERY, request_obj, api_user.secretKey)
         tradeex = TradeExchangeManager()
         api_trans = tradeex.find_transaction(request_obj.trx_bill_no)
         sitesettings = context_processor.settings(request)['settings']
@@ -355,8 +358,9 @@ def query_order_status(request) :
             api_trans.refresh_from_db()
 
         return JsonResponse(create_query_status_response(api_trans, api_user).to_json())
-    #TODO: should handle different error here.
-    # what if network issue, what if the return is 30x, 40x, 50x
+    except ValueError as ve:
+        logger.error('query_order_status(): hit ValueError {0}'.format(ve.args[0]))
+        return handleValueError(ve.args[0], api_user.secretKey if api_user else None)
     except:
         error_msg = 'query_order_status()遇到错误: {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)
