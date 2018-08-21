@@ -247,13 +247,20 @@ class TradeExchangeManager(object):
             json_payload = heepay.create_heepay_payload('wallet.pay.apply', buyorder_id, heepay_api_key, 
                 heepay_api_secret, "127.0.0.1", float(request_obj.total_fee)/100.0,
                 seller_payment_account, request_obj.payment_account, 
-                notify_url, return_url)
-            status, reason, message = heepay.send_buy_apply_request(json_payload)
+                notify_url, return_url, subject = request_obj.subject)
+            try:
+                status, reason, message = heepay.send_buy_apply_request(json_payload)
+            except:
+                logger.error('purchase_by_cash_amount(): sending request to heepay hit exception {0}'.format(
+                    sys.exc_info()[0]
+                ))
+                raise ValueError(ERR_HEEPAY_REQUEST_EXCEPTION)
             response_json = json.loads(message) if status == 200 else None
-            if not response_json:
-                raise ValueError('Request to heepay failed with {0}:{1}-{2}'.format(
+            if status != 200:
+                logger.error('purchase_by_cash_amount(): sending request to heepay get error {0}:{1}-{2}'.format(
                     status, reason, message
                 ))
+                raise ValueError(ERR_HEEPAY_REQUEST_ERROR)
 
             # TODO: hard coded right now
             #api_client = APIClient('https://wallet.heepay.com/api/v1/payapply')
