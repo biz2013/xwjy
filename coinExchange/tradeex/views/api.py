@@ -137,6 +137,10 @@ def handleValueError(ve_msg, secretKey):
         resp_json['return_msg'] = '找不到卖家账号'
     elif ve_msg == ERR_NO_SELL_ORDER_TO_SUPPORT_PRICE:
         resp_json['return_msg'] = '无卖单提供定价'
+    elif ve_msg == ERR_HEEPAY_REQUEST_EXCEPTION:
+        resp_json['return_msg'] = '无法连接支付系统，请询问供应商'
+    elif ve_msg == ERR_HEEPAY_REQUEST_ERROR:
+        resp_json['return_msg'] = '支付系统回复错误码，请询问供应商'
     elif ve_msg in request_errors:
         resp_json['return_msg'] = request_errors[ve_msg]
     else:
