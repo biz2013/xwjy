@@ -85,8 +85,10 @@ class TradeExchangeManager(object):
 
         return candidates if len(candidates) > 0 else None
 
-    def get_active_sell_orders(self, crypto, currency):
-        return Order.objects.filter((Q(status='OPEN') or Q(status='PARTIALFILLED')) 
+    def get_active_sell_orders(self, crypto, currency, userId):
+        return Order.objects.filter(
+            ~Q(user__id = userId)
+            & (Q(status='OPEN') or Q(status='PARTIALFILLED')) 
             & Q(order_type='SELL') 
             & Q(unit_price_currency=currency) 
             & Q(cryptocurrency__currency_code=crypto)).order_by('total_amount', '-created_at')
@@ -320,7 +322,7 @@ class TradeExchangeManager(object):
     def post_sell_order(self, request_obj, api_user, api_trans=None):
         if not request_obj and not api_trans:
             raise ValueError('post_sell_order(): request_obj and api_trans cannot be None at the same time')
-        current_sell_orders = self.get_active_sell_orders('AXFund', 'CNY')
+        current_sell_orders = self.get_active_sell_orders('AXFund', 'CNY' , api_user.user.id)
         if current_sell_orders:
             unit_price = round(self.decide_sell_price(current_sell_orders),2)
         else:
