@@ -366,7 +366,8 @@ def get_all_open_seller_order_exclude_user(user_id):
                                 order.lastupdated_at, order.status, order.order_type,
                                 sub_type= order.sub_type,
                                 selected_payment_provider=order.selected_payment_provider,
-                                account_at_payment_provider=order.account_at_selected_payment_provider))
+                                account_at_payment_provider=order.account_at_selected_payment_provider,
+                                order_source = order.order_source))
     return orders
 
 def get_sell_transactions_by_user(userid):
