@@ -73,7 +73,7 @@ def send_buy_apply_with_bad_account_error_side_effect(payload):
        
 
 def send_notify_for_bad_account_get_long_response_side_effect(payload, trackId='', response_format='json'):
-    with open('data/long_notify_response.txt', 'r') as myfile:
+    with open('tradeex/apitests/data/long_notify_response.txt', 'r') as myfile:
         response_str=myfile.read()
     return response_str
 
