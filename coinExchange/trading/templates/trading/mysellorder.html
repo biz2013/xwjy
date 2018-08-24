@@ -277,6 +277,7 @@
   {% include 'include/footer.html' %}
   <script language="JavaScript">
 $(document).ready(function(){
+    $(document.body).css({ 'cursor': 'default' })
     $("#btn-sell-order").click(function(){
         $("#sell-modal").modal({backdrop: "static"});
         $("#sell_order_submit").prop('enabled', true);
@@ -289,7 +290,7 @@ $(document).ready(function(){
            event.preventDefault();
            if (create_sell_order()) {
               $(this).prop('disabled', true);
-              $(document.body).css({ 'cursor': 'wait' })
+              $(document.body).css({ 'cursor': 'progress' })
               $("#sell-modal").submit();
            }
 
