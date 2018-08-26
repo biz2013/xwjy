@@ -110,7 +110,7 @@ fi
 echo "remove any backup that is 5 days old"
 echo "cd $BACKUPROOT"
 cd $BACKUPROOT
-echo "find . -type d -ctime +3 -exec rm -rf {} \;"
+echo "find . -type d -ctime +5 -exec rm -rf {} \;"
 find . -type d -ctime +5 -exec rm -rf {} \;
 
 echo "Done."
