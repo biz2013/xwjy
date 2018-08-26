@@ -80,7 +80,7 @@ def get_seller_buyer_payment_accounts(buyorder_id, payment_provider):
 
 def get_unfilled_purchase_orders():
     return Order.objects.filter(Q(status='PAYING') |
-       Q(status='PAID') | Q(status='OPEN'),
+       Q(status='PAID') | Q(status='OPEN') | Q(status=TRADE_STATUS_BADRECEIVINGACCOUNT),
        Q(order_type='BUY')).order_by('-lastupdated_at')
 
 def create_sell_order(order, operator, api_user = None,  api_redeem_request = None,
@@ -236,6 +236,24 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
         ))
         return orderRecord.order_id
 
+def update_api_trans_after_cancel_order(api_trans, final_status, payment_status, operator):
+    if api_trans:
+        api_trans.payment_status = payment_status
+        if final_status == 'CANCELLED' and (payment_status.upper() in [ PAYMENT_STATUS_UNKONWN.upper(), 'UNKNOWN']):
+            api_trans.trade_status = TRADE_STATUS_EXPIREDINVALID
+        elif final_status == TRADE_STATUS_BADRECEIVINGACCOUNT:
+            api_trans.trade_status = final_status
+        else:
+            timediff = timezone.now() - api_trans.created_at
+            if timediff.total_seconds() > api_trans.expire_in_sec:
+                api_trans.trade_status = TRADE_STATUS_EXPIREDINVALID
+            else:
+                api_trans.trade_status = TRADE_STATUS_USERABANDON
+        api_trans.lastupdated_by = operator
+        api_trans.save()
+        if api_trans.action == API_METHOD_REDEEM:
+            APIUserTransactionManager.on_found_redeem_trans_with_badaccount(api_trans)
+
 def cancel_purchase_order(order, final_status, payment_status,
                          operator):
     if not order.reference_order:
@@ -259,6 +277,26 @@ def cancel_purchase_order(order, final_status, payment_status,
         sell_order.units_available_to_trade = round(sell_order.units_available_to_trade + order.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL)
         sell_order.status = 'OPEN' if payment_status != PAYMENT_STATUS_BADRECEIVINGACCOUNT else TRADE_STATUS_BADRECEIVINGACCOUNT
         sell_order.lastupdated_by = operatorObj
+
+        # rollback the AXFund wallet of sell order if sell order is not OPEN
+        if sell_order.status != 'OPEN':
+            updated = UserWallet.objects.filter(
+                user__id = sell_order.user.id,
+                wallet__cryptocurrency__currency_code = 'AXFund'
+            ).update(
+                locked_balance = F('locked_balance') - sell_order.units,
+                available_balance = F('available_balance') + sell_order.units,                
+                lastupdated_by = operatorObj,
+                lastupdated_at = dt.datetime.utcnow()
+            )
+            if updated:
+                logger.info('cancel_purchase_order({0}): revert related sell order {1}\'s axf wallet'.format(
+                    order.order_id, sell_order.order_id
+                ))
+            else:
+                logger.error('cancel_purchase_order({0}): failed to revert related sell order {1}\'s axf wallet'.format(
+                    order.order_id, sell_order.order_id
+                ))
 
         updated = UserWalletTransaction.objects.filter(
                reference_order__order_id= order.order_id,
@@ -284,24 +322,29 @@ def cancel_purchase_order(order, final_status, payment_status,
                 order.order_id, final_status, payment_status, order.units
             ))
         
-        api_trans = APIUserTransactionManager.get_trans_by_reference_order(order.order_id)
-        if not api_trans and sell_order:
-            api_trans = APIUserTransactionManager.get_trans_by_reference_order(sell_order.order_id)
-        if api_trans:
-            api_trans.payment_status = payment_status
-            if final_status == 'CANCELLED' and (payment_status.upper() in [ PAYMENT_STATUS_UNKONWN.upper(), 'UNKNOWN']):
-                api_trans.trade_status = TRADE_STATUS_EXPIREDINVALID
-            elif final_status == TRADE_STATUS_BADRECEIVINGACCOUNT:
-                api_trans.trade_status = final_status
+        # try to cancel the api_trans for buy and sell, if applied
+        api_trans_purchase = APIUserTransactionManager.get_trans_by_reference_order(order.order_id)
+        update_api_trans_after_cancel_order(api_trans_purchase, final_status, payment_status, operatorObj)
+        api_trans_sell = APIUserTransactionManager.get_trans_by_reference_order(sell_order.order_id)
+        if api_trans_sell:
+            update_api_trans_after_cancel_order(api_trans_sell, final_status, payment_status, operatorObj)
+            updated = UserWallet.objects.filter(
+                user__id = api_trans_sell.api_user.user.id,
+                wallet__cryptocurrency__currency_code = 'CNY'
+            ).update(
+                locked_balance = F('locked_balance') - sell_order.total_amount,
+                available_balance = F('available_balance') + sell_order.total_amount,                
+                lastupdated_by = operatorObj,
+                lastupdated_at = dt.datetime.utcnow()                
+            )
+            if updated:
+                logger.info('cancel_purchase_order({0}): revert related sell order {1}\'s CNY wallet'.format(
+                    order.order_id, sell_order.order_id
+                ))
             else:
-                timediff = timezone.now() - api_trans.created_at
-                if timediff.total_seconds() > api_trans.expire_in_sec:
-                    api_trans.trade_status = TRADE_STATUS_EXPIREDINVALID
-                else:
-                    api_trans.trade_status = TRADE_STATUS_USERABANDON
-            api_trans.save()
-            if api_trans.action == API_METHOD_REDEEM:
-                APIUserTransactionManager.on_found_redeem_trans_with_badaccount(api_trans)
+                logger.error('cancel_purchase_order({0}): failed to revert related sell order {1}\'s CNY wallet'.format(
+                    order.order_id, sell_order.order_id
+                ))
 
         sell_order.save()
         sell_order.refresh_from_db()
@@ -323,7 +366,8 @@ def get_all_open_seller_order_exclude_user(user_id):
                                 order.lastupdated_at, order.status, order.order_type,
                                 sub_type= order.sub_type,
                                 selected_payment_provider=order.selected_payment_provider,
-                                account_at_payment_provider=order.account_at_selected_payment_provider))
+                                account_at_payment_provider=order.account_at_selected_payment_provider,
+                                order_source = order.order_source))
     return orders
 
 def get_sell_transactions_by_user(userid):

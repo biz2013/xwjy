@@ -315,6 +315,7 @@ class APIUserTransactionManager(object):
                 notify_resp = ""
                 try:
                     notify_resp = api_client.send_json_request(notify.to_json(), response_format='text')
+                    notify_resp = notify_resp[:NOTIFY_RESPONSE_LEN]
                 except:
                     logger.info('send api user notification hit error {0}'.format(sys.exc_info()[0]))
                 # update notify situation
@@ -323,15 +324,6 @@ class APIUserTransactionManager(object):
                     api_trans.transactionId, 
                     json.dumps(notify.to_json(), ensure_ascii = False), 
                     notify_resp, comment)
-                if not APIUserTransaction.objects.filter(
-                    transactionId= api_trans.transactionId).update(
-                    last_notify = json.dumps(notify.to_json(), ensure_ascii=False),
-                    last_notify_response = notify_resp,
-                    last_notified_at = dt.datetime.utcnow(),
-                    last_status_description = comment,
-                    lastupdated_by = User.objects.get(username='admin'),
-                    lastupdated_at = dt.datetime.utcnow()):
-                    logger.error("update_notification_status({0}, ..., {1}, {2}: did not update".format(api_trans.transactionId, notify_resp, comment))
         
         if api_trans.action == API_METHOD_PURCHASE:
             external_crypto_addr = APIUserManager.get_api_user_external_crypto_addr(api_trans.api_user.user.id, 'CNY')
@@ -459,6 +451,7 @@ class APIUserTransactionManager(object):
                 notify_resp = ""
                 try:
                     notify_resp = api_client.send_json_request(notify.to_json(), response_format='text')
+                    notify_resp = notify_resp[:NOTIFY_RESPONSE_LEN]
                 except:
                     logger.info('send api user notification hit error {0}'.format(sys.exc_info()[0]))
                 # update notify situation
@@ -467,13 +460,4 @@ class APIUserTransactionManager(object):
                     api_trans.transactionId, 
                     json.dumps(notify.to_json(), ensure_ascii = False), 
                     notify_resp, comment)
-                if not APIUserTransaction.objects.filter(
-                    transactionId= api_trans.transactionId).update(
-                    last_notify = json.dumps(notify.to_json(), ensure_ascii=False),
-                    last_notify_response = notify_resp,
-                    last_notified_at = dt.datetime.utcnow(),
-                    last_status_description = comment,
-                    lastupdated_by = User.objects.get(username='admin'),
-                    lastupdated_at = dt.datetime.utcnow()):
-                    logger.error("update_notification_status({0}, ..., {1}, {2}: did not update".format(api_trans.transactionId, notify_resp, comment))
         
