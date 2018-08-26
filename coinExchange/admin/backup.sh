@@ -92,7 +92,8 @@ if [ -d "$CNYROOT/$CNYDIR" ]; then
   echo "cd $CNYROOT"
   cd $CNYROOT
   echo "$CNYBIN -datadir=$CNYDATA backupwallet $BACKUPDIR/$CNYWALLETBACKUP"
-  $CNYBIN -datadir=$CNYDATA backupwallet $BACKUPDIR/$CNYWALLETBACKUP
+  $CNYBIN -datadir=$CNYDATA backupwallet $CNYDATA/$CNYWALLETBACKUP
+  mv $CNYDATA/$CNYWALLETBACKUP $BACKUPDIR/
 fi
 
 cd $AXFROOT
@@ -103,7 +104,7 @@ if [ $FULLBACKUPWALLET -eq 1 ]; then
 else
    echo "Backup wallet file of AXF only"
    $AXFBIN --datadir=$AXFDATADIR backupwallet $AXFDATADIR/$AXFWALLETBACKUP
-   mv $AXFDATADIR/$AXFWALLETBACKUP $BACKUPDIR/$AXFWALLETBACKUP
+   mv $AXFDATADIR/$AXFWALLETBACKUP $BACKUPDIR/
 fi
 
 echo "remove any backup that is 5 days old"
