@@ -40,7 +40,8 @@ echo "will create log backup $LOGBACKUPFILE"
 echo "backup will use $SETTING config"
 
 WORKHOME=/home/ubuntu/workspace/xwjy/coinExchange
-BACKUPDIR=$WORKHOME/site-backup/$DATESTR
+BACKUPROOT=$WORKHOME/site-backup
+BACKUPDIR=$BACKUPROOT/$DATESTR
 CNYDIR=.cnycoin
 AXFDIR=qb
 CNYROOT=/home/ubuntu
@@ -104,6 +105,12 @@ else
    $AXFBIN --datadir=$AXFDATADIR backupwallet $AXFDATADIR/$AXFWALLETBACKUP
    mv $AXFDATADIR/$AXFWALLETBACKUP $BACKUPDIR/$AXFWALLETBACKUP
 fi
+
+echo "remove any backup that is 5 days old"
+echo "cd $BACKUPROOT"
+cd $BACKUPROOT
+echo "find . -type d -ctime +3 -exec rm -rf {} \;"
+find . -type d -ctime +5 -exec rm -rf {} \;
 
 echo "Done."
 exit 0
