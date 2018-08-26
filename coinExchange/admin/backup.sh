@@ -97,8 +97,8 @@ fi
 cd $AXFROOT
 if [ $FULLBACKUPWALLET -eq 1 ]; then
    echo "Do FULLBACKUP of axf wallet folder $FULLBACKUPWALLET"
-   echo "/bin/tar cvzf $BACKUPDIR/$AXFUNDBACKUPFILE $AXFDIR"
-   /bin/tar cvzf $BACKUPDIR/$AXFUNDBACKUPFILE $AXFDIR
+   echo "/bin/tar cvzf $BACKUPDIR/$AXFUNDBACKUPFILE $AXFDATADIR"
+   /bin/tar cvzf $BACKUPDIR/$AXFUNDBACKUPFILE $AXFDATADIR
 else
    echo "Backup wallet file of AXF only"
    $AXFBIN --datadir=$AXFDATADIR backupwallet $AXFDATADIR/$AXFWALLETBACKUP
