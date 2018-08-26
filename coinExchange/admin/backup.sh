@@ -42,7 +42,7 @@ echo "backup will use $SETTING config"
 WORKHOME=/home/ubuntu/workspace/xwjy/coinExchange
 BACKUPROOT=$WORKHOME/site-backup
 BACKUPDIR=$BACKUPROOT/$DATESTR
-CNYDIR=.cnycoin
+CNYDIR=.cnyfund
 AXFDIR=qb
 CNYROOT=/home/ubuntu
 CNYBIN=/usr/bin/cnyfund
