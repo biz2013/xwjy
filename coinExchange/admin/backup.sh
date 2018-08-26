@@ -40,21 +40,19 @@ echo "will create log backup $LOGBACKUPFILE"
 echo "backup will use $SETTING config"
 
 WORKHOME=/home/ubuntu/workspace/xwjy/coinExchange
-BACKUPDIR=$WORKHOME/site-backup/$DATESTR
+BACKUPROOT=$WORKHOME/site-backup
+BACKUPDIR=$BACKUPROOT/$DATESTR
 CNYDIR=.cnycoin
 AXFDIR=qb
 CNYROOT=/home/ubuntu
+CNYBIN=/usr/bin/cnyfund
+CNYDATA=/home/ubuntu/.cnyfund
+CNYWALLETBACKUP=cnyfund_wallet_$LABEL.dat
 AXFROOT=/home/ubuntu/workspace/xwjy/
 AXFBIN=/home/ubuntu/workspace/xwjy/smwy/src/axfd
 AXFDATADIR=/home/ubuntu/workspace/xwjy/qb
 AXFWALLETBACKUP=axf_wallet_$LABEL.dat
 AXFSRC=/home/ubuntu/workspace/xwjy/smwy/src
-
-echo "Backup wallet file of AXF only"
-#$AXFBIN --datadir=$AXFDATADIR walletpassphrase $1 30
-$AXFBIN --datadir=$AXFDATADIR backupwallet $AXFWALLETBACKUP
-mv $AXFSRC/$AXFWALLETBACKUP $BACKUPDIR/$AXFWALLETBACKUP
-
 
 echo "cd $WORKHOME"
 cd $WORKHOME
@@ -93,21 +91,27 @@ if [ -d "$CNYROOT/$CNYDIR" ]; then
   echo "backup cnywallet files"
   echo "cd $CNYROOT"
   cd $CNYROOT
-  echo "/bin/tar cvzf $BACKUPDIR/$CNYWALLETBACKUPFILE $CNYDIR"
-  /bin/tar cvzf $BACKUPDIR/$CNYWALLETBACKUPFILE $CNYDIR
+  echo "$CNYBIN -datadir=$CNYDATA backupwallet $BACKUPDIR/$CNYWALLETBACKUP"
+  $CNYBIN -datadir=$CNYDATA backupwallet $CNYDATA/$CNYWALLETBACKUP
+  mv $CNYDATA/$CNYWALLETBACKUP $BACKUPDIR/
 fi
 
 cd $AXFROOT
 if [ $FULLBACKUPWALLET -eq 1 ]; then
    echo "Do FULLBACKUP of axf wallet folder $FULLBACKUPWALLET"
-   exit 0
-   echo "/bin/tar cvzf $BACKUPDIR/$AXFUNDBACKUPFILE $AXFDIR"
-   /bin/tar cvzf $BACKUPDIR/$AXFUNDBACKUPFILE $AXFDIR
+   echo "/bin/tar cvzf $BACKUPDIR/$AXFUNDBACKUPFILE $AXFDATADIR"
+   /bin/tar cvzf $BACKUPDIR/$AXFUNDBACKUPFILE $AXFDATADIR
 else
    echo "Backup wallet file of AXF only"
-   $AXFBIN --datadir=$AXFDATADIR backupwallet $AXFWALLETBACKUP
-   mv $AXFSRC/$AXFWALLETBACKUP $BACKUPDIR/$AXFWALLETBACKUP
+   $AXFBIN --datadir=$AXFDATADIR backupwallet $AXFDATADIR/$AXFWALLETBACKUP
+   mv $AXFDATADIR/$AXFWALLETBACKUP $BACKUPDIR/
 fi
+
+echo "remove any backup that is 5 days old"
+echo "cd $BACKUPROOT"
+cd $BACKUPROOT
+echo "find . -type d -ctime +3 -exec rm -rf {} \;"
+find . -type d -ctime +5 -exec rm -rf {} \;
 
 echo "Done."
 exit 0

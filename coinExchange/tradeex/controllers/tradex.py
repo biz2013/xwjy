@@ -85,8 +85,10 @@ class TradeExchangeManager(object):
 
         return candidates if len(candidates) > 0 else None
 
-    def get_active_sell_orders(self, crypto, currency):
-        return Order.objects.filter((Q(status='OPEN') or Q(status='PARTIALFILLED')) 
+    def get_active_sell_orders(self, crypto, currency, userId):
+        return Order.objects.filter(
+            ~Q(user__id = userId)
+            & (Q(status='OPEN') or Q(status='PARTIALFILLED')) 
             & Q(order_type='SELL') 
             & Q(unit_price_currency=currency) 
             & Q(cryptocurrency__currency_code=crypto)).order_by('total_amount', '-created_at')
@@ -247,13 +249,20 @@ class TradeExchangeManager(object):
             json_payload = heepay.create_heepay_payload('wallet.pay.apply', buyorder_id, heepay_api_key, 
                 heepay_api_secret, "127.0.0.1", float(request_obj.total_fee)/100.0,
                 seller_payment_account, request_obj.payment_account, 
-                notify_url, return_url)
-            status, reason, message = heepay.send_buy_apply_request(json_payload)
+                notify_url, return_url, subject = request_obj.subject)
+            try:
+                status, reason, message = heepay.send_buy_apply_request(json_payload)
+            except:
+                logger.error('purchase_by_cash_amount(): sending request to heepay hit exception {0}'.format(
+                    sys.exc_info()[0]
+                ))
+                raise ValueError(ERR_HEEPAY_REQUEST_EXCEPTION)
             response_json = json.loads(message) if status == 200 else None
-            if not response_json:
-                raise ValueError('Request to heepay failed with {0}:{1}-{2}'.format(
+            if status != 200:
+                logger.error('purchase_by_cash_amount(): sending request to heepay get error {0}:{1}-{2}'.format(
                     status, reason, message
                 ))
+                raise ValueError(ERR_HEEPAY_REQUEST_ERROR)
 
             # TODO: hard coded right now
             #api_client = APIClient('https://wallet.heepay.com/api/v1/payapply')
@@ -285,7 +294,9 @@ class TradeExchangeManager(object):
                         ))
                         purchase_order = Order.objects.get(order_id=buyorder_id)
                         admin = User.objects.get(username='admin')
-                        ordermanager.cancel_purchase_order(order, TRADE_STATUS_BADRECEIVINGACCOUNT, 
+
+                        # cancel purchase order will flag sell order as bad account here
+                        ordermanager.cancel_purchase_order(purchase_order, TRADE_STATUS_BADRECEIVINGACCOUNT, 
                             PAYMENT_STATUS_BADRECEIVINGACCOUNT, admin)
                     else:
                         logger.error('purchase_by_cash_amount(): submit heepay request for seller order {0} hit error {1}.  Move to next one'.format(
@@ -311,7 +322,7 @@ class TradeExchangeManager(object):
     def post_sell_order(self, request_obj, api_user, api_trans=None):
         if not request_obj and not api_trans:
             raise ValueError('post_sell_order(): request_obj and api_trans cannot be None at the same time')
-        current_sell_orders = self.get_active_sell_orders('AXFund', 'CNY')
+        current_sell_orders = self.get_active_sell_orders('AXFund', 'CNY' , api_user.user.id)
         if current_sell_orders:
             unit_price = round(self.decide_sell_price(current_sell_orders),2)
         else:
