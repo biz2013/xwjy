@@ -249,7 +249,7 @@ class TradeExchangeManager(object):
             json_payload = heepay.create_heepay_payload('wallet.pay.apply', buyorder_id, heepay_api_key, 
                 heepay_api_secret, "127.0.0.1", float(request_obj.total_fee)/100.0,
                 seller_payment_account, request_obj.payment_account, 
-                notify_url, return_url, subject = request_obj.subject)
+                notify_url, return_url, request_obj.expire_minute, subject = request_obj.subject)
             try:
                 status, reason, message = heepay.send_buy_apply_request(json_payload)
             except:

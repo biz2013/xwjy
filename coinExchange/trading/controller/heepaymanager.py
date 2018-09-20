@@ -19,7 +19,7 @@ class HeePayManager(object):
 
    def create_heepay_payload(self, wallet_action, order_id_str, app_id, app_key,
          client_ip, amount, seller_account, buyer_account, notify_url,
-         return_url, subject = None):
+         return_url, expire_minute = 30, subject = None):
        logger.info('create_heepay_payload(amount:{0}, subject:{1}'.format(amount, subject))
        jsonobj = {}
        jsonobj['method'] = wallet_action
@@ -38,6 +38,7 @@ class HeePayManager(object):
            biz_content = biz_content + ('\"subject\":\"{0}\",'.format(subject))
        else:
            biz_content = biz_content + ('\"subject\":\"购买{0}元\",'.format(amount_in_dollar))
+       biz_content = biz_content + ('\"expire_minute\":\"{0}\",'.format(expire_minute))
        biz_content = biz_content + ('\"total_fee\":\"{0}\",'.format(amount_str))
        biz_content = biz_content + ('\"api_account_mode\":\"Account\",')
        if buyer_account:
