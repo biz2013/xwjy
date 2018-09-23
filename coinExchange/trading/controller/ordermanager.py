@@ -884,6 +884,18 @@ def confirm_purchase_order(order_id, operator):
         # release lock at the last moment
         purchase_trans.save()
 
+        # directly
+        if api_trans:
+            api_trans.refresh_from_db()
+            if api_trans.trade_status == TRADE_STATUS_PAYSUCCESS:
+                APIUserTransactionManager.on_trans_paid_success(api_trans)
+                api_trans.refresh_from_db()
+                if api_trans.trade_status == TRADE_STATUS_SUCCESS:
+                    APIUserTransactionManager.on_found_success_purchase_trans(api_trans)
+
+            elif api_trans.trade_status in ['ExpiredInvald', 'UserAbandon', 'DevClose']:
+                APIUserTransactionManager.on_trans_cancelled(api_trans)
+
 def get_order_info(order_id):
     return Order.objects.get(pk=order_id)
 

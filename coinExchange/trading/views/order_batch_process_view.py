@@ -10,6 +10,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 
 # this is for test UI. A fake one
+from tradeex.data.api_const import *
 from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from tradeex.controllers.tradex import TradeExchangeManager
 from tradeex.data.tradeapirequest import TradeAPIRequest
@@ -140,10 +141,10 @@ def order_batch_process(request):
                 handle_open_order(order, sell_order_timeout, appId, appKey)
             if api_trans:
                 api_trans.refresh_from_db()
-                if api_trans.trade_status == 'PaidSuccess':
+                if api_trans.trade_status == TRADE_STATUS_PAYSUCCESS:
                     APIUserTransactionManager.on_trans_paid_success(api_trans)
                     api_trans.refresh_from_db()
-                    if api_trans.trade_status == 'Success':
+                    if api_trans.trade_status == TRADE_STATUS_SUCCESS:
                         APIUserTransactionManager.on_found_success_purchase_trans(api_trans)
 
                 elif api_trans.trade_status in ['ExpiredInvald', 'UserAbandon', 'DevClose']:

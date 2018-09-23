@@ -24,7 +24,7 @@ from tradeex.responses.heepaynotify import HeepayNotification
 from tradeex.controllers.crypto_utils import *
 from tradeex.models import *
 from trading.models import *
-from trading.controller import useraccountinfomanager
+from trading.controller import useraccountinfomanager, ordermanager
 import json
 
 # match the hy_bill_no in test data test_heepay_confirm.json
@@ -396,10 +396,12 @@ class TestTradingAPI(TransactionTestCase):
         self.assertEqual(test_subject, resp_json['subject'])
         self.assertEqual(test_out_trade_no, resp_json['out_trade_no'])
         self.assertEqual(test_purchase_amount, int(resp_json['total_fee']))
-        self.assertEqual(TEST_HY_BILL_NO, resp_json['trx_bill_no'])
         self.assertEqual(TEST_API_USER1_APPKEY, resp_json['api_key'])
 
         api_trans = self.get_api_trans(test_out_trade_no)
+        self.assertEqual(resp_json['trx_bill_no'], api_trans.transactionId)
+        self.assertEqual(TEST_HY_BILL_NO, api_trans.reference_bill_no)
+
         global TEST_CRYPTO_SEND_COMMENT
         TEST_CRYPTO_SEND_COMMENT = 'userId:{3},amount:{0},trxId:{1},out_trade_no:{2}'.format(
             float(TEST_PURCHASE_AMOUNT)/100.0, api_trans.transactionId, 
@@ -878,9 +880,8 @@ class TestTradingAPI(TransactionTestCase):
     @patch('trading.controller.heepaymanager.HeePayManager.send_buy_apply_request', 
            side_effect=send_buy_apply_request_side_effect)
     @patch('tradeex.client.apiclient.APIClient.send_json_request', side_effect=send_json_request_for_purchase_test)
-    def test_status_query(self,unlock_wallet, send_fund_function,
-            send_buy_apply_request_function,
-            send_json_request_function):
+    def test_status_query(self,send_json_request_function,
+            send_buy_apply_request_function, send_fund_function, unlock_wallet):
 
         try:
             api_users = APIUserAccount.objects.get(pk=TEST_API_USER1_APPKEY)
@@ -926,14 +927,15 @@ class TestTradingAPI(TransactionTestCase):
         self.assertEqual(200, response.status_code)
         resp_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual(resp_json['return_code'], 'SUCCESS')
+        self.assertEqual(test_out_trade_no, resp_json["out_trade_no"])
 
-        api_trans = self.get_api_trans(test_out_trade_no)        
+        api_trans = self.get_api_trans(test_out_trade_no) 
         logger.info('finish issue purchase request, about to query the status')
         query_request = TradeAPIRequest(
             "wallet.trade.query",
             app_id, secret_key,
             test_out_trade_no, # out_trade_no    
-            trx_bill_no=api_trans.transactionId,
+            trx_bill_no=resp_json["trx_bill_no"],
             timestamp = timegm(dt.datetime.utcnow().utctimetuple())
         )
 
@@ -992,4 +994,129 @@ class TestTradingAPI(TransactionTestCase):
         print('Status right after purchase command is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
         self.assertEqual('SUCCESS', resp_json['return_code'], 'The query should return SUCCCESS')
         self.assertEqual('Success', resp_json['trade_status'], 'The transaction should be in progress')
+
+
+    @patch('tradeex.controllers.crypto_utils.CryptoUtility.unlock_wallet', side_effect=unlock_wallet_for_purchase_test)
+    @patch('tradeex.controllers.crypto_utils.CryptoUtility.send_fund', side_effect=send_fund_for_purchase_test)
+    @patch('trading.controller.heepaymanager.HeePayManager.send_buy_apply_request', 
+           side_effect=send_buy_apply_request_side_effect)
+    @patch('tradeex.client.apiclient.APIClient.send_json_request', side_effect=send_json_request_for_purchase_test)
+    def test_send_notification_after_confirm(self, send_json_request_function,
+            send_buy_apply_request_function,  send_fund_function, unlock_wallet):
+
+        try:
+            api_users = APIUserAccount.objects.get(pk=TEST_API_USER1_APPKEY)
+        except:
+            self.fail('test_purchase_order_succeed() did not find api user {0}'.format(
+                TEST_API_USER1_APPKEY
+            ))
+
+        # create test sell orders
+        self.create_fitting_order(62)
+
+        # these are the app_id and secret from fixture apiuseraccount        
+        # TODO: validate this is tradeex_api_user1
+        app_id = TEST_API_USER1_APPKEY
+        secret_key = TEST_API_USER1_SECRET
+        test_out_trade_no = 'order_to_purchase'
+        test_purchase_amount = TEST_PURCHASE_AMOUNT
+        test_user_heepay_from_account = '12738456'
+        test_attach = 'userid:1'
+        test_subject = '人民币充值成功测试'
+        test_notify_url = 'http://testurl'
+        test_return_url = 'http://testurl'
+        request = TradeAPIRequest(
+                'wallet.trade.buy',
+                app_id, secret_key,
+                test_out_trade_no, # out_trade_no
+                total_fee= test_purchase_amount, # total fee
+                expire_minute = 10, # expire_minute
+                payment_provider = 'heepay', 
+                payment_account = test_user_heepay_from_account,
+                client_ip = '127.0.0.1', #client ip
+                attach=test_attach,
+                subject=test_subject,
+                notify_url=test_notify_url,
+                return_url=test_return_url,
+                timestamp = timegm(dt.datetime.utcnow().utctimetuple()))
+        c = Client()
+        request_str = request.getPayload()
+        print('test_purchase_order_succeed(): send request {0}'.format(request_str))
+        response = c.post('/api/v1/applypurchase/', request_str,
+                          content_type='application/json')
+
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(resp_json['return_code'], 'SUCCESS')
+        self.assertEqual(test_out_trade_no, resp_json["out_trade_no"])
+
+        api_trans = self.get_api_trans(test_out_trade_no)
+        logger.info('finish issue purchase request, about to query the status')
+        query_request = TradeAPIRequest(
+            "wallet.trade.query",
+            app_id, secret_key,
+            test_out_trade_no, # out_trade_no    
+            trx_bill_no=resp_json["trx_bill_no"],
+            timestamp = timegm(dt.datetime.utcnow().utctimetuple())
+        )
+    
+        logger.info('about to test receiving heepay notification')
+        global TEST_CRYPTO_SEND_COMMENT
+        TEST_CRYPTO_SEND_COMMENT = 'userId:{3},amount:{0},trxId:{1},out_trade_no:{2}'.format(
+            float(TEST_PURCHASE_AMOUNT)/100.0, api_trans.transactionId, 
+            api_trans.api_out_trade_no, api_trans.api_user.user.id)
+
+        #NOTE: the trade status is case-sensitive thing
+        heepay_confirm = self.create_heepay_confirm('tradeex/apitests/data/heepay_confirm_template.j2', 
+            api_trans, 'Success', timegm(dt.datetime.utcnow().utctimetuple()))
+        self.assertTrue(heepay_confirm, 'There is problem when the heepay confirmation data')
+        request_str  =json.dumps(heepay_confirm, ensure_ascii=False)
+        print('send heepay confirmation request {0}'.format(request_str))
+        
+        c1 = Client()
+        response = c1.post('/trading/heepay/confirm_payment/', request_str,
+            content_type='application/json')
+        
+        # should not send any notification or transfer any coins
+        unlock_wallet.assert_not_called()
+        send_json_request_function.assert_not_called()
+
+        #TODO: test sending coin is execute
+        #TODO: test notification is sent
+        #TODO: test the notification is correct
+        self.assertEqual('OK', response.content.decode('utf-8'), "The response to the payment confirmation should be OK")
+        c_query = Client()
+        request_str = query_request.getPayload()
+        print('test_status_query(): send request right after purchase command {0}'.format(request_str))
+        response = c_query.post('/api/v1/checkstatus/', request_str,
+                          content_type='application/json')
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content.decode('utf-8'))
+        print('Status right after purchase command is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
+        self.assertEqual('SUCCESS', resp_json['return_code'], 'The query should return SUCCCESS')
+        self.assertEqual('PaidSuccess', resp_json['trade_status'], 'The transaction should be in progress')
+        
+
+        # now directly confirm the order
+        api_trans = self.get_api_trans(test_out_trade_no)
+        ordermanager.confirm_purchase_order(api_trans.reference_order.order_id, 'admin')
+        unlock_wallet.assert_called_once()
+        send_json_request_function.assert_called_once()
+
+        # now run order_backend_proc
+        c1 = Client()
+        response = c1.get('/trading/account/cron/order_batch_process/')
+
+        print('test_status_query(): send request after order_backend_proc run')
+        response = c_query.post('/api/v1/checkstatus/', request_str,
+                          content_type='application/json')
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content.decode('utf-8'))
+        print('Status right after purchase command is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
+        self.assertEqual('SUCCESS', resp_json['return_code'], 'The query should return SUCCCESS')
+        self.assertEqual('Success', resp_json['trade_status'], 'The transaction should be in progress')
+
+        # no more call to transfer coin or send notification
+        unlock_wallet.assert_called_once()
+        send_json_request_function.assert_called_once()
 

@@ -32,12 +32,11 @@ def create_prepurchase_response_from_heepay(heepay_response, api_user, api_trans
         heepay_response.result_code,
         heepay_response.result_msg,
         api_out_trade_no,
-        heepay_response.hy_bill_no,
+        api_trans_id,
         subject = subject,
         attach = attach,
         total_fee = heepay_response.total_fee,
-        payment_url = heepay_response.hy_url,
-        reference_id = api_trans_id
+        payment_url = heepay_response.hy_url
     )
 
     return response.to_json()       
