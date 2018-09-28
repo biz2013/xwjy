@@ -455,7 +455,9 @@ class TestTradingAPI(TransactionTestCase):
         self.assertEqual('OK', response.content.decode('utf-8'), "The response to the payment confirmation should be OK")
 
         print('!!!!!!!!!!!!!!!---called count {0}'.format(send_fund_function.call_count))
-        send_fund_function.assert_not_called()
+        # verify this has been called once and money has transfered
+        send_fund_function.assert_called_once()
+        send_json_request_function.called_once()
 
         tttzhang2000_axf_wallets = UserWallet.objects.get(user__username='tttzhang2000@yahoo.com', wallet__cryptocurrency__currency_code='AXFund')
         yingzhou_axf_wallets = UserWallet.objects.get(user__username='yingzhou61@yahoo.ca', wallet__cryptocurrency__currency_code='AXFund')
@@ -468,23 +470,26 @@ class TestTradingAPI(TransactionTestCase):
         self.assertEqual(tttzhang2000_axf_wallets.locked_balance, tttzhang2000_axf_wallets_prev.locked_balance)
         self.assertEqual(tttzhang2000_axf_wallets.available_balance, tttzhang2000_axf_wallets_prev.available_balance)
 
-        #after making purchase, nothing changed for the seller's account
-        self.assertEqual(yingzhou_axf_wallets.balance, yingzhou_axf_wallets_prev.balance)
-        self.assertEqual(yingzhou_axf_wallets.locked_balance, yingzhou_axf_wallets_prev.locked_balance)
+        #after confirmed purchase, seller's axf wallet changed
+        self.assertEqual(yingzhou_axf_wallets.balance, yingzhou_axf_wallets_prev.balance - buy_order.units)
+        self.assertEqual(yingzhou_axf_wallets.locked_balance, yingzhou_axf_wallets_prev.locked_balance - buy_order.units)
         self.assertEqual(yingzhou_axf_wallets.available_balance, yingzhou_axf_wallets_prev.available_balance)
 
-        #after making purchase, buyer account has not change either since there's no payment
-        self.assertEqual(testuser1_axf_wallets.balance, testuser1_axf_wallets_prev.balance)
+        #after confirmed purchase, buyer axf wallet changed
+        self.assertEqual(testuser1_axf_wallets.balance, testuser1_axf_wallets_prev.balance + buy_order.units )
         self.assertEqual(testuser1_axf_wallets.locked_balance, testuser1_axf_wallets_prev.locked_balance)
-        self.assertEqual(testuser1_axf_wallets.available_balance, testuser1_axf_wallets_prev.available_balance)
-        self.assertEqual(testuser1_cny_wallets.balance, testuser1_cny_wallets_prev.balance)
-        self.assertEqual(testuser1_cny_wallets.locked_balance, testuser1_cny_wallets_prev.locked_balance)
+        self.assertEqual(testuser1_axf_wallets.available_balance, testuser1_axf_wallets_prev.available_balance + buy_order.units)
+
+        self.assertEqual(testuser1_cny_wallets.balance, testuser1_cny_wallets_prev.balance + buy_order.total_amount)
+        # the amount is locked because we made external transfer after the purchase
+        self.assertEqual(testuser1_cny_wallets.locked_balance, testuser1_cny_wallets_prev.locked_balance + buy_order.total_amount)
+        # nothing changed on available balance since purchased amount was transferred out
         self.assertEqual(testuser1_cny_wallets.available_balance, testuser1_cny_wallets_prev.available_balance)
         
         # before any pay or purchase, nothing is changed on master wallet
-        self.assertEqual(master_cny_wallets.balance, master_cny_wallets_prev.balance)
+        self.assertEqual(master_cny_wallets.balance, master_cny_wallets_prev.balance - buy_order.total_amount)
         self.assertEqual(master_cny_wallets.locked_balance, master_cny_wallets_prev.locked_balance)
-        self.assertEqual(master_cny_wallets.available_balance, master_cny_wallets_prev.available_balance)
+        self.assertEqual(master_cny_wallets.available_balance, master_cny_wallets_prev.available_balance - buy_order.total_amount)
 
         tttzhang2000_axf_wallets_prev = tttzhang2000_axf_wallets
         yingzhou_axf_wallets_prev = yingzhou_axf_wallets
@@ -521,25 +526,6 @@ class TestTradingAPI(TransactionTestCase):
         self.assertEqual(tttzhang2000_axf_wallets.locked_balance, tttzhang2000_axf_wallets_prev.locked_balance)
         self.assertEqual(tttzhang2000_axf_wallets.available_balance, tttzhang2000_axf_wallets_prev.available_balance)
 
-        #after making purchase, nothing changed for the seller's account
-        self.assertEqual(yingzhou_axf_wallets.balance, yingzhou_axf_wallets_prev.balance - buy_order.units)
-        self.assertEqual(yingzhou_axf_wallets.locked_balance, yingzhou_axf_wallets_prev.locked_balance - buy_order.units)
-        self.assertEqual(yingzhou_axf_wallets.available_balance, yingzhou_axf_wallets_prev.available_balance)
-
-        #after making purchase, buyer account has not change either since there's no payment
-        self.assertEqual(testuser1_axf_wallets.balance, testuser1_axf_wallets_prev.balance + buy_order.units )
-        self.assertEqual(testuser1_axf_wallets.locked_balance, testuser1_axf_wallets_prev.locked_balance)
-        self.assertEqual(testuser1_axf_wallets.available_balance, testuser1_axf_wallets_prev.available_balance + buy_order.units)
-        self.assertEqual(testuser1_cny_wallets.balance, testuser1_cny_wallets_prev.balance + buy_order.total_amount)
-        # the amount is locked because we made external transfer after the purchase
-        self.assertEqual(testuser1_cny_wallets.locked_balance, testuser1_cny_wallets_prev.locked_balance + buy_order.total_amount)
-        # nothing changed on available balance since purchased amount was transferred out
-        self.assertEqual(testuser1_cny_wallets.available_balance, testuser1_cny_wallets_prev.available_balance)
-        
-        # before any pay or purchase, nothing is changed on master wallet
-        self.assertEqual(master_cny_wallets.balance, master_cny_wallets_prev.balance - buy_order.total_amount)
-        self.assertEqual(master_cny_wallets.locked_balance, master_cny_wallets_prev.locked_balance)
-        self.assertEqual(master_cny_wallets.available_balance, master_cny_wallets_prev.available_balance - buy_order.total_amount)
 
         tttzhang2000_axf_wallets_prev = tttzhang2000_axf_wallets
         yingzhou_axf_wallets_prev = yingzhou_axf_wallets
@@ -980,7 +966,7 @@ class TestTradingAPI(TransactionTestCase):
         resp_json = json.loads(response.content.decode('utf-8'))
         print('Status right after purchase command is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
         self.assertEqual('SUCCESS', resp_json['return_code'], 'The query should return SUCCCESS')
-        self.assertEqual('PaidSuccess', resp_json['trade_status'], 'The transaction should be in progress')
+        self.assertEqual('Success', resp_json['trade_status'], 'The transaction should be in progress')
         
         # now run order_backend_proc
         c1 = Client()
@@ -1078,13 +1064,10 @@ class TestTradingAPI(TransactionTestCase):
             content_type='application/json')
         
         # should not send any notification or transfer any coins
-        unlock_wallet.assert_not_called()
-        send_json_request_function.assert_not_called()
-
-        #TODO: test sending coin is execute
-        #TODO: test notification is sent
-        #TODO: test the notification is correct
+        unlock_wallet.assert_called_once()
+        send_json_request_function.assert_called_once()
         self.assertEqual('OK', response.content.decode('utf-8'), "The response to the payment confirmation should be OK")
+
         c_query = Client()
         request_str = query_request.getPayload()
         print('test_status_query(): send request right after purchase command {0}'.format(request_str))
@@ -1094,7 +1077,7 @@ class TestTradingAPI(TransactionTestCase):
         resp_json = json.loads(response.content.decode('utf-8'))
         print('Status right after purchase command is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
         self.assertEqual('SUCCESS', resp_json['return_code'], 'The query should return SUCCCESS')
-        self.assertEqual('PaidSuccess', resp_json['trade_status'], 'The transaction should be in progress')
+        self.assertEqual('Success', resp_json['trade_status'], 'The transaction should be in progress')
         
 
         # now directly confirm the order

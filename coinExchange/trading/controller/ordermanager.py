@@ -747,6 +747,7 @@ def update_order_with_heepay_notification(notify_json, operator):
         purchase_trans.lastupdated_by = operatorObj
         purchase_trans.save()
 
+        return buyorder.order_id
 
 def lock_paid_trans_of_purchase_order(order_id):
     try:
