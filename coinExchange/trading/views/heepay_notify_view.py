@@ -56,7 +56,8 @@ def heepay_confirm_payment(request):
             #api_trans = ordermanager.get_associated_api_trans_of_buyorder(json_data['out_trade_no'])
             #old_trade_status = api_trans.trade_status if api_trans else None
 
-            ordermanager.update_order_with_heepay_notification(json_data, 'admin')
+            purchase_order_id = ordermanager.update_order_with_heepay_notification(json_data, 'admin')
+            ordermanager.confirm_purchase_order(purchase_order_id, 'admin')
 
             return HttpResponse(content='OK')
         else:
