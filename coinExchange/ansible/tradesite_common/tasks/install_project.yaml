@@ -1,0 +1,12 @@
+- name: create workspace
+  file: 
+    path={{ workspace_dir }}
+    state=directory
+    mode: 0755
+
+- name: download the code
+  git:
+    repo:{{ project_repo }}
+    dest:{{ workspace_dir }}
+
+
