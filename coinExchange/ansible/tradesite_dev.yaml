@@ -1,0 +1,7 @@
+---
+- hosts: tradesite_dev
+  user: ubuntu
+  sudo: yes
+  roles:
+    - tradesite_common
+    - tradesite_dev
