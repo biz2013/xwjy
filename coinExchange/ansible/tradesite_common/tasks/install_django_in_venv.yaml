@@ -1,0 +1,12 @@
+---
+- name: copy user requirement
+  copy:
+    src: venv_requirements.txt
+    dest: {{ workspace_dir }}/{{ project_dir }}/requirements
+
+-name: create virtual directory
+ pip:
+   requirements: {{ workspace_dir }}/{{ project_dir }}/requirements/venv_requirements.txt
+   virtualenv:{{ workspace_dir }}/{{ project_dir }}/dj2env
+   virtualenv_python: python3
+

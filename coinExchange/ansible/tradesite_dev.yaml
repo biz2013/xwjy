@@ -1,6 +1,6 @@
 ---
 - hosts: tradesite_dev
-  user: ubuntu
+  user: {{ login_user }}
   sudo: yes
   roles:
     - tradesite_common

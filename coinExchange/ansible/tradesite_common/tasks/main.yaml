@@ -1,3 +1,30 @@
 ---
-- setup:
-  register: ansible_facts
+- name: detect whether workspace dir exist
+  stat: path = {{ workspace_dir }}
+  register wdir
+
+- name: install basic packages
+  include install_prerequisites.yaml
+  when: not wdir.stat.exist
+
+- name: detect mysql is installed
+  command: mysql --version
+  register mysql_detect
+  ignore_errors: yes
+
+- name: install mysql package
+  include install_mysql.yaml
+  when not mysql_detect.rc != 0
+
+- name: install project
+  include install_project.yaml
+  when: not wdir.stat.exist
+
+- name: install django and required python packages
+  install install_django_in_venv.yaml
+  when: not wdir.stat.exist
+
+
+
+
+
