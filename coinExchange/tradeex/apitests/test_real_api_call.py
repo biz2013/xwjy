@@ -33,8 +33,8 @@ class TestAPICall(TestCase):
         test_out_trade_no = 'order_to_purchase_{0}'.format(test_timestamp)
         test_attach = 'userid:1'
         test_subject = '人民币充值成功测试'
-        test_notify_url = 'http://54.203.195.52/api/v1/api_notify_test/'
-        test_return_url = 'http://54.203.195.52/api/v1/api_notify_test/'
+        test_notify_url = 'http://52.43.117.129/api/v1/api_notify_test/'
+        test_return_url = 'http://52.43.117.129/api/v1/api_notify_test/'
         request = TradeAPIRequest(
                 API_METHOD_PURCHASE,
                 app_id, secret_key,
@@ -50,7 +50,7 @@ class TestAPICall(TestCase):
                 notify_url=test_notify_url,
                 return_url=test_return_url)
 
-        c = APIClient('http://54.203.195.52/api/v1/applypurchase/')
+        c = APIClient('http://52.43.117.129/api/v1/applypurchase/')
         request_str = request.getPayload()
         resp_json = c.send_json_request(json.loads(request_str))
         print('reply is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
@@ -67,8 +67,8 @@ class TestAPICall(TestCase):
         test_user_heepay_from_account = '13910978598'
         test_attach = 'userid:1'
         test_subject = '人民币提现成功测试'
-        test_notify_url = 'http://54.203.195.52/api/v1/api_notify_test/'
-        test_return_url = 'http://54.203.195.52/api/v1/api_notify_test/'
+        test_notify_url = 'http://52.43.117.129/api/v1/api_notify_test/'
+        test_return_url = 'http://52.43.117.129/api/v1/api_notify_test/'
         request = TradeAPIRequest(
                 API_METHOD_REDEEM,
                 app_id, secret_key,
@@ -83,7 +83,7 @@ class TestAPICall(TestCase):
                 notify_url=test_notify_url,
                 return_url=test_return_url)
 
-        c = APIClient('http://54.203.195.52/api/v1/applyredeem/')
+        c = APIClient('http://52.43.117.129/api/v1/applyredeem/')
         request_str = request.getPayload()
         resp_json = c.send_json_request(json.loads(request_str))
         print('reply is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
@@ -103,7 +103,7 @@ class TestAPICall(TestCase):
                 notify_url='http://game.p2pinfo.cn/api_notify.php',
                 return_url='http://game.p2pinfo.cn/api_notify.php')
 
-        c = APIClient('http://54.203.195.52/api/v1/applypurchase/')
+        c = APIClient('http://52.43.117.129/api/v1/applypurchase/')
         request_str = request.getPayload()
         resp_json = c.send_json_request(json.loads(request_str))
         print('reply is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))

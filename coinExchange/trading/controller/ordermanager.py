@@ -794,18 +794,10 @@ def confirm_purchase_order(order_id, operator):
         seller_user_wallet = UserWallet.objects.select_for_update().get(
              user__id= sell_order.user.id,
              wallet__cryptocurrency = purchase_trans.user_wallet.wallet.cryptocurrency)
-        buyer_user_wallet = UserWallet.objects.select_for_update().get(
-             user_id = buyorder.user.id,
-             wallet__cryptocurrency = purchase_trans.user_wallet.wallet.cryptocurrency)
         sell_order_fulfill_comment = 'deliver on buyer order {0}, with {1} units on payment bill no {2}'.format(
              buyorder.order_id, buyorder.units, purchase_trans.payment_bill_no
         )
 
-        api_trans = None
-        if buyorder.order_source =='API':
-            api_trans = APIUserTransaction.objects.get(reference_order__order_id = buyorder.order_id)
-        elif sell_order.order_source == 'API':
-            api_trans = APIUserTransaction.objects.get(reference_order__order_id = sell_order.order_id) 
         seller_userwallet_trans = UserWalletTransaction.objects.create(
           user_wallet = seller_user_wallet,
           balance_begin = seller_user_wallet.balance,
@@ -832,14 +824,12 @@ def confirm_purchase_order(order_id, operator):
 
         seller_userwallet_trans.save()
 
-        purchase_trans.balance_begin = buyer_user_wallet.balance
-        purchase_trans.balance_end = buyer_user_wallet.balance + buyorder.units
-        purchase_trans.locked_balance_begin = buyer_user_wallet.locked_balance
-        purchase_trans.locked_balance_end = buyer_user_wallet.locked_balance
-        purchase_trans.available_to_trade_begin = buyer_user_wallet.available_balance
-        purchase_trans.available_to_trade_end = buyer_user_wallet.available_balance + buyorder.units
-        purchase_trans.status = 'PROCESSED'
-        purchase_trans.lastupdated_by = operatorObj
+        seller_user_wallet.balance = seller_userwallet_trans.balance_end
+        seller_user_wallet.locked_balance = seller_userwallet_trans.locked_balance_end
+        seller_user_wallet.available_balance = seller_userwallet_trans.available_to_trade_end
+        seller_user_wallet.user_wallet_trans_id = seller_userwallet_trans.id
+        seller_user_wallet.lastupdated_by = operatorObj
+        seller_user_wallet.save()
 
         if round(sell_order.units_locked - buyorder.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL) < 0:
             raise ValueError('confirm_purchase_order({0}): sell order locked units {1} is less than purchase order units {2}'.format(
@@ -852,10 +842,23 @@ def confirm_purchase_order(order_id, operator):
             sell_order.status == 'FILLED'
         sell_order.lastupdated_by = operatorObj
         sell_order.save()
+        sell_order.refresh_from_db()
+        logger.info("confirm_purchase_order({0}): AFTER update sell order: {1}".format(
+            order_id, sell_order_to_str(sell_order)
+        ))
 
-        buyorder.status = 'FILLED'
-        buyorder.lastupdated_by = operatorObj
-        buyorder.save()
+        buyer_user_wallet = UserWallet.objects.select_for_update().get(
+             user_id = buyorder.user.id,
+             wallet__cryptocurrency = purchase_trans.user_wallet.wallet.cryptocurrency)
+
+        purchase_trans.balance_begin = buyer_user_wallet.balance
+        purchase_trans.balance_end = buyer_user_wallet.balance + buyorder.units
+        purchase_trans.locked_balance_begin = buyer_user_wallet.locked_balance
+        purchase_trans.locked_balance_end = buyer_user_wallet.locked_balance
+        purchase_trans.available_to_trade_begin = buyer_user_wallet.available_balance
+        purchase_trans.available_to_trade_end = buyer_user_wallet.available_balance + buyorder.units
+        purchase_trans.status = 'PROCESSED'
+        purchase_trans.lastupdated_by = operatorObj
 
         buyer_user_wallet.balance = purchase_trans.balance_end
         buyer_user_wallet.locked_balance = purchase_trans.locked_balance_end
@@ -864,38 +867,53 @@ def confirm_purchase_order(order_id, operator):
         buyer_user_wallet.lastupdated_by = operatorObj
         buyer_user_wallet.save()
 
-        seller_user_wallet.balance = seller_userwallet_trans.balance_end
-        seller_user_wallet.locked_balance = seller_userwallet_trans.locked_balance_end
-        seller_user_wallet.available_balance = seller_userwallet_trans.available_to_trade_end
-        seller_user_wallet.user_wallet_trans_id = seller_userwallet_trans.id
-        seller_user_wallet.lastupdated_by = operatorObj
-        seller_user_wallet.save()
+        buyorder.status = 'FILLED'
+        buyorder.lastupdated_by = operatorObj
+        buyorder.save()
 
-        if api_trans:
+        # release lock at the last moment
+        purchase_trans.save()
+        buyorder.refresh_from_db()
+        logger.info("confirm_purchase_order({0}): AFTER update buyer order: {1}".format(
+            order_id, sell_order_to_str(buyorder)
+        ))
+
+        if sell_order.order_source == 'API':
+            api_trans = APIUserTransaction.objects.get(reference_order__order_id = sell_order.order_id) 
             if api_trans.trade_status != TRADE_STATUS_SUCCESS and api_trans.trade_status != TRADE_STATUS_PAYSUCCESS:
                 api_trans.payment_status = PAYMENT_STATUS_SUCCESS
                 api_trans.trade_status = TRADE_STATUS_PAYSUCCESS
                 api_trans.save()
-
-        sell_order.refresh_from_db()
-        logger.info("confirm_purchase_order({0}): AFTER update sell order: {1}".format(
-            order_id, sell_order_to_str(sell_order)
-        ))
-
-        # release lock at the last moment
-        purchase_trans.save()
-
-        # directly
-        if api_trans:
             api_trans.refresh_from_db()
+            logger.info("'confirm_purchase_order({0}): sell order {1} update its api_trans {2}: trade_status: {3}, payment status: {4}".format(
+                order_id, sell_order.order_id, api_trans.transactionId, api_trans.trade_status, api_trans.payment_status
+            ))
             if api_trans.trade_status == TRADE_STATUS_PAYSUCCESS:
                 APIUserTransactionManager.on_trans_paid_success(api_trans)
                 api_trans.refresh_from_db()
                 if api_trans.trade_status == TRADE_STATUS_SUCCESS:
                     APIUserTransactionManager.on_found_success_purchase_trans(api_trans)
-
             elif api_trans.trade_status in ['ExpiredInvald', 'UserAbandon', 'DevClose']:
                 APIUserTransactionManager.on_trans_cancelled(api_trans)
+
+        if buyorder.order_source =='API':
+            api_trans = APIUserTransaction.objects.get(reference_order__order_id = buyorder.order_id)
+            if api_trans.trade_status != TRADE_STATUS_SUCCESS and api_trans.trade_status != TRADE_STATUS_PAYSUCCESS:
+                api_trans.payment_status = PAYMENT_STATUS_SUCCESS
+                api_trans.trade_status = TRADE_STATUS_PAYSUCCESS
+                api_trans.save()
+            api_trans.refresh_from_db()
+            logger.info("'confirm_purchase_order({0}): purchase order update its api_trans {1}: trade_status: {2}, payment status: {3}".format(
+                order_id, api_trans.transactionId, api_trans.trade_status, api_trans.payment_status
+            ))
+            if api_trans.trade_status == TRADE_STATUS_PAYSUCCESS:
+                APIUserTransactionManager.on_trans_paid_success(api_trans)
+                api_trans.refresh_from_db()
+                if api_trans.trade_status == TRADE_STATUS_SUCCESS:
+                    APIUserTransactionManager.on_found_success_purchase_trans(api_trans)
+            elif api_trans.trade_status in ['ExpiredInvald', 'UserAbandon', 'DevClose']:
+                APIUserTransactionManager.on_trans_cancelled(api_trans)
+
 
 def get_order_info(order_id):
     return Order.objects.get(pk=order_id)
