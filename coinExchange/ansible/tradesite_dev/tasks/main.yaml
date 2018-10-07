@@ -1,9 +1,14 @@
 ---
-- name: copy test templates
+- name: copy right templates to code
   template:
-    src:  test.json.j2
-    dest: /home/ubuntu/test.json
-    owner: root
-    group: root
+    src:  {{ item.src }}.j2
+    dest: {{ item.dest }}
+    owner: {{ login_user }}
+    group: {{ login_user }}
     mode: 0644
-
+  with_items:
+  - { "src": "wsgi.py.j2", "dest":"{{ workspace_dir}}/xwjy/coinExchange/coinExchange/wsgi.py" }
+  - { "src": "production.py", "dest": "{{ workspace_dir}}//xwjy/coinExchange/coinExchange/settings/production.py" }
+  - { "src": "dev.py", "dest" : "{{ workspace_dir}}//xwjy/coinExchange/coinExchange/settings/dev.py" }
+  notify:
+    restart apache2

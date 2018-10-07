@@ -1,12 +1,64 @@
+----
 - name: create workspace
   file: 
     path={{ workspace_dir }}
     state=directory
     mode: 0755
 
-- name: download the code
+- name: download the api code and axfd code
   git:
     repo:{{ project_repo }}
     dest:{{ workspace_dir }}
 
+- name: download the cnyfund repo
+  git:
+    repo: {{ cny_repo }}
+    dest: {{ workspace_dir }}
+
+- name: sync on tradeapi branch if it is in dev
+  command: git checkout -b tradeapi
+    chdir: {{ workspace_dir }}/xwjy
+  when: "'tradesite_dev' in group_names"
+
+- name: create link to axfd executables
+  file:
+    src: {{ workspace_dir }}/xwjy/smwy/src/axfd
+    dest: /usr/local/bin/axfd
+    status: link
+    user: {{ login_user }}
+    group: {{ login_user }}
+    mode: 0755
+  become: yes
+
+- name: create linke to cnyfund executables
+  file:
+    src: {{ workspace_dir }}/xwjy/smwy/src/axfd
+    dest: /usr/local/bin/axfd
+    status: link
+    user: {{ login_user }}
+    group: {{ login_user }}
+    mode: 0755
+  become: yes
+
+- name: copy axfd service definition
+  template:
+    src: axfd.service.j2
+    dest: /etc/systemd/system/axfd.service
+    user: {{ login_user }}
+    group: {{ login_user }}
+    mode: 0644
+  notify
+    axfd_service
+  become: yes
+
+- name: copy cnyfund service definition
+  template:
+    src: cnyfund.service.j2
+    dest: /etc/systemd/system/cnyfund.service
+    user: {{ login_user }}
+    group: {{ login_user }}
+    mode: 0644
+  notify
+    cnyfund_service
+  become: yes
 

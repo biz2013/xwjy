@@ -1,0 +1,17 @@
+---
+- name: restart axfd service
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: axfd
+
+- name: restart cnyfund service
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: cnyfund
+
+- name: restart apache2
+  service:
+    name: apache2
+    state: restarted
