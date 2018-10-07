@@ -3,6 +3,7 @@
 import sys
 import logging,json
 
+from django.conf import settings
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseServerError,HttpResponseForbidden
 from django.shortcuts import render, redirect
@@ -24,7 +25,7 @@ logger = logging.getLogger('site.account_cronjob')
 def update_account_with_receiving_fund(request):
     try:
         client_ip = get_client_ip(request)
-        if client_ip not in ['127.0.0.1', '54.203.195.52']:
+        if client_ip not in settings.ALLOWED_HOSTS:
             message = 'update_account_with_receiving_fund() only accept request from localhost. The client ip is {0}'.format(client_ip)
             logger.error(message)
             return HttpResponseForbidden()
