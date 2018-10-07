@@ -1,7 +1,9 @@
 ---
 - hosts: tradesite_dev
   user: {{ login_user }}
-  sudo: yes
+  include_vars:
+    vars/site_settings_aws_ubuntu.yaml
+
   roles:
     - tradesite_common
     - tradesite_dev

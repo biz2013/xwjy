@@ -1,0 +1,52 @@
+---
+- name: detect /var/www/coinexchange/static/ exist
+  stats:
+    path: /var/www/coinexchange/static/
+  register: static_dir
+
+- name: create /var/www/coinexchange/static/ if not exist
+  file:
+    path: /var/www/coinexchange/static/
+    user: www-data
+    group: www-data
+    mode: 0755
+  when: not static_dir.stat.exist
+  
+- name: detect /var/www/coinexchange/media/ exist
+  stats:
+    path: /var/www/coinexchange/media/
+  register: media_dir
+  
+- name: create /var/www/coinexchange/media/ if not exist
+  file:
+    path: /var/www/coinexchange/media/
+    user: www-data
+    group: www-data
+    mode: 0755
+  when: not media_dir.stat.exist
+
+- name: copy site config file
+  template: 
+    src: apache2/tradesite.conf.j2
+    dest: /etc/apache2/site-available/tradesite.conf
+    user: root
+    group: root
+  notify:
+    restart apache2
+ 
+- name: copy cert and key
+  copy:
+    src: {{ item }}
+    dest: /etc/apach2/ssl/{{ item }}
+    user: root
+    group: root
+  with_items:
+    - tradesite.pem
+    - tradesite_key.pem
+  notify:
+    restart apache2
+
+- name: remove default site
+  command: a2dissite 000-default.conf
+  become: yes
+ 

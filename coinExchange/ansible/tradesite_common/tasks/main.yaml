@@ -13,18 +13,31 @@
   ignore_errors: yes
 
 - name: install mysql package
-  include install_mysql.yaml
+  include: install_mysql.yaml
   when not mysql_detect.rc != 0
 
+- name: create workspace dir if not already exist
+  file:
+    path={{ workspace_dir }}
+    state=directory
+    mode: 0755
+  when: not wdir.stat.exist
+
 - name: install project
-  include install_project.yaml
+  include_tasks: install_project.yaml
   when: not wdir.stat.exist
 
 - name: install django and required python packages
-  install install_django_in_venv.yaml
+  include_tasks: install_django_in_venv.yaml
   when: not wdir.stat.exist
 
+- name: install apache
+  include_tasks: config_apache.yaml
 
+- name: sync static files
+  command: deploy.sh
+    chdir: {{ workspace_dir }}/xwjy/coinExchange/deploy
+  
 
 
 
