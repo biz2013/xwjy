@@ -1,43 +1,40 @@
 ---
 - name: detect whether workspace dir exist
-  stat: path = {{ workspace_dir }}
-  register wdir
+  stat: 
+    path: "{{ workspace_dir }}/xwjy"
+  register: wdir
+
+- name: set flag for fresh install
+  set_fact:
+    need_fresh_install: yes
+  when: not wdir.stat.exists
 
 - name: install basic packages
-  include install_prerequisites.yaml
-  when: not wdir.stat.exist
+  include_tasks: install_prerequisites.yaml
+  when: need_fresh_install is defined and need_fresh_install
 
-- name: detect mysql is installed
-  command: mysql --version
-  register mysql_detect
-  ignore_errors: yes
-
-- name: install mysql package
-  include: install_mysql.yaml
-  when not mysql_detect.rc != 0
+#- name: install mysql package
+#  include_tasks: install_mysql.yaml
+#  when: not mysql_detect.rc != 0
 
 - name: create workspace dir if not already exist
   file:
-    path={{ workspace_dir }}
-    state=directory
+    path: "{{ workspace_dir }}"
+    state: directory
     mode: 0755
-  when: not wdir.stat.exist
+  when: need_fresh_install is defined and need_fresh_install
 
 - name: install project
   include_tasks: install_project.yaml
-  when: not wdir.stat.exist
 
 - name: install django and required python packages
   include_tasks: install_django_in_venv.yaml
-  when: not wdir.stat.exist
+  when: need_fresh_install is defined and need_fresh_install
 
 - name: install apache
   include_tasks: config_apache.yaml
 
 - name: sync static files
-  command: deploy.sh
-    chdir: {{ workspace_dir }}/xwjy/coinExchange/deploy
-  
-
-
-
+  shell: deploy.sh
+  args:
+    chdir: "{{ workspace_dir }}/xwjy/coinExchange/deploy"

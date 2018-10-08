@@ -36,7 +36,7 @@
  
 - name: copy cert and key
   copy:
-    src: {{ item }}
+    src: "{{ item }}"
     dest: /etc/apach2/ssl/{{ item }}
     user: root
     group: root
