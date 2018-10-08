@@ -15,6 +15,7 @@ heepay_secret: !vault |
           3339393432316365630a353135613230303866346531656263623232393539383938326532383234
           64646162653031313436653934646462636234303136643134356130343138666632
 
-cnyfund_repo: https://github.com/biz2013/CnyFund.git
+tradesite_repo: https://github.com/biz2013/xwjy.git
+cny_repo: https://github.com/biz2013/CnyFund.git
  
 

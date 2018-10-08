@@ -1,9 +1,8 @@
 ---
 - hosts: tradesite_dev
-  user: {{ login_user }}
-  include_vars:
-    vars/site_settings_aws_ubuntu.yaml
-
+  user: ubuntu
+  vars_files:
+  - vars/site_settings_aws_dev.yaml
   roles:
     - tradesite_common
     - tradesite_dev

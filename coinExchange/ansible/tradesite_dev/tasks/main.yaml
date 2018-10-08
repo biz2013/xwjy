@@ -1,10 +1,10 @@
 ---
 - name: copy right templates to code
   template:
-    src:  {{ item.src }}.j2
-    dest: {{ item.dest }}
-    owner: {{ login_user }}
-    group: {{ login_user }}
+    src:  "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ login_user }}"
+    group: "{{ login_user }}"
     mode: 0644
   with_items:
   - { "src": "wsgi.py.j2", "dest":"{{ workspace_dir}}/xwjy/coinExchange/coinExchange/wsgi.py" }

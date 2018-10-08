@@ -1,16 +1,18 @@
 ---
-- name: Upgrade all packages to the latest version
-  apt:
-    name: "*"
-    state: latest
-    update_cache: yes
+#- name: Update all packages to the latest version
+#  apt:
+#    name: "*"
+#    state: latest
+#    upgrade: dist
+#  become: yes
+#  become_method: sudo
 
 - name: install required packages
   apt:
-    name: {{ item }}
+    name: "{{ item }}"
     state: latest
   become: yes
-  become_method: su
+  become_method: sudo
   with_items:
     - git 
     - build-essential 
@@ -34,9 +36,10 @@
     - libzbar-dev
     - apache2
 
-- name: install pip
+
+- name: upgrade pip
   easy_install:
     name: pip
     state: latest
   become: yes
-  become_method: su
+  become_method: sudo

@@ -1,64 +1,116 @@
-----
+---
 - name: create workspace
   file: 
-    path={{ workspace_dir }}
-    state=directory
+    path: "{{ workspace_dir }}"
+    state: directory
     mode: 0755
+
+- name: detect whether tradesite dir exist
+  stat:
+    path: "{{ workspace_dir }}/xwjy"
+  register: wdir
 
 - name: download the api code and axfd code
   git:
-    repo:{{ project_repo }}
-    dest:{{ workspace_dir }}
+    repo: https://github.com/biz2013/xwjy.git
+    dest: "{{ workspace_dir }}/xwjy"
+  when: not wdir.stat.exists
+
+- name: detect whether CnyFund dir exist
+  stat:
+    path: "{{ workspace_dir }}/CnyFund"
+  register: wdir
 
 - name: download the cnyfund repo
   git:
-    repo: {{ cny_repo }}
-    dest: {{ workspace_dir }}
+    repo: https://github.com/biz2013/CnyFund.git
+    dest: "{{ workspace_dir }}/CnyFund"
+  when: not wdir.stat.exists
 
 - name: sync on tradeapi branch if it is in dev
   command: git checkout -b tradeapi
-    chdir: {{ workspace_dir }}/xwjy
+  args:
+    chdir: "{{ workspace_dir }}/xwjy"
   when: "'tradesite_dev' in group_names"
+  ignore_errors: True
+
+- name: detect where link to axfd exist
+  stat: 
+    path: "/usr/local/bin/axfd"
+  register: axfd_link
 
 - name: create link to axfd executables
   file:
-    src: {{ workspace_dir }}/xwjy/smwy/src/axfd
-    dest: /usr/local/bin/axfd
-    status: link
-    user: {{ login_user }}
-    group: {{ login_user }}
+    src: "{{ workspace_dir }}/xwjy/smwy/src/axfd"
+    dest: "/usr/local/bin/axfd"
+    state: link
+    user: "{{ login_user }}"
+    group: "{{ login_user }}"
     mode: 0755
   become: yes
+  become_method: sudo
+  when: axfd_link.stat.exists
+
+- name: detect whether .axf directory exists
+  stat:
+    path: /home/{{ login_user }}/.axf
+  register axf_dir
+
+- name: create .axf directory
+  file:
+    path: "/home/{{ login_user }}/.axf"
+    owner: "{{ login_user }}"
+    group: "{{ login_group }}"
+    mode: 0775
+  when not axf_dir.stat.exist
+
+- name: detect where link to cnyfund exist
+  stat: 
+    path: "/usr/local/bin/cnyfund"
+  register: cnyfund_link
 
 - name: create linke to cnyfund executables
   file:
-    src: {{ workspace_dir }}/xwjy/smwy/src/axfd
-    dest: /usr/local/bin/axfd
-    status: link
-    user: {{ login_user }}
-    group: {{ login_user }}
+    src: "{{ workspace_dir }}/CnyFund/contrib/ubuntu16/binaries"
+    dest: "/usr/local/bin/cnyfund"
+    state: link
+    user: "{{ login_user }}"
+    group: "{{ login_user }}"
     mode: 0755
   become: yes
+  become_method: sudo
+  when: cnyfund_link.stat.exists
 
 - name: copy axfd service definition
   template:
     src: axfd.service.j2
-    dest: /etc/systemd/system/axfd.service
-    user: {{ login_user }}
-    group: {{ login_user }}
+    dest: "/etc/systemd/system/axfd.service"
+    owner: "{{ login_user }}"
+    group: "{{ login_user }}"
     mode: 0644
-  notify
-    axfd_service
+  notify:
+    restart axfd service
   become: yes
 
 - name: copy cnyfund service definition
   template:
     src: cnyfund.service.j2
-    dest: /etc/systemd/system/cnyfund.service
-    user: {{ login_user }}
-    group: {{ login_user }}
+    dest: "/etc/systemd/system/cnyfund.service"
+    owner: "{{ login_user }}"
+    group: "{{ login_user }}"
     mode: 0644
-  notify
-    cnyfund_service
+  notify:
+    restart cnyfund service
   become: yes
 
+- name: starting axfd service
+  systemd:
+    name: axfd
+    daemon_reload: yes
+    state: started
+
+- name: starting cnyfund service
+  systemd:
+    name: cnyfund
+    daemon_reload: yes
+    state: started
