@@ -9,9 +9,9 @@ User={{ login_user }}
 Group={{ login_user }}
 Type=forking
 Restart=always
-RestartSec=15
-ExecStart=/usr/bin/axfd -daemon -datadir=/home/{{ login_user }}/.axf -conf=/home/{{ login_user }}/.axf/axf.conf
-ExecStop=/usr/bin/axfd -datadir=/home/{{ login_user }}/.axf -conf=/home/{{ login_user }}/.axf/axf.conf stop & sleep 15
+RestartSec=30
+ExecStart=/usr/local/bin/axfd -daemon -datadir=/home/{{ login_user }}/.axf -conf=/home/{{ login_user }}/.axf/axf.conf
+ExecStop=/usr/local/bin/axfd -datadir=/home/{{ login_user }}/.axf -conf=/home/{{ login_user }}/.axf/axf.conf stop & sleep 30
 TimeoutStopSec=60s
 TimeoutStartSec=2s
 

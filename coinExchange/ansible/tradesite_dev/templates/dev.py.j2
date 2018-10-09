@@ -6,6 +6,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 STATIC_ROOT = "/var/www/coinexchange/static/"
 MEDIA_ROOT = "/var/www/coinexchange/media/"
 
-ALLOWED_HOSTS = ['{{ group_members['tradesite_dev'].join(',') }}', 'localhost', '127.0.0.1', '[::1]']
+ALLOWED_HOSTS = ['{{ (',').join(groups['tradesite_dev']) }}', 'localhost', '127.0.0.1', '[::1]']
 
 API_TRANS_LIMIT_IN_CENT = {{ trans_limit_in_cent }}

@@ -29,12 +29,7 @@
 
 - name: install django and required python packages
   include_tasks: install_django_in_venv.yaml
-  when: need_fresh_install is defined and need_fresh_install
 
 - name: install apache
   include_tasks: config_apache.yaml
 
-- name: sync static files
-  shell: deploy.sh
-  args:
-    chdir: "{{ workspace_dir }}/xwjy/coinExchange/deploy"

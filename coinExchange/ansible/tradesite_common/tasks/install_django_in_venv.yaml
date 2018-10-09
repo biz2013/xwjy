@@ -1,12 +1,21 @@
 ---
+- name: Install virtualenv via pip
+  pip:
+    name: virtualenv
+    executable: pip3
+  become: yes
+  become_user: root
+  register: venv_rc
+ 
 - name: copy user requirement
   copy:
     src: venv_requirements.txt
-    dest: {{ workspace_dir }}/{{ project_dir }}/requirements
+    dest: "{{ workspace_dir }}/xwjy/coinExchange/admin/"
+  register: req_rc
 
--name: create virtual directory
- pip:
-   requirements: {{ workspace_dir }}/{{ project_dir }}/requirements/venv_requirements.txt
-   virtualenv:{{ workspace_dir }}/{{ project_dir }}/dj2env
-   virtualenv_python: python3
-
+- name: create virtual directory
+  pip:
+    requirements: "{{ workspace_dir }}/xwjy/coinExchange/admin/venv_requirements.txt"
+    virtualenv: "{{ workspace_dir }}/xwjy/coinExchange/dj2env"
+    virtualenv_python: python3
+#  when: req_rc.changed or venv_rc.changed
