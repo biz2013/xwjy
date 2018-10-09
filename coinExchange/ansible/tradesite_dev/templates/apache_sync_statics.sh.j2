@@ -1,0 +1,17 @@
+#!/bin/bash
+# Deploy latest code.
+WORKSPACEDIR={{ workspace_dir }}
+                 
+cd {{ workspace_dir }}/xwjy/coinExchange
+source dj2env/bin/activate
+export DJANGO_SETTINGS_MODULE=coinExchange.settings.production
+
+# Update database, static files.
+python  manage.py syncdb --noinput
+python manage.py migrate
+# Need to take care of permission of static path.
+python manage.py collectstatic --noinput
+
+# restart wsgi
+touch coinExchange/wsgi.py
+
