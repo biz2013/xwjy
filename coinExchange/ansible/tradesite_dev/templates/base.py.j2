@@ -83,9 +83,9 @@ WSGI_APPLICATION = 'coinExchange.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mydb',
-        'USER': 'mydbuser',
-        'PASSWORD': 'aaaaaa',
+        'NAME': '{{ project_db }}',
+        'USER': '{{ project_db_user }}',
+        'PASSWORD': '{{ project_db_user_password }}',
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'TEST':{
@@ -175,7 +175,7 @@ LOGGING = {
         'siteTimeRotateFile': {
             'level': 'DEBUG',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, "logs/site.log"),
+            'filename': /var/logs/coinexchange/site.log"),
             'when': 'D',
             'interval': 1,
             'backupCount': 30,

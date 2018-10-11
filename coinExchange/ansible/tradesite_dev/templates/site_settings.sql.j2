@@ -1,0 +1,25 @@
+[    {
+        "model": "trading.sitesettings",
+        "pk": 1,
+        "fields": {
+            "support": "tttzhang2000@yahoo.com",
+            "heepay_notify_url_host": "group_members['tradesite_dev'][0]",
+            "heepay_notify_url_port": 8081,
+            "heepay_return_url_host": "group_members['tradesite_dev'][0]",
+            "heepay_return_url_port": 8081,
+            "heepay_app_id": "{{ heepay_appId }}",
+            "heepay_app_key": "{{ heepay_secret }}",
+            "heepay_expire_in_sec": 1800,
+            "axfd_path": "/usr/local/bin/axfd",
+            "axfd_datadir": "/home/{{ login_user }}/.axf",
+            "axfd_account_name": "",
+            "axfd_list_trans_count": 1000,
+            "min_trx_confirmation": 8,
+            "per_transaction_limit": 100,
+            "axfd_passphrase": "{{ axfd_passphrase }}",
+            "order_timeout_insec": 600,
+            "confirmation_timeout_insec": 300,
+            "config_json": "{\"wallet_address_batch_size\":255, \"wallet_address_batch_threshold\":251}"
+        }
+    }
+]

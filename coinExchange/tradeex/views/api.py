@@ -209,58 +209,6 @@ def prepurchase(request):
         final_resp_json = tradex.purchase_by_cash_amount(api_user,
            request_obj, 'AXFund', sitesettings, True)
         
-        """
-        notify_url = settings.HEEPAY_NOTIFY_URL_FORMAT.format(
-           sitesettings.heepay_notify_url_host,
-           sitesettings.heepay_notify_url_port)
-        return_url = request_obj.return_url
-        
-        heepay_api_key = sitesettings.heepay_app_id
-        heepay_api_secret = sitesettings.heepay_app_key
-
-        request_factory = HeepayAPIRequestFactory(
-            "1.0", request_obj.apikey, api_user.secretKey)
-
-        #heepay_request = request_factory.create_payload(
-        #    orderId, request_obj.total_fee,  
-        #    request_obj.payment_account, seller_payment_account, notify_url, return_url,
-        #    nothing='nothing')
-        
-        heepay = HeePayManager()
-        json_payload = heepay.create_heepay_payload('wallet.pay.apply', buyorder_id, heepay_api_key, 
-            heepay_api_secret, "127.0.0.1", float(request_obj.total_fee)/100.0,
-            seller_payment_account, request_obj.payment_account, 
-            notify_url, return_url)
-        status, reason, message = heepay.send_buy_apply_request(json_payload)
-        response_json = json.loads(message) if status == 200 else None
-        if not response_json:
-            raise ValueError('Request to heepay failed with {0}:{1}-{2}'.format(
-                status, reason, message
-            ))
-
-        # TODO: hard coded right now
-        #api_client = APIClient('https://wallet.heepay.com/api/v1/payapply')
-        #response_json = api_client.send_json_request(heepay_request)
-        logger.info("prepurchase(): [out_trade_no:{0}] heepay reply: {1}".format(
-            request_obj.out_trade_no, json.dumps(response_json, ensure_ascii=False)
-        ))
-
-        if request_obj.payment_provider == 'heepay':
-            if response_json['return_code'] == 'SUCCESS':
-                ordermanager.post_open_payment_order(
-                            buyorder_id, 'heepay',
-                            response_json['hy_bill_no'],
-                            response_json['hy_url'],
-                            api_user.user.username)
-                
-            heepay_response = HeepayResponse.parseFromJson(response_json, heepay_api_secret)
-            final_resp_json = create_prepurchase_response_from_heepay(
-                heepay_response, api_user,api_trans_id, request_obj.out_trade_no,
-                request_obj.subject, request_obj.attach)
-            logger.info('prepurchase(): send final reply {0}'.format(
-                json.dumps(final_resp_json, ensure_ascii=False)
-            ))
-        """
         return JsonResponse(final_resp_json)
         #else:
         #    raise ValueError("payment provider {0} is not supported".format(request_obj.payment_provider))
