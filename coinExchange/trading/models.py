@@ -171,7 +171,7 @@ class UserWalletTransaction(models.Model):
    lastupdated_by = models.ForeignKey(User, related_name='UserWallet_trans_lastupdated_by', on_delete=models.SET_NULL, null=True)
 
 class UserExternalWalletAddress(models.Model):
-   user = models.OneToOneField(User, on_delete=models.CASCADE)
+   user = models.ForeignKey(User, on_delete=models.CASCADE)
    cryptocurrency = models.ForeignKey('Cryptocurrency', on_delete=models.CASCADE)
    address = models.CharField(max_length=128)
    alias = models.CharField(max_length=32, null=True)
