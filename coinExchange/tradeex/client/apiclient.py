@@ -18,6 +18,6 @@ class APIClient(object):
             '[trackId: {0}]'.format(trackingId) if trackingId else '',
             self.url, request_str
         ))
-        r = requests.post(self.url, json=pay_load, headers= headers, allow_redirects=True)
+        r = requests.post(self.url, json=pay_load, headers= headers, allow_redirects=True, verify=False)
         logger.info("response is {0}".format(r.text))
         return r.json() if response_format=='json' else r.text

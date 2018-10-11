@@ -32,12 +32,11 @@ def create_prepurchase_response_from_heepay(heepay_response, api_user, api_trans
         heepay_response.result_code,
         heepay_response.result_msg,
         api_out_trade_no,
-        heepay_response.hy_bill_no,
+        api_trans_id,
         subject = subject,
         attach = attach,
         total_fee = heepay_response.total_fee,
-        payment_url = heepay_response.hy_url,
-        reference_id = api_trans_id
+        payment_url = heepay_response.hy_url
     )
 
     return response.to_json()       
@@ -249,7 +248,7 @@ class TradeExchangeManager(object):
             json_payload = heepay.create_heepay_payload('wallet.pay.apply', buyorder_id, heepay_api_key, 
                 heepay_api_secret, "127.0.0.1", float(request_obj.total_fee)/100.0,
                 seller_payment_account, request_obj.payment_account, 
-                notify_url, return_url, subject = request_obj.subject)
+                notify_url, return_url, request_obj.expire_minute, subject = request_obj.subject)
             try:
                 status, reason, message = heepay.send_buy_apply_request(json_payload)
             except:

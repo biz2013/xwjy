@@ -143,3 +143,6 @@ Then, you need to run the following way.  This will put test to site_test.log un
 ```
 python manage.py test trading.tests.<test file>[.testclass[.test_function]] --settings=coinExchange.settings.test
 ```
+
+
+https://1drv.ms/u/s!ApvPY5vduimfnCUFn3rXYqKF9uKm

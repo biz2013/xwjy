@@ -1,0 +1,30 @@
+---
+- name: detect whether .axf directory exists
+  stat:
+    path: /home/{{ login_user }}/.axf
+  register axf_dir
+
+- name: create .axf directory
+  file:
+    path: /home/{{ login_user }}/.axf
+    user: {{ login_user }}
+    group: {{ login_group }}
+    mode: 0775
+  when not axf_dir.stat.exist
+
+- name: create link from /usr/local/bin to axfd
+  file:
+    src: {{ workspace_dir }}/{{ axfd_bin_path }}/axfd
+    dest: /usr/local/bin/axfd
+    user: root
+    group: root
+    state: link
+
+- name: create systemctl lib
+  template:
+    src: axfd.service.j2
+    dest: /etc/systemd/system/axfd.service
+    user: root
+    group: root
+
+

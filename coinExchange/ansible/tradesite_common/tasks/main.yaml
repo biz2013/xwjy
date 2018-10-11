@@ -1,0 +1,35 @@
+---
+- name: detect whether workspace dir exist
+  stat: 
+    path: "{{ workspace_dir }}/xwjy"
+  register: wdir
+
+- name: set flag for fresh install
+  set_fact:
+    need_fresh_install: yes
+  when: not wdir.stat.exists
+
+- name: install basic packages
+  include_tasks: install_prerequisites.yaml
+  when: need_fresh_install is defined and need_fresh_install
+
+#- name: install mysql package
+#  include_tasks: install_mysql.yaml
+#  when: not mysql_detect.rc != 0
+
+- name: create workspace dir if not already exist
+  file:
+    path: "{{ workspace_dir }}"
+    state: directory
+    mode: 0755
+  when: need_fresh_install is defined and need_fresh_install
+
+- name: install project
+  include_tasks: install_project.yaml
+
+- name: install django and required python packages
+  include_tasks: install_django_in_venv.yaml
+
+- name: install apache
+  include_tasks: config_apache.yaml
+

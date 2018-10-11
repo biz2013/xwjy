@@ -1,0 +1,26 @@
+Unit]
+Description=CnyCoin daemon
+After=network.target
+#Conflicts=cnycoind-tor@%i.service 
+Conflicts=cnycoind-tor.service
+
+[Service]
+User={{ login_user }}
+Group={{ login_user }}
+Type=forking
+Restart=always
+RestartSec=30
+ExecStart=/usr/local/bin/cnyfund -daemon -datadir=/home/{{ login_user }}/.cnyfund -conf=/home/{{ login_user }}/.cnyfund/cnyfund.conf
+ExecStop=/usr/local/bin/cnyfund -datadir=/home/{{ login_user }}/.cnyfund -conf=/home/{{ login_user }}/.cnyfund/cnyfund.conf stop & sleep 30
+TimeoutStopSec=60s
+TimeoutStartSec=2s
+
+## security
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=full
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
+
