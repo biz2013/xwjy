@@ -13,6 +13,10 @@
   include_tasks: install_prerequisites.yaml
   when: need_fresh_install is defined and need_fresh_install
 
+- name: pause for mysql installation
+  pause:
+    prompt: "Let us to install mysql"
+
 #- name: install mysql package
 #  include_tasks: install_mysql.yaml
 #  when: not mysql_detect.rc != 0

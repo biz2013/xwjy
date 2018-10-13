@@ -1,4 +1,12 @@
 ---
+- name: copy initialization script
+  template:
+    src: site_setting.json.j2
+    dest: "{{ workspace_dir }}/xwjy/coinExchange/admin/site_setting.json"
+    owner: "{{ login_user }}"
+    group: "{{ login_user }}"
+    mode: 0644
+
 - name: copy static sync script
   template: 
     src: apache_sync_statics.sh.j2
@@ -23,6 +31,7 @@
     mode: 0644
   with_items:
   - { "src": "wsgi.py.j2", "dest":"{{ workspace_dir}}/xwjy/coinExchange/coinExchange/wsgi.py" }
+  - { "src": "base.py.j2", "dest": "{{ workspace_dir}}/xwjy/coinExchange/coinExchange/settings/base.py" }
   - { "src": "production.py.j2", "dest": "{{ workspace_dir}}/xwjy/coinExchange/coinExchange/settings/production.py" }
   - { "src": "dev.py.j2", "dest" : "{{ workspace_dir}}/xwjy/coinExchange/coinExchange/settings/dev.py" }
   notify:
