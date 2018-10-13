@@ -41,7 +41,7 @@
     path: /var/log/coinexchange
     owner: www-data
     group: www-data
-    mode: 0755
+    mode: 0757
     state: directory
   when: not sitelog_dir.stat.exists
   become: yes
