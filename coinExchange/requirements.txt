@@ -1,17 +1,12 @@
-qrtools
-P8x436LDCpwopEd56rhndtxCmBFjFih5qB
-46a94c684a44649fd22627f553b27e9cb5b99984db3af82f8c7f4fc49a56da22
-PKpAsXD4sgEfMzXhqhpf6StngZgRrgqGgk--new wallet address
-PHNEh8B5amLLad83nswER59TuH1qvey6xX <--- cny on vm
-c0f8acee9e6083099e8eb99db5dbd14bd92d9cb287fc6fd07241147adad3b480 -- move back transaction
-
-
-+------------------------+------------------------------------+
-| username               | wallet_addr                        |
-+------------------------+------------------------------------+
-| admin                  | P8x436LDCpwopEd56rhndtxCmBFjFih5qB |
-| api_test_user1         | PUXF3ugnPigADfgK2HKv71k8vAhySvP1v7 |
-| api_test_user2         | PXZCvnATCuvNcJheKsg9LGe5Asf9a5xeEd |
-| tttzhang2000@gmail.com | PWEe6bocmuPgTUPcHwYaLSKTH6CFEoWnmq |
-| plcss@163.com          | PPfzmJRWwDJcdRmZwwVupvLNL1sZSnFbuZ |
-+------------------------+------------------------------------+
+certifi==2018.4.16
+chardet==3.0.4
+Django==2.0
+django-mathfilters==0.4.0
+idna==2.7
+mysqlclient==1.3.12
+Pillow==5.0.0
+pytz==2018.3
+qrcode==5.3
+requests==2.19.1
+six==1.11.0
+urllib3==1.23
