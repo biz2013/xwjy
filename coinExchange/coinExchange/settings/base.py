@@ -227,7 +227,7 @@ LOGIN_REDIRECT_URL = '/'
 HEEPAY_NOTIFY_HOST='www.uuvc.com'
 # format for construct the url for heepay return and notify
 HEEPAY_NOTIFY_URL_FORMAT='http://{0}:{1}/trading/heepay/confirm_payment/'
-HEEPAY_RETURN_URL_FORMAT='http://{0}:{1}/trading/heepay/confirm_payment/'
+HEEPAY_RETURN_URL_FORMAT='https://{0}:{1}/trading/heepay/confirm_payment/'
 
 # These are execution behavior code
 TEST_REAL_CALL = False
