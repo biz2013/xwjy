@@ -3,6 +3,7 @@
 import sys
 import logging,json
 
+from django.conf import settings
 from django.http import HttpResponse, HttpResponseServerError,HttpResponseForbidden
 
 from trading.config import context_processor
@@ -17,7 +18,7 @@ logger = logging.getLogger("site.wallet_address_batch")
 def create_wallet_address(request):
     try:
         client_ip = get_client_ip(request)
-        if client_ip != '127.0.0.1':
+        if client_ip not in settings.ALLOWED_HOSTS:
             message = 'create_wallet_address() only accept request from localhost. The client ip is {0}'.format(client_ip)
             logger.error(message)
             return HttpResponseForbidden()
@@ -41,7 +42,7 @@ def create_wallet_address(request):
             return HttpResponse('OK --- No change')
 
         logger.info("Unlock wallet before generating address")
-        axfd_tool.unlock_wallet(axfd_passphrase, 15)
+        axfd_tool.unlock_wallet(15)
         new_addresses = []
         for i in range(0, batch_size - unassigned_count):
             new_addresses.append(axfd_tool.create_wallet_address())
