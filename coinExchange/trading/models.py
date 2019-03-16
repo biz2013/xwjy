@@ -57,7 +57,7 @@ class GlobalCounter(models.Model):
 class PaymentProvider(models.Model):
    code = models.CharField(max_length=32, primary_key=True)
    name = models.CharField(max_length=32)
-   config_json = models.TextField()
+   config_json = models.CharField(max_length=8192, default='{}')
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey(User, related_name='PaymentProvider_created_by', on_delete=models.SET_NULL, null=True)
    lastupdated_at = models.DateTimeField(auto_now=True)
@@ -70,7 +70,9 @@ class UserProfile(models.Model):
 class UserPaymentMethod(models.Model):
    user = models.ForeignKey(User, on_delete=models.CASCADE)
    provider = models.ForeignKey('PaymentProvider', on_delete=models.CASCADE)
-   account_at_provider = models.CharField(max_length=64)
+   account_at_provider = models.CharField(max_length=128, default='')
+   client_id = models.CharField(max_length=128, default='')
+   client_secret = models.CharField(max_length=256, default='')
    provider_qrcode_image = models.ImageField(upload_to='uploads/')
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey(User, related_name='UserPaymentMethod_created_by', on_delete=models.SET_NULL, null=True)
@@ -202,7 +204,7 @@ class Order(models.Model):
             ('PAYING','Paying'), ('PAID','Paid'), ('FAILED', 'Failed'),
             ('DELIVERED','Delivered'),('PARTIALFILLED','PartialFilled'),('LOCKED','Locked'),
             ('BADACCOUNT', 'BADACCOUNT'))
-   CURRENCY = (('CYN', 'Renminbi'), ('USD', 'US Dollar'))
+   CURRENCY = (('CYN', 'Renminbi'), ('USD', 'US Dollar'), ('CAD', 'Canadian dollar'))
 
    order_id = models.CharField(max_length=64, primary_key=True)
    user = models.ForeignKey(User, on_delete=models.CASCADE)
