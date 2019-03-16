@@ -598,16 +598,15 @@ def lock_trans_of_purchase_order(orderid, bill_no):
     try:
         # TODO: is this needed?
         purchase_trans = UserWalletTransaction.objects.select_for_update().get(
-              reference_order__order_id=orderid)
-        logger.info("--- trans: orderid {0}, pay bill: {1} status {2} trans_type {3} inside call of {4},{5}".format(
-              orderid, purchase_trans.payment_bill_no, purchase_trans.status,
-              purchase_trans.transaction_type, orderid, bill_no
-        ))
-        return UserWalletTransaction.objects.select_for_update().get(
               reference_order__order_id=orderid,
               payment_bill_no = bill_no,
               status='PENDING',
               transaction_type='OPEN BUY ORDER')
+        logger.info("--- trans: orderid {0}, pay bill: {1} status {2} trans_type {3} inside call of {4},{5}".format(
+              orderid, purchase_trans.payment_bill_no, purchase_trans.status,
+              purchase_trans.transaction_type, orderid, bill_no
+        ))
+        return purchase_trans;
     except UserWalletTransaction.DoesNotExist:
         logger.warn("lock_trans_of_purchase_order(): could not find PENDING trans for purchase order {0} with bill_no {1}, maybe it has been processed".format(orderid, bill_no))
         try:
