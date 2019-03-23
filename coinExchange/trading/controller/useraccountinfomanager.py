@@ -513,7 +513,10 @@ def get_user_accountInfo(user, crypto, load_balance_only=False):
               payment_methods.append(UserPaymentMethodView(method.id,
                     user.id, method.provider.code,
                     method.provider.name,method.account_at_provider,
-                    method.provider_qrcode_image))
+                    method.provider_qrcode_image,
+                    method.client_id,
+                    method.client_secret
+                    ))
     userInfo = UserAccountInfo(user.username, user.id,
           round(balance,8),
           round(locked_balance,8),

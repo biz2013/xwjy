@@ -38,20 +38,25 @@ def payment_method(request):
            payment_method_id = int(str_val) if len(str_val) > 0 else 0
            payment_provider = request.POST['payment_provider']
            account = request.POST['account']
+           client_id = request.POST['client_id']
+           client_secret = request.POST['client_secret']
 
            has_error = False
            if len(payment_provider) == 0:
                has_error = True
                messages.error(request, '请选择支付方式')
-           elif len(account) == 0:
+           elif len(account) == 0 and len(client_id) == 0:
                has_error = True
-               messages.error(request, '请输入您的账号')
+               messages.error(request, '请输入您的账号或Client_ID')
+           elif len(client_id) != 0 and len(client_secret) == 0:
+               has_error = True
+               messages.error(request, '请输入您的Client_Secret')
            if has_error:
                return redirect('paymentmethods')
            record = UserPaymentMethodView(payment_method_id,
                     request.user.id,
                     payment_provider,
-                    '', account, '')
+                    '', account, '', client_id, client_secret)
            userpaymentmethodmanager.create_update_user_payment_method(record, request.user.username)
            return redirect('accountinfo')
     except Exception as e:

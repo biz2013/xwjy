@@ -44,6 +44,11 @@ def sell_order_to_str(sell_order):
 def get_user_payment_account(user_id, payment_provider_code):
     return UserPaymentMethod.objects.filter(user__id=user_id).filter(provider__code=payment_provider_code)
 
+def get_sell_order_payment_methods(sell_order_id):
+    sell_order = Order.objects.get(pk=sell_order_id)
+    seller_payment_methods = UserPaymentMethod.objects.filter(user__id=sell_order.user.id)
+    return seller_payment_methods
+
 def get_seller_buyer_payment_accounts(buyorder_id, payment_provider):
     buyorder = Order.objects.get(pk=buyorder_id)
     sellorder = Order.objects.get(pk=buyorder.reference_order.order_id)

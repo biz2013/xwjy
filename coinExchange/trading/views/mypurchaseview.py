@@ -22,6 +22,7 @@ from trading.models import *
 from trading.views.models.orderitem import OrderItem
 from trading.views.models.userpaymentmethodview import *
 from trading.views.models.returnstatus import ReturnStatus
+from django.http import HttpResponse, HttpResponseServerError,HttpResponseForbidden
 from trading.views import errorpageview
 
 logger = logging.getLogger("site.purchaseview")
@@ -58,10 +59,17 @@ def show_purchase_input(request):
             messages.error(request, '请先注册支付账号再购买')
             return redirect('accountinfo')
         if "owner_user_id" not in request.POST:
-            messages.warning("回到主页再进行操作")
+            messages.warning(request, "回到主页再进行操作")
             return redirect('accountinfo')
         owner_user_id = request.POST["owner_user_id"]
+
         reference_order_id = request.POST["reference_order_id"]
+        paypal_client_id = ''
+        seller_payment_methods = ordermanager.get_sell_order_payment_methods(reference_order_id)
+        for method in seller_payment_methods:
+            if method.client_id is not None and method.client_id != "":
+                paypal_client_id = method.client_id
+
         owner_login = request.POST["owner_login"]
         unit_price = float(request.POST["locked_in_unit_price"])
         order_sub_type = request.POST["sub_type"]
@@ -77,7 +85,7 @@ def show_purchase_input(request):
                 0, seller_payment_provider,
                 # TODO: the name of the seller payment provider should come from DB
                 '汇钱包', seller_payment_provider_account,
-                '')]
+                '', "", "")]
         #for method in owner_payment_methods:
         #    print ("provider %s has image %s" % (method.provider.name, method.provider_qrcode_image))
         buyorder = OrderItem(
@@ -95,6 +103,7 @@ def show_purchase_input(request):
                 'sub_type': order_sub_type,
                 'reference_order_id': reference_order_id,
                 'available_units_for_purchase': available_units,
+                'paypal_clientId': paypal_client_id,
                 'owner_payment_methods': owner_payment_methods,
                 'buyer_payment_methods': useraccountInfo.paymentmethods }
                )
@@ -223,6 +232,54 @@ def create_purchase_order(request):
             useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
             messages.error(request, '向汇钱包下单申请失败:{0}'.format(json_response['return_msg'] if json_response else '系统错误'))
             return redirect('purchase')
+
+    except Exception as e:
+        error_msg = '创建买单遇到错误: {0}'.format(sys.exc_info()[0])
+        logger.exception(error_msg)
+        return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
+              '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
+
+#@login_required
+def create_paypal_purchase_order(request):
+    try:
+        logger.debug('create_purchase_order()...')
+        username = request.user.username
+        userid = request.user.id
+        logger.info("Begin process user input for creating purchase order")
+        if request.method == 'POST':
+            reference_order_id = request.POST['reference_order_id']
+            quantity = float(request.POST['quantity'])
+            unit_price = float(request.POST['unit_price'])
+            seller_payment_provider = request.POST['seller_payment_provider']
+            logger.debug('create_paypal_purchase_order(): seller_payment_provider is {0}'.format(
+                seller_payment_provider
+            ))
+
+            unit_price_currency = request.POST['unit_price_currency']
+            crypto= request.POST['crypto']
+            total_amount = float(request.POST['total_amount'])
+            buyorder = OrderItem('', userid, username, unit_price, unit_price_currency, quantity,
+                0, total_amount, crypto, '', '','BUY')
+            try:
+                buyorderid = ordermanager.create_purchase_order(buyorder,
+                     reference_order_id,
+                     seller_payment_provider, username)
+
+                data = {}
+                data['buyorderid'] = buyorderid
+                json_data = json.dumps(data)
+
+                return HttpResponse(json_data)
+            except ValueError as ve:
+                if ve.args[0] == 'SELLORDER_NOT_OPEN':
+                    return HttpResponseServerError('卖单暂时被锁定，请稍后再试')
+                elif ve.args[0] == 'BUY_EXCEED_AVAILABLE_UNITS':
+                    return HttpResponseServerError('购买数量超过卖单余额，请按撤销键然后再试')
+
+                logger.error("create_paypal_purchase_order fail, detail is {0}.".format(ve))
+                return HttpResponseServerError('遇到未知问题，请按撤销键然后再试')
+
+            return HttpResponseServerError('Failed to get purchase order id')
 
     except Exception as e:
         error_msg = '创建买单遇到错误: {0}'.format(sys.exc_info()[0])
