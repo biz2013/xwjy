@@ -157,14 +157,16 @@
                   amount: {
                     value: total_amount
                   }
-                }]
+                }],
+                application_context: {
+                  shipping_preference: "NO_SHIPPING"
+                }
               });
             });
         },
 
         onApprove: function (data, actions) {
           return actions.order.capture().then(function (details) {
-            alert('Transaction completed by ' + details.payer.name.given_name);
 
             {# TODO (4), Chi, Error handling here #}
             if (details.purchase_units.length != 1) {
