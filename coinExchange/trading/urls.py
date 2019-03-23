@@ -21,7 +21,7 @@ import logging
 from trading.controller.global_utils import *
 from trading.views import mysellorderview, homeview, accountinfoview, mypurchaseview
 from trading.views import account_cronjob, externaladdrview, paymentmethodsview
-from trading.views import redeemview, heepay_notify_view, transactionview
+from trading.views import redeemview, heepay_notify_view, transactionview, paypalview
 from trading.views import order_batch_process_view, wallet_address_batch
 from trading.views import testpageview, transferview, userregistrationview
 from django.contrib.auth import views as auth_views
@@ -37,10 +37,12 @@ urlpatterns = [
     re_path(r'^mysellorder/$', mysellorderview.sell_axfund, name="sellorder"),
     re_path(r'^mysellorder/cancel$', mysellorderview.cancel_sell_order, name="cancelsellorder"),
     re_path(r'^mysellorder/confirm_payment/$', mysellorderview.confirm_payment, name="confirm_payment_action"),
+    re_path(r'^paypal/confirm_payment/$', paypalview.confirm_paypal_order, name="confirm_paypal_payment"),
     re_path(r'^heepay/confirm_payment/$', heepay_notify_view.heepay_confirm_payment, name="confirm_payment"),
     re_path(r'^purchase/$', mypurchaseview.show_active_sell_orders, name='purchase'),
     re_path(r'^purchase/createorder1/$', mypurchaseview.show_purchase_input, name="input_purchase"),
     re_path(r'^purchase/createorder2/$', mypurchaseview.create_purchase_order, name="create_purchase_order"),
+    re_path(r'^purchase/create_paypal_order/$', mypurchaseview.create_paypal_purchase_order, name="create_purchase_order_paypal"),
     re_path(r'^account/cron/update_receive/$', account_cronjob.update_account_with_receiving_fund),
     re_path(r'^account/cron/order_batch_process/$', order_batch_process_view.order_batch_process),
     re_path(r'^account/cron/generate_address/$', wallet_address_batch.create_wallet_address),

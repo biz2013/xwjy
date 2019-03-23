@@ -27,9 +27,22 @@ def get_user_payment_methods(userid):
     for method in methods:
         record = UserPaymentMethodView(method.id, userid,
             method.provider.code, method.provider.name,
-            method.account_at_provider, method.provider_qrcode_image)
+            method.account_at_provider, method.provider_qrcode_image,
+            method.client_id, method.client_secret)
         method_list.append(record)
     return method_list
+
+def get_user_paypal_payment_method(userid):
+    methods = UserPaymentMethod.objects.filter(user__id = userid)
+    logger.info('get_user_paypal_payment_methods({0})'.format(userid))
+    for method in methods:
+        if method.provider.code == 'paypal':
+            record = UserPaymentMethodView(method.id, userid,
+                method.provider.code, method.provider.name,
+                method.account_at_provider, method.provider_qrcode_image,
+                method.client_id, method.client_secret)
+            return record
+    return None
 
 def create_update_user_payment_method(user_payment_method, operator):
     operatorObj = User.objects.get(username=operator)
@@ -39,6 +52,8 @@ def create_update_user_payment_method(user_payment_method, operator):
          provider = PaymentProvider.objects.get(pk=user_payment_method.provider_code),
          account_at_provider = user_payment_method.account_at_provider,
          provider_qrcode_image = user_payment_method.qrcode_image,
+         client_id = user_payment_method.client_id,
+         client_secret = user_payment_method.client_secret,
          created_by = operatorObj,
          lastupdated_by = operatorObj
         )
@@ -46,5 +61,7 @@ def create_update_user_payment_method(user_payment_method, operator):
         with transaction.atomic():
             record = UserPaymentMethod.objects.select_for_update().get(id = user_payment_method.user_payment_method_id)
             record.account_at_provider = user_payment_method.account_at_provider
+            record.client_id = user_payment_method.client_id
+            record.client_secret = user_payment_method.client_secret
             record.lastupdated_by = operatorObj
             record.save()

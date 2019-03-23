@@ -68,12 +68,14 @@
           <tr>
             <th>支付公司</th>
             <th>账户信息</th>
+            <th>Client ID</th>
             <th><a class="btn btn-primary" href="/trading/accounts/paymentmethods/">更新</a></th>
           </tr>
           {% for paymentmethod in useraccountInfo.paymentmethods %}
           <tr>
             <td>{{ paymentmethod.provider_name }}</td>
             <td>{{ paymentmethod.account_at_provider }}</td>
+            <td>{{ paymentmethod.client_id }}</td>
             <td></td>
           </tr>
           {% endfor %}
