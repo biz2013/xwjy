@@ -79,6 +79,7 @@ def show_purchase_input(request):
         available_units = float(request.POST["available_units_for_purchase"])
         seller_payment_provider = request.POST["seller_payment_provider"]
         seller_payment_provider_account = request.POST["seller_payment_provider_account"]
+        order_currency = request.POST['sell_order_currency']
         
         owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id) if not seller_payment_provider else [
             UserPaymentMethodView(0,
@@ -92,7 +93,7 @@ def show_purchase_input(request):
            '',
            userid,
            username,
-           unit_price,'CNY',
+           unit_price, order_currency,
            total_units, 0,
            0.0, 'AXFund',
            '','','BUY', sub_type = order_sub_type)
@@ -105,7 +106,8 @@ def show_purchase_input(request):
                 'available_units_for_purchase': available_units,
                 'paypal_clientId': paypal_client_id,
                 'owner_payment_methods': owner_payment_methods,
-                'buyer_payment_methods': useraccountInfo.paymentmethods }
+                'buyer_payment_methods': useraccountInfo.paymentmethods,
+                'order_currency': order_currency}
                )
     except Exception as e:
        error_msg = '显示买单出现错误: {0}'.format(sys.exc_info()[0])
@@ -180,13 +182,14 @@ def create_purchase_order(request):
             owner_user_id = int(request.POST["owner_user_id"])
             quantity = float(request.POST['quantity'])
             unit_price = float(request.POST['unit_price'])
+            order_currency = request.POST['order_currency']
             seller_payment_provider = request.POST['seller_payment_provider']
             logger.debug('create_purchase_order(): seller_payment_provider is {0}'.format(
                 seller_payment_provider
             ))
             crypto= request.POST['crypto']
             total_amount = float(request.POST['total_amount'])
-            buyorder = OrderItem('', userid, username, unit_price, 'CNY', quantity,
+            buyorder = OrderItem('', userid, username, unit_price, order_currency, quantity,
                 0, total_amount, crypto, '', '','BUY')
             buyorderid = None
             try:
