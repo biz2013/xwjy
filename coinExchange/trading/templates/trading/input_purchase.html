@@ -225,6 +225,7 @@
                         <input type="hidden" name="owner_user_id" value="{{ owner_user_id }}"/>
                         <input type="hidden" name="reference_order_id" value="{{ reference_order_id }}"/>
                         <input type="hidden" id="id_unit_price" name="unit_price" value="{{ buyorder.unit_price }}"/>
+                        <input type="hidden" id="id_order_currency" name="order_currency" value="{{ order_currency }}"/>
                         <input type="hidden" name="crypto" value="AXFund"/>
                         <input type="hidden" name="order_sub_type" id="id_order_sub_type"
                                value="{{ buyorder.sub_type }}"/>
@@ -239,12 +240,12 @@
                             <table class="table">
                                 <tr>
                                     <th>购买上限</th>
-                                    <th>锁定价格(CNY)</th>
+                                    <th>锁定价格</th>
                                     <th>总额</th>
                                 </tr>
                                 <tr>
                                     <td>{{ available_units_for_purchase }}</td>
-                                    <td>{{ buyorder.unit_price }}</td>
+                                    <td>{{ buyorder.unit_price }} ({{ order_currency }})</td>
                                     <td>
                                         <div id="total_cost"></div>
                                     </td>

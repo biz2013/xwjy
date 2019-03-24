@@ -18,18 +18,19 @@
       $("#id_order_id_confirm").val(orderid);
     }
 
-    function popup_cancel_confirm_window(orderid, units, unit_price, amount) {
+    function popup_cancel_confirm_window(orderid, units, unit_price, amount, unit_price_currency) {
       $("#txt_id_order_id_cancel_model").val(orderid);
       $("#tb_id_order_id").text(orderid);
       $("#tb_id_available_units").text(units)
-      $("#tb_id_unit_price").text(unit_price)
-      $("#tb_id_available_amount").text(amount)
+      $("#tb_id_unit_price").text(unit_price + ' (' + unit_price_currency + ')')
+      $("#tb_id_available_amount").text(amount + ' (' + unit_price_currency + ')')
       $("#cancel-modal").modal({backdrop: "static"});
 
     }
     function create_sell_order() {
       units = $("#id_quantity").val();
       price = $("#id_unit_price").val();
+      currency = $('#id_currency').val();
       var available_units = $("#id_available_units").val();
 
       if ( !units ) {
@@ -67,14 +68,15 @@
       var total_amount = (parseFloat(units) * parseFloat(price)).toFixed(2);
       $("#txt_id_total_amount").val(""+total_amount);
       $("#id_request_source").val("sellorder");
+      $('#id_unit_price_currency').val(currency);
       return true;
     }
 
     function show_total_amount(units, price) {
       if ( units && price ) {
         var total_amount = (parseFloat(units) * parseFloat(price)).toFixed(2);
-        $("#total_amount").text(total_amount);
-        $("#txt_id_total_amount").val(""+total_amount);
+        $("#total_amount").text(total_amount +" ("+ $('#id_currency').val() + ")");
+        $("#txt_id_total_amount").val(""+total_amount+" ("+ $('#id_currency').val() + ")");
       }
     }
   </script>
@@ -96,16 +98,16 @@
         <table class="table table-stripe">
           <tr>
             <th>购买数量</th>
-            <th>单价(CNY)</th>
-            <th>总额(CNY)</th>
+            <th>单价</th>
+            <th>总额</th>
             <th></th>
             <!--<td>更改时间</td>-->
           </tr>
           {% for order in buyorders %}
           <tr>
             <td>{{ order.total_units }}</td>
-            <td>{{ order.unit_price|floatformat:2 }}</td>
-            <td>{{ order.total_units|mul:order.unit_price|floatformat:2 }}</td>
+            <td>{{ order.unit_price|floatformat:2 }} ({{ order.unit_price_currency }})</td>
+            <td>{{ order.total_units|mul:order.unit_price|floatformat:2 }} ({{ order.unit_price_currency }})</td>
             <!--<td>{{ order.lastmodified_at }}</td>-->
             <td>{% if order.status == 'PAID' %}
               <button class="btn btn-primary" data-toggle="modal" data-target="#payment-confirm-modal" onclick="show_order_info({{ order.order_id}}, {{ order.total_units}},{{ order.unit_price }}, '{{ order.unit_price_currency}}')">确认</button> {% else %}等待付款 {% endif %}
@@ -127,8 +129,8 @@
         <table class="table table-striped table-condensed">
           <tr>
             <th>数量</th>
-            <th>单价(CNY)</th>
-            <th>总额(CNY)</th>
+            <th>单价</th>
+            <th>总额</th>
             <th></th>
             <!--<th>更改时间</th>-->
           </tr>
@@ -137,11 +139,11 @@
           {% if order.order_type == 'BUY' or order.available_units > 0 %}
           <tr>
             <td>{% if order.order_type == 'SELL' %}{{ order.available_units }}{% else %}{{ order.total_units }}{% endif %}</td>
-            <td>{{ order.unit_price }}</td>
-            <td>{% if order.order_type == 'SELL' %}{{ order.available_units|mul:order.unit_price|floatformat:2 }}{% else %}{{ order.total_units|mul:order.unit_price|floatformat:2 }}{% endif %}</td>
+            <td>{{ order.unit_price }} ({{ order.unit_price_currency }})</td>
+            <td>{% if order.order_type == 'SELL' %}{{ order.available_units|mul:order.unit_price|floatformat:2 }}{% else %}{{ order.total_units|mul:order.unit_price|floatformat:2 }}{% endif %} ({{ order.unit_price_currency }})</td>
             <td>{% if order.order_type == 'SELL' %}
                    {% if order.status == 'LOCKED' %}锁定
-                   {% else %}<button class="btn btn-primary" type="button" onclick="popup_cancel_confirm_window('{{ order.order_id }}', {{ order.available_units }}, {{ order.unit_price }}, {{ order.available_units|mul:order.unit_price }})">取消</button>
+                   {% else %}<button class="btn btn-primary" type="button" onclick="popup_cancel_confirm_window('{{ order.order_id }}', {{ order.available_units }}, {{ order.unit_price }}, {{ order.available_units|mul:order.unit_price }}, '{{ order.unit_price_currency }}')">取消</button>
                    {% endif %}
                 {% else %}
                    {% if order.status == 'PAID' %}<button class="btn btn-primary" data-toggle="modal" data-target="#payment-confirm-modal" onclick="show_order_info('{{ order.order_id}}', '{{ order.total_units}}','{{ order.unit_price }}', '{{ order.unit_price_currency}}')">确认</button>
@@ -221,8 +223,15 @@
               <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" onkeyup="show_total_amount(this.value, $('#id_unit_price').val())" /> </div>
             </div>
             <div id="div_id_quantity" class="form-group">
-              <label for="id_unit_price" class="control-label">单价(CNY)</label><span class="asteriskField">*</span> </label>
+              <label for="id_unit_price" class="control-label">单价</label><span class="asteriskField">*</span> </label>
               <div class="controls "> <input class="textinput textInput form-control" id="id_unit_price" maxlength="10" name="unit_price" type="text" onkeyup="show_total_amount($('#id_quantity').val(), this.value)"/> </div>
+            </div>
+            <div id="div_id_quantity" class="form-group">
+              <label for="id_currency" class="control-label">币种</label><span class="asteriskField">*</span> </label>
+                <select class="form-control" id="id_currency" onchange="show_total_amount($('#id_quantity').val(), $('#id_unit_price').val())">
+                    <option value="CNY" selected="selected" >人民币(CNY)</option>
+                    <option value="CAD">加元(CAD)</option>
+                </select>
             </div>
             <div id="div_id_total" class="form-group">
               <label class="control-label">总额</label><div id="total_amount"></div>
@@ -253,8 +262,8 @@
                 <tr>
                   <th>卖单号</th>
                   <th>余量</th>
-                  <th>单价(CNY)</th>
-                  <th>余额(CNY)</th>
+                  <th>单价</th>
+                  <th>余额</th>
                 </tr>
                 <tr>
                   <td><div id="tb_id_order_id"></div></td>
@@ -286,7 +295,7 @@ $(document).ready(function(){
     // this is to avoid double click on the "confirm" button
     // that submit the order.  If the submitted data passes the 
     // validation, disable the button and submit the code
-    $("#sell_order_submit").one('click', function (event) {  
+    $("#sell_order_submit").one('click', function (event) {
            event.preventDefault();
            if (create_sell_order()) {
               $(this).prop('disabled', true);
@@ -297,7 +306,7 @@ $(document).ready(function(){
      });
     $("#sell-modal").on('hide.bs.modal', function () {
         $("id_request_source").val("");
-    });   
+    });
 });
 </script>
 </body>
