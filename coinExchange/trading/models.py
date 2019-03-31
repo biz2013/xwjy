@@ -83,7 +83,7 @@ class UserPaymentMethod(models.Model):
 class UserPaymentMethodImage(models.Model):
    IMAGE_TAG=(('WXPAYMENTQRCODE', '微信付款二维码'),
                ('WXSHOPASSTQRCODE', '小账本店员二维码'))
-   user_wallet = models.ForeignKey('UserWallet', on_delete=models.CASCADE)
+   user_payment_method = models.ForeignKey('UserPaymentMethod', on_delete=models.CASCADE)
    image_tag = models.CharField(max_length=64, choices=IMAGE_TAG, null=False)
    qrcode = models.ImageField(upload_to='uploads/')
    created_at = models.DateTimeField(auto_now_add=True)
