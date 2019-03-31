@@ -6,16 +6,17 @@ import logging,json
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.conf import settings
 
-# this is for test UI. A fake one
+from tradeex.data.api_const import *
+
 from trading.config import context_processor
 from trading.controller.global_constants import *
 from trading.controller.global_utils import *
 from trading.controller import ordermanager
 from trading.controller import useraccountinfomanager
 from trading.controller.heepaymanager import HeePayManager
-from django.contrib.auth.decorators import login_required
 
 from trading.models import *
 from trading.views.models.orderitem import OrderItem
@@ -57,7 +58,7 @@ def show_purchase_input(request):
             messages.error(request, '请先注册支付账号再购买')
             return redirect('accountinfo')
         if "owner_user_id" not in request.POST:
-            messages.warn("回到主页再进行操作")
+            messages.warning("回到主页再进行操作")
             return redirect('accountinfo')
         owner_user_id = request.POST["owner_user_id"]
         reference_order_id = request.POST["reference_order_id"]
@@ -127,13 +128,19 @@ def send_payment_request_to_heepay(sitesettings, buyorder_id, amount):
          notify_url,
          return_url)
     logger.info("send this to heepay {0}".format(json_payload.encode('utf-8')))
-    status, reason, message = heepay.send_buy_apply_request(json_payload)
-    if status == 200:
-        logger.info("heepay replied: {0}".format(message))
-        return json.loads(message)
-    else:
-        logger.error('Request to heepay failed with {0}:{1}-{2}'.format(
-           status, reason, message
+    try:
+        status, reason, message = heepay.send_buy_apply_request(json_payload)
+        if status == 200:
+            logger.info("heepay replied: {0}".format(message))
+            return json.loads(message)
+        else:
+            logger.error('Request to heepay failed with {0}:{1}-{2}'.format(
+            status, reason, message
+            ))
+            return None
+    except:
+        logger.error('send_payment_request_to_heepay() hit exception {0}'.format(
+            sys.exc_info[0]
         ))
         return None
 
@@ -194,7 +201,7 @@ def create_purchase_order(request):
             sitesettings = context_processor.settings(request)['settings']
             json_response = send_payment_request(sitesettings, seller_payment_provider,
                 buyorder.order_id, total_amount)
-            if json_response is not None and json_response['return_code'] == 'SUCCESS':
+            if json_response and json_response['return_code'] == 'SUCCESS':
                 ordermanager.post_open_payment_order(
                                 buyorderid, 'heepay',
                                 json_response['hy_bill_no'],
@@ -206,11 +213,16 @@ def create_purchase_order(request):
                          { 'total_units' : quantity, 'unit_price': unit_price,
                            'total_amount': total_amount,
                            'heepay_qrcode_file' : qrcode_file })
+            elif json_response and json_response['return_msg'] == HEEPAY_ERR_NONEXIST_RECEIVE_ACCOUNT:
+                purchase_order = Order.objects.get(order_id=buyorderid)
+                admin = User.objects.get(username='admin')
+                ordermanager.cancel_purchase_order(purchase_order, TRADE_STATUS_BADRECEIVINGACCOUNT, 
+                    PAYMENT_STATUS_BADRECEIVINGACCOUNT, admin)
+            
             owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
             useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
-            # sample reply error : {"return_code":"FAIL","return_msg":"无效的total_fee"}
-            messages.error(request, '向汇钱包下单申请失败:{0}'.format(json_response['return_msg'].encode("utf-8")))
-            redirect('purchase')
+            messages.error(request, '向汇钱包下单申请失败:{0}'.format(json_response['return_msg'] if json_response else '系统错误'))
+            return redirect('purchase')
 
     except Exception as e:
         error_msg = '创建买单遇到错误: {0}'.format(sys.exc_info()[0])

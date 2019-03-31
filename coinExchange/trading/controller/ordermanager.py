@@ -78,6 +78,11 @@ def get_seller_buyer_payment_accounts(buyorder_id, payment_provider):
 
     return seller_account, buyer_account
 
+def get_unfilled_purchase_orders():
+    return Order.objects.filter(Q(status='PAYING') |
+       Q(status='PAID') | Q(status='OPEN') | Q(status=TRADE_STATUS_BADRECEIVINGACCOUNT),
+       Q(order_type='BUY')).order_by('-lastupdated_at')
+
 def create_sell_order(order, operator, api_user = None,  api_redeem_request = None,
          api_trans_id = None):
     userobj = User.objects.get(id = order.owner_user_id)
@@ -154,8 +159,8 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
                 )
             # check current available balance of api user's cny balance 
             user_cny_wallet = UserWallet.objects.select_for_update().get(user__id = userobj.id, wallet__cryptocurrency__currency_code ='CNY')
-            total_fee_in_decimal = round(float(api_redeem_request.total_fee)/100.0,8)
-            if user_cny_wallet.available_balance < total_fee_in_decimal :
+            total_fee_in_decimal = round(float(api_redeem_request.total_fee)/100.0, 2)
+            if round(user_cny_wallet.available_balance - total_fee_in_decimal, 2) < 0:
                 error_msg = "user {0} does not have enough CNY in wallet {1}: available {2} to be sold {3}".format(
                 userobj.username, user_cny_wallet.id, user_cny_wallet.available_balance, total_fee_in_decimal 
                 )
@@ -231,6 +236,24 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
         ))
         return orderRecord.order_id
 
+def update_api_trans_after_cancel_order(api_trans, final_status, payment_status, operator):
+    if api_trans:
+        api_trans.payment_status = payment_status
+        if final_status == 'CANCELLED' and (payment_status.upper() in [ PAYMENT_STATUS_UNKONWN.upper(), 'UNKNOWN']):
+            api_trans.trade_status = TRADE_STATUS_EXPIREDINVALID
+        elif final_status == TRADE_STATUS_BADRECEIVINGACCOUNT:
+            api_trans.trade_status = final_status
+        else:
+            timediff = timezone.now() - api_trans.created_at
+            if timediff.total_seconds() > api_trans.expire_in_sec:
+                api_trans.trade_status = TRADE_STATUS_EXPIREDINVALID
+            else:
+                api_trans.trade_status = TRADE_STATUS_USERABANDON
+        api_trans.lastupdated_by = operator
+        api_trans.save()
+        if api_trans.action == API_METHOD_REDEEM:
+            APIUserTransactionManager.on_found_redeem_trans_with_badaccount(api_trans)
+
 def cancel_purchase_order(order, final_status, payment_status,
                          operator):
     if not order.reference_order:
@@ -252,8 +275,28 @@ def cancel_purchase_order(order, final_status, payment_status,
             ))
         sell_order.units_locked = round(sell_order.units_locked - order.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL)
         sell_order.units_available_to_trade = round(sell_order.units_available_to_trade + order.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL)
-        sell_order.status = 'OPEN'
+        sell_order.status = 'OPEN' if payment_status != PAYMENT_STATUS_BADRECEIVINGACCOUNT else TRADE_STATUS_BADRECEIVINGACCOUNT
         sell_order.lastupdated_by = operatorObj
+
+        # rollback the AXFund wallet of sell order if sell order is not OPEN
+        if sell_order.status != 'OPEN':
+            updated = UserWallet.objects.filter(
+                user__id = sell_order.user.id,
+                wallet__cryptocurrency__currency_code = 'AXFund'
+            ).update(
+                locked_balance = F('locked_balance') - sell_order.units,
+                available_balance = F('available_balance') + sell_order.units,                
+                lastupdated_by = operatorObj,
+                lastupdated_at = dt.datetime.utcnow()
+            )
+            if updated:
+                logger.info('cancel_purchase_order({0}): revert related sell order {1}\'s axf wallet'.format(
+                    order.order_id, sell_order.order_id
+                ))
+            else:
+                logger.error('cancel_purchase_order({0}): failed to revert related sell order {1}\'s axf wallet'.format(
+                    order.order_id, sell_order.order_id
+                ))
 
         updated = UserWalletTransaction.objects.filter(
                reference_order__order_id= order.order_id,
@@ -279,20 +322,29 @@ def cancel_purchase_order(order, final_status, payment_status,
                 order.order_id, final_status, payment_status, order.units
             ))
         
-        api_trans = APIUserTransactionManager.get_trans_by_reference_order(order.order_id)
-        if not api_trans and sell_order:
-            api_trans = APIUserTransactionManager.get_trans_by_reference_order(sell_order.order_id)
-        if api_trans:
-            api_trans.payment_status = payment_status
-            if final_status == 'CANCELLED' and payment_status == PAYMENT_STATUS_UNKONWN:
-                api_trans.trade_status = TRADE_STATUS_EXPIREDINVALID
+        # try to cancel the api_trans for buy and sell, if applied
+        api_trans_purchase = APIUserTransactionManager.get_trans_by_reference_order(order.order_id)
+        update_api_trans_after_cancel_order(api_trans_purchase, final_status, payment_status, operatorObj)
+        api_trans_sell = APIUserTransactionManager.get_trans_by_reference_order(sell_order.order_id)
+        if api_trans_sell:
+            update_api_trans_after_cancel_order(api_trans_sell, final_status, payment_status, operatorObj)
+            updated = UserWallet.objects.filter(
+                user__id = api_trans_sell.api_user.user.id,
+                wallet__cryptocurrency__currency_code = 'CNY'
+            ).update(
+                locked_balance = F('locked_balance') - sell_order.total_amount,
+                available_balance = F('available_balance') + sell_order.total_amount,                
+                lastupdated_by = operatorObj,
+                lastupdated_at = dt.datetime.utcnow()                
+            )
+            if updated:
+                logger.info('cancel_purchase_order({0}): revert related sell order {1}\'s CNY wallet'.format(
+                    order.order_id, sell_order.order_id
+                ))
             else:
-                timediff = timezone.now() - api_trans.created_at
-                if timediff.total_seconds() > api_trans.expire_in_sec:
-                    api_trans.trade_status = TRADE_STATUS_EXPIREDINVALID
-                else:
-                    api_trans.trade_status = TRADE_STATUS_USERABANDON
-            api_trans.save()
+                logger.error('cancel_purchase_order({0}): failed to revert related sell order {1}\'s CNY wallet'.format(
+                    order.order_id, sell_order.order_id
+                ))
 
         sell_order.save()
         sell_order.refresh_from_db()
@@ -302,7 +354,7 @@ def cancel_purchase_order(order, final_status, payment_status,
         ))
 
 def get_all_open_seller_order_exclude_user(user_id):
-    sell_orders = Order.objects.filter(order_type='SELL').exclude(user__id=user_id).exclude(status='CANCELLED').exclude(status='FILLED').order_by('unit_price','-lastupdated_at')
+    sell_orders = Order.objects.filter(order_type='SELL').exclude(user__id=user_id).exclude(status='CANCELLED').exclude(status='FILLED').exclude(status=TRADE_STATUS_BADRECEIVINGACCOUNT).order_by('unit_price','-lastupdated_at')
     orders = []
     for order in sell_orders:
         orders.append(OrderItem(order.order_id, order.user.id,
@@ -314,7 +366,8 @@ def get_all_open_seller_order_exclude_user(user_id):
                                 order.lastupdated_at, order.status, order.order_type,
                                 sub_type= order.sub_type,
                                 selected_payment_provider=order.selected_payment_provider,
-                                account_at_payment_provider=order.account_at_selected_payment_provider))
+                                account_at_payment_provider=order.account_at_selected_payment_provider,
+                                order_source = order.order_source))
     return orders
 
 def get_sell_transactions_by_user(userid):
@@ -545,16 +598,15 @@ def lock_trans_of_purchase_order(orderid, bill_no):
     try:
         # TODO: is this needed?
         purchase_trans = UserWalletTransaction.objects.select_for_update().get(
-              reference_order__order_id=orderid)
-        logger.info("--- trans: orderid {0}, pay bill: {1} status {2} trans_type {3} inside call of {4},{5}".format(
-              orderid, purchase_trans.payment_bill_no, purchase_trans.status,
-              purchase_trans.transaction_type, orderid, bill_no
-        ))
-        return UserWalletTransaction.objects.select_for_update().get(
               reference_order__order_id=orderid,
               payment_bill_no = bill_no,
               status='PENDING',
               transaction_type='OPEN BUY ORDER')
+        logger.info("--- trans: orderid {0}, pay bill: {1} status {2} trans_type {3} inside call of {4},{5}".format(
+              orderid, purchase_trans.payment_bill_no, purchase_trans.status,
+              purchase_trans.transaction_type, orderid, bill_no
+        ))
+        return purchase_trans;
     except UserWalletTransaction.DoesNotExist:
         logger.warn("lock_trans_of_purchase_order(): could not find PENDING trans for purchase order {0} with bill_no {1}, maybe it has been processed".format(orderid, bill_no))
         try:
@@ -694,6 +746,7 @@ def update_order_with_heepay_notification(notify_json, operator):
         purchase_trans.lastupdated_by = operatorObj
         purchase_trans.save()
 
+        return buyorder.order_id
 
 def lock_paid_trans_of_purchase_order(order_id):
     try:
@@ -740,18 +793,10 @@ def confirm_purchase_order(order_id, operator):
         seller_user_wallet = UserWallet.objects.select_for_update().get(
              user__id= sell_order.user.id,
              wallet__cryptocurrency = purchase_trans.user_wallet.wallet.cryptocurrency)
-        buyer_user_wallet = UserWallet.objects.select_for_update().get(
-             user_id = buyorder.user.id,
-             wallet__cryptocurrency = purchase_trans.user_wallet.wallet.cryptocurrency)
         sell_order_fulfill_comment = 'deliver on buyer order {0}, with {1} units on payment bill no {2}'.format(
              buyorder.order_id, buyorder.units, purchase_trans.payment_bill_no
         )
 
-        api_trans = None
-        if buyorder.order_source =='API':
-            api_trans = APIUserTransaction.objects.get(reference_order__order_id = buyorder.order_id)
-        elif sell_order.order_source == 'API':
-            api_trans = APIUserTransaction.objects.get(reference_order__order_id = sell_order.order_id) 
         seller_userwallet_trans = UserWalletTransaction.objects.create(
           user_wallet = seller_user_wallet,
           balance_begin = seller_user_wallet.balance,
@@ -778,14 +823,12 @@ def confirm_purchase_order(order_id, operator):
 
         seller_userwallet_trans.save()
 
-        purchase_trans.balance_begin = buyer_user_wallet.balance
-        purchase_trans.balance_end = buyer_user_wallet.balance + buyorder.units
-        purchase_trans.locked_balance_begin = buyer_user_wallet.locked_balance
-        purchase_trans.locked_balance_end = buyer_user_wallet.locked_balance
-        purchase_trans.available_to_trade_begin = buyer_user_wallet.available_balance
-        purchase_trans.available_to_trade_end = buyer_user_wallet.available_balance + buyorder.units
-        purchase_trans.status = 'PROCESSED'
-        purchase_trans.lastupdated_by = operatorObj
+        seller_user_wallet.balance = seller_userwallet_trans.balance_end
+        seller_user_wallet.locked_balance = seller_userwallet_trans.locked_balance_end
+        seller_user_wallet.available_balance = seller_userwallet_trans.available_to_trade_end
+        seller_user_wallet.user_wallet_trans_id = seller_userwallet_trans.id
+        seller_user_wallet.lastupdated_by = operatorObj
+        seller_user_wallet.save()
 
         if round(sell_order.units_locked - buyorder.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL) < 0:
             raise ValueError('confirm_purchase_order({0}): sell order locked units {1} is less than purchase order units {2}'.format(
@@ -798,10 +841,23 @@ def confirm_purchase_order(order_id, operator):
             sell_order.status == 'FILLED'
         sell_order.lastupdated_by = operatorObj
         sell_order.save()
+        sell_order.refresh_from_db()
+        logger.info("confirm_purchase_order({0}): AFTER update sell order: {1}".format(
+            order_id, sell_order_to_str(sell_order)
+        ))
 
-        buyorder.status = 'FILLED'
-        buyorder.lastupdated_by = operatorObj
-        buyorder.save()
+        buyer_user_wallet = UserWallet.objects.select_for_update().get(
+             user_id = buyorder.user.id,
+             wallet__cryptocurrency = purchase_trans.user_wallet.wallet.cryptocurrency)
+
+        purchase_trans.balance_begin = buyer_user_wallet.balance
+        purchase_trans.balance_end = buyer_user_wallet.balance + buyorder.units
+        purchase_trans.locked_balance_begin = buyer_user_wallet.locked_balance
+        purchase_trans.locked_balance_end = buyer_user_wallet.locked_balance
+        purchase_trans.available_to_trade_begin = buyer_user_wallet.available_balance
+        purchase_trans.available_to_trade_end = buyer_user_wallet.available_balance + buyorder.units
+        purchase_trans.status = 'PROCESSED'
+        purchase_trans.lastupdated_by = operatorObj
 
         buyer_user_wallet.balance = purchase_trans.balance_end
         buyer_user_wallet.locked_balance = purchase_trans.locked_balance_end
@@ -810,26 +866,53 @@ def confirm_purchase_order(order_id, operator):
         buyer_user_wallet.lastupdated_by = operatorObj
         buyer_user_wallet.save()
 
-        seller_user_wallet.balance = seller_userwallet_trans.balance_end
-        seller_user_wallet.locked_balance = seller_userwallet_trans.locked_balance_end
-        seller_user_wallet.available_balance = seller_userwallet_trans.available_to_trade_end
-        seller_user_wallet.user_wallet_trans_id = seller_userwallet_trans.id
-        seller_user_wallet.lastupdated_by = operatorObj
-        seller_user_wallet.save()
+        buyorder.status = 'FILLED'
+        buyorder.lastupdated_by = operatorObj
+        buyorder.save()
 
-        if api_trans:
+        # release lock at the last moment
+        purchase_trans.save()
+        buyorder.refresh_from_db()
+        logger.info("confirm_purchase_order({0}): AFTER update buyer order: {1}".format(
+            order_id, sell_order_to_str(buyorder)
+        ))
+
+        if sell_order.order_source == 'API':
+            api_trans = APIUserTransaction.objects.get(reference_order__order_id = sell_order.order_id) 
             if api_trans.trade_status != TRADE_STATUS_SUCCESS and api_trans.trade_status != TRADE_STATUS_PAYSUCCESS:
                 api_trans.payment_status = PAYMENT_STATUS_SUCCESS
                 api_trans.trade_status = TRADE_STATUS_PAYSUCCESS
                 api_trans.save()
+            api_trans.refresh_from_db()
+            logger.info("'confirm_purchase_order({0}): sell order {1} update its api_trans {2}: trade_status: {3}, payment status: {4}".format(
+                order_id, sell_order.order_id, api_trans.transactionId, api_trans.trade_status, api_trans.payment_status
+            ))
+            if api_trans.trade_status == TRADE_STATUS_PAYSUCCESS:
+                APIUserTransactionManager.on_trans_paid_success(api_trans)
+                api_trans.refresh_from_db()
+                if api_trans.trade_status == TRADE_STATUS_SUCCESS:
+                    APIUserTransactionManager.on_found_success_purchase_trans(api_trans)
+            elif api_trans.trade_status in ['ExpiredInvald', 'UserAbandon', 'DevClose']:
+                APIUserTransactionManager.on_trans_cancelled(api_trans)
 
-        sell_order.refresh_from_db()
-        logger.info("confirm_purchase_order({0}): AFTER update sell order: {1}".format(
-            order_id, sell_order_to_str(sell_order)
-        ))
+        if buyorder.order_source =='API':
+            api_trans = APIUserTransaction.objects.get(reference_order__order_id = buyorder.order_id)
+            if api_trans.trade_status != TRADE_STATUS_SUCCESS and api_trans.trade_status != TRADE_STATUS_PAYSUCCESS:
+                api_trans.payment_status = PAYMENT_STATUS_SUCCESS
+                api_trans.trade_status = TRADE_STATUS_PAYSUCCESS
+                api_trans.save()
+            api_trans.refresh_from_db()
+            logger.info("'confirm_purchase_order({0}): purchase order update its api_trans {1}: trade_status: {2}, payment status: {3}".format(
+                order_id, api_trans.transactionId, api_trans.trade_status, api_trans.payment_status
+            ))
+            if api_trans.trade_status == TRADE_STATUS_PAYSUCCESS:
+                APIUserTransactionManager.on_trans_paid_success(api_trans)
+                api_trans.refresh_from_db()
+                if api_trans.trade_status == TRADE_STATUS_SUCCESS:
+                    APIUserTransactionManager.on_found_success_purchase_trans(api_trans)
+            elif api_trans.trade_status in ['ExpiredInvald', 'UserAbandon', 'DevClose']:
+                APIUserTransactionManager.on_trans_cancelled(api_trans)
 
-        # release lock at the last moment
-        purchase_trans.save()
 
 def get_order_info(order_id):
     return Order.objects.get(pk=order_id)

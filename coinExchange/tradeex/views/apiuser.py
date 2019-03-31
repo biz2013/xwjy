@@ -118,26 +118,31 @@ def create_user(username, password, email, appId, secret,
         logger.error('There are more than one user wallet for api user {0}'.format(username))
         return False
 
-    heepay = PaymentProvider.objects.get(pk='heepay')
-    try:
-        userpayment = UserPaymentMethod.objects.get(user__id = user1.id, provider__code = heepay.code)
-        logger.info('user {0} has heepay account {1}'.format(user1.username, userpayment.account_at_provider))
-        userpayment.account_at_provider = payment_account
-        userpayment.lastupdated_by = operator
-        userpayment.save()
+    if payment_account:
+        heepay = PaymentProvider.objects.get(pk='heepay')
+        try:
+            userpayment = UserPaymentMethod.objects.get(user__id = user1.id, provider__code = heepay.code)
+            old_account = userpayment.account_at_provider
+            userpayment.account_at_provider = payment_account
+            userpayment.lastupdated_by = operator
+            userpayment.save()
+            logger.info('Update user {0}\'s heepay account from {1} to {2}'.format(user1.username, 
+                old_account, payment_account))
 
-    except UserPaymentMethod.DoesNotExist:
-        UserPaymentMethod.objects.create(
-            user = user1,
-            provider = heepay,
-            account_at_provider = payment_account,
-            created_by = operator,
-            lastupdated_by = operator            
-        ).save()
-        logger.info('Created heepay account for user {0}'.format(user1.username))
-    except UserPaymentMethod.MultipleObjectsReturned:
-        logger.error('User {0} has more than one heepay account'.format(user1.username))
-        return False    
+        except UserPaymentMethod.DoesNotExist:
+            UserPaymentMethod.objects.create(
+                user = user1,
+                provider = heepay,
+                account_at_provider = payment_account,
+                created_by = operator,
+                lastupdated_by = operator            
+            ).save()
+            logger.info('Created heepay account for user {0}'.format(user1.username))
+        except UserPaymentMethod.MultipleObjectsReturned:
+            logger.error('User {0} has more than one heepay account'.format(user1.username))
+            return False
+    else:
+        logger.info('User {0}\'s does not ask for creating heepay account')
 
     if external_addr:
         try:
@@ -179,7 +184,7 @@ def create(request):
         email = request_json['email']
         username = request_json['username'] if 'username' in request_json else email
         password = request_json['password'] if 'password' in request_json else id_generator(16)
-        payment_account = request_json['payment_account']
+        payment_account = request_json.get('payment_account', None)
         external_addr = request_json.get('external_cny_addr', None)
 
         login = User.objects.get(username='admin')
