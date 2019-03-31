@@ -11,6 +11,7 @@ from django.contrib.auth.models import User
 from trading.models import *
 from trading.config import context_processor
 from trading.controller import axfd_utils
+from trading.controller.global_constants import *
 from trading.views.models.useraccountinfo import *
 from trading.views.models.userpaymentmethodview import *
 from trading.views.models.userexternalwalletaddrinfo import *
@@ -48,3 +49,13 @@ def create_update_user_payment_method(user_payment_method, operator):
             record.account_at_provider = user_payment_method.account_at_provider
             record.lastupdated_by = operatorObj
             record.save()
+
+def get_weixin_paymentmethod(userid):
+    try:
+        return UserPaymentMethod.objects.get(user__id=userid, provider= PAYMENTMETHOD_WEIXIN)
+    except UserPaymentMethod.ObjectDoesNotExist:
+        return None:
+
+def get_weixin_images(payment_method_id):
+    return UserPaymentMethodImage.objects.filter(user_payment_method = payment_method_id)
+    
