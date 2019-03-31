@@ -76,7 +76,7 @@ class APIUserTransaction(models.Model):
     notify_url = models.CharField(max_length=1024, null=True)
     return_url = models.CharField(max_length=1024, null=True)
     last_notify = models.CharField(max_length=2048, null=True)
-    last_notify_response = models.CharField(max_length=16, null=True)
+    last_notify_response = models.CharField(max_length=1024, null=True)
     last_notified_at = models.DateTimeField(auto_now_add=False, null=True)
     last_status_description = models.CharField(max_length=1024, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

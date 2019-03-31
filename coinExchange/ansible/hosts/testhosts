@@ -1,0 +1,4 @@
+[tradesite_dev]
+35.165.113.89 ansible_python_interpreter=/usr/bin/python3
+[tradesite_prod]
+34.216.121.138 ansible_python_interpreter=/usr/bin/python3

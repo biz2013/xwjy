@@ -1,0 +1,97 @@
+---
+- name: detect /var/www/coinexchange/static/ exist
+  stat:
+    path: /var/www/coinexchange/static/
+  register: static_dir
+
+- name: create /var/www/coinexchange/static/ if not exist
+  file:
+    path: /var/www/coinexchange/static/
+    owner: www-data
+    group: www-data
+    mode: 0755
+    state: directory
+  when: not static_dir.stat.exists
+  become: yes
+  become_method: sudo
+  
+- name: detect /var/www/coinexchange/media/ exist
+  stat:
+    path: /var/www/coinexchange/media/
+  register: media_dir
+  
+- name: create /var/www/coinexchange/media/ if not exist
+  file:
+    path: /var/www/coinexchange/media/
+    owner: www-data
+    group: www-data
+    mode: 0755
+    state: directory
+  when: not media_dir.stat.exists
+  become: yes
+  become_method: sudo
+
+- name: detect whether var/log/coinexchange exists
+  stat:
+    path: /var/log/coinexchange
+  register: sitelog_dir
+
+- name: create log dir for coinexchange
+  file:
+    path: /var/log/coinexchange
+    owner: www-data
+    group: www-data
+    mode: 0757
+    state: directory
+  when: not sitelog_dir.stat.exists
+  become: yes
+  become_method: sudo
+ 
+- name: copy site config file
+  template: 
+    src: apache2/tradeapi.conf.j2
+    dest: /etc/apache2/sites-available/tradeapi.conf
+    owner: root
+    group: root
+  notify:
+    restart apache2
+  become: yes
+  become_method: sudo
+ 
+- name: check whether etc/apache2/ssl exist
+  stat:
+    path: /etc/apache2/ssl
+  register: ssl_dir
+
+- name: create ssl dir
+  file:
+    path: /etc/apache2/ssl
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+  when: not ssl_dir.stat.exists
+  notify:
+    restart apache2
+  become: yes
+  become_method: sudo
+  
+- name: copy cert and key
+  copy:
+    src: "ssl/{{ item }}"
+    dest: /etc/apache2/ssl/{{ item }}
+    owner: root
+    group: root
+  with_items:
+    - "tradeapi.pem"
+    - "tradeapi_key.pem"
+  notify:
+    restart apache2
+  become: yes
+  become_method: sudo
+
+- name: remove default site
+  command: a2dissite 000-default.conf
+  become: yes
+  become_method: sudo
+ 

@@ -1,0 +1,8 @@
+---
+- hosts: tradesite_dev
+  user: ubuntu
+  vars_files:
+  - vars/site_settings_aws_dev.yaml
+  roles:
+    - tradesite_common
+    - tradesite_dev

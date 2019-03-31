@@ -62,7 +62,7 @@
             {% if sellorders %}
                {% for order in sellorders %}
             {% if order.available_units > 0 %}
-            <tr>
+            <tr {% if order.order_source == 'API' %} style="color: red"{% endif %}>
               <!--<td>{{ order.lastmodified_at }}</td>-->
               <td>{{ order.available_units }}</td>
               <td>{{ order.unit_price }}</td>

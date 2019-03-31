@@ -1,0 +1,45 @@
+---
+#- name: Update all packages to the latest version
+#  apt:
+#    name: "*"
+#    state: latest
+#    upgrade: dist
+#  become: yes
+#  become_method: sudo
+
+- name: install required packages
+  apt:
+    name: "{{ item }}"
+    state: latest
+  become: yes
+  become_method: sudo
+  with_items:
+    - git 
+    - build-essential 
+    - libssl-dev 
+    - libdb++-dev 
+    - libboost-all-dev 
+    - libqrencode-dev 
+    - libminiupnpc-dev 
+    - python-dev 
+    - libmysqlclient-dev 
+    - python-setuptools 
+    - libtiff5-dev 
+    - libjpeg8-dev 
+    - zlib1g-dev 
+    - libfreetype6-dev 
+    - liblcms2-dev 
+    - libwebp-dev 
+    - tcl8.6-dev 
+    - tk8.6-dev 
+    - python-tk
+    - libzbar-dev
+    - apache2
+    - python3-pip
+
+- name: upgrade pip
+  easy_install:
+    name: pip
+    state: latest
+  become: yes
+  become_method: sudo

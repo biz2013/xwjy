@@ -1,0 +1,171 @@
+---
+- name: create workspace
+  file: 
+    path: "{{ workspace_dir }}"
+    state: directory
+    mode: 0755
+
+- name: detect whether tradesite dir exist
+  stat:
+    path: "{{ workspace_dir }}/xwjy"
+  register: wdir
+
+- name: download the api code and axfd code
+  git:
+    repo: https://github.com/biz2013/xwjy.git
+    dest: "{{ workspace_dir }}/xwjy"
+  when: not wdir.stat.exists
+
+- name: detect whether CnyFund dir exist
+  stat:
+    path: "{{ workspace_dir }}/CnyFund"
+  register: wdir
+
+- name: download the cnyfund repo
+  git:
+    repo: https://github.com/biz2013/CnyFund.git
+    dest: "{{ workspace_dir }}/CnyFund"
+  when: not wdir.stat.exists
+
+- name: sync on tradeapi branch if it is in dev
+  command: git checkout -b tradeapi
+  args:
+    chdir: "{{ workspace_dir }}/xwjy"
+  when: "'tradesite_dev' in group_names"
+  ignore_errors: True
+
+- name: detect whether the axfd excutable exists
+  stat:
+    path: "{{ workspace_dir }}/xwjy/smwy/src/axfd"
+  register: axfd_file
+
+- name: Unarchive axfd.tar.gz
+  unarchive:
+    src: "{{ workspace_dir }}/xwjy/smwy/src/axfd.tar.gz"
+    dest: "{{ workspace_dir }}/xwjy/smwy/src"
+    remote_src: yes
+  when: not axfd_file.stat.exists
+
+- name: detect where link to axfd exist
+  stat: 
+    path: "/usr/local/bin/axfd"
+  register: axfd_link
+
+- name: create link to axfd executables
+  file:
+    src: "{{ workspace_dir }}/xwjy/smwy/src/axfd"
+    dest: "/usr/local/bin/axfd"
+    state: link
+    owner: "{{ login_user }}"
+    group: "{{ login_user }}"
+    mode: 0755
+  become: yes
+  become_method: sudo
+  when: not axfd_link.stat.exists
+
+- name: detect whether .axf directory exists
+  stat:
+    path: "/home/{{ login_user }}/.axf"
+  register: axf_dir
+
+- name: create .axf directory
+  file:
+    path: "/home/{{ login_user }}/.axf"
+    owner: "{{ login_user }}"
+    group: "{{ login_user }}"
+    state: directory
+    mode: 0775
+  when: not axf_dir.stat.exists
+
+- name: copy axf.conf
+  copy:
+    src: axf.conf
+    dest: "/home/{{ login_user }}/.axf/axf.conf"
+    owner: "{{ login_user }}"
+    group: "{{ login_user }}"
+    mode: 0644
+  notify:
+    restart axfd service
+  become: yes
+    
+- name: copy axfd service definition
+  template:
+    src: axfd.service.j2
+    dest: "/etc/systemd/system/axfd.service"
+    owner: "{{ login_user }}"
+    group: "{{ login_user }}"
+    mode: 0644
+  notify:
+    restart axfd service
+  become: yes
+  become_methpd: sudo
+
+- name: detect where link to cnyfund exist
+  stat: 
+    path: "/usr/local/bin/cnyfund"
+  register: cnyfund_link
+
+- name: create linke to cnyfund executables
+  file:
+    src: "{{ workspace_dir }}/CnyFund/contrib/ubuntu16/binaries/cnyfund"
+    dest: "/usr/local/bin/cnyfund"
+    state: link
+    owner: "{{ login_user }}"
+    group: "{{ login_user }}"
+    mode: 0755
+  become: yes
+  become_method: sudo
+  when: not cnyfund_link.stat.exists
+
+- name: detect whether .cnyfund directory exists
+  stat:
+    path: "/home/{{ login_user }}/.cnyfund"
+  register: cnyfund_dir
+
+- name: create .cnyfund directory
+  file:
+    path: "/home/{{ login_user }}/.cnyfund"
+    owner: "{{ login_user }}"
+    group: "{{ login_user }}"
+    state: directory
+    mode: 0775
+  when: not cnyfund_dir.stat.exists
+
+- name: copy cnyfund.conf
+  copy:
+    src: cnyfund.conf
+    dest: "/home/{{ login_user }}/.cnyfund/cnyfund.conf"
+    owner: "{{ login_user }}"
+    group: "{{ login_user }}"
+    mode: 0644
+  notify:
+    restart cnyfund service
+  become: yes
+  become_method: sudo
+
+- name: copy cnyfund service definition
+  template:
+    src: cnyfund.service.j2
+    dest: "/etc/systemd/system/cnyfund.service"
+    owner: "{{ login_user }}"
+    group: "{{ login_user }}"
+    mode: 0644
+  notify:
+    restart cnyfund service
+  become: yes
+
+- name: starting axfd service
+  systemd:
+    name: axfd
+    daemon_reload: yes
+    state: started
+  become: yes
+  become_method: sudo
+
+- name: starting cnyfund service
+  systemd:
+    name: cnyfund
+    daemon_reload: yes
+    state: started
+  become: yes
+  become_method: sudo

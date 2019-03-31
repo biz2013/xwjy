@@ -1,12 +1,17 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from django.db.models import Q
+from django.conf import settings
 from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from tradeex.data.api_const import *
 from tradeex.models import *
+from tradeex.data.tradeapiresponse import TradeAPIResponse
+from tradeex.responses.heepayresponse import HeepayResponse
 from trading.views.models.orderitem import *
 from trading.models import *
 from trading.controller import ordermanager
+from trading.controller.heepaymanager import *
+
 
 import logging
 import datetime as dt
@@ -14,9 +19,37 @@ import pytz
 
 logger = logging.getLogger("tradeex.tradeexchangemanager")
 
+# in case in the future we need to reconstruct the
+# response from trade exchange.  For now, it is
+# just straight return
+def create_prepurchase_response_from_heepay(heepay_response, api_user, api_trans_id, api_out_trade_no,
+        subject=None, attach = None):
+    
+    response = TradeAPIResponse(
+        api_user.apiKey, api_user.secretKey,
+        heepay_response.return_code, 
+        heepay_response.return_msg, 
+        heepay_response.result_code,
+        heepay_response.result_msg,
+        api_out_trade_no,
+        api_trans_id,
+        subject = subject,
+        attach = attach,
+        total_fee = heepay_response.total_fee,
+        payment_url = heepay_response.hy_url
+    )
+
+    return response.to_json()       
+
+
 class TradeExchangeManager(object):
     def get_order_owner_account_at_payment_provider(self, order, payment_provider, api_call_order_id):
+        if order and order.account_at_selected_payment_provider and order.selected_payment_provider.code == payment_provider:
+            return order.account_at_selected_payment_provider
         try:
+            logger.info('get_order_owner_account_at_payment_provider({0},{1},{2}): order does not have account #, query user payment method of the order owner'.format(
+                order.order_id, payment_provider, api_call_order_id
+            ))
             payment_method = UserPaymentMethod.objects.get(
                  user = order.user,
                  provider__code = payment_provider)
@@ -39,10 +72,10 @@ class TradeExchangeManager(object):
             (Q(status='OPEN') | Q(status='PARTIALFILLED')) & 
             Q(order_type='SELL') & Q(units_available_to_trade__gt=0.0) &
             Q(unit_price_currency=currency) &
-            Q(cryptocurrency__currency_code=crypto)).order_by('total_amount','created_at')
+            Q(cryptocurrency__currency_code=crypto)).order_by('unit_price', 'total_amount','created_at')
         for order in orders:
             available_amount = order.unit_price * order.units_available_to_trade
-            diff = available_amount - amount
+            diff = round(available_amount - amount, 2)
             if diff >= 0.0:
                 if order.sub_type == 'ALL_OR_NOTHING':
                     if diff > 0.01:
@@ -51,9 +84,13 @@ class TradeExchangeManager(object):
 
         return candidates if len(candidates) > 0 else None
 
-    def get_active_sell_orders(self, crypto, currency):
-        return Order.objects.filter((Q(status='OPEN') or Q(status='PARTIALFILLED')) & Q(order_type='SELL') &
-                Q(unit_price_currency=currency) & Q(cryptocurrency=crypto)).order_by('total_amount', '-created_at')
+    def get_active_sell_orders(self, crypto, currency, userId):
+        return Order.objects.filter(
+            ~Q(user__id = userId)
+            & (Q(status='OPEN') or Q(status='PARTIALFILLED')) 
+            & Q(order_type='SELL') 
+            & Q(unit_price_currency=currency) 
+            & Q(cryptocurrency__currency_code=crypto)).order_by('total_amount', '-created_at')
 
     def find_transaction(self, trx_bill_no):
         return APIUserTransaction.objects.get(pk=trx_bill_no)
@@ -115,12 +152,12 @@ class TradeExchangeManager(object):
             Q(status='FILLED') & 
             Q(order_type='BUY') & Q(total_amount__gt=0.0) &
             Q(unit_price_currency=currency) &
-            Q(cryptocurrency__currency_code=crypto)).order_by('lastupdated_at')
+            Q(cryptocurrency__currency_code=crypto)).order_by('-lastupdated_at')
         if not processed_purchases or len(processed_purchases) == 0:
             raise ValueError(ERR_NO_SELL_ORDER_TO_SUPPORT_PRICE)
         return processed_purchases[0].unit_price    
 
-    def purchase_by_cash_amount(self, api_user, request_obj, crypto, is_api_call=True):
+    def purchase_by_cash_amount(self, api_user, request_obj, crypto, sitesettings, is_api_call=True):
         api_user_id = api_user.user.id
         amount_in_cent = int(request_obj.total_fee) 
         amount = float(amount_in_cent / 100.0)
@@ -199,7 +236,71 @@ class TradeExchangeManager(object):
                     api_call_order_id, sell_order.order_id))
                 continue
             
-            return api_trans_id, buyorder_id, seller_payment_account
+            notify_url = settings.HEEPAY_NOTIFY_URL_FORMAT.format(
+            sitesettings.heepay_notify_url_host,
+            sitesettings.heepay_notify_url_port)
+            return_url = request_obj.return_url
+            
+            heepay_api_key = sitesettings.heepay_app_id
+            heepay_api_secret = sitesettings.heepay_app_key
+            
+            heepay = HeePayManager()
+            json_payload = heepay.create_heepay_payload('wallet.pay.apply', buyorder_id, heepay_api_key, 
+                heepay_api_secret, "127.0.0.1", float(request_obj.total_fee)/100.0,
+                seller_payment_account, request_obj.payment_account, 
+                notify_url, return_url, request_obj.expire_minute, subject = request_obj.subject)
+            try:
+                status, reason, message = heepay.send_buy_apply_request(json_payload)
+            except:
+                logger.error('purchase_by_cash_amount(): sending request to heepay hit exception {0}'.format(
+                    sys.exc_info()[0]
+                ))
+                raise ValueError(ERR_HEEPAY_REQUEST_EXCEPTION)
+            response_json = json.loads(message) if status == 200 else None
+            if status != 200:
+                logger.error('purchase_by_cash_amount(): sending request to heepay get error {0}:{1}-{2}'.format(
+                    status, reason, message
+                ))
+                raise ValueError(ERR_HEEPAY_REQUEST_ERROR)
+
+            # TODO: hard coded right now
+            #api_client = APIClient('https://wallet.heepay.com/api/v1/payapply')
+            #response_json = api_client.send_json_request(heepay_request)
+            logger.info("prepurchase(): [out_trade_no:{0}] heepay reply: {1}".format(
+                request_obj.out_trade_no, json.dumps(response_json, ensure_ascii=False)
+            ))
+
+            if request_obj.payment_provider == 'heepay':
+                if response_json['return_code'] == 'SUCCESS':
+                    ordermanager.post_open_payment_order(
+                                buyorder_id, 'heepay',
+                                response_json['hy_bill_no'],
+                                response_json['hy_url'],
+                                api_user.user.username)
+                    
+                    heepay_response = HeepayResponse.parseFromJson(response_json, heepay_api_secret)
+                    final_resp_json = create_prepurchase_response_from_heepay(
+                        heepay_response, api_user,api_trans_id, request_obj.out_trade_no,
+                        request_obj.subject, request_obj.attach)
+                    logger.info('prepurchase(): send final reply {0}'.format(
+                        json.dumps(final_resp_json, ensure_ascii=False)
+                    ))
+                    return final_resp_json
+                else:
+                    if response_json['return_msg'] == HEEPAY_ERR_NONEXIST_RECEIVE_ACCOUNT:
+                        logger.error('purchase_by_cash_amount(): target sell order {0} had bad account, cancel the sell order and the purchase order'.format(
+                            sell_order.order_id
+                        ))
+                        purchase_order = Order.objects.get(order_id=buyorder_id)
+                        admin = User.objects.get(username='admin')
+
+                        # cancel purchase order will flag sell order as bad account here
+                        ordermanager.cancel_purchase_order(purchase_order, TRADE_STATUS_BADRECEIVINGACCOUNT, 
+                            PAYMENT_STATUS_BADRECEIVINGACCOUNT, admin)
+                    else:
+                        logger.error('purchase_by_cash_amount(): submit heepay request for seller order {0} hit error {1}.  Move to next one'.format(
+                            sell_order.order_id, response_json['return_msg']
+                        ))
 
         if qualify_orders:
             logger.error("purchase_by_cash_amount(): [out_trade_no:{0}] None of the qualified sell order could be secured for purchase.".format(
@@ -220,11 +321,11 @@ class TradeExchangeManager(object):
     def post_sell_order(self, request_obj, api_user, api_trans=None):
         if not request_obj and not api_trans:
             raise ValueError('post_sell_order(): request_obj and api_trans cannot be None at the same time')
-        current_sell_orders = self.get_active_sell_orders('AXFund', 'CNY')
+        current_sell_orders = self.get_active_sell_orders('AXFund', 'CNY' , api_user.user.id)
         if current_sell_orders:
-            unit_price = round(self.decide_sell_price(current_sell_orders) + 0.005,2)
+            unit_price = round(self.decide_sell_price(current_sell_orders),2)
         else:
-            unit_price = self.find_last_transaction_price()
+            unit_price = self.find_last_transaction_price('AXFund','CNY')
 
         logger.info("post_sell_order(): get round-up sell price {0}".format(unit_price))
         if not api_trans:
@@ -236,7 +337,7 @@ class TradeExchangeManager(object):
         
         amount_in_cent = int(request_obj.total_fee) if type(request_obj.total_fee) is str else request_obj.total_fee
         amount = float(amount_in_cent / 100.0)
-        sell_units = round(amount / unit_price, 8)
+        sell_units = round(amount / unit_price, MIN_CRYPTOCURRENCY_UNITS_DECIMAL)
         logger.info("post_sell_order(): after roundup, sell {0} yuan of axfund = {1} x @{2}".format(
             amount, sell_units, unit_price))
         
