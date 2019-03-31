@@ -71,11 +71,23 @@ class UserPaymentMethod(models.Model):
    user = models.ForeignKey(User, on_delete=models.CASCADE)
    provider = models.ForeignKey('PaymentProvider', on_delete=models.CASCADE)
    account_at_provider = models.CharField(max_length=64)
+   account_alias = models.CharField(max_lenght=64)
    provider_qrcode_image = models.ImageField(upload_to='uploads/')
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey(User, related_name='UserPaymentMethod_created_by', on_delete=models.SET_NULL, null=True)
    lastupdated_at = models.DateTimeField(auto_now=True)
    lastupdated_by = models.ForeignKey(User, related_name='UserPaymentMethod_lastupdated_by', on_delete=models.SET_NULL, null=True)
+
+class UserPaymentMethodImage(models.Model):
+   IMAGE_TAG=(('WXPAYMENTQRCODE', '微信付款二维码'),
+               ('WXSHOPASSTQRCODE', '小账本店员二维码'))
+   user_wallet = models.ForeignKey('UserWallet', on_delete=models.CASCADE)
+   image_tag = models.CharField(max_length=64, choices=IMAGE_TAG, null=False)
+   qrcode = models.ImageField(upload_to='uploads/')
+   created_at = models.DateTimeField(auto_now_add=True)
+   created_by = models.ForeignKey(User, related_name='UserPaymentMethodImage_created_by', on_delete=models.SET_NULL, null=True)
+   lastupdated_at = models.DateTimeField(auto_now=True)
+   lastupdated_by = models.ForeignKey(User, related_name='UserPaymentMethodImage_lastupdated_by', on_delete=models.SET_NULL, null=True)
 
 
 class Cryptocurrency(models.Model):
