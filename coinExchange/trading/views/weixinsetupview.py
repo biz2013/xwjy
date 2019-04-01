@@ -8,6 +8,7 @@ from trading.controller.global_utils import *
 
 # this is for test UI. A fake one
 from trading.controller.global_constants import *
+from trading.controller import userpaymentmethodmanager
 from trading.models import *
 from trading.views.models.returnstatus import ReturnStatus
 from trading.views import errorpageview
@@ -19,7 +20,7 @@ logger = logging.getLogger("site.weixinsetupview")
 
 def get_weixin_images(weixin_id):
     weixin_payment_image = weixin_shop_assistant_image = None
-    if weixin not None:
+    if weixin_id is not None:
         weixin_images = userpaymentmethodmanager.get_weixin_images(weixin_id)
         if weixin_images:
             for img in weixin_images:
@@ -33,13 +34,13 @@ def account_info(request):
     try:
         weixin_payment_image = weixin_shop_assistant_image = None
         if request.method == 'GET':
-            weixin = userpaymentmethodmanager.get_weixin_provider(request.user.id)
-            weixin_payment_image, weixin_shop_assistant_image = get_weixin_images(winxin.id)
+            weixin = userpaymentmethodmanager.get_weixin_paymentmethod(request.user.id)
+            weixin_payment_image, weixin_shop_assistant_image = get_weixin_images((UserPaymentMethod(weixin)).id)
         else:
             form = UserPaymenthodForm(request.POST, request.FILES)
             if form.is_valid():
                 weixin = form.save()
-                weixin_payment_image, weixin_shop_assistant_image = get_weixin_images(winxin.id)
+                weixin_payment_image, weixin_shop_assistant_image = get_weixin_images(weixin.id)
                 
         return render(request, 'trading/paymentmethod/weixin.html',
             {'weixin':weixin,
