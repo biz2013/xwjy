@@ -24,6 +24,7 @@ from trading.views import account_cronjob, externaladdrview, paymentmethodsview
 from trading.views import redeemview, heepay_notify_view, transactionview
 from trading.views import order_batch_process_view, wallet_address_batch
 from trading.views import testpageview, transferview, userregistrationview
+from trading.views import weixinsetupview
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
@@ -34,8 +35,8 @@ urlpatterns = [
     re_path(r'^accounts/external_address/$', externaladdrview.external_address, name="update_external_address"),
     re_path(r'^accounts/paymentmethods/$', paymentmethodsview.payment_method, name='paymentmethods'), 
     re_path(r'^accounts/weixin/accountinfo/$', weixinsetupview.account_info, name="weixin_account_info"),
-    re_path(r'^accounts/weixin/payment_qrcode/$', weixinsetupview.payment_qrcode, name='weixin_payment_qrcode'),
-    re_path(r'^accounts/weixin/shop_assistant_qrcode/$', weixinsetupview.shop_assistant_qrcode, name='weixin_shop_assistant_qrcode'),    
+#    re_path(r'^accounts/weixin/payment_qrcode/$', weixinsetupview.payment_qrcode, name='weixin_payment_qrcode'),
+#    re_path(r'^accounts/weixin/shop_assistant_qrcode/$', weixinsetupview.shop_assistant_qrcode, name='weixin_shop_assistant_qrcode'),    
     re_path(r'^axfund/transfer/$', transferview.transfer, name="transfer_axfund"),
     re_path(r'^mysellorder/$', mysellorderview.sell_axfund, name="sellorder"),
     re_path(r'^mysellorder/cancel$', mysellorderview.cancel_sell_order, name="cancelsellorder"),

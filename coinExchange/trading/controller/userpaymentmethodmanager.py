@@ -53,7 +53,7 @@ def create_update_user_payment_method(user_payment_method, operator):
 def get_weixin_paymentmethod(userid):
     try:
         return UserPaymentMethod.objects.get(user__id=userid, provider= PAYMENTMETHOD_WEIXIN)
-    except UserPaymentMethod.ObjectDoesNotExist:
+    except UserPaymentMethod.DoesNotExist:
         return None
 
 def get_weixin_images(payment_method_id):
