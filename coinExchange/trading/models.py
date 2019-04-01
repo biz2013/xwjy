@@ -71,7 +71,7 @@ class UserPaymentMethod(models.Model):
    user = models.ForeignKey(User, on_delete=models.CASCADE)
    provider = models.ForeignKey('PaymentProvider', on_delete=models.CASCADE)
    account_at_provider = models.CharField(max_length=128, default='')
-   account_alias = models.CharField(max_lenght=64)
+   account_alias = models.CharField(max_length=64)
    client_id = models.CharField(max_length=128, default='')
    client_secret = models.CharField(max_length=256, default='')
    provider_qrcode_image = models.ImageField(upload_to='uploads/')
