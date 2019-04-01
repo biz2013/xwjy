@@ -54,7 +54,7 @@ def get_weixin_paymentmethod(userid):
     try:
         return UserPaymentMethod.objects.get(user__id=userid, provider= PAYMENTMETHOD_WEIXIN)
     except UserPaymentMethod.ObjectDoesNotExist:
-        return None:
+        return None
 
 def get_weixin_images(payment_method_id):
     return UserPaymentMethodImage.objects.filter(user_payment_method = payment_method_id)
