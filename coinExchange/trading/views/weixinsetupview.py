@@ -19,7 +19,8 @@ import logging
 logger = logging.getLogger("site.weixinsetupview")
 
 def get_weixin_images(weixin_id):
-    weixin_payment_image = weixin_shop_assistant_image = None
+    weixin_payment_image = None
+    weixin_shop_assistant_image = None
     if weixin_id is not None:
         weixin_images = userpaymentmethodmanager.get_weixin_images(weixin_id)
         if weixin_images:
@@ -41,13 +42,20 @@ def account_info(request):
             if form.is_valid():
                 weixin = form.save()
                 weixin_payment_image, weixin_shop_assistant_image = get_weixin_images(weixin.id)
-                
-        return render(request, 'trading/paymentmethod/weixin.html',
-            {'weixin':weixin,
-            'weixin_payment_image': weixin_payment_image, 
-            'weixin_shop_assistant_image': weixin_shop_assistant_image})
+        print(weixin_shop_assistant_image)        
+        return render(request, 'trading/paymentmethod/weixin.html')
+            #{'weixin':weixin,
+            #'weixin_payment_image': weixin_payment_image, 
+            #'weixin_shop_assistant_image': weixin_shop_assistant_image})
     except Exception as e:
         error_msg = 'sell_axfund hit exception'
         logger.exception(error_msg)
         return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
+
+def payment_qrcode(request):
+    return render(request, 'trading/paymentmethod/weixin.html')
+
+def shop_assistant_qrcode(request):
+    return render(request, 'trading/paymentmethod/weixin.html')
+

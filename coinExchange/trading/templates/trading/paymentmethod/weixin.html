@@ -1,6 +1,6 @@
-{% extends "base_generic.html" %}
-
-<div class="container">
+{% extends 'base_generic.html' %}
+{% block content %}
+  <div class="container">
     <div class="row">
         <h3>设置微信支付</h3>
         <h4>1. 微信账户信息</h4>
@@ -8,13 +8,13 @@
             <div id="div_id_account" class="form-group">
                 <label for="id_account" class="control-label">微信账号</label><span class="asteriskField">*</span>
                 <div class="controls ">
-                    <input class="textinput textInput form-control" id="id_account" maxlength="10" name="account" type="text" value="{% if weixin %}{{ weixin.account_at_provider }}{% endif %}">/>
+                    <input class="textinput textInput form-control" id="id_account" maxlength="10" name="account" type="text" value="{% if weixin %}{{ weixin.account_at_provider }}{% endif %}"/>
                 </div>
             </div>
             <div id="div_id_alias" class="form-group">
                 <label for="id_alias" class="control-label">微信昵称</label><span class="asteriskField">*</span>
                 <div class="controls ">
-                    <input class="textinput textInput form-control" id="id_alias" maxlength="10" name="alias" type="text" value="{% if weixin %}{{ weixin.account_alias }}{% endif %}">/>
+                    <input class="textinput textInput form-control" id="id_alias" maxlength="10" name="alias" type="text" value="{% if weixin %}{{ weixin.account_alias }}{% endif %}"/>
                 </div>
             </div>
         </div>
@@ -24,7 +24,7 @@
         </div>
         <h4>2. 付款二维码</h4>
         <div class="form-group">
-            <form action="{% url upload_payment_pic %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+            <form action="{% url 'upload_payment_pic' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
                 <p>
                     <input id="id_payment_image" type="file" class="" name="image">
                 </p>
@@ -37,7 +37,7 @@
         </div>
         <h4>3. 添加店员二维码</h4>
         <div class="form-group">
-            <form action="{% url upload_shopassitant_pic %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+            <form action="{% url 'upload_shop_assistant_pic' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
                 <p>
                     <input id="id_shopassistant_image" type="file" class="" name="image">
                 </p>
@@ -49,3 +49,4 @@
         </div>
     </div>
 </div>
+{% endblock %}
