@@ -105,6 +105,13 @@
         }
       }
 
+      function throw_if_fetch_error(response) {
+        if (!response.ok) {
+            throw Error(response.statusText);
+        }
+        return response;
+      }
+
       function goback() {
         window.location.href = '/trading/purchase/';
       }
@@ -122,14 +129,13 @@
           var total_amount = (units_val * unit_price).toFixed(2);
 
           var data = new FormData();
-          data.append('orderID', 'test_1234');
           data.append('csrfmiddlewaretoken', '{{ csrf_token }}');
           data.append('reference_order_id', '{{ reference_order_id }}');
           data.append('quantity', units);
           data.append('unit_price', {{ buyorder.unit_price }});
 
           {# TODO: read payment_provider from user selection #}
-          {# data.append('seller_payment_provider', {{ buyorder.selected_payment_provider }}) #}
+          {# data.append('seller_payment_provider', {{ buyorder.selected_payment_provider }})#}
           data.append('seller_payment_provider', 'paypal');
 
           {# TODO: Check currency #}
@@ -141,47 +147,35 @@
             method: 'POST',
             body: data,
             credentials: 'same-origin',
-          }).then(res => res.json())
-            .catch(error => console.error('Error:', error))
-            .then(function (res) {
-              {# TODO: Check error from order creation#}
-
-              var buyorderid = res['buyorderid'];
-
-              return actions.order.create({
-                purchase_units: [{
-                  {# buy order id #}
-                  reference_id: buyorderid,
-                  {# seller id, sell_order_id #}
-                  description: "{{ owner_user_id }}/{{ reference_order_id }}",
-                  amount: {
-                    value: total_amount
-                  }
-                }],
-                application_context: {
-                  shipping_preference: "NO_SHIPPING"
-                }
-              });
-            });
+          }).then(function(res) {
+            return throw_if_fetch_error(res)
+          }).then(function(res) {
+              return res.json();
+          }).then(function(data) {
+              return data.orderID;
+          }).catch(error => {
+            console.log(error);
+            alert("无法生成 PayPal支付， 请稍后再试")
+          });
         },
 
         onApprove: function (data, actions) {
           return actions.order.capture().then(function (details) {
-
-            {# TODO (4), Chi, Error handling here #}
-            if (details.purchase_units.length != 1) {
-              return {};
-            }
-
-            {# TODO (5), Add more logs in case we didn't get notification from paypal#}
             return fetch('/trading/paypal/confirm_payment/', {
               method: 'post',
               body: JSON.stringify({
                 orderID: data.orderID,
+                details: details,
                 buy_order_id: details.purchase_units[0].reference_id,
-                seller_info: details.purchase_units[0].description,
                 amount: details.purchase_units[0].amount
-              })
+              }),
+            }).then(function(res) {
+              return throw_if_fetch_error(res)
+            }).then(function(data) {
+              alert("支付成功！")
+            }).catch(error => {
+              console.log(error);
+              alert("无法确认 PayPal支付是否成功，请稍后查看")
             });
           });
         },
