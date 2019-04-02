@@ -42,11 +42,11 @@ def account_info(request):
             if form.is_valid():
                 weixin = form.save()
                 weixin_payment_image, weixin_shop_assistant_image = get_weixin_images(weixin.id)
-        print(weixin_shop_assistant_image)        
-        return render(request, 'trading/paymentmethod/weixin.html')
-            #{'weixin':weixin,
-            #'weixin_payment_image': weixin_payment_image, 
-            #'weixin_shop_assistant_image': weixin_shop_assistant_image})
+                
+        return render(request, 'trading/paymentmethod/weixin.html',
+            {'weixin':weixin,
+            'weixin_payment_image': weixin_payment_image, 
+            'weixin_shop_assistant_image': weixin_shop_assistant_image})
     except Exception as e:
         error_msg = 'sell_axfund hit exception'
         logger.exception(error_msg)
