@@ -304,7 +304,6 @@ def create_paypal_purchase_order(request):
             data['orderID'] = orderInfo.result.id
             json_data = json.dumps(data)
             return HttpResponse(json_data)
-
     except Exception as e:
         error_msg = '创建买单遇到错误: {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)

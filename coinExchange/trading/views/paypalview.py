@@ -23,13 +23,13 @@ from trading.views.heepay_notify_view import get_payment_confirmation_json
 
 logger = logging.getLogger("site.paypal_confirm")
 
-
 ## Doc:
 # How to setup paypalcheckoutsdk: https://developer.paypal.com/docs/checkout/reference/server-integration/setup-sdk/#set-up-the-environment
 # How to get transaction detail: https://developer.paypal.com/docs/checkout/reference/server-integration/get-transaction/#on-the-server
 # Full detail of order status: https://developer.paypal.com/docs/api/orders/v2/#orders_get
 
 class GetOrder(PayPalClient):
+
   ## TODO (6): Lock seller order at step TODO (5)? Need to clean up if failed the payment verification. What's the error flow it could be?
   # We seems need to lock seller order
   # We need to verify paypal transaction with buy order.
