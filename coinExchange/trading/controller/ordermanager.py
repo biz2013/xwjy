@@ -44,6 +44,11 @@ def sell_order_to_str(sell_order):
 def get_user_payment_account(user_id, payment_provider_code):
     return UserPaymentMethod.objects.filter(user__id=user_id).filter(provider__code=payment_provider_code)
 
+def get_sell_order_payment_methods(sell_order_id):
+    sell_order = Order.objects.get(pk=sell_order_id)
+    seller_payment_methods = UserPaymentMethod.objects.filter(user__id=sell_order.user.id)
+    return seller_payment_methods
+
 def get_seller_buyer_payment_accounts(buyorder_id, payment_provider):
     buyorder = Order.objects.get(pk=buyorder_id)
     sellorder = Order.objects.get(pk=buyorder.reference_order.order_id)
@@ -622,17 +627,29 @@ def lock_trans_of_purchase_order(orderid, bill_no):
     except UserWalletTransaction.MultipleObjectsReturned:
         raise ValueError("lock_trans_of_purchase_order(): There should be just one wallet transaction for purchase order {0} with bill_no {1}".format(orderid, bill_no))
 
+# Update
+def update_purchase_order_payment_transaction(buy_order_id, tran_payment_status, message, external_transaction_id = 'None'):
+    with transaction.atomic():
+        external_transaction = UserWalletTransaction.objects.select_for_update().get(
+            reference_order__order_id=buy_order_id,
+            transaction_type='OPEN BUY ORDER')
+
+        if external_transaction_id != 'None':
+            external_transaction.payment_bill_no = external_transaction_id
+
+        update_purchase_transaction(external_transaction, tran_payment_status, message)
+
 def update_purchase_transaction(purchase_trans, trade_status, trade_msg):
     normal_status = [ TRADE_STATUS_NOTSTARTED, TRADE_STATUS_PAYSUCCESS, 
-          TRADE_STATUS_INPROGRESS, TRADE_STATUS_UNKNOWN]
+          TRADE_STATUS_INPROGRESS, TRADE_STATUS_UNKNOWN, TRADE_STATUS_CREADED, TRADE_STATUS_SUCCESS]
 
     bad_status = [ TRADE_STATUS_EXPIREDINVALID, TRADE_STATUS_USERABANDON, 
         TRADE_STATUS_DEVCLOSE, TRADE_STATUS_FAILURE]
 
     if trade_status in normal_status:
-        purchase_trans.payment_status = normal_status[trade_status]
+        purchase_trans.payment_status = trade_status.upper()
     elif trade_status in bad_status:
-        purchase_trans.payment_status = bad_status[trade_status]
+        purchase_trans.payment_status = trade_status.upper()
         purchase_trans.comment = trade_msg
         buyorder = purchase_trans.reference_order
         buyorder.status = 'FAILED'
@@ -1032,7 +1049,7 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, hy_url, user
                 )
             if not updated:
                 raise ValueError("Purchase order {0}'s sell order {1} should have api_trans associated".format(
-                    buyorder_id, buyerorder.reference_order.order_id
+                    buyorder_id, buyorder.reference_order.order_id
                 ))
 
         logger.info("post_open_payment_order(): update related status of sell order {0} (of purchase order {1}) to OPEN".format(

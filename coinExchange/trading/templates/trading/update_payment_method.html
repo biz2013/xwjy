@@ -75,11 +75,13 @@ $(function() {
             <div class="controls ">
               <script language='JavaScript'>
               class PaymentMethod {
-                constructor(record_id, provider_code, account, qrcode_image) {
+                constructor(record_id, provider_code, account, qrcode_image, client_id, client_secret) {
                 this.record_id = record_id;
                 this.provider_code = provider_code;
                 this.account = account;
                 this.qrcode_image = qrcode_image;
+                this.client_id = client_id;
+                this.client_secret = client_secret;
                }
               }
               var payment_methods = {};
@@ -88,14 +90,19 @@ $(function() {
                    var item = new PaymentMethod({{ payment_method.user_payment_method_id}},
                        '{{ payment_method.provider_code }}',
                        '{{ payment_method.account_at_provider}}',
-                       '{{ payment_method.provider_qrcode_image }}');
+                       '{{ payment_method.provider_qrcode_image }}',
+                       '{{ payment_method.client_id }}',
+                       '{{ payment_method.client_secret }}'
+                   );
                     payment_methods['{{ payment_method.provider_code }}']= item;
                  {% endfor %}
               {% endif %}
               function select_user_payment_method(provider_code) {
                  if (provider_code in payment_methods) {
                     $("#txt_id_account_at_provider").val(payment_methods[provider_code].account);
-                    $("#txt_payment_method_id").val(payment_methods[provider_code].record_id)
+                    $("#txt_payment_method_id").val(payment_methods[provider_code].record_id);
+                    $("#txt_id_client_id_at_provider").val(payment_methods[provider_code].client_id);
+                    $("#txt_id_client_secret_at_provider").val(payment_methods[provider_code].client_secret);
                  }
               }
 
@@ -104,8 +111,13 @@ $(function() {
                   $("#div_message").text("请您选择支付方式");
                   return;
                 }
-                if ($("#txt_id_account_at_provider").val() == "") {
-                  $("#div_message").text("请您输入您的账号");
+                if ($("#txt_id_account_at_provider").val() == "" && $("#txt_id_client_id_at_provider").val() == "") {
+                  $("#div_message").text("请您输入您的账号 或 Client ID");
+                  return;
+                }
+
+                if ($("#txt_id_client_id_at_provider").val() != "" && $("#txt_id_client_secret_at_provider").val() == "") {
+                  $("#div_message").text("请您输入您的Client Secret");
                   return;
                 }
 
@@ -119,6 +131,9 @@ $(function() {
                    {% if provider.code == 'heepay' %}
                    <option value="{{ provider.code }}">{{ provider.name }}</option>
                    {% endif %}
+                   {% if provider.code == 'paypal' %}
+                   <option value="{{ provider.code }}">{{ provider.name }}</option>
+                   {% endif %}
                    {% endfor %}
                 {% endif %}
               </select>
@@ -126,6 +141,12 @@ $(function() {
           </div>
           <div id="div_id_account_at_provider" class="form-group"> <label for="id_payment_account" class="control-label  requiredField">账号<span class="asteriskField">*</span> </label>
             <div class="controls "> <input class="textinput textInput form-control" id="txt_id_account_at_provider" name="account" type="text"/> </div>
+          </div>
+          <div id="div_id_client_id_at_provider" class="form-group"> <label for="id_payment_client_id" class="control-label  requiredField">Client ID<span class="asteriskField">*</span> </label>
+            <div class="controls "> <input class="textinput textInput form-control" id="txt_id_client_id_at_provider" name="client_id" type="text"/> </div>
+          </div>
+          <div id="div_id_client_secret_at_provider" class="form-group"> <label for="id_payment_client_secret" class="control-label  requiredField">Client Secret<span class="asteriskField">*</span> </label>
+            <div class="controls "> <input class="textinput textInput form-control" id="txt_id_client_secret_at_provider" name="client_secret" type="text"/> </div>
           </div>
           <!--<div id="div_id_qrcode_image" class="form-group"> <label for="id_" class="control-label  requiredField">支付账户二维码<span class="asteriskField">*</span> </label></div>-->
             <!-- COMPONENT START -->
