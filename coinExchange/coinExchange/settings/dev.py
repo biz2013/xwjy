@@ -14,9 +14,9 @@ API_TRANS_LIMIT = 10
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'trading',
+        'NAME': 'mydb',
         'USER': 'root',
-        'PASSWORD': 'admin@123',
+        'PASSWORD': 'AXFund@017',
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'TEST':{
