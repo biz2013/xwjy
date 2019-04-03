@@ -329,6 +329,7 @@ class PurchaseTestCase(TransactionTestCase):
                     'owner_user_id': str(seller.id),
                     'quantity': purchase_units,
                     'available_units': str(sell_order.units_available_to_trade),
+                    'order_currency': 'CNY',
                     'unit_price' : str(sell_order.unit_price),
                     'seller_payment_provider': 'heepay',
                     'crypto': 'AXFund',
@@ -337,7 +338,7 @@ class PurchaseTestCase(TransactionTestCase):
             c.login(username='yingzhou', password='user@123')
             response = c.post('/trading/purchase/createorder2/', buyorder_dict
                 )
-            print('test_2_purchase_view(): purchase view return {0}'.format(response.content))
+            print('test_2_purchase_view(): purchase view return {0}'.format(response.content.decode('utf-8')))
             #print 'purchase view template {0}'.format(response.templates)
             self.assertEqual(200, response.status_code)
 
