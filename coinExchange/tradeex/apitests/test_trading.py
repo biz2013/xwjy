@@ -628,6 +628,7 @@ class TestTradingAPI(TransactionTestCase):
         purchase_request['seller_payment_provider']=api_trans.payment_provider.code
         purchase_request['crypto'] = 'AXFund'
         purchase_request['total_amount'] = api_trans.reference_order.total_amount
+        purchase_request['order_currency'] = 'CNY'
         #TODO: why purchase donot set unit_price currency
 
         c2 = Client()
@@ -797,6 +798,7 @@ class TestTradingAPI(TransactionTestCase):
         purchase_request['seller_payment_provider']=api_trans.payment_provider.code
         purchase_request['crypto'] = 'AXFund'
         purchase_request['total_amount'] = api_trans.reference_order.total_amount
+        purchase_request['order_currency'] = 'CNY'
         #TODO: why purchase donot set unit_price currency
 
         c2 = Client()
