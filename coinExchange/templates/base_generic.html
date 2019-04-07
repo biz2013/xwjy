@@ -1,16 +1,16 @@
 <head>
-  {% include 'include/common_header.html' %}
+    {% include 'include/common_header.html' %} {% block custom_headers %}{% endblock %}
 </head>
 
 <body>
-  <!-- menu section -->
-  {% include "include/topmenu.html" %}
-  <!-- body section -->
+    <!-- menu section -->
+    {% include "include/topmenu.html" %}
+    <!-- body section -->
 
-  {% block content %}{% endblock %}
+    {% block content %}{% endblock %}
 
-  <!-- footer section-->
-  {% include 'include/footer.html' %}
+    <!-- footer section-->
+    {% include 'include/footer.html' %}
 </body>
 
 </html>

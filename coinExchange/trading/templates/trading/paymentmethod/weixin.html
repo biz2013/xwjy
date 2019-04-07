@@ -1,54 +1,61 @@
-{% extends 'base_generic.html' %} {% block content %}
+{% extends 'base_generic.html' %} {% block custom_headers %}
+<script language="javascript" src="/static/scripts/trading/paymenthod/weixin_ui.js"></script>
+{% endblock %} {% block content %}
 <div class="container">
     <div class="row">
         <div class="col-sm-8">
             <h3>设置微信支付</h3>
             <h4>1. 微信账户信息</h4>
-            <div class="form_group">
-                <div id="div_id_account" class="form-group">
-                    <label for="id_account" class="control-label">微信账号</label><span class="asteriskField">*</span>
-                    <div class="controls ">
-                        <input class="textinput textInput form-control" id="id_account" maxlength="10" name="account" type="text" value="{% if weixin %}{{ weixin.account_at_provider }}{% endif %}" />
+            <form id="frm_weixin_accountInfo" action="{% url 'weixin_account_info' %}">
+                {% csrf_token %}
+                <input type="hidden" id="id" name="id" value="{% if weixin %}{{ weixin.id }}{% endif %}" />
+                <div class="form_group">
+                    <div id="div_accountInfo_error" class="text-danger"></div>
+                    <div id="div_id_account" class="form-group">
+                        <label for="id_account" class="control-label">微信账号</label><span class="asteriskField">*</span>
+                        <div class="controls ">
+                            <input type="text" class="textinput textInput form-control" id="account_at_provider" name="account_at_provider" maxlength="64" value="{% if weixin %}{{ weixin.account_at_provider }}{% endif %}" />
+                        </div>
+                    </div>
+                    <div id="div_id_alias" class="form-group">
+                        <label for="id_alias" class="control-label">微信昵称</label><span class="asteriskField">*</span>
+                        <div class="controls ">
+                            <input type="text" class="textinput textInput form-control" id="account_alias" maxlength="64" name="account_alias" value="{% if weixin %}{{ weixin.account_alias }}{% endif %}" />
+                        </div>
                     </div>
                 </div>
-                <div id="div_id_alias" class="form-group">
-                    <label for="id_alias" class="control-label">微信昵称</label><span class="asteriskField">*</span>
-                    <div class="controls ">
-                        <input class="textinput textInput form-control" id="id_alias" maxlength="10" name="alias" type="text" value="{% if weixin %}{{ weixin.account_alias }}{% endif %}" />
-                    </div>
-                </div>
-            </div>
+            </form>
             <div class="form-group">
-                <button type="button" class="btn btn-primary" onclick="submit_order()">保存</button>
-                <button type="button" class="btn btn-default" onclick="goback()">撤销</button>
+                <button type="button" class="btn btn-primary" id="btn_saveAccountInfo">保存</button>
+                <button type="button" class="btn btn-default" id="btn_cancel">撤销</button>
             </div>
         </div>
-        <div class="col-sm-8">
+        <div class=" col-sm-8 ">
             <h4>2. 付款二维码</h4>
-            <div class="form-group">
-                <form action="{% url 'upload_payment_pic' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+            <div class="form-group ">
+                <form action="{% url 'upload_payment_pic' %} " method="post " enctype="multipart/form-data ">{% csrf_token %}
                     <p>
-                        <input id="id_payment_image" type="file" class="" name="image">
+                        <input id="id_payment_image " type="file " class=" " name="image ">
                     </p>
-                    <button type="button" class="btn btn-primary">上传</button>
+                    <button type="button " class="btn btn-primary ">上传</button>
                 </form>
                 {% if weixin_payment_image %}
-                <a href="#"><img src="{{ weixin_payment_image.qrcode.url}}" width="64" height="64"></a>
+                <a href="# "><img src="{{ weixin_payment_image.qrcode.url}} " width="64 " height="64 "></a>
                 {% endif %}
 
             </div>
         </div>
-        <div class="col-sm-8">
+        <div class="col-sm-8 ">
             <h4>3. 添加店员二维码</h4>
-            <div class="form-group">
-                <form action="{% url 'upload_shop_assistant_pic' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+            <div class="form-group ">
+                <form action="{% url 'upload_shop_assistant_pic' %} " method="post " enctype="multipart/form-data ">{% csrf_token %}
                     <p>
-                        <input id="id_shopassistant_image" type="file" class="" name="image">
+                        <input id="id_shopassistant_image " type="file " class=" " name="image ">
                     </p>
-                    <button type="button" class="btn btn-primary">上传</button>
+                    <button type="button " class="btn btn-primary ">上传</button>
                 </form>
                 {% if weixin_shop_assistant_image %}
-                <a href="#"><img src="{{ weixin_shop_assistant_image.qrcode.url}}" width="64" height="64"></a>
+                <a href="# "><img src="{{ weixin_shop_assistant_image.qrcode.url}} " width="64 " height="64 "></a>
                 {% endif %}
             </div>
         </div>
