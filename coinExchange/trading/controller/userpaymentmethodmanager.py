@@ -73,6 +73,27 @@ def get_weixin_paymentmethod(userid):
     except UserPaymentMethod.DoesNotExist:
         return None
 
-def get_weixin_images(payment_method_id):
-    return UserPaymentMethodImage.objects.filter(user_payment_method = payment_method_id)
-    
+def get_weixin_images(weixin_id):
+    weixin_payment_image = None
+    weixin_shop_assistant_image = None
+    if weixin_id is not None:
+        weixin_images = UserPaymentMethodImage.objects.filter(user_payment_method = weixin_id)
+        if weixin_images:
+            for img in weixin_images:
+                if img.image_tag == 'WXPAYMENTQRCODE':
+                    weixin_payment_image = img
+                elif img.image_tag == 'WXSHOPASSTQRCODE':
+                    weixin_shop_assistant_image = img
+    return weixin_payment_image, weixin_shop_assistant_image
+
+def load_weixin_info(user):
+    weixin_payment_image = weixin_shop_assistant_image = None
+    weixin = get_weixin_paymentmethod(user.id)
+    if weixin:
+        weixin.lastupdated_by = user
+        weixin_payment_image, weixin_shop_assistant_image = get_weixin_images(weixin.id)
+        if weixin_payment_image:
+            weixin_payment_image.lastupdated_by = user
+        if weixin_shop_assistant_image:
+            weixin_shop_assistant_image.lastupdated_by = user
+    return weixin, weixin_payment_image, weixin_shop_assistant_image

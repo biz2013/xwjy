@@ -14,4 +14,7 @@ $(document).ready(function() {
         }
         $('#frm_weixin_accountInfo').submit();
     })
+    $('#btn_cancel').click(function() {
+        window.location.replace('/trading/accounts/accountinfo/');
+    })
 })

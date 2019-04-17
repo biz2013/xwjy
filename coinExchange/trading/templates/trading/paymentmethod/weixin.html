@@ -1,9 +1,10 @@
 {% extends 'base_generic.html' %} {% block custom_headers %}
 <script language="javascript" src="/static/scripts/trading/paymenthod/weixin_ui.js"></script>
+<script type="text/javascript" src="/static/scripts/bootstrap-filestyle.min.js"></script>
 {% endblock %} {% block content %}
 <div class="container">
     <div class="row">
-        <div class="col-sm-8">
+        <div class="col-sm-4">
             <h3>设置微信支付</h3>
             <h4>1. 微信账户信息</h4>
             <form id="frm_weixin_accountInfo" method="POST" action="{% url 'weixin_account_info' %}">
@@ -40,7 +41,7 @@
             </div>
         </div>
         {% if weixin %}
-        <div class="col-sm-8">
+        <div class="col-sm-4">
             <h4>2. 付款二维码</h4>
             <div class="form-group">
                 <form action="{% url 'upload_payment_pic' %}" method="POST" enctype="multipart/form-data">{% csrf_token %}
@@ -50,7 +51,7 @@
                     <input type="hidden" id="created_by" name="created_by" value="{% if weixin_payment_image %}{{ weixin_payment_image.created_by.id }}{% elif user %}{{ user.id }}{% endif %}" />
                     <input type="hidden" id="lastupdated_by" name="lastupdated_by" value="{% if weixin_payment_image %}{{ weixin_payment_image.lastupdated_by.id }}{% elif user %}{{ user.id }}{% endif %}" />
                     <p>
-                        <input type="file" id="id_qrcode" name="qrcode" />
+                        <input type="file" id="id_qrcode" class="filestyle" name="qrcode" />
                     </p>
                     <button type="submit" class="btn btn-primary">上传</button>
                 </form>
@@ -60,7 +61,7 @@
 
             </div>
         </div>
-        <div class="col-sm-8">
+        <div class="col-sm-4">
             <h4>3. 添加店员二维码</h4>
             <div class="form-group ">
                 <form action="{% url 'upload_shop_assistant_pic' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
@@ -70,7 +71,7 @@
                     <input type="hidden" id="created_by" name="created_by" value="{% if weixin_shop_assistant_image %}{{ weixin_shop_assistant_image.created_by.id }}{% elif user %}{{ user.id }}{% endif %}" />
                     <input type="hidden" id="lastupdated_by" name="lastupdated_by" value="{% if weixin_shop_assistant_image %}{{ weixin_shop_assistant_image.lastupdated_by.id }}{% elif user %}{{ user.id }}{% endif %}" />
                     <p>
-                        <input type="file" id="id_qrcode" name="qrcode" />
+                        <input type="file" id="id_qrcode" class="filestyle" name="qrcode" />
                     </p>
                     <button type="button " class="btn btn-primary ">上传</button>
                 </form>

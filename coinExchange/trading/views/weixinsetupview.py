@@ -20,41 +20,16 @@ import logging
 # logger for user registration
 logger = logging.getLogger("site.weixinsetupview")
 
-def get_weixin_images(weixin_id):
-    weixin_payment_image = None
-    weixin_shop_assistant_image = None
-    if weixin_id is not None:
-        weixin_images = userpaymentmethodmanager.get_weixin_images(weixin_id)
-        if weixin_images:
-            for img in weixin_images:
-                if img.image_tag == 'WXPAYMENTQRCODE':
-                    weixin_payment_image = img
-                elif img.image_tag == 'WXSHOPASSTQRCODE':
-                    weixin_shop_assistant_image = img
-    return weixin_payment_image, weixin_shop_assistant_image
-
-def load_weixin_info(user):
-    weixin_payment_image = weixin_shop_assistant_image = None
-    weixin = userpaymentmethodmanager.get_weixin_paymentmethod(user.id)
-    if weixin:
-        weixin.lastupdated_by = user
-        weixin_payment_image, weixin_shop_assistant_image = get_weixin_images(weixin.id)
-        if weixin_payment_image:
-            weixin_payment_image.lastupdated_by = user
-        if weixin_shop_assistant_image:
-            weixin_shop_assistant_image.lastupdated_by = user
-    return weixin, weixin_payment_image, weixin_shop_assistant_image
-
 @login_required
 def account_info(request):
     try:
-        weixin, weixin_payment_image, weixin_shop_assistant_image = load_weixin_info(request.user)
+        weixin, weixin_payment_image, weixin_shop_assistant_image = userpaymentmethodmanager.load_weixin_info(request.user)
 
         if request.method == 'POST':
             form = UserPaymentMethodForm(request.POST, request.FILES, instance = weixin)
             if form.is_valid():
                 weixin = form.save()
-                weixin_payment_image, weixin_shop_assistant_image = get_weixin_images(weixin.id)
+                weixin_payment_image, weixin_shop_assistant_image = userpaymentmethodmanager.get_weixin_images(weixin.id)
             else: 
                 messages.error(request,"输入有错误，请检查")
 
@@ -76,12 +51,12 @@ def account_info(request):
 @login_required
 def payment_qrcode(request):
     try:
-        weixin, weixin_payment_image, weixin_shop_assistant_image = load_weixin_info(request.user)
+        weixin, weixin_payment_image, weixin_shop_assistant_image = userpaymentmethodmanager.load_weixin_info(request.user)
         if request.method == 'POST':
             form = UserPaymentMethodImageForm(request.POST, request.FILES, instance=weixin_payment_image)
             if form.is_valid():
                 form.save()
-                weixin, weixin_payment_image, weixin_shop_assistant_image = load_weixin_info(request.user)
+                weixin, weixin_payment_image, weixin_shop_assistant_image = userpaymentmethodmanager.load_weixin_info(request.user)
             else: 
                 messages.error(request,"输入有错误，请检查")
 
@@ -105,7 +80,7 @@ def shop_assistant_qrcode(request):
             form = UserPaymentMethodImageForm(request.POST, request.FILES, instance=weixin_shop_assistant_image)
             if form.is_valid():
                 form.save()
-                weixin, weixin_payment_image, weixin_shop_assistant_image = load_weixin_info(request.user)
+                weixin, weixin_payment_image, weixin_shop_assistant_image = userpaymentmethodmanager.load_weixin_info(request.user)
             else: 
                 messages.error(request,"输入有错误，请检查")
 
@@ -121,4 +96,3 @@ def shop_assistant_qrcode(request):
         logger.exception(error_msg)
         return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
-
