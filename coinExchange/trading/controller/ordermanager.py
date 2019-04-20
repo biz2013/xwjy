@@ -390,7 +390,10 @@ def get_sell_transactions_by_user(userid):
                                 order.units, order.units_available_to_trade,
                                 order.total_amount,
                                 order.cryptocurrency.currency_code,
-                                order.lastupdated_at, order.status, order.order_type)
+                                order.lastupdated_at, order.status, order.order_type,
+                                order.sub_type, order.selected_payment_provider,
+                                order.account_at_selected_payment_provider,
+                                order.order_source)
         order_lookup[order.order_id].append(order_item)
 
     for order in buyorders:

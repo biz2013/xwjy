@@ -7,10 +7,12 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 
 # this is for test UI. A fake one
+from trading.config import context_processor
 from trading.controller.global_constants import *
 from trading.controller.global_utils import *
 from trading.controller import ordermanager
 from trading.controller import useraccountinfomanager
+from trading.controller import userpaymentmethodmanager
 
 from trading.views.models.orderitem import OrderItem
 from trading.views.models.returnstatus import ReturnStatus
@@ -20,6 +22,11 @@ from django.contrib.auth.decorators import login_required
 
 logger = logging.getLogger("site.sellorder")
 
+def get_payment_method(payment_method, user):
+    if payment_method == PAYMENTMETHOD_HEEPAY:
+        return None
+    return userpaymentmethodmanager.get_weixin_paymentmethod(user.id)
+
 def read_order_input(request):
     username = request.user.username
     userId = request.user.id
@@ -27,46 +34,52 @@ def read_order_input(request):
     unit_price = float(request.POST['unit_price'])
     unit_price_currency = request.POST['unit_price_currency']
     total_amount = float(request.POST['total_amount'])
+    payment_method = request.POST['payment_method']
+    payment_method_obj = get_payment_method(payment_method, request.user)
     crypto = request.POST['crypto']
     return OrderItem('', userId, username, unit_price,
           unit_price_currency, units, units, total_amount,
-          crypto, None, None, 'SELL')
+          crypto, None, None, 'SELL', 'OPEN',
+          payment_method_obj.provider.code, 
+          payment_method_obj.account_at_provider)
 
 @login_required
 def sell_axfund(request):
     try:
-       accountinfo = useraccountinfomanager.get_user_accountInfo(request.user, 'AXFund')
-       if len(accountinfo.paymentmethods) == 0:
-           messages.error(request, '请先注册支付方式再挂卖单')
-           return redirect('accountinfo')
-       if len(accountinfo.paymentmethods[0].account_at_provider) == 0:
-           messages.error(request, '请先注册支付账号再挂卖单')
-           return redirect('accountinfo')
-       if request.method == 'POST':
-          request_source = request.POST['request_source']
-          # this indicate that the request come from submit
-          # order instead of refresh a response page of previous
-          # order
-          if len(request_source) > 0:
-              order_command = read_order_input(request)
-              if order_command.total_units - accountinfo.available_balance < 0:
-                  ordermanager.create_sell_order(order_command, request.user.username)
-                  messages.success(request,'您的卖单已经成功创建')
-              else:
-                  messages.error(request, '卖单数量不可以高于可用余额')
-       sellorders = ordermanager.get_sell_transactions_by_user(request.user.id)
-       if request.method == 'POST':
-           return redirect('sellorder')
-       else:
-           return render(request, 'trading/mysellorder.html',
-               {'sellorders': sellorders,
+        sitesettings = context_processor.settings(request)['settings']
+        accountinfo = useraccountinfomanager.get_user_accountInfo(request.user, 'AXFund')
+        if len(accountinfo.paymentmethods) == 0:
+            messages.error(request, '请先注册支付方式再挂卖单')
+            return redirect('accountinfo')
+        if len(accountinfo.paymentmethods[0].account_at_provider) == 0:
+            messages.error(request, '请先注册支付账号再挂卖单')
+            return redirect('accountinfo')
+        if request.method == 'POST':
+            request_source = request.POST['request_source']
+            # this indicate that the request come from submit
+            # order instead of refresh a response page of previous
+            # order
+            if len(request_source) > 0:
+                order_command = read_order_input(request)
+                if order_command.total_units - accountinfo.available_balance < 0:
+                    ordermanager.create_sell_order(order_command, request.user.username)
+                    messages.success(request,'您的卖单已经成功创建')
+                else:
+                    messages.error(request, '卖单数量不可以高于可用余额')
+        sellorders = ordermanager.get_sell_transactions_by_user(request.user.id)
+        if request.method == 'POST':
+            return redirect('sellorder')
+        else:
+            return render(request, 'trading/mysellorder.html',
+                {'sellorders': sellorders,
+                'settings': sitesettings,
                 'useraccountInfo': accountinfo})
 
     except Exception as e:
-       error_msg = '出售美基金遇到错误: {0}'.format(sys.exc_info()[0])
-       logger.exception(error_msg)
-       return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
-              '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
+        error_msg = '出售美基金遇到错误: {0}'.format(sys.exc_info()[0])
+        logger.exception(error_msg)
+        return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
+            '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
 
 @login_required
 def confirm_payment(request):
