@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+    <!-- Latest compiled and minified CSS -->
+    <!--<link rel="stylesheet" href="/static/css/bootstrap.3.3.7.min.css">-->
+    <link rel='stylesheet' href='/static/css/bootstrap.3.3.7.min.css'>
+
+    <!-- jQuery library -->
+    <script src="/static/scripts/jquery.3.2.1.min.js"></script>
+    <!-- Latest compiled JavaScript -->
+    <script src="/static/scripts/bootstrap.3.3.7.min.js"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>美基金朋友圈交易站</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="well">
+            <div class="row">
+                <div class="offset2 col-md-6">
+                    <h3>扫一扫付款</h3>
+                    <div id="scan－purchase">
+                        <div id="div_id_quantity" class="form-group">
+                            <label for="id_title" class="control-label">请扫以下{{ payment_method }} 二维码付款，总额{{ total_amount }}{{ unit_price_currency}}, 购买{{ order_units }}个美基金</label>
+                        </div>
+                        <div id="div_id_qrcode" class="form_group">
+                            <img name="id_qrcode" src="{{ qrcode_url }}" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- footer section-->
+    {% include 'include/footer.html' %}
+</body>
+
+</html>

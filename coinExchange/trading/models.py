@@ -80,9 +80,11 @@ class UserPaymentMethod(models.Model):
    lastupdated_at = models.DateTimeField(auto_now=True)
    lastupdated_by = models.ForeignKey(User, related_name='UserPaymentMethod_lastupdated_by', on_delete=models.SET_NULL, null=True)
 
+# most user payment method will have its main image and this is for
+# extra image used for each payment method, if applicable.  So not every
+# payment method need this.
 class UserPaymentMethodImage(models.Model):
-   IMAGE_TAG=(('WXPAYMENTQRCODE', '微信付款二维码'),
-               ('WXSHOPASSTQRCODE', '小账本店员二维码'))
+   IMAGE_TAG=(('WXSHOPASSTQRCODE', '小账本店员二维码'))
    user_payment_method = models.ForeignKey('UserPaymentMethod', on_delete=models.CASCADE)
    image_tag = models.CharField(max_length=64, choices=IMAGE_TAG, null=False)
    qrcode = models.ImageField(upload_to='uploads/')
@@ -227,8 +229,14 @@ class Order(models.Model):
    cryptocurrency = models.ForeignKey('Cryptocurrency', on_delete=models.SET_NULL, null=True)
 
    # payment provider picked by purchase order, purchase order only
+   # NOTE: this is legacy and in the future it will have to match the payment provider
+   #       dictated by seller.  And these may not be used if we use manual payment, not
+   #       automatic API call
    selected_payment_provider = models.ForeignKey('PaymentProvider', on_delete=models.SET_NULL, null=True)
    account_at_selected_payment_provider = models.CharField(max_length=64, null=True)
+
+   # payment provider picked by sell order and sell order only
+   seller_payment_method = models.ForeignKey('UserPaymentMethod'), on_delete=models.SET_NULL, null=True)
 
    order_type = models.CharField(max_length=32, choices=ORDER_TYPE)
    sub_type = models.CharField(max_length=32, default='OPEN', choices=SUBORDER_TYPE)

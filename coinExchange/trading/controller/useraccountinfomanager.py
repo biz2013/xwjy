@@ -487,7 +487,7 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
         except ValueError as ve:
             logger.exception('Encounter error when processing transaction: {0}'.format(trx['txid']))
 
-def get_user_accountInfo(user, crypto, load_balance_only=False):
+def get_user_accountInfo(user, crypto, get_balance_only=False):
     logger.info("get account info for user {0} in {1}".format(user.username, crypto))
     #user = User.objects.get(pk=userid)
     userwallet = UserWallet.objects.get(user=user, wallet__cryptocurrency__currency_code=crypto)
@@ -497,7 +497,7 @@ def get_user_accountInfo(user, crypto, load_balance_only=False):
     receiving_addr = userwallet.wallet_addr
     externaladdr = None
     payment_methods= []
-    if not load_balance_only:
+    if not get_balance_only:
         userpayments = UserPaymentMethod.objects.filter(user__id=user.id)
         external_addresses = UserExternalWalletAddress.objects.filter(user= user).filter(cryptocurrency__currency_code=crypto)
         if external_addresses:

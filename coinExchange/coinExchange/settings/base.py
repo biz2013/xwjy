@@ -159,7 +159,7 @@ EMAIL_HOST_USER = 'axfundnoreply@gmail.com'
 EMAIL_HOST_PASSWORD = 'AXFund@017'
 
 #List of the code of supported payment providers for the API
-SUPPORTED_API_PAYMENT_PROVIDERS=['heepay']
+SUPPORTED_API_PAYMENT_PROVIDERS=['heepay', 'weixin', 'zhifubao']
 
 LOGGING = {
     'version': 1,
@@ -235,6 +235,15 @@ HEEPAY_NOTIFY_HOST='www.uuvc.com'
 HEEPAY_NOTIFY_URL_FORMAT='http://{0}:{1}/trading/heepay/confirm_payment/'
 HEEPAY_RETURN_URL_FORMAT='https://{0}:{1}/trading/heepay/confirm_payment/'
 
+TRADESITE_PAYMENT_URLPREFIX="https://wwwu.uuvc.com/trading/paymenturl/"
+
 # These are execution behavior code
 TEST_REAL_CALL = False
 API_TRANS_LIMIT_IN_CENT = 1000000
+
+PAYMENT_API_STATUS = {
+    'weixin' : 'manual',
+    'heepay' : 'manual',
+    'alipay' : 'manual',
+    'paypal' : 'auto'
+}

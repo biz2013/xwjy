@@ -3,6 +3,7 @@
 import sys
 from django.db.models import Q
 from django.contrib import messages
+from django.http.response import HttpResponseNotAllowed,HttpResponseBadRequest,HttpResponseNotFound,HttpResponseServerError
 from django.shortcuts import render, redirect
 from trading.controller.heepaymanager import HeePayManager
 from trading.controller.global_utils import *
@@ -64,3 +65,51 @@ def payment_method(request):
        logger.exception(error_msg)
        return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
+
+def payment_method_to_Chinese(method):
+    if method == PAYMENTMETHOD_WEIXIN:
+        return '微信支付'
+    elif method = PAYMENTMETHOD_HEEPAY:
+        return '汇钱包'
+    elif method == PAYMENTMETHOD_ALIPAY:
+        return '支付宝'
+    elif method == PAYMENTMETHOD_PAYPAL:
+        return 'PayPal'
+    else:
+        return method
+
+def show_payment_qrcode(request):
+    if request.method != 'GET':
+        return HttpResponseNotAllowed(['GET'])
+    
+    buyorder_id = request.GET['key']
+    if not buyorder_id:
+        return HttpResponseBadRequest('请求没有购买单据')
+
+    try:
+        order = Order.objects.get(order_id=buyorder_id)
+        payment_method = order.reference_order.seller_payment_method if order.reference_order.seller_payment_method 
+            else userpaymentmethodmanager.load_weixin_info(order.reference_order.user.id)
+        if not payment_method:
+            logger.error('show_payment_qrcode(): Cannot find valid seller payment method for sell order {0} referenced by purchase order {1}'.format(
+                order.reference_order.order_id, order.order_id
+            ))
+            return HttpResponseServerError('对应卖单没有付款方式')
+        
+        if not payment_method.qrcode:
+            logger.error('show_payment_qrcode(): sell order {0} referenced by purchase order {1} does not have payment qrcode'.format(
+                order.reference_order.order_id, order.order_id
+            ))
+            return HttpResponseServerError('对应卖单没有付款方式的二维码')
+
+
+        return render(request, 'trading/paymentmethodqrcode.html',
+            {'payment_method': payment_method_to_Chinese(payment_method.provider.code),
+             'total_amount': order.total_amount,
+             'unit_price_currency': order.reference_order.unit_price_currency,
+             'order_units': order.units
+            }
+        )
+    except Order.DoesNotExist:
+        logger.error("show_payment_qrcode(): Can not find related purchase order {0}".format(buyorder_id))
+        return HttpResponseNotFound('没有找到购买单据')

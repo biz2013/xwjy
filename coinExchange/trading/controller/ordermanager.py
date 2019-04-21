@@ -18,6 +18,8 @@ from tradeex.utils import *
 from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from trading.models import *
 from trading.controller.global_constants import *
+from trading.controller.userpaymentmethodmanager import *
+from trading.useraccountinfomanager import *
 from trading.views.models.orderitem import OrderItem
 from trading.views.models.userpaymentmethodview import *
 
@@ -44,10 +46,36 @@ def sell_order_to_str(sell_order):
 def get_user_payment_account(user_id, payment_provider_code):
     return UserPaymentMethod.objects.filter(user__id=user_id).filter(provider__code=payment_provider_code)
 
-def get_sell_order_payment_methods(sell_order_id):
-    sell_order = Order.objects.get(pk=sell_order_id)
-    seller_payment_methods = UserPaymentMethod.objects.filter(user__id=sell_order.user.id)
-    return seller_payment_methods
+# Now we expect each sell order has its selected payment method, the legacy
+# code does not have it.  So we want to do update here to update the data.
+# If sell order is for CNY and seller has weixin fully setup, this function 
+# will set selected payment provider to weixin.  If the order is for CAD and 
+# seller has paypal setup, we will set payment provider to paypal.  If somehow 
+# seller does not have weixin or paypal fully setup we actually will raise 
+# value error as this is bad data and indicate bug when sell order was created
+def get_and_update_sell_order_payment_methods(sell_order_id):
+    with transaction.atomic():
+        sell_order = Order.objects.selected_for_update().get(pk=sell_order_id)
+        if sell_order.selected_payment_provider and sell_order.account_at_selected_payment_provider:
+            return UserPaymentMethod.objects.get(user__id=sell_order.user.id, 
+                provider__code=sell_order.selected_payment_provider.code)
+        elif sell_order.unit_price_currency == 'CNY':
+            weixin, weixin_payment_image, weixin_shop_assistant_image = 
+                userpaymentmethodmanager.load_weixin_info(sell_order.user.id)
+            if not (weixin and weixin_payment_image and weixin_shop_assistant_image):
+                raise ValueError(ERR_SELLER_WEIXIN_NOT_FULLY_SETUP)
+            sell_order.selected_payment_provider = weixin
+            sell_order.account_at_selected_payment_provider = weixin.account_at_provider
+            sell_order.save()
+            return weixin
+        elif sell_order.unit_price_currency = 'CAD':
+            paypal = userpaymentmethodmanager.get_user_paypal_payment_method(sell_order.user.id)
+            if not (paypal and paypal.client_id and paypal.client_secret):
+                raise ValueError(ERR_SELLER_PAYPAL_NOT_FULLY_SETUP)
+            sell_order.selected_payment_provider = paypal
+            sell_order.account_at_selected_payment_provider = paypal.account_at_provider
+            sell_order.save()
+            return paypal
 
 def get_seller_buyer_payment_accounts(buyorder_id, payment_provider):
     buyorder = Order.objects.get(pk=buyorder_id)
@@ -95,11 +123,11 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
     crypto = Cryptocurrency.objects.get(currency_code = order.crypto)
 
     try:
-        payment_provider_code = order.selected_payment_provider if order.selected_payment_provider else settings.SUPPORTED_API_PAYMENT_PROVIDERS[0]
-        seller_payment_provider = PaymentProvider.objects.get(pk=payment_provider_code)
-    except:
+        seller_payment_provider = UserPaymentMethod.objects.get(
+                user__id=order.owner_user_id, provider__code = order.selected_payment_provider)
+    except UserPaymentMethod.DoesNotExist:
         logger.error('create_sell_order(): failed to find user payment provider code {0} for seller {1}:{2}'.format(
-                payment_provider_code, userobj.id, userobj.username
+                order.selected_payment_provider, userobj.id, userobj.username
         ))
         raise ValueError(ERR_CANNOT_FIND_SELLER_PAYMENT_PROVIDER)
 
@@ -147,6 +175,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
                     api_user = api_user,
                     payment_provider = PaymentProvider.objects.get(code= api_redeem_request.payment_provider),
                     payment_account = api_redeem_request.payment_account,
+                    seller_payment_method = seller_payment_provider
                     action = api_redeem_request.method,
                     client_ip = api_redeem_request.client_ip,
                     subject = api_redeem_request.subject,
@@ -207,8 +236,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
            order_type= order.order_type,
            sub_type = order.sub_type,
            order_source = order.order_source,
-           selected_payment_provider = seller_payment_provider,
-           account_at_selected_payment_provider = seller_payment_account,
+           seller_payment_method = seller_payment_method,
            units = order.total_units,
            unit_price = order.unit_price,
            unit_price_currency = order.unit_price_currency,
@@ -370,7 +398,7 @@ def get_all_open_seller_order_exclude_user(user_id):
                                 order.cryptocurrency.currency_code,
                                 order.lastupdated_at, order.status, order.order_type,
                                 sub_type= order.sub_type,
-                                selected_payment_provider=order.selected_payment_provider,
+                                selected_payment_provider=order.selected_payment_provider.code if order.selected_payment_provider else None,
                                 account_at_payment_provider=order.account_at_selected_payment_provider,
                                 order_source = order.order_source))
     return orders
@@ -990,7 +1018,11 @@ def cancel_sell_order(userid, order_id, crypto, operator):
         user_wallet.lastupdated_by = operatorObj
         user_wallet.save()
 
-def post_open_payment_order(buyorder_id, payment_provider, bill_no, hy_url, username):
+# After creating buy order, our system will try to create purchase order in payment provider
+# no matter whether that is doable, now call this routine to make sure that the buy order 
+# enters PAYING state from OPEN.  At the same time it will unlock seller order, change its
+# status from LOCKED to OPEN
+def post_open_payment_order(buyorder_id, payment_provider, bill_no, payment_url, username):
     operator = User.objects.get(username=username)
     with transaction.atomic():
         purchase_trans = UserWalletTransaction.objects.select_for_update().get(
@@ -1006,7 +1038,7 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, hy_url, user
                 buyorder_id, buyorder.status
             ))
         
-        buyorder.comment = 'hy_url: {0}'.format(hy_url)
+        buyorder.comment = 'payment url to buyer: {0}'.format(payment_url)
         buyorder.status = 'PAYING'
         buyorder.save()
 
@@ -1060,7 +1092,7 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, hy_url, user
 
         purchase_trans.payment_bill_no = bill_no
         purchase_trans.save()
-        logger.info("post_open_payment_order(): record {0}.bill#: {1} to related buyorder: {2}".format(
+        logger.info("post_open_payment_order(): record {0}.bill#: [{1}] to related buyorder: {2}".format(
            payment_provider, bill_no, buyorder.order_id
         ))
 

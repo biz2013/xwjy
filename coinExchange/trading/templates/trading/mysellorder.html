@@ -139,7 +139,7 @@
                 </tr>
                 {% if sellorders %} {% for order in sellorders %} {% if order.order_type == 'BUY' or order.available_units > 0 %}
                 <tr>
-                    <td>{% if order.selected_payment_provider.code == 'weixin' or order.selected_payment_provider.code == 'heepay' %}
+                    <td>{% if order.seller_payment_method and order.seller_payment_method.provider.code == 'weixin' %}
                             <img src="/static/img/weixin_small.png" width="16" height="16">
                         {% elif order.selected_payment_provider.code == 'paypal' %}
                             <img src="/static/img/paypal_small.png" width="16" height="16">
@@ -148,7 +148,7 @@
                     <td>{{ order.unit_price }} ({{ order.unit_price_currency }})</td>
                     <td>{{ order.available_units|mul:order.unit_price|floatformat:2 }} ({{ order.unit_price_currency }})</td>
                     <td>{% if order.status == 'LOCKED' %}锁定
-                        {% elif order.status == 'PAID' %}<button class="btn btn-primary" data-toggle="modal" data-target="#payment-confirm-modal" onclick="show_order_info('{{ order.order_id}}', '{{ order.total_units}}','{{ order.unit_price }}', '{{ order.unit_price_currency}}')">确认</button>
+                        {% elif order.status == 'PAID' or order.status == 'PAYING' %}<button class="btn btn-primary" data-toggle="modal" data-target="#payment-confirm-modal" onclick="show_order_info('{{ order.order_id}}', '{{ order.total_units}}','{{ order.unit_price }}', '{{ order.unit_price_currency}}')">确认</button>
                         {% else %}
                             <button class="btn btn-primary" type="button" onclick="popup_cancel_confirm_window('{{ order.order_id }}', {{ order.available_units }}, {{ order.unit_price }}, {{ order.available_units|mul:order.unit_price }}, '{{ order.unit_price_currency }}')">取消</button>
                         {% endif %}</td>
@@ -234,7 +234,7 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="id_payment_method" class="control-label">币种</label><span class="asteriskField">*</span> </label>
+                            <label for="id_payment_method" class="control-label">支付方式</label><span class="asteriskField">*</span> </label>
                             <select class="form-control" id="id_payment_method" name="payment_method">
                                 <option value="weixin" selected="selected" >微信支付</option>
                                 <option value="paypal">Paypal</option>

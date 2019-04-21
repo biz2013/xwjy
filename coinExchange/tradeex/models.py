@@ -60,6 +60,8 @@ class APIUserTransaction(models.Model):
     reference_order = models.ForeignKey(Order, on_delete=models.CASCADE, null=True)
     reference_bill_no = models.CharField(max_length=64, null=True)
     payment_account = models.CharField(max_length=32, null=True)
+    # API seller pick payment method
+    seller_payment_method = models.ForeignKey('UserPaymentMethod'), on_delete=models.SET_NULL, null=True)
     action = models.CharField(max_length=32)
     client_ip = models.CharField(max_length=20, null=True)
     subject = models.CharField(max_length=256, default='')

@@ -53,7 +53,7 @@ def payment_qrcode(request):
     try:
         weixin, weixin_payment_image, weixin_shop_assistant_image = userpaymentmethodmanager.load_weixin_info(request.user)
         if request.method == 'POST':
-            form = UserPaymentMethodImageForm(request.POST, request.FILES, instance=weixin_payment_image)
+            form = UserPaymentMethodForm(request.POST, request.FILES, instance=weixin_payment_image)
             if form.is_valid():
                 form.save()
                 weixin, weixin_payment_image, weixin_shop_assistant_image = userpaymentmethodmanager.load_weixin_info(request.user)

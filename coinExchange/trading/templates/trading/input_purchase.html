@@ -226,7 +226,7 @@
                         <input type="hidden" name="seller_payment_provider"
                                value="{{ buyorder.selected_payment_provider }}"/>
                         <input type="hidden" name="seller_payment_provider_account"
-                               value="{{ buyorder.account_at_selected_payment_provider }}"/>
+                               value="{{ buyorder.account_at_payment_provider }}"/>
                         <input type="hidden" id="id_total_amount" name="total_amount"
                                value="{% if buyorder.total_units > 0 %}{{ buyorder.total_units }}{% endif %}"/>
                         <div class="form_group">
@@ -258,26 +258,18 @@
                             <div class="controls"><label for="id_all_or_nothing" class="control-label">卖方要求全部购买</label>
                             </div>
                         {% endif %}
-                        <div id="div_id_payment_method" class="form-group"><label for="lbl_id_payment_method"
-                                                                                  class="control-label">付款方式</label><span
-                                class="asteriskField">*</span>
-                            <!--<div class="controls "> <select class="select select-input form-control" id="id_payment_method" onchange="javascript: $('#img_payment_qrcode').attr('src',this.value);">-->
-                            <div class="controls "><select class="select select-input form-control"
-                                                           id="id_seller_payment_method" name="seller_payment_provider">
-                                <option value="">请选择付款方式</option>
-                                {% for payment_method in owner_payment_methods %}
-                                    {% if payment_method.provider_code == 'heepay' %}
-                                        <option value="{{ payment_method.provider_code }}">{{ payment_method.provider_name }}</option>
-                                    {% endif %}
-                                {% endfor %}
-                            </select>
-                            </div>
+                        {% if buyorder.selected_payment_provider == 'weixin' %}
+                        <div id="div_id_payment_method" class="form-group">
+                          <label class="control-label">付款方式</label>
+                          <img src="/static/img/weixinpayicon.png" width="64" height="64" />
                         </div>
                         <div class="form-group">
                             <button type="button" class="btn btn-primary" onclick="submit_order()">购买</button>
                             <button type="button" class="btn btn-default" onclick="goback()">撤销</button>
                         </div>
+                        {% elif buyorder.selected_payment_provider == 'paypal' %}
                         <div id="paypal-button-container"></div>
+                        {% endif %}
                     </form>
                 </div>
             </div>

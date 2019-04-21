@@ -28,6 +28,13 @@ from trading.views import errorpageview
 
 logger = logging.getLogger("site.purchaseview")
 
+def handleValueError(ve, request):
+    if ve.args[0] == ERR_SELLER_WEIXIN_NOT_FULLY_SETUP:
+        messages.error(request, '这个卖单的卖家没有正确设置微信支付收款，请选择其他卖单')
+    elif ve.args[0] == ERR_SELLER_PAYPAL_NOT_FULLY_SETUP:
+        messages.error(request, '这个卖单的卖家没有正确设置PayPal支付收款，请选择其他卖单')
+    return show_active_sell_orders(request)
+
 @login_required
 def show_active_sell_orders(request):
     try:
@@ -50,6 +57,12 @@ def show_active_sell_orders(request):
 @login_required
 def show_purchase_input(request):
     try:
+        if request.method != 'POST':
+            error_msg = '购买页面不接受GET请求'
+            logger.error('show_purchase_input(): receive GET request from {0}'.format(get_client_ip(request)))
+            return errorpageview.show_error(request, ERR_CRITICAL_RECOVERABLE,
+                    '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
+
         username = request.user.username
         userid = request.user.id
         useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
@@ -66,10 +79,8 @@ def show_purchase_input(request):
 
         reference_order_id = request.POST["reference_order_id"]
         paypal_client_id = ''
-        seller_payment_methods = ordermanager.get_sell_order_payment_methods(reference_order_id)
-        for method in seller_payment_methods:
-            if method.client_id is not None and method.client_id != "":
-                paypal_client_id = method.client_id
+        sell_order_payment_method = ordermanager.get_and_update_sell_order_payment_methods(reference_order_id)
+        paypal_client_id = sell_order_payment_method.client_id if sell_order_payment_method and sell_order_payment_method.client_id eles ''
 
         owner_login = request.POST["owner_login"]
         unit_price = float(request.POST["locked_in_unit_price"])
@@ -78,8 +89,6 @@ def show_purchase_input(request):
         if 'quantity' in request.POST:
            total_units = float(request.POST['quantity'])
         available_units = float(request.POST["available_units_for_purchase"])
-        seller_payment_provider = request.POST["seller_payment_provider"]
-        seller_payment_provider_account = request.POST["seller_payment_provider_account"]
         order_currency = request.POST['sell_order_currency']
         
         owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id) if not seller_payment_provider else [
@@ -106,10 +115,11 @@ def show_purchase_input(request):
                 'reference_order_id': reference_order_id,
                 'available_units_for_purchase': available_units,
                 'paypal_clientId': paypal_client_id,
-                'owner_payment_methods': owner_payment_methods,
-                'buyer_payment_methods': useraccountInfo.paymentmethods,
+                'sell_order_payment_method': sell_order_payment_method,
                 'order_currency': order_currency}
                )
+    except ValueError as ve:
+        handleValueError(ve, request)
     except Exception as e:
        error_msg = '显示买单出现错误: {0}'.format(sys.exc_info()[0])
        logger.exception(e)

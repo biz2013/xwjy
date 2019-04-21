@@ -18,9 +18,13 @@ from trading.views.models.userexternalwalletaddrinfo import *
 
 logger = logging.getLogger('site.userpaymentmethodmanager')
 
+ERR_SELLER_WEIXIN_NOT_FULLY_SETUP = 'ERR_SELLER_WEIXIN_NOT_FULLY_SETUP'
+ERR_SELLER_PAYPAL_NOT_FULLY_SETUP = 'ERR_SELLER_PAYPAL_NOT_FULLY_SETUP'
+
 def get_payment_providers():
     return PaymentProvider.objects.all()
 
+        return None
 def get_user_payment_methods(userid):
     methods = UserPaymentMethod.objects.filter(user__id = userid)
     logger.info('get_user_payment_methods({0})'.format(userid))
@@ -34,16 +38,14 @@ def get_user_payment_methods(userid):
     return method_list
 
 def get_user_paypal_payment_method(userid):
-    methods = UserPaymentMethod.objects.filter(user__id = userid)
-    logger.info('get_user_paypal_payment_methods({0})'.format(userid))
-    for method in methods:
-        if method.provider.code == 'paypal':
-            record = UserPaymentMethodView(method.id, userid,
-                method.provider.code, method.provider.name,
-                method.account_at_provider, method.provider_qrcode_image,
-                method.client_id, method.client_secret)
-            return record
-    return None
+    try:
+        paypal = UserPaymentMethod.objects.get(user__id = userid, provider__code = PAYMENTMETHOD_PAYPAL)
+        return UserPaymentMethodView(paypal.id, userid,
+                paypal.provider.code, paypal.provider.name,
+                paypal.account_at_provider, paypal.provider_qrcode_image,
+                paypal.client_id, paypal.client_secret)
+    except UserPaymentMethod.DoesNotExist:
+        return None
 
 def create_update_user_payment_method(user_payment_method, operator):
     operatorObj = User.objects.get(username=operator)
