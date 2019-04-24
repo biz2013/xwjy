@@ -80,7 +80,7 @@ def show_purchase_input(request):
         reference_order_id = request.POST["reference_order_id"]
         paypal_client_id = ''
         sell_order_payment_method = ordermanager.get_and_update_sell_order_payment_methods(reference_order_id)
-        paypal_client_id = sell_order_payment_method.client_id if sell_order_payment_method and sell_order_payment_method.client_id eles ''
+        paypal_client_id = sell_order_payment_method.client_id if sell_order_payment_method and sell_order_payment_method.client_id else ''
 
         owner_login = request.POST["owner_login"]
         unit_price = float(request.POST["locked_in_unit_price"])

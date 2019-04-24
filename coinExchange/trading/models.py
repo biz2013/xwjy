@@ -84,7 +84,8 @@ class UserPaymentMethod(models.Model):
 # extra image used for each payment method, if applicable.  So not every
 # payment method need this.
 class UserPaymentMethodImage(models.Model):
-   IMAGE_TAG=(('WXSHOPASSTQRCODE', '小账本店员二维码'))
+   IMAGE_TAG=(('WXSHOPASSTQRCODE', '小账本店员二维码'),
+              ('OTHER','其他'))
    user_payment_method = models.ForeignKey('UserPaymentMethod', on_delete=models.CASCADE)
    image_tag = models.CharField(max_length=64, choices=IMAGE_TAG, null=False)
    qrcode = models.ImageField(upload_to='uploads/')
@@ -236,7 +237,7 @@ class Order(models.Model):
    account_at_selected_payment_provider = models.CharField(max_length=64, null=True)
 
    # payment provider picked by sell order and sell order only
-   seller_payment_method = models.ForeignKey('UserPaymentMethod'), on_delete=models.SET_NULL, null=True)
+   seller_payment_method = models.ForeignKey(UserPaymentMethod, on_delete=models.SET_NULL, null=True)
 
    order_type = models.CharField(max_length=32, choices=ORDER_TYPE)
    sub_type = models.CharField(max_length=32, default='OPEN', choices=SUBORDER_TYPE)

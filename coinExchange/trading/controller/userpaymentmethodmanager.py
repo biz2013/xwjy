@@ -24,7 +24,6 @@ ERR_SELLER_PAYPAL_NOT_FULLY_SETUP = 'ERR_SELLER_PAYPAL_NOT_FULLY_SETUP'
 def get_payment_providers():
     return PaymentProvider.objects.all()
 
-        return None
 def get_user_payment_methods(userid):
     methods = UserPaymentMethod.objects.filter(user__id = userid)
     logger.info('get_user_payment_methods({0})'.format(userid))

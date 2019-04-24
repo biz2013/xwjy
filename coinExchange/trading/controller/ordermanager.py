@@ -19,7 +19,7 @@ from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from trading.models import *
 from trading.controller.global_constants import *
 from trading.controller.userpaymentmethodmanager import *
-from trading.useraccountinfomanager import *
+from trading.controller.useraccountinfomanager import *
 from trading.views.models.orderitem import OrderItem
 from trading.views.models.userpaymentmethodview import *
 
@@ -60,15 +60,15 @@ def get_and_update_sell_order_payment_methods(sell_order_id):
             return UserPaymentMethod.objects.get(user__id=sell_order.user.id, 
                 provider__code=sell_order.selected_payment_provider.code)
         elif sell_order.unit_price_currency == 'CNY':
-            weixin, weixin_payment_image, weixin_shop_assistant_image = 
-                userpaymentmethodmanager.load_weixin_info(sell_order.user.id)
+            weixin, weixin_payment_image, weixin_shop_assistant_image = userpaymentmethodmanager.load_weixin_info(
+                sell_order.user.id)
             if not (weixin and weixin_payment_image and weixin_shop_assistant_image):
                 raise ValueError(ERR_SELLER_WEIXIN_NOT_FULLY_SETUP)
             sell_order.selected_payment_provider = weixin
             sell_order.account_at_selected_payment_provider = weixin.account_at_provider
             sell_order.save()
             return weixin
-        elif sell_order.unit_price_currency = 'CAD':
+        elif sell_order.unit_price_currency == 'CAD':
             paypal = userpaymentmethodmanager.get_user_paypal_payment_method(sell_order.user.id)
             if not (paypal and paypal.client_id and paypal.client_secret):
                 raise ValueError(ERR_SELLER_PAYPAL_NOT_FULLY_SETUP)
@@ -123,7 +123,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
     crypto = Cryptocurrency.objects.get(currency_code = order.crypto)
 
     try:
-        seller_payment_provider = UserPaymentMethod.objects.get(
+        seller_payment_method= UserPaymentMethod.objects.get(
                 user__id=order.owner_user_id, provider__code = order.selected_payment_provider)
     except UserPaymentMethod.DoesNotExist:
         logger.error('create_sell_order(): failed to find user payment provider code {0} for seller {1}:{2}'.format(
@@ -143,7 +143,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
 
             raise ValueError(ERR_CANNOT_FIND_SELLER_PAYMENT_ACCOUNT)
     logger.info('create_sell_order(): get seller {0}:{1}\'s payment account {2}:{3}'.format(
-        userobj.id, userobj.username, seller_payment_provider, seller_payment_account
+        userobj.id, userobj.username, seller_payment_method.provider.code, seller_payment_account
     ))
 
     frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
@@ -175,7 +175,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
                     api_user = api_user,
                     payment_provider = PaymentProvider.objects.get(code= api_redeem_request.payment_provider),
                     payment_account = api_redeem_request.payment_account,
-                    seller_payment_method = seller_payment_provider
+                    seller_payment_method = seller_payment_method,
                     action = api_redeem_request.method,
                     client_ip = api_redeem_request.client_ip,
                     subject = api_redeem_request.subject,

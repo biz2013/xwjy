@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from trading.models import Cryptocurrency,PaymentProvider,Order
+from trading.models import Cryptocurrency,PaymentProvider,Order, UserPaymentMethod
 
 # Create your models here.
 
@@ -61,7 +61,7 @@ class APIUserTransaction(models.Model):
     reference_bill_no = models.CharField(max_length=64, null=True)
     payment_account = models.CharField(max_length=32, null=True)
     # API seller pick payment method
-    seller_payment_method = models.ForeignKey('UserPaymentMethod'), on_delete=models.SET_NULL, null=True)
+    seller_payment_method = models.ForeignKey(UserPaymentMethod, on_delete=models.SET_NULL, null=True)
     action = models.CharField(max_length=32)
     client_ip = models.CharField(max_length=20, null=True)
     subject = models.CharField(max_length=256, default='')

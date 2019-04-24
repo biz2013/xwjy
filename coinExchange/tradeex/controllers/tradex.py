@@ -12,6 +12,7 @@ from trading.views.models.orderitem import *
 from trading.models import *
 from trading.controller import ordermanager, userpaymentmethodmanager
 from trading.controller.heepaymanager import *
+from trading.controller.global_constants import *
 
 
 import logging
@@ -59,14 +60,12 @@ class TradeExchangeManager(object):
                 api_call_order_id, sell_order_id))
             return False
 
-        if not seller_payment_method.qrcode and PAYMENT_API_STATUS[seller_payment_method.provider.code] == 'manual':
+        if not seller_payment_method.provider_qrcode_image and settings.PAYMENT_API_STATUS[seller_payment_method.provider.code] == 'manual':
             logger.warn('purchase_by_cash_amount(): [out_trade_no:{0}] sell order {1} has not setup payment qrcode for manual process, move to the next order'.format(
                 api_call_order_id, sell_order_id))
             return False
         
-        if buyer_payment_provider == seller_payment_method.provider.code or 
-           (buyer_payment_provider == PAYMENTMETHOD_HEEPAY and 
-            seller_payment_method.provider.code == PAYMENTMETHOD_WEIXIN):
+        if buyer_payment_provider == seller_payment_method.provider.code or (buyer_payment_provider == PAYMENTMETHOD_HEEPAY and seller_payment_method.provider.code == PAYMENTMETHOD_WEIXIN):
             return True
         
         logger.warn('purchase_by_cash_amount(): [out_trade_no:{0}] sell order {1} ask for {2} but buyer requested {3} as payment provider, move to the next order'.format(
@@ -75,7 +74,7 @@ class TradeExchangeManager(object):
         return False
 
     def create_manual_payment_url(self, api_user, api_trans_id, buy_order_id):
-        return '{0}?key={1}'.format(TRADESITE_PAYMENT_URLPREFIX, buy_order_id)
+        return '{0}?key={1}'.format(settings.TRADESITE_PAYMENT_URLPREFIX, buy_order_id)
 
     def get_order_owner_account_at_payment_provider(self, order, payment_provider, api_call_order_id):
         if order and order.account_at_selected_payment_provider and order.selected_payment_provider.code == payment_provider:
@@ -304,15 +303,14 @@ class TradeExchangeManager(object):
             seller_payment_account = ''
 
             seller_payment_method = None
-            seller_payment_method = sell_order.seller_payment_method if sell_order.seller_payment_method 
-                else userpaymentmethodmanager.get_weixin_paymentmethod(sell_order.user.id)
+            seller_payment_method = sell_order.seller_payment_method if sell_order.seller_payment_method else userpaymentmethodmanager.get_weixin_paymentmethod(sell_order.user.id)
             
             if not self.payment_method_is_match(seller_payment_method, buyer_payment_provider, 
                                                 api_call_order_id, sell_order.order_id):
                 continue
         
             # in case heepay api is working again... we need more logic
-            if buyer_payment_provider == PAYMENTMETHOD_HEEPAY and PAYMENT_API_STATUS[PAYMENTMETHOD_HEEPAY] = 'auto':
+            if buyer_payment_provider == PAYMENTMETHOD_HEEPAY and settings.PAYMENT_API_STATUS[PAYMENTMETHOD_HEEPAY] == 'auto':
                 seller_payment_account = seller_payment_method.account_at_payment_provider
                 seller_payment_provider = seller_payment_method.provider.code
             
@@ -347,7 +345,7 @@ class TradeExchangeManager(object):
             
             # This part is the legacy heepay call.  It will call heepay to create purchase order, extract
             # the payment url and return that to caller.
-            if request_obj.payment_provider == 'heepay' and PAYMENT_API_STATUS['heepay'] == 'auto':
+            if request_obj.payment_provider == 'heepay' and settings.PAYMENT_API_STATUS['heepay'] == 'auto':
                 final_response = create_response_based_on_heepay_call(buyerorder_id, request_obj, seller_payment_account, 
                     sitesettings, api_user,api_trans_id)
                 if final_response:
@@ -366,13 +364,13 @@ class TradeExchangeManager(object):
                 '', 
                 'SUCCESS',
                 '',
-                api_out_trade_no,
+                request_obj.out_trade_no,
                 api_trans_id,
-                subject = subject,
-                attach = attach,
+                subject = request_obj.subject,
+                attach = request_obj.attach,
                 total_fee = request_obj.total_fee,
                 payment_url = payment_url
-            )
+            ).to_json()
         
         if qualify_orders:
             logger.error("purchase_by_cash_amount(): [out_trade_no:{0}] None of the qualified sell order could be secured for purchase.".format(

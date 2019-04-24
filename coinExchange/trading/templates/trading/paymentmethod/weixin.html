@@ -7,7 +7,7 @@
         <div class="col-sm-4">
             <h3>设置微信支付</h3>
             <h4>1. 微信账户信息</h4>
-            <form id="frm_weixin_accountInfo" method="POST" action="{% url 'weixin_account_info' %}">
+            <form id="frm_weixin_accountInfo" method="POST" action="{% url 'weixin_account_info' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="hidden" id="id" name="id" value="{% if weixin %}{{ weixin.id }}{% endif %}" />
                 <input type="hidden" id="user" name="user" value="{% if user %}{{ user.id }}{% endif %}" />
@@ -34,13 +34,13 @@
                         </div>
                     </div>
                     <div id="div_id_qrcode" class="form-group">
-                        <label for="id_qrcode" class="control-label">付款二维码</label>
+                        <label for="id_provider_qrcode_image" class="control-label">付款二维码</label>
                         <div class="controls ">
-                            <input type="file" id="id_qrcode" class="filestyle" name="qrcode" />
+                            <input type="file" id="id_provider_qrcode_image" class="filestyle" name="provider_qrcode_image" />
                         </div>
                         <p>
-                        {% if weixin and weixin.qrcode %}
-                        <a href="# "><img src="{{ weixin.qrcode.url}} " width="64 " height="64 "></a>
+                        {% if weixin and weixin.provider_qrcode_image %}
+                        <a href="# "><img src="{{ weixin.provider_qrcode_image.url}} " width="64 " height="64 "></a>
                         {% endif %}
                         </p>
                     </div>
@@ -51,6 +51,7 @@
                 <button type="button" class="btn btn-default" id="btn_cancel">撤销</button>
             </div>
         </div>
+        {% if weixin_shop_assistant_image %}
         <div class="col-sm-4">
             <h4>2 添加店员二维码</h4>
             <div class="form-group ">

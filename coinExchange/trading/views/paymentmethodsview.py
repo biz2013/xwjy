@@ -69,7 +69,7 @@ def payment_method(request):
 def payment_method_to_Chinese(method):
     if method == PAYMENTMETHOD_WEIXIN:
         return '微信支付'
-    elif method = PAYMENTMETHOD_HEEPAY:
+    elif method == PAYMENTMETHOD_HEEPAY:
         return '汇钱包'
     elif method == PAYMENTMETHOD_ALIPAY:
         return '支付宝'
@@ -88,15 +88,14 @@ def show_payment_qrcode(request):
 
     try:
         order = Order.objects.get(order_id=buyorder_id)
-        payment_method = order.reference_order.seller_payment_method if order.reference_order.seller_payment_method 
-            else userpaymentmethodmanager.load_weixin_info(order.reference_order.user.id)
+        payment_method = order.reference_order.seller_payment_method if order.reference_order.seller_payment_method else userpaymentmethodmanager.load_weixin_info(order.reference_order.user.id)
         if not payment_method:
             logger.error('show_payment_qrcode(): Cannot find valid seller payment method for sell order {0} referenced by purchase order {1}'.format(
                 order.reference_order.order_id, order.order_id
             ))
             return HttpResponseServerError('对应卖单没有付款方式')
         
-        if not payment_method.qrcode:
+        if not payment_method.provider_qrcode_image:
             logger.error('show_payment_qrcode(): sell order {0} referenced by purchase order {1} does not have payment qrcode'.format(
                 order.reference_order.order_id, order.order_id
             ))
@@ -107,7 +106,8 @@ def show_payment_qrcode(request):
             {'payment_method': payment_method_to_Chinese(payment_method.provider.code),
              'total_amount': order.total_amount,
              'unit_price_currency': order.reference_order.unit_price_currency,
-             'order_units': order.units
+             'order_units': order.units,
+             'qrcode_url': payment_method.provider_qrcode_image.url
             }
         )
     except Order.DoesNotExist:

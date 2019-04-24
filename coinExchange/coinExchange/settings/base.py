@@ -235,7 +235,7 @@ HEEPAY_NOTIFY_HOST='www.uuvc.com'
 HEEPAY_NOTIFY_URL_FORMAT='http://{0}:{1}/trading/heepay/confirm_payment/'
 HEEPAY_RETURN_URL_FORMAT='https://{0}:{1}/trading/heepay/confirm_payment/'
 
-TRADESITE_PAYMENT_URLPREFIX="https://wwwu.uuvc.com/trading/paymenturl/"
+TRADESITE_PAYMENT_URLPREFIX="http://localhost:8000/trading/paymenturl/"
 
 # These are execution behavior code
 TEST_REAL_CALL = False
