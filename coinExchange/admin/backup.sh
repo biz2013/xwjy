@@ -33,6 +33,7 @@ SCHEMABACKUPFILE=schema_$LABEL.tgz
 LOGBACKUPFILE=logs_$LABEL.tgz
 CNYWALLETBACKUPFILE=cnycoin_$LABEL.tgz
 AXFUNDBACKUPFILE=axf_$LABEL.tgz
+UPLOADIMAGESBACKUPFILE=uploads_$LABEL.tgz
 
 echo "`date -u` will create data backup $BACKUPDATAFILE"
 echo "`date -u` will create schema backup $SCHEMABACKUPFILE"
@@ -53,6 +54,7 @@ AXFDATADIR=/home/ubuntu/.axf
 AXFWALLETBACKUP=axf_wallet_$LABEL.dat
 AXFSRC=/home/ubuntu/workspace/xwjy/smwy/src
 AWS=/home/ubuntu/.local/bin/aws
+UPLOADS=/var/www/coinexchange/media/uploads
 
 echo "`date -u` cd $WORKHOME"
 cd $WORKHOME
@@ -87,6 +89,10 @@ echo "`date -u` backup log files"
 echo "`date -u` /bin/tar cvzf $BACKUPDIR/$LOGBACKUPFILE /var/log/coinexchange/coinexchange*"
 /bin/tar cvzf $BACKUPDIR/$LOGBACKUPFILE /var/log/coinexchange/coinexchange*
 
+echo "`date -u` backup image files"
+echo "`date -u` /bin/tar cvzf $BACKUPDIR/$UPLOADIMAGESBACKUPFILE /var/www/coinexchange/media/uploads"
+/bin/tar cvzf $BACKUPDIR/$UPLOADIMAGESBACKUPFILE /var/www/coinexchange/media/uploads
+
 if [ -d "$CNYROOT/$CNYDIR" ]; then 
   echo "`date -u` backup cnywallet files"
   echo "`date -u` cd $CNYROOT"
@@ -106,6 +112,7 @@ else
    $AXFBIN --datadir=$AXFDATADIR backupwallet $AXFDATADIR/$AXFWALLETBACKUP
    mv $AXFDATADIR/$AXFWALLETBACKUP $BACKUPDIR/
 fi
+
 
 echo "`date -u` remove any backup that is 5 days old"
 echo "`date -u` cd $BACKUPROOT"
@@ -129,6 +136,8 @@ $AWS s3 cp $BACKUPDIR/$CNYWALLETBACKUP s3://elasticbeanstalk-us-west-2-551441213
 echo "`date -u` aws copy: $AWS s3 cp $BACKUPDIR/$LOGBACKUPFILE s3://elasticbeanstalk-us-west-2-551441213847/AXFundBackup/"
 $AWS s3 cp $BACKUPDIR/$LOGBACKUPFILE s3://elasticbeanstalk-us-west-2-551441213847/AXFundBackup/
 
+echo "`date -u` aws copy: $AWS s3 cp $BACKUPDIR/$UPLOADIMAGESBACKUPFILE s3://elasticbeanstalk-us-west-2-551441213847/AXFundBackup/"
+$AWS s3 cp $BACKUPDIR/$UPLOADIMAGESBACKUPFILE s3://elasticbeanstalk-us-west-2-551441213847/AXFundBackup/
 
 echo "`date -u` Done."
 
