@@ -1,0 +1,38 @@
+[
+   {
+     "model": "trading.paymentprovider",
+     "pk": "weixin",
+     "fields" : {
+       "name" : "微信支付",
+       "config_json" : "",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by" : 1
+     }
+   },
+   {
+     "model": "trading.paymentprovider",
+     "pk": "alipay",
+     "fields" : {
+       "name" : "支付宝",
+       "config_json" : "",
+       "created_at": "2017-12-17T21:14:00+08:00",
+       "lastupdated_at": "2017-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by" : 1
+     }
+   },
+  {
+     "model": "trading.paymentprovider",
+     "pk": "paypal",
+     "fields" : {
+       "name" : "PayPal支付",
+       "config_json" : "{}",
+       "created_at": "2019-12-17T21:14:00+08:00",
+       "lastupdated_at": "2019-12-17T21:14:00+08:00",
+       "created_by": 1,
+       "lastupdated_by" : 1
+     }
+   }
+]

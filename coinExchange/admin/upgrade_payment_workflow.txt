@@ -7,4 +7,5 @@ Upgrade instruction for new payment workflow:
 1. Stop site
 2. Manually dumpdata.
 3. Run migration
+3.1 add new payment provider
 4. Start site
