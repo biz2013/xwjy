@@ -89,6 +89,7 @@ class TestAPICall(TestCase):
         print('reply is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
 
     def test_user_api_call(self):
+        pass
         request = TradeAPIRequest(
                 API_METHOD_PURCHASE,
                 'L2CLMSBYJAPF0HX0PY4VIW0XFPCNT6Y8', '6521126bd7b0907aa2671c547db671f0',

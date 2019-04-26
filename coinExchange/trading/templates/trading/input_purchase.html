@@ -2,140 +2,281 @@
 <html lang="en-us">
 
 <head>
-  {% include 'include/common_header.html' %}
-  <script language="JavaScript">
-  function submit_order() {
-    units = $("#id_quantity").val();
-    if (isNaN(units)) {
-        $("#div_id_error").text("您输入的购买数量不正确");
-        return;
-    }
+    {% include 'include/common_header.html' %}
 
-    units_val = parseFloat(units);
-    if (units_val < 0.00000001) {
-      $("#div_id_error").text("请输入购买数量");
-      return;
-    }
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <script
+            src="https://www.paypal.com/sdk/js?client-id={{ paypal_clientId }}&currency=CAD&disable-funding=credit,card&debug=true">
+    </script>
+    <script language="JavaScript">
 
-    available_units = parseFloat($("#id_available_units").val())
-    if (available_units < units_val) {
-      $("#div_id_error").text("您的购买数量不可以超过" + available_units.toFixed(2));
-      return;
-    }
+      function verify_userinput() {
+        var units = $("#id_quantity").val();
+        if (isNaN(units)) {
+          $("#div_id_error").text("您输入的购买数量不正确");
+          return false;
+        }
 
-    if (available_units - units_val > 0.00000001 && $("#id_order_sub_type") == "ALL_OR_NOTHING") {
-      $("#div_id_error").text("卖方要求买方一次性全部购买，请提高购买数量");
-      return;
-    }
-    unit_price = parseFloat($("#id_unit_price").val());
-    total_amount = (units_val * unit_price).toFixed(2);
-    $("#id_total_amount").val(total_amount);
+        var units_val = parseFloat(units);
+        if (units_val < 0.00000001) {
+          $("#div_id_error").text("请输入购买数量");
+          return false;
+        }
 
-    if (total_amount < 0.01) {
-      $("#div_id_error").text("您的总金额小于一分钱，请提高购买数量");
-      return;
-    }
+        var available_units = parseFloat($("#id_available_units").val())
+        if (available_units < units_val) {
+          $("#div_id_error").text("您的购买数量不可以超过" + available_units.toFixed(2));
+          return false;
+        }
 
-    var provider = $("#id_seller_payment_method").val();
-    if (provider.length==0){
-      $("#div_id_error").text("请选择付款方式");
-      return;
-    }
+        if (available_units - units_val > 0.00000001 && $("#id_order_sub_type") == "ALL_OR_NOTHING") {
+          $("#div_id_error").text("卖方要求买方一次性全部购买，请提高购买数量");
+          return false;
+        }
 
-    $("#create_purchase").submit();
-  }
-  function show_total_cost(units, price) {
-    if ($("#id_order_sub_type") == "ALL_OR_NOTHING") {
-      $("#id_quantity").val($("#id_available_units").val());
-    }
-    if (!isNaN(units) && !isNaN(price)) {
-      var amount = parseFloat(units * price).toFixed(2);
-      $("#total_cost").text(amount);
-      $("#id_total_amount").val(amount);
-    }
-  }
+        var unit_price = parseFloat($("#id_unit_price").val());
+        var total_amount = (units_val * unit_price).toFixed(2);
+        $("#id_total_amount").val(total_amount);
 
-  function goback() {
-    window.location.href = '/trading/purchase/';
-  }
-  </script>
+        if (total_amount < 0.01) {
+          $("#div_id_error").text("您的总金额小于一分钱，请提高购买数量");
+          return false;
+        }
+
+        var provider = $("#id_seller_payment_method").val();
+        if (provider.length == 0) {
+          $("#div_id_error").text("请选择付款方式");
+          return false;
+        }
+
+        return true;
+      }
+
+      function submit_order() {
+        units = $("#id_quantity").val();
+        if (isNaN(units)) {
+          $("#div_id_error").text("您输入的购买数量不正确");
+          return;
+        }
+
+        units_val = parseFloat(units);
+        if (units_val < 0.00000001) {
+          $("#div_id_error").text("请输入购买数量");
+          return;
+        }
+
+        available_units = parseFloat($("#id_available_units").val())
+        if (available_units < units_val) {
+          $("#div_id_error").text("您的购买数量不可以超过" + available_units.toFixed(2));
+          return;
+        }
+
+        if (available_units - units_val > 0.00000001 && $("#id_order_sub_type") == "ALL_OR_NOTHING") {
+          $("#div_id_error").text("卖方要求买方一次性全部购买，请提高购买数量");
+          return;
+        }
+        unit_price = parseFloat($("#id_unit_price").val());
+        total_amount = (units_val * unit_price).toFixed(2);
+        $("#id_total_amount").val(total_amount);
+
+        if (total_amount < 0.01) {
+          $("#div_id_error").text("您的总金额小于一分钱，请提高购买数量");
+          return;
+        }
+
+        var provider = $("#id_seller_payment_method").val();
+        if (provider.length == 0) {
+          $("#div_id_error").text("请选择付款方式");
+          return;
+        }
+
+        $("#create_purchase").submit();
+      }
+
+      function show_total_cost(units, price) {
+        if ($("#id_order_sub_type") == "ALL_OR_NOTHING") {
+          $("#id_quantity").val($("#id_available_units").val());
+        }
+        if (!isNaN(units) && !isNaN(price)) {
+          var amount = parseFloat(units * price).toFixed(2);
+          $("#total_cost").text(amount);
+          $("#id_total_amount").val(amount);
+        }
+      }
+
+      function throw_if_fetch_error(response) {
+        if (!response.ok) {
+            throw Error(response.statusText);
+        }
+        return response;
+      }
+
+      function goback() {
+        window.location.href = '/trading/purchase/';
+      }
+
+      paypal.Buttons({
+        createOrder: function (data, actions) {
+
+          if (!verify_userinput()) {
+            return;
+          }
+
+          var units = $("#id_quantity").val();
+          var units_val = parseFloat(units);
+          var unit_price = parseFloat($("#id_unit_price").val());
+          var total_amount = (units_val * unit_price).toFixed(2);
+
+          var data = new FormData();
+          data.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+          data.append('reference_order_id', '{{ reference_order_id }}');
+          data.append('quantity', units);
+          data.append('unit_price', {{ buyorder.unit_price }});
+
+          {# TODO: read payment_provider from user selection #}
+          {# data.append('seller_payment_provider', {{ buyorder.selected_payment_provider }})#}
+          data.append('seller_payment_provider', 'paypal');
+
+          {# TODO: Check currency #}
+          data.append('unit_price_currency', 'CAD');
+          data.append('crypto', '{{ buyorder.crypto }}');
+          data.append('total_amount', total_amount);
+
+          return fetch('/trading/purchase/create_paypal_order/', {
+            method: 'POST',
+            body: data,
+            credentials: 'same-origin',
+          }).then(function(res) {
+            return throw_if_fetch_error(res)
+          }).then(function(res) {
+              return res.json();
+          }).then(function(data) {
+              return data.orderID;
+          }).catch(error => {
+            console.log(error);
+            alert("无法生成 PayPal支付， 请稍后再试")
+          });
+        },
+
+        onApprove: function (data, actions) {
+          return actions.order.capture().then(function (details) {
+            return fetch('/trading/paypal/confirm_payment/', {
+              method: 'post',
+              body: JSON.stringify({
+                orderID: data.orderID,
+                details: details,
+                buy_order_id: details.purchase_units[0].reference_id,
+                amount: details.purchase_units[0].amount
+              }),
+            }).then(function(res) {
+              return throw_if_fetch_error(res)
+            }).then(function(data) {
+              alert("支付成功！")
+            }).catch(error => {
+              console.log(error);
+              alert("无法确认 PayPal支付是否成功，请稍后查看")
+            });
+          });
+        },
+
+        style: {
+          layout: 'vertical',
+          color: 'gold',
+          shape: 'rect',
+          label: 'paypal',
+          tagline: false
+        }
+      }).render('#paypal-button-container');
+    </script>
 </head>
 
 <body>
-  <!-- menu section -->
-  {% include "include/topmenu.html" %}
-  <!-- body section -->
-  {% load mathfilters %}
-  <div class="container">
+<!-- menu section -->
+{% include "include/topmenu.html" %}
+<!-- body section -->
+{% load mathfilters %}
+<div class="container">
     <div class="well">
-      <div class="row">
-        <div class="offset2 col-md-6">
-            <h3>购买美基金</h3>
-          <div id="input_purchase">
-            {% if messages %}
-               {% for message in messages %}
-            {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
-            <div id="div_message" class="text-danger">{{ message }}</div>
-            {% else %}
-            <div id="div_message" class="text-success">{{ message }}</div>
-            {% endif %}
-               {% endfor %}
-            {% endif %}
-             <form id="create_purchase" tabindex="-1" role="dialog" action="/trading/purchase/createorder2/" method="post">
-               {% csrf_token %}
-               <input type="hidden" id="id_available_units" name="available_units" value = "{{ available_units_for_purchase }}"/>
-               <input type="hidden" name="owner_user_id" value="{{ owner_user_id }}"/>
-               <input type="hidden" name="reference_order_id" value="{{ reference_order_id }}"/>
-               <input type="hidden" id="id_unit_price" name="unit_price" value="{{ buyorder.unit_price }}" />
-               <input type="hidden" name="crypto" value="AXFund"/>
-               <input type="hidden" name="order_sub_type" id="id_order_sub_type" value="{{ buyorder.sub_type }}"/>
-               <input type="hidden" name="seller_payment_provider" value="{{ buyorder.selected_payment_provider }}"/>
-               <input type="hidden" name="seller_payment_provider_account" value="{{ buyorder.account_at_selected_payment_provider }}"/>
-               <input type="hidden" id="id_total_amount" name="total_amount" value="{% if buyorder.total_units > 0 %}{{ buyorder.total_units }}{% endif %}"/>
-               <div class="form_group">
-                 <div id="div_id_error" class="text-danger"></div>
-                 <table class="table">
-                   <tr>
-                     <th>购买上限</th>
-                     <th>锁定价格(CNY)</th>
-                     <th>总额</th>
-                   </tr>
-                   <tr>
-                     <td>{{ available_units_for_purchase }}</td>
-                     <td>{{ buyorder.unit_price }}</td>
-                     <td><div id="total_cost"></div></td>
-                   </tr>
-                 </table>
-               </div>
-               <div id="div_id_quantity" class="form-group"> <label for="id_quantity" class="control-label">购买数量</label><span class="asteriskField">*</span>
-                 <div class="controls "> <input class="textinput textInput form-control" id="id_quantity" maxlength="10" name="quantity" type="text" {% if buyorder.sub_type == "ALL_OR_NOTHING" %}value="{{ available_units_for_purchase }}"{%endif%}onkeyup="show_total_cost(this.value, {{ buyorder.unit_price }})" /> </div>
+        <div class="row">
+            <div class="offset2 col-md-6">
+                <h3>购买美基金</h3>
+                <div id="input_purchase">
+                    {% if messages %}
+                        {% for message in messages %}
+                            {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+                                <div id="div_message" class="text-danger">{{ message }}</div>
+                            {% else %}
+                                <div id="div_message" class="text-success">{{ message }}</div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                    <form id="create_purchase" tabindex="-1" role="dialog" action="/trading/purchase/createorder2/"
+                          method="post">
+                        {% csrf_token %}
+                        <input type="hidden" id="id_available_units" name="available_units"
+                               value="{{ available_units_for_purchase }}"/>
+                        <input type="hidden" name="owner_user_id" value="{{ owner_user_id }}"/>
+                        <input type="hidden" name="reference_order_id" value="{{ reference_order_id }}"/>
+                        <input type="hidden" id="id_unit_price" name="unit_price" value="{{ buyorder.unit_price }}"/>
+                        <input type="hidden" id="id_order_currency" name="order_currency" value="{{ order_currency }}"/>
+                        <input type="hidden" name="crypto" value="AXFund"/>
+                        <input type="hidden" name="order_sub_type" id="id_order_sub_type"
+                               value="{{ buyorder.sub_type }}"/>
+                        <input type="hidden" name="seller_payment_provider"
+                               value="{{ buyorder.selected_payment_provider }}"/>
+                        <input type="hidden" name="seller_payment_provider_account"
+                               value="{{ buyorder.account_at_payment_provider }}"/>
+                        <input type="hidden" id="id_total_amount" name="total_amount"
+                               value="{% if buyorder.total_units > 0 %}{{ buyorder.total_units }}{% endif %}"/>
+                        <div class="form_group">
+                            <div id="div_id_error" class="text-danger"></div>
+                            <table class="table">
+                                <tr>
+                                    <th>购买上限</th>
+                                    <th>锁定价格</th>
+                                    <th>总额</th>
+                                </tr>
+                                <tr>
+                                    <td>{{ available_units_for_purchase }}</td>
+                                    <td>{{ buyorder.unit_price }} ({{ order_currency }})</td>
+                                    <td>
+                                        <div id="total_cost"></div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div id="div_id_quantity" class="form-group"><label for="id_quantity"
+                                                                            class="control-label">购买数量</label><span
+                                class="asteriskField">*</span>
+                            <div class="controls "><input class="textinput textInput form-control" id="id_quantity"
+                                                          maxlength="10" name="quantity" type="text"
+                                                          {% if buyorder.sub_type == "ALL_OR_NOTHING" %}value="{{ available_units_for_purchase }}"{% endif %}onkeyup="show_total_cost(this.value, {{ buyorder.unit_price }})"/>
+                            </div>
+                        </div>
+                        {% if buyorder.sub_type == "ALL_OR_NOTHING" %}
+                            <div class="controls"><label for="id_all_or_nothing" class="control-label">卖方要求全部购买</label>
+                            </div>
+                        {% endif %}
+                        {% if buyorder.selected_payment_provider == 'weixin' %}
+                        <div id="div_id_payment_method" class="form-group">
+                          <label class="control-label">付款方式</label>
+                          <img src="/static/img/weixinpayicon.png" width="64" height="64" />
+                        </div>
+                        <div class="form-group">
+                            <button type="button" class="btn btn-primary" onclick="submit_order()">购买</button>
+                            <button type="button" class="btn btn-default" onclick="goback()">撤销</button>
+                        </div>
+                        {% elif buyorder.selected_payment_provider == 'paypal' %}
+                        <div id="paypal-button-container"></div>
+                        {% endif %}
+                    </form>
                 </div>
-                {% if buyorder.sub_type == "ALL_OR_NOTHING" %}
-                 <div class="controls"><label for="id_all_or_nothing" class="control-label">卖方要求全部购买</label></div>
-                {% endif %}
-                 <div id="div_id_payment_method" class="form-group"> <label for="lbl_id_payment_method" class="control-label">付款方式</label><span class="asteriskField">*</span>
-                   <!--<div class="controls "> <select class="select select-input form-control" id="id_payment_method" onchange="javascript: $('#img_payment_qrcode').attr('src',this.value);">-->
-                   <div class="controls "> <select class="select select-input form-control" id="id_seller_payment_method" name="seller_payment_provider">
-                       <option value="">请选择付款方式</option>
-                       {% for payment_method in owner_payment_methods %}
-                       {% if payment_method.provider_code == 'heepay' %}
-                       <option value="{{ payment_method.provider_code }}">{{ payment_method.provider_name }}</option>
-                       {% endif %}
-                       {% endfor %}
-                     </select>
-                   </div>
-                 </div>
-                <div class="form-group">
-                   <button type="button" class="btn btn-primary" onclick="submit_order()">购买</button>
-                   <button type="button" class="btn btn-default" onclick="goback()">撤销</button>
-                </div>
-           </form>
-          </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
-  <!-- footer section-->
-  {% include 'include/footer.html' %}
+</div>
+<!-- footer section-->
+{% include 'include/footer.html' %}
 </body>
 </html>

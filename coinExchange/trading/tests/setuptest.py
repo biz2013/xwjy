@@ -29,7 +29,7 @@ def setup_test():
     seller = User.objects.get(username='taozhang')
     # prepare seller payment method
     seller_paymentmethod = UserPaymentMethodView(0, seller.id,
-       'heepay', '汇钱包', '15811302702', '')
+       'heepay', '汇钱包', '15811302702', '', '', '')
     userpaymentmethodmanager.create_update_user_payment_method(
            seller_paymentmethod, 'taozhang')
 
@@ -40,7 +40,7 @@ def setup_test():
     buyer = User.objects.get(username='yingzhou')
     # prepare buyer payment method
     buyer_paymentmethod = UserPaymentMethodView(0, buyer.id,
-       'heepay', '汇钱包', '13641388306', '')
+       'heepay', '汇钱包', '13641388306', '', '','')
     userpaymentmethodmanager.create_update_user_payment_method(
            buyer_paymentmethod, 'yingzhou')
 
@@ -53,7 +53,7 @@ def setup_test():
     seller = User.objects.get(username='taozhang2')
     # prepare seller payment method
     seller_paymentmethod = UserPaymentMethodView(0, seller.id,
-       'heepay', '汇钱包', '15811302701', '')
+       'heepay', '汇钱包', '15811302701', '', '','')
     userpaymentmethodmanager.create_update_user_payment_method(
            seller_paymentmethod, 'taozhang2')
 
@@ -64,6 +64,6 @@ def setup_test():
     buyer = User.objects.get(username='yingzhou2')
     # prepare buyer payment method
     buyer_paymentmethod = UserPaymentMethodView(0, buyer.id,
-       'heepay', '汇钱包', '13641388305', '')
+       'heepay', '汇钱包', '13641388305', '','','')
     userpaymentmethodmanager.create_update_user_payment_method(
            buyer_paymentmethod, 'yingzhou2')

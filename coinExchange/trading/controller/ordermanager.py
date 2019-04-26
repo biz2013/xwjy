@@ -18,6 +18,8 @@ from tradeex.utils import *
 from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from trading.models import *
 from trading.controller.global_constants import *
+from trading.controller.userpaymentmethodmanager import *
+from trading.controller.useraccountinfomanager import *
 from trading.views.models.orderitem import OrderItem
 from trading.views.models.userpaymentmethodview import *
 
@@ -43,6 +45,37 @@ def sell_order_to_str(sell_order):
 
 def get_user_payment_account(user_id, payment_provider_code):
     return UserPaymentMethod.objects.filter(user__id=user_id).filter(provider__code=payment_provider_code)
+
+# Now we expect each sell order has its selected payment method, the legacy
+# code does not have it.  So we want to do update here to update the data.
+# If sell order is for CNY and seller has weixin fully setup, this function 
+# will set selected payment provider to weixin.  If the order is for CAD and 
+# seller has paypal setup, we will set payment provider to paypal.  If somehow 
+# seller does not have weixin or paypal fully setup we actually will raise 
+# value error as this is bad data and indicate bug when sell order was created
+def get_and_update_sell_order_payment_methods(sell_order_id):
+    with transaction.atomic():
+        sell_order = Order.objects.selected_for_update().get(pk=sell_order_id)
+        if sell_order.selected_payment_provider and sell_order.account_at_selected_payment_provider:
+            return UserPaymentMethod.objects.get(user__id=sell_order.user.id, 
+                provider__code=sell_order.selected_payment_provider.code)
+        elif sell_order.unit_price_currency == 'CNY':
+            weixin, weixin_payment_image, weixin_shop_assistant_image = userpaymentmethodmanager.load_weixin_info(
+                sell_order.user.id)
+            if not (weixin and weixin_payment_image and weixin_shop_assistant_image):
+                raise ValueError(ERR_SELLER_WEIXIN_NOT_FULLY_SETUP)
+            sell_order.selected_payment_provider = weixin
+            sell_order.account_at_selected_payment_provider = weixin.account_at_provider
+            sell_order.save()
+            return weixin
+        elif sell_order.unit_price_currency == 'CAD':
+            paypal = userpaymentmethodmanager.get_user_paypal_payment_method(sell_order.user.id)
+            if not (paypal and paypal.client_id and paypal.client_secret):
+                raise ValueError(ERR_SELLER_PAYPAL_NOT_FULLY_SETUP)
+            sell_order.selected_payment_provider = paypal
+            sell_order.account_at_selected_payment_provider = paypal.account_at_provider
+            sell_order.save()
+            return paypal
 
 def get_seller_buyer_payment_accounts(buyorder_id, payment_provider):
     buyorder = Order.objects.get(pk=buyorder_id)
@@ -90,11 +123,11 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
     crypto = Cryptocurrency.objects.get(currency_code = order.crypto)
 
     try:
-        payment_provider_code = order.selected_payment_provider if order.selected_payment_provider else settings.SUPPORTED_API_PAYMENT_PROVIDERS[0]
-        seller_payment_provider = PaymentProvider.objects.get(pk=payment_provider_code)
-    except:
+        seller_payment_method= UserPaymentMethod.objects.get(
+                user__id=order.owner_user_id, provider__code = order.selected_payment_provider)
+    except UserPaymentMethod.DoesNotExist:
         logger.error('create_sell_order(): failed to find user payment provider code {0} for seller {1}:{2}'.format(
-                payment_provider_code, userobj.id, userobj.username
+                order.selected_payment_provider, userobj.id, userobj.username
         ))
         raise ValueError(ERR_CANNOT_FIND_SELLER_PAYMENT_PROVIDER)
 
@@ -110,7 +143,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
 
             raise ValueError(ERR_CANNOT_FIND_SELLER_PAYMENT_ACCOUNT)
     logger.info('create_sell_order(): get seller {0}:{1}\'s payment account {2}:{3}'.format(
-        userobj.id, userobj.username, seller_payment_provider, seller_payment_account
+        userobj.id, userobj.username, seller_payment_method.provider.code, seller_payment_account
     ))
 
     frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
@@ -142,6 +175,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
                     api_user = api_user,
                     payment_provider = PaymentProvider.objects.get(code= api_redeem_request.payment_provider),
                     payment_account = api_redeem_request.payment_account,
+                    seller_payment_method = seller_payment_method,
                     action = api_redeem_request.method,
                     client_ip = api_redeem_request.client_ip,
                     subject = api_redeem_request.subject,
@@ -202,8 +236,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
            order_type= order.order_type,
            sub_type = order.sub_type,
            order_source = order.order_source,
-           selected_payment_provider = seller_payment_provider,
-           account_at_selected_payment_provider = seller_payment_account,
+           seller_payment_method = seller_payment_method,
            units = order.total_units,
            unit_price = order.unit_price,
            unit_price_currency = order.unit_price_currency,
@@ -365,47 +398,44 @@ def get_all_open_seller_order_exclude_user(user_id):
                                 order.cryptocurrency.currency_code,
                                 order.lastupdated_at, order.status, order.order_type,
                                 sub_type= order.sub_type,
-                                selected_payment_provider=order.selected_payment_provider,
+                                selected_payment_provider=order.selected_payment_provider.code if order.selected_payment_provider else None,
                                 account_at_payment_provider=order.account_at_selected_payment_provider,
                                 order_source = order.order_source))
     return orders
 
-def get_sell_transactions_by_user(userid):
+# called by mysellorderview to get all the buy order and sell order of a user
+def get_orders_by_user(userid):
     sell_orders = Order.objects.filter(Q(order_type='SELL'),
             Q(user__id=userid),
             Q(status='OPEN') | Q(status='PARTIALFILLED') | Q(status='LOCKED')).order_by('-lastupdated_at')
     buyorders = Order.objects.filter(Q(order_type='BUY'),
         Q(reference_order__user__id=userid),
         Q(status='PAYING')| Q(status='PAID')).order_by('-lastupdated_at')
-    order_lookup = {}
+    sell_order_list = []
     for order in sell_orders:
-        order_lookup[order.order_id] = []
+        order_item = OrderItem(order.order_id, order.user.id, order.user.username,
+                                order.unit_price, order.unit_price_currency,
+                                order.units, order.units_available_to_trade,
+                                order.total_amount,
+                                order.cryptocurrency.currency_code,
+                                order.lastupdated_at, order.status, order.order_type,
+                                order.sub_type, 
+                                order.seller_payment_method.provider.code if order.seller_payment_method else order.selected_payment_provider,
+                                order.seller_payment_method.account_at_provider if order.seller_payment_method else order.account_at_selected_payment_provider,
+                                order.order_source)
+        sell_order_list.append(order_item)
+
+    buy_order_list = []
+    for order in buyorders:
         order_item = OrderItem(order.order_id, order.user.id, order.user.username,
                                 order.unit_price, order.unit_price_currency,
                                 order.units, order.units_available_to_trade,
                                 order.total_amount,
                                 order.cryptocurrency.currency_code,
                                 order.lastupdated_at, order.status, order.order_type)
-        order_lookup[order.order_id].append(order_item)
+        buy_order_list.append(order_item)
 
-    for order in buyorders:
-        if order.reference_order.order_id in order_lookup:
-            order_lookup[order.reference_order.order_id].append(OrderItem(order.order_id, order.user.id, order.user.username,
-                                    order.unit_price, order.unit_price_currency,
-                                    order.units, order.units_available_to_trade,
-                                    order.total_amount,
-                                    order.cryptocurrency.currency_code,
-                                    order.lastupdated_at, order.status, order.order_type))
-        else:
-            logger.error('Could not find purchase order {0}\'s sell order {1} in user {2}\'s sell order list'.format(
-               order.order_id, order.reference_order.order_id, userid
-            ))
-    order_list = []
-    for order in sell_orders:
-        for entry in order_lookup[order.order_id]:
-            order_list.append(entry)
-
-    return order_list
+    return sell_order_list, buy_order_list
 
 def get_user_payment_methods(user_id):
     userpayments = UserPaymentMethod.objects.filter(user__id=user_id)
@@ -418,21 +448,10 @@ def get_user_payment_methods(user_id):
                 method.provider_qrcode_image))
     return payment_methods
 
-def get_sellorder_seller_payment_methods(sell_order_id):
-    order = Order.objects.get(pk=sell_order_id)
-    userpayments = UserPaymentMethod.objects.filter(user__id=order.user.id)
-    payment_methods= []
-    if userpayments is not None:
-       for method in userpayments:
-          payment_methods.append(UserPaymentMethodView(method.id, method.provider.code,
-                method.provider.name,method.account_at_provider,
-                method.provider_qrcode_image))
-    return payment_methods
-
 def create_purchase_order(buyorder, reference_order_id,
          seller_payment_provider, operator, 
          api_user = None,  api_purchase_request = None,
-         api_trans_id = None):
+         api_trans_id = None, ):
 
     selected_payment_provider = None
     try:
@@ -443,7 +462,11 @@ def create_purchase_order(buyorder, reference_order_id,
         ))
         raise ValueError(ERR_CANNOT_FIND_BUYER_PAYMENT_PROVIDER)
 
+    # for now we assume buyer payment account is not consider if seller does not use heepay
     buyer_payment_account = api_purchase_request.payment_account if api_purchase_request else None
+    if buyer_payment_account and seller_payment_provider != 'heepay':
+        buyer_payment_account = None
+
     frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
     buyorder.order_id = frmt_date
     is_api_call = api_user and api_purchase_request and api_trans_id
@@ -560,7 +583,7 @@ def create_purchase_order(buyorder, reference_order_id,
                 api_user = api_user,
                 payment_provider = PaymentProvider.objects.get(pk= api_purchase_request.payment_provider),
                 reference_order = order,
-                payment_account = api_purchase_request.payment_account,
+                payment_account = buyer_payment_account,
                 action = api_purchase_request.method,
                 client_ip = api_purchase_request.client_ip,
                 subject = api_purchase_request.subject,
@@ -622,17 +645,29 @@ def lock_trans_of_purchase_order(orderid, bill_no):
     except UserWalletTransaction.MultipleObjectsReturned:
         raise ValueError("lock_trans_of_purchase_order(): There should be just one wallet transaction for purchase order {0} with bill_no {1}".format(orderid, bill_no))
 
+# Update
+def update_purchase_order_payment_transaction(buy_order_id, tran_payment_status, message, external_transaction_id = 'None'):
+    with transaction.atomic():
+        external_transaction = UserWalletTransaction.objects.select_for_update().get(
+            reference_order__order_id=buy_order_id,
+            transaction_type='OPEN BUY ORDER')
+
+        if external_transaction_id != 'None':
+            external_transaction.payment_bill_no = external_transaction_id
+
+        update_purchase_transaction(external_transaction, tran_payment_status, message)
+
 def update_purchase_transaction(purchase_trans, trade_status, trade_msg):
     normal_status = [ TRADE_STATUS_NOTSTARTED, TRADE_STATUS_PAYSUCCESS, 
-          TRADE_STATUS_INPROGRESS, TRADE_STATUS_UNKNOWN]
+          TRADE_STATUS_INPROGRESS, TRADE_STATUS_UNKNOWN, TRADE_STATUS_CREADED, TRADE_STATUS_SUCCESS]
 
     bad_status = [ TRADE_STATUS_EXPIREDINVALID, TRADE_STATUS_USERABANDON, 
         TRADE_STATUS_DEVCLOSE, TRADE_STATUS_FAILURE]
 
     if trade_status in normal_status:
-        purchase_trans.payment_status = normal_status[trade_status]
+        purchase_trans.payment_status = trade_status.upper()
     elif trade_status in bad_status:
-        purchase_trans.payment_status = bad_status[trade_status]
+        purchase_trans.payment_status = trade_status.upper()
         purchase_trans.comment = trade_msg
         buyorder = purchase_trans.reference_order
         buyorder.status = 'FAILED'
@@ -759,7 +794,14 @@ def lock_paid_trans_of_purchase_order(order_id):
               reference_order__order_id = order_id, payment_status = 'SUCCESS',
               status='PROCESSED')
         except UserWalletTransaction.DoesNotExist:
-             raise ValueError('Somehow there\'s no payment success transaction record regarding purchase order {0}'.format(order_id))
+            try:
+                return UserWalletTransaction.objects.select_for_update().get(
+                reference_order__order_id = order_id, payment_status = 'UNKNOWN',
+                status='PENDING')
+            except UserWalletTransaction.DoesNotExist:
+                raise ValueError('Somehow there\'s no payment success transaction record regarding purchase order {0}'.format(order_id))
+            except UserWalletTransaction.MultipleObjectsReturned:
+                raise ValueError('There should be no more than one PENDING UNKNOWN payment transaction for the purchase order {0}'.format(order_id))
         except UserWalletTransaction.MultipleObjectsReturned:
             raise ValueError('There should be no more than one PROCESSED successful payment transaction for the purchase order {0}'.format(order_id))
     except UserWalletTransaction.MultipleObjectsReturned:
@@ -837,7 +879,7 @@ def confirm_purchase_order(order_id, operator):
 
         sell_order.units_locked = round(sell_order.units_locked - buyorder.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL)
         sell_order.status = 'PARTIALFILLED'
-        if sell_order.units_available_to_trade < MIN_CRYPTOCURRENCY_UNITS:
+        if sell_order.units_available_to_trade - MIN_CRYPTOCURRENCY_UNITS <= 0:
             sell_order.status == 'FILLED'
         sell_order.lastupdated_by = operatorObj
         sell_order.save()
@@ -850,12 +892,14 @@ def confirm_purchase_order(order_id, operator):
              user_id = buyorder.user.id,
              wallet__cryptocurrency = purchase_trans.user_wallet.wallet.cryptocurrency)
 
+        new_payment_status = 'MANUALCONFIRMED' if purchase_trans.payment_status == 'UNKNOWN' else purchase_trans.payment_statu
         purchase_trans.balance_begin = buyer_user_wallet.balance
         purchase_trans.balance_end = buyer_user_wallet.balance + buyorder.units
         purchase_trans.locked_balance_begin = buyer_user_wallet.locked_balance
         purchase_trans.locked_balance_end = buyer_user_wallet.locked_balance
         purchase_trans.available_to_trade_begin = buyer_user_wallet.available_balance
         purchase_trans.available_to_trade_end = buyer_user_wallet.available_balance + buyorder.units
+        purchase_trans.payment_status = new_payment_status
         purchase_trans.status = 'PROCESSED'
         purchase_trans.lastupdated_by = operatorObj
 
@@ -970,7 +1014,11 @@ def cancel_sell_order(userid, order_id, crypto, operator):
         user_wallet.lastupdated_by = operatorObj
         user_wallet.save()
 
-def post_open_payment_order(buyorder_id, payment_provider, bill_no, hy_url, username):
+# After creating buy order, our system will try to create purchase order in payment provider
+# no matter whether that is doable, now call this routine to make sure that the buy order 
+# enters PAYING state from OPEN.  At the same time it will unlock seller order, change its
+# status from LOCKED to OPEN
+def post_open_payment_order(buyorder_id, payment_provider, bill_no, payment_url, username):
     operator = User.objects.get(username=username)
     with transaction.atomic():
         purchase_trans = UserWalletTransaction.objects.select_for_update().get(
@@ -986,7 +1034,7 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, hy_url, user
                 buyorder_id, buyorder.status
             ))
         
-        buyorder.comment = 'hy_url: {0}'.format(hy_url)
+        buyorder.comment = 'payment url to buyer: {0}'.format(payment_url)
         buyorder.status = 'PAYING'
         buyorder.save()
 
@@ -1032,7 +1080,7 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, hy_url, user
                 )
             if not updated:
                 raise ValueError("Purchase order {0}'s sell order {1} should have api_trans associated".format(
-                    buyorder_id, buyerorder.reference_order.order_id
+                    buyorder_id, buyorder.reference_order.order_id
                 ))
 
         logger.info("post_open_payment_order(): update related status of sell order {0} (of purchase order {1}) to OPEN".format(
@@ -1040,7 +1088,7 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, hy_url, user
 
         purchase_trans.payment_bill_no = bill_no
         purchase_trans.save()
-        logger.info("post_open_payment_order(): record {0}.bill#: {1} to related buyorder: {2}".format(
+        logger.info("post_open_payment_order(): record {0}.bill#: [{1}] to related buyorder: {2}".format(
            payment_provider, bill_no, buyorder.order_id
         ))
 

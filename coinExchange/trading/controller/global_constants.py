@@ -29,3 +29,8 @@ PAYMENT_NORMAL_STATUS = {'Not Started': 'NOTSTARTED','PaySuccess':'PAYSUCCESS',
 PAYMENT_BAD_STATUS = { 'ExpiredInvalid': 'EXPIREDINVALID',
          'UserAbandon':'USERABANDON', 'DevClose':'DEVCLOSE',
          'Failure':'FAILURE'}
+
+PAYMENTMETHOD_WEIXIN = 'weixin'
+PAYMENTMETHOD_PAYPAL = 'paypal'
+PAYMENTMETHOD_HEEPAY = 'heepay'
+PAYMENTMETHOD_ALIPAY = 'alipay'

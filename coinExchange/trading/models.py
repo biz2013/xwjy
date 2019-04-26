@@ -4,6 +4,15 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+def user_payment_method_image_filename(instance, filename):
+   return "uploads/paymentmethod/{0}/{1}_{2}".format(instance.provider.code, instance.user.id, filename)
+
+def user_payment_method_tag_image_filename(instance, filename):
+   return "uploads/paymentmethod/{0}/{1}_{2}_{3}".format(
+      instance.user_payment_method.provider.code, 
+      instance.user_payment_method.user.id, 
+      instance.image_tag, filename)
+
 class SingletonModel(models.Model):
 
     class Meta:
@@ -70,14 +79,29 @@ class UserProfile(models.Model):
 class UserPaymentMethod(models.Model):
    user = models.ForeignKey(User, on_delete=models.CASCADE)
    provider = models.ForeignKey('PaymentProvider', on_delete=models.CASCADE)
-   account_at_provider = models.CharField(max_length=128, default='')
+   account_at_provider = models.CharField(max_length=128, default='', null=True)
+   account_alias = models.CharField(max_length=64, default='', null=True)
    client_id = models.CharField(max_length=128, default='')
    client_secret = models.CharField(max_length=256, default='')
-   provider_qrcode_image = models.ImageField(upload_to='uploads/')
+   provider_qrcode_image = models.ImageField(upload_to=user_payment_method_image_filename)
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey(User, related_name='UserPaymentMethod_created_by', on_delete=models.SET_NULL, null=True)
    lastupdated_at = models.DateTimeField(auto_now=True)
    lastupdated_by = models.ForeignKey(User, related_name='UserPaymentMethod_lastupdated_by', on_delete=models.SET_NULL, null=True)
+
+# most user payment method will have its main image and this is for
+# extra image used for each payment method, if applicable.  So not every
+# payment method need this.
+class UserPaymentMethodImage(models.Model):
+   IMAGE_TAG=(('WXSHOPASSTQRCODE', '小账本店员二维码'),
+              ('OTHER','其他'))
+   user_payment_method = models.ForeignKey('UserPaymentMethod', on_delete=models.CASCADE)
+   image_tag = models.CharField(max_length=64, choices=IMAGE_TAG, null=False)
+   qrcode = models.ImageField(upload_to=user_payment_method_tag_image_filename)
+   created_at = models.DateTimeField(auto_now_add=True)
+   created_by = models.ForeignKey(User, related_name='UserPaymentMethodImage_created_by', on_delete=models.SET_NULL, null=True)
+   lastupdated_at = models.DateTimeField(auto_now=True)
+   lastupdated_by = models.ForeignKey(User, related_name='UserPaymentMethodImage_lastupdated_by', on_delete=models.SET_NULL, null=True)
 
 
 class Cryptocurrency(models.Model):
@@ -215,8 +239,14 @@ class Order(models.Model):
    cryptocurrency = models.ForeignKey('Cryptocurrency', on_delete=models.SET_NULL, null=True)
 
    # payment provider picked by purchase order, purchase order only
+   # NOTE: this is legacy and in the future it will have to match the payment provider
+   #       dictated by seller.  And these may not be used if we use manual payment, not
+   #       automatic API call
    selected_payment_provider = models.ForeignKey('PaymentProvider', on_delete=models.SET_NULL, null=True)
    account_at_selected_payment_provider = models.CharField(max_length=64, null=True)
+
+   # payment provider picked by sell order and sell order only
+   seller_payment_method = models.ForeignKey(UserPaymentMethod, on_delete=models.SET_NULL, null=True)
 
    order_type = models.CharField(max_length=32, choices=ORDER_TYPE)
    sub_type = models.CharField(max_length=32, default='OPEN', choices=SUBORDER_TYPE)

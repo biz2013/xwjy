@@ -11,6 +11,14 @@ class UserAccountInfo(object):
         self.receiving_address = receiving_address
         self.externaladdress = external_axfund_address
         self.paymentmethods = paymentmethods
+        for method in paymentmethods:
+            if method.provider_code == 'weixin':
+                self.weixin = method
+            elif method.provider_code == 'heepay':
+                self.heepay = method
+            elif method.provider_code == 'paypal':
+                self.paypal = method
+
     def tojson(self):
         json_str = {}
         json_str['username'] = self.username
