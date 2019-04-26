@@ -7,6 +7,12 @@ from django.dispatch import receiver
 def user_payment_method_image_filename(instance, filename):
    return "uploads/paymentmethod/{0}/{1}_{2}".format(instance.provider.code, instance.user.id, filename)
 
+def user_payment_method_tag_image_filename(instance, filename):
+   return "uploads/paymentmethod/{0}/{1}_{2}_{3}".format(
+      instance.user_payment_method.provider.code, 
+      instance.user_payment_method.user.id, 
+      instance.image_tag, filename)
+
 class SingletonModel(models.Model):
 
     class Meta:
@@ -91,7 +97,7 @@ class UserPaymentMethodImage(models.Model):
               ('OTHER','其他'))
    user_payment_method = models.ForeignKey('UserPaymentMethod', on_delete=models.CASCADE)
    image_tag = models.CharField(max_length=64, choices=IMAGE_TAG, null=False)
-   qrcode = models.ImageField(upload_to='uploads/')
+   qrcode = models.ImageField(upload_to=user_payment_method_tag_image_filename)
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey(User, related_name='UserPaymentMethodImage_created_by', on_delete=models.SET_NULL, null=True)
    lastupdated_at = models.DateTimeField(auto_now=True)

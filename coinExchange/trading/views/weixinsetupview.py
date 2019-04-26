@@ -33,7 +33,7 @@ def account_info(request):
             else: 
                 messages.error(request,"输入有错误，请检查")
 
-        payment_image_form = UserPaymentMethodImageForm(instance=weixin_payment_image)
+        payment_image_form = UserPaymentMethodImageForm(instance=weixin_shop_assistant_image)
         return render(request, 'trading/paymentmethod/weixin.html',
             {'user': request.user, 
              'weixin':weixin,
@@ -73,9 +73,10 @@ def payment_qrcode(request):
         return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
 
+@login_required
 def shop_assistant_qrcode(request):
     try:
-        weixin, weixin_payment_image, weixin_shop_assistant_image = load_weixin_info(request.user)
+        weixin, weixin_payment_image, weixin_shop_assistant_image = userpaymentmethodmanager.load_weixin_info(request.user)
         if request.method == 'POST':
             form = UserPaymentMethodImageForm(request.POST, request.FILES, instance=weixin_shop_assistant_image)
             if form.is_valid():
