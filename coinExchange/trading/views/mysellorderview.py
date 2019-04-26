@@ -66,12 +66,13 @@ def sell_axfund(request):
                     messages.success(request,'您的卖单已经成功创建')
                 else:
                     messages.error(request, '卖单数量不可以高于可用余额')
-        sellorders = ordermanager.get_sell_transactions_by_user(request.user.id)
+        sellorders, buyorders = ordermanager.get_orders_by_user(request.user.id)
         if request.method == 'POST':
             return redirect('sellorder')
         else:
             return render(request, 'trading/mysellorder.html',
                 {'sellorders': sellorders,
+                'buyorders': buyorders,
                 'settings': sitesettings,
                 'useraccountInfo': accountinfo})
 

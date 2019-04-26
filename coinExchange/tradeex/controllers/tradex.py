@@ -298,8 +298,7 @@ class TradeExchangeManager(object):
                '', # no need for status
                'BUY') # order type is buy
 
-            # these two is for backward compatible with heepay api call
-            seller_payment_provider = ''
+            # this is for backward compatible with heepay api call
             seller_payment_account = ''
 
             seller_payment_method = None
@@ -312,7 +311,6 @@ class TradeExchangeManager(object):
             # in case heepay api is working again... we need more logic
             if buyer_payment_provider == PAYMENTMETHOD_HEEPAY and settings.PAYMENT_API_STATUS[PAYMENTMETHOD_HEEPAY] == 'auto':
                 seller_payment_account = seller_payment_method.account_at_payment_provider
-                seller_payment_provider = seller_payment_method.provider.code
             
             buyorder_id = None
             try:
@@ -322,7 +320,7 @@ class TradeExchangeManager(object):
 
                 logger.info('come to create order api_trans_id: {0}'.format(api_trans_id))
                 buyorder_id = ordermanager.create_purchase_order(order_item, sell_order.order_id, 
-                    buyer_payment_provider, 'admin', 
+                    seller_payment_method.provider.code, 'admin', 
                     api_user, request_obj, api_trans_id
                 )
             except ValueError as ve:

@@ -403,45 +403,39 @@ def get_all_open_seller_order_exclude_user(user_id):
                                 order_source = order.order_source))
     return orders
 
-def get_sell_transactions_by_user(userid):
+# called by mysellorderview to get all the buy order and sell order of a user
+def get_orders_by_user(userid):
     sell_orders = Order.objects.filter(Q(order_type='SELL'),
             Q(user__id=userid),
             Q(status='OPEN') | Q(status='PARTIALFILLED') | Q(status='LOCKED')).order_by('-lastupdated_at')
     buyorders = Order.objects.filter(Q(order_type='BUY'),
         Q(reference_order__user__id=userid),
         Q(status='PAYING')| Q(status='PAID')).order_by('-lastupdated_at')
-    order_lookup = {}
+    sell_order_list = []
     for order in sell_orders:
-        order_lookup[order.order_id] = []
         order_item = OrderItem(order.order_id, order.user.id, order.user.username,
                                 order.unit_price, order.unit_price_currency,
                                 order.units, order.units_available_to_trade,
                                 order.total_amount,
                                 order.cryptocurrency.currency_code,
                                 order.lastupdated_at, order.status, order.order_type,
-                                order.sub_type, order.selected_payment_provider,
-                                order.account_at_selected_payment_provider,
+                                order.sub_type, 
+                                order.seller_payment_method.provider.code if order.seller_payment_method else order.selected_payment_provider,
+                                order.seller_payment_method.account_at_provider if order.seller_payment_method else order.account_at_selected_payment_provider,
                                 order.order_source)
-        order_lookup[order.order_id].append(order_item)
+        sell_order_list.append(order_item)
 
+    buy_order_list = []
     for order in buyorders:
-        if order.reference_order.order_id in order_lookup:
-            order_lookup[order.reference_order.order_id].append(OrderItem(order.order_id, order.user.id, order.user.username,
-                                    order.unit_price, order.unit_price_currency,
-                                    order.units, order.units_available_to_trade,
-                                    order.total_amount,
-                                    order.cryptocurrency.currency_code,
-                                    order.lastupdated_at, order.status, order.order_type))
-        else:
-            logger.error('Could not find purchase order {0}\'s sell order {1} in user {2}\'s sell order list'.format(
-               order.order_id, order.reference_order.order_id, userid
-            ))
-    order_list = []
-    for order in sell_orders:
-        for entry in order_lookup[order.order_id]:
-            order_list.append(entry)
+        order_item = OrderItem(order.order_id, order.user.id, order.user.username,
+                                order.unit_price, order.unit_price_currency,
+                                order.units, order.units_available_to_trade,
+                                order.total_amount,
+                                order.cryptocurrency.currency_code,
+                                order.lastupdated_at, order.status, order.order_type)
+        buy_order_list.append(order_item)
 
-    return order_list
+    return sell_order_list, buy_order_list
 
 def get_user_payment_methods(user_id):
     userpayments = UserPaymentMethod.objects.filter(user__id=user_id)
@@ -454,21 +448,10 @@ def get_user_payment_methods(user_id):
                 method.provider_qrcode_image))
     return payment_methods
 
-def get_sellorder_seller_payment_methods(sell_order_id):
-    order = Order.objects.get(pk=sell_order_id)
-    userpayments = UserPaymentMethod.objects.filter(user__id=order.user.id)
-    payment_methods= []
-    if userpayments is not None:
-       for method in userpayments:
-          payment_methods.append(UserPaymentMethodView(method.id, method.provider.code,
-                method.provider.name,method.account_at_provider,
-                method.provider_qrcode_image))
-    return payment_methods
-
 def create_purchase_order(buyorder, reference_order_id,
          seller_payment_provider, operator, 
          api_user = None,  api_purchase_request = None,
-         api_trans_id = None):
+         api_trans_id = None, ):
 
     selected_payment_provider = None
     try:
@@ -479,7 +462,11 @@ def create_purchase_order(buyorder, reference_order_id,
         ))
         raise ValueError(ERR_CANNOT_FIND_BUYER_PAYMENT_PROVIDER)
 
+    # for now we assume buyer payment account is not consider if seller does not use heepay
     buyer_payment_account = api_purchase_request.payment_account if api_purchase_request else None
+    if buyer_payment_account and seller_payment_provider != 'heepay':
+        buyer_payment_account = None
+
     frmt_date = dt.datetime.now(pytz.timezone('Asia/Taipei')).strftime("%Y%m%d%H%M%S_%f")
     buyorder.order_id = frmt_date
     is_api_call = api_user and api_purchase_request and api_trans_id
@@ -596,7 +583,7 @@ def create_purchase_order(buyorder, reference_order_id,
                 api_user = api_user,
                 payment_provider = PaymentProvider.objects.get(pk= api_purchase_request.payment_provider),
                 reference_order = order,
-                payment_account = api_purchase_request.payment_account,
+                payment_account = buyer_payment_account,
                 action = api_purchase_request.method,
                 client_ip = api_purchase_request.client_ip,
                 subject = api_purchase_request.subject,
@@ -807,7 +794,14 @@ def lock_paid_trans_of_purchase_order(order_id):
               reference_order__order_id = order_id, payment_status = 'SUCCESS',
               status='PROCESSED')
         except UserWalletTransaction.DoesNotExist:
-             raise ValueError('Somehow there\'s no payment success transaction record regarding purchase order {0}'.format(order_id))
+            try:
+                return UserWalletTransaction.objects.select_for_update().get(
+                reference_order__order_id = order_id, payment_status = 'UNKNOWN',
+                status='PENDING')
+            except UserWalletTransaction.DoesNotExist:
+                raise ValueError('Somehow there\'s no payment success transaction record regarding purchase order {0}'.format(order_id))
+            except UserWalletTransaction.MultipleObjectsReturned:
+                raise ValueError('There should be no more than one PENDING UNKNOWN payment transaction for the purchase order {0}'.format(order_id))
         except UserWalletTransaction.MultipleObjectsReturned:
             raise ValueError('There should be no more than one PROCESSED successful payment transaction for the purchase order {0}'.format(order_id))
     except UserWalletTransaction.MultipleObjectsReturned:
@@ -885,7 +879,7 @@ def confirm_purchase_order(order_id, operator):
 
         sell_order.units_locked = round(sell_order.units_locked - buyorder.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL)
         sell_order.status = 'PARTIALFILLED'
-        if sell_order.units_available_to_trade < MIN_CRYPTOCURRENCY_UNITS:
+        if sell_order.units_available_to_trade - MIN_CRYPTOCURRENCY_UNITS <= 0:
             sell_order.status == 'FILLED'
         sell_order.lastupdated_by = operatorObj
         sell_order.save()
@@ -898,12 +892,14 @@ def confirm_purchase_order(order_id, operator):
              user_id = buyorder.user.id,
              wallet__cryptocurrency = purchase_trans.user_wallet.wallet.cryptocurrency)
 
+        new_payment_status = 'MANUALCONFIRMED' if purchase_trans.payment_status == 'UNKNOWN' else purchase_trans.payment_statu
         purchase_trans.balance_begin = buyer_user_wallet.balance
         purchase_trans.balance_end = buyer_user_wallet.balance + buyorder.units
         purchase_trans.locked_balance_begin = buyer_user_wallet.locked_balance
         purchase_trans.locked_balance_end = buyer_user_wallet.locked_balance
         purchase_trans.available_to_trade_begin = buyer_user_wallet.available_balance
         purchase_trans.available_to_trade_end = buyer_user_wallet.available_balance + buyorder.units
+        purchase_trans.payment_status = new_payment_status
         purchase_trans.status = 'PROCESSED'
         purchase_trans.lastupdated_by = operatorObj
 
