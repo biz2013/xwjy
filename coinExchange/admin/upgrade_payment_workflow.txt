@@ -1,0 +1,10 @@
+Upgrade instruction for new payment workflow:
+
+0.1 Create folders for new upload images with right permission
+   $MEDIA/uploads/paymentmethod/(weixin|alipay|heepay|paypal)/
+0.2 Modify backup scrip to backup images.
+0.3 optionally create code to clear S3 old file as this will used up so much space
+1. Stop site
+2. Manually dumpdata.
+3. Run migration
+4. Start site

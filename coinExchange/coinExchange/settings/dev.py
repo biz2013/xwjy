@@ -9,6 +9,8 @@ MEDIA_ROOT = "/Users/taozhang/workspace/xwjy/coinExchange/media/"
 
 ALLOWED_HOSTS = ['52.43.117.129', '172.31.0.229', 'ip-172-31-0-229.us-west-2.compute.internal', 'localhost', '127.0.0.1', '[::1]', '0.0.0.0']
 
+TRADESITE_PAYMENT_URLPREFIX="http://localhost:8000/trading/paymenturl/"
+
 API_TRANS_LIMIT = 10
 
 DATABASES = {

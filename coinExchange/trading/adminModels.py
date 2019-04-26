@@ -4,6 +4,34 @@ from .models import PaymentProvider, UserExternalWalletAddress
 from .models import UserPaymentMethod, UserPaymentMethodImage, Order, UserWallet
 from .models import UserWalletTransaction
 
+class UserPaymentMethodAdmin(admin.ModelAdmin):
+    def provider(self, obj):
+        return obj.provider.code
+
+    def user(self, obj):
+        return obj.user.username
+
+    def account_at_provider(self, obj):
+        return obj.account_at_provider
+
+    def account_alias(self, obj):
+        return obj.account_alias
+
+    def client_id(self, obj):
+        return obj.client_id
+
+    def client_secret(self, obj):
+        return obj.client_secret
+
+    list_display=('provider',
+        'user', 
+        'provider_qrcode_image',
+        'account_at_provider', 
+        'account_alias', 
+        'client_id','client_secret')
+
+    search_fields=['user__username']
+
 class UserPaymentMethodImageAdmin(admin.ModelAdmin):
     def payment_method(self, obj):
         return obj.user_payment_method.provider.code

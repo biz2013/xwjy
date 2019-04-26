@@ -4,6 +4,9 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+def user_payment_method_image_filename(instance, filename):
+   return "uploads/paymentmethod/{0}/{1}_{2}".format(instance.provider.code, instance.user.id, filename)
+
 class SingletonModel(models.Model):
 
     class Meta:
@@ -74,7 +77,7 @@ class UserPaymentMethod(models.Model):
    account_alias = models.CharField(max_length=64, default='', null=True)
    client_id = models.CharField(max_length=128, default='')
    client_secret = models.CharField(max_length=256, default='')
-   provider_qrcode_image = models.ImageField(upload_to='uploads/')
+   provider_qrcode_image = models.ImageField(upload_to=user_payment_method_image_filename)
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey(User, related_name='UserPaymentMethod_created_by', on_delete=models.SET_NULL, null=True)
    lastupdated_at = models.DateTimeField(auto_now=True)
