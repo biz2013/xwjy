@@ -31,6 +31,8 @@ def account_info(request):
                 weixin = form.save()
                 weixin_payment_image, weixin_shop_assistant_image = userpaymentmethodmanager.get_weixin_images(weixin.id)
             else: 
+                for err in form.errors:
+                    logger.error("form {0}".format(err))
                 messages.error(request,"输入有错误，请检查")
 
         payment_image_form = UserPaymentMethodImageForm(instance=weixin_shop_assistant_image)
