@@ -19,21 +19,28 @@
     <div class="container">
         <div class="well">
             <div class="row">
-                <div class="offset2 col-md-6">
-                    <h3>扫一扫付款</h3>
-                    <div id="scan－purchase">
-                        <div id="div_id_quantity" class="form-group">
-                            <label for="id_title" class="control-label">请扫以下{{ payment_method }} 二维码付款，购买总额{{ total_amount }}{{ unit_price_currency}}</label>
-                        </div>
-                        <div id="div_id_qrcode" class="form_group">
-                            <img name="id_qrcode" src="{{ qrcode_url }}" />
-                        </div>
+                <div class="col-sm-4">
+                    <h3>充值付款二维码</h3>
+                    <div id="input_purchase">
+                        <table class="table">
+                            <tr>
+                                <td>总额 {{ total_amount }}{{ unit_price_currency}}</td>
+                            </tr>
+                            <tr>
+                                <td><img src="{{ qrcode_url }}" width="100%"></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div>请扫描二维码跳转{{ payment_method }}收银台</div>
+                                </td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <!-- footer section-->
- </body>
+</body>
 
 </html>
