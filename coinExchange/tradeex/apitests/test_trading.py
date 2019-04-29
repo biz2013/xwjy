@@ -416,7 +416,7 @@ class TestTradingAPI(TransactionTestCase):
         buy_order = api_trans.reference_order
         self.assertTrue(buy_order, "api_trans should have buyorder")
         self.assertEqual('BUY', buy_order.order_type)
-        self.assertEqual('ALL_ALL_NOTHING', buy_order.sub_type)
+        self.assertEqual('ALL_OR_NOTHING', buy_order.sub_type)
         self.assertEqual('API', buy_order.order_source)
         self.assertEqual(test_purchase_amount, int(round(buy_order.total_amount,2) * 100))
         self.assertEqual(155, buy_order.units)
