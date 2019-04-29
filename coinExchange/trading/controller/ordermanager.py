@@ -55,7 +55,7 @@ def get_user_payment_account(user_id, payment_provider_code):
 # value error as this is bad data and indicate bug when sell order was created
 def get_and_update_sell_order_payment_methods(sell_order_id):
     with transaction.atomic():
-        sell_order = Order.objects.selected_for_update().get(pk=sell_order_id)
+        sell_order = Order.objects.select_for_update().get(pk=sell_order_id)
         if sell_order.selected_payment_provider and sell_order.account_at_selected_payment_provider:
             return UserPaymentMethod.objects.get(user__id=sell_order.user.id, 
                 provider__code=sell_order.selected_payment_provider.code)
@@ -411,6 +411,11 @@ def get_orders_by_user(userid):
     buyorders = Order.objects.filter(Q(order_type='BUY'),
         Q(reference_order__user__id=userid),
         Q(status='PAYING')| Q(status='PAID')).order_by('-lastupdated_at')
+    
+    buyorder_api_trans = APIUserTransaction.objects.filter(Q(action=API_METHOD_PURCHASE),
+        Q(reference_order__reference_order__user__id=userid),
+        Q(reference_order__status='PAYING') | Q(reference_order__status='PAID')).order_by('-lastupdated_at')
+    
     sell_order_list = []
     for order in sell_orders:
         order_item = OrderItem(order.order_id, order.user.id, order.user.username,
@@ -425,9 +430,21 @@ def get_orders_by_user(userid):
                                 order.order_source)
         sell_order_list.append(order_item)
 
-    buy_order_list = []
+    api_trans_orders = {}
+    for api_tran in buyorder_api_trans:
+        api_trans_orders[api_tran.reference_order.order_id] = api_tran
+
+    buy_order_list = []    
     for order in buyorders:
-        order_item = OrderItem(order.order_id, order.user.id, order.user.username,
+        order_username = order.user.username
+        if order.sub_type == 'ALL_OR_NOTHING' and order.order_id in api_trans_orders:
+            attach = api_trans_orders[order.order_id].attach
+            if attach and attach.startswith('username='):
+                order_username = 'API买家用户名:{0}'.format(attach[len('username='):])
+            elif attach and attach.startswith('weixin='):
+                order_username = 'API买家微信昵称:{0}'.format(attach[len('weixin='):])
+
+        order_item = OrderItem(order.order_id, order.user.id, order_username,
                                 order.unit_price, order.unit_price_currency,
                                 order.units, order.units_available_to_trade,
                                 order.total_amount,
@@ -540,7 +557,7 @@ def create_purchase_order(buyorder, reference_order_id,
             reference_order= reference_order,
             cryptocurrency= crypto_currency,
             order_type='BUY',
-            sub_type='BUY_ON_ASK' if not is_api_call else 'ALL_ALL_NOTHING',
+            sub_type='BUY_ON_ASK' if not is_api_call else 'ALL_OR_NOTHING',
             order_source = 'TRADESITE' if not is_api_call else 'API',
             units = buyorder.total_units,
             unit_price = buyorder.unit_price,

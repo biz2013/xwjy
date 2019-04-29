@@ -94,18 +94,20 @@
             <h4>给我的买单</h4>
             <table class="table table-stripe">
                 <tr>
+                    <th>买家</th>
                     <th>购买数量</th>
                     <th>单价</th>
                     <th>总额</th>
+                    <th>更改时间</th>
                     <th></th>
-                    <!--<td>更改时间</td>-->
                 </tr>
                 {% for order in buyorders %}
                 <tr>
+                    <td>{{ order.owner_login}}</td>
                     <td>{{ order.total_units }}</td>
                     <td>{{ order.unit_price|floatformat:2 }} ({{ order.unit_price_currency }})</td>
                     <td>{{ order.total_units|mul:order.unit_price|floatformat:2 }} ({{ order.unit_price_currency }})</td>
-                    <!--<td>{{ order.lastmodified_at }}</td>-->
+                    <td>{{ order.lastmodified_at }}</td>
                     <td>{% if order.status == 'PAYING' %}等待付款 {% endif %}
                         <button class="btn btn-primary" data-toggle="modal" data-target="#payment-confirm-modal" onclick="show_order_info('{{ order.order_id}}', '{{ order.total_units}}','{{ order.unit_price }}', '{{ order.unit_price_currency}}')">{% if order.status == 'PAYING' %}手动{% endif %}确认</button>
                     </td>
