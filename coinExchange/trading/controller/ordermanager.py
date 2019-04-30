@@ -440,9 +440,9 @@ def get_orders_by_user(userid):
         if order.sub_type == 'ALL_OR_NOTHING' and order.order_id in api_trans_orders:
             attach = api_trans_orders[order.order_id].attach
             if attach and attach.startswith('username='):
-                order_username = 'API买家用户名:{0}'.format(attach[len('username='):])
+                order_username = attach[len('username='):]
             elif attach and attach.startswith('weixin='):
-                order_username = 'API买家微信昵称:{0}'.format(attach[len('weixin='):])
+                order_username = attach[len('weixin='):]
 
         order_item = OrderItem(order.order_id, order.user.id, order_username,
                                 order.unit_price, order.unit_price_currency,
