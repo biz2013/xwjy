@@ -5,18 +5,11 @@
     {% include 'include/common_header.html' %}
     <script language="JavaScript">
         function redeem() {
-            { %
-                if useraccountInfo %
-            }
-            var available_units = {
-                {
-                    useraccountInfo.available_balance
-                }
-            }; { %
-                else %
-            }
-            var available_units = 0.0; { % endif %
-            }
+            {% if useraccountInfo %}
+            var available_units = {{ useraccountInfo.available_balance }}; 
+            {% else %}
+            var available_units = 0.0; 
+            {% endif %}
             amount = $("#txt_id_quantity").val();
             if (isNaN(amount)) {
                 $("#div_id_error_msg").text("请输入正确的提币数量");
@@ -52,7 +45,7 @@
                 <table class="table table-condensed">
                     <tr>
                         <td>
-                            <lable class="control-label">充币地址</label>
+                            <label class="control-label">充币地址</label>
                                 <td>{{ useraccountInfo.receiving_address }}</td>
                     </tr>
                     <tr>
