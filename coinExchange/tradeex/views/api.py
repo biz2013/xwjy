@@ -125,6 +125,8 @@ def handleValueError(ve_msg, secretKey):
         resp_json['result_msg'] = '每笔交易上限为{0}分'.format(settings.API_TRANS_LIMIT)
     elif ve_msg == ERR_NO_RIGHT_SELL_ORDER_FOUND:
         resp_json['return_msg'] = '无卖单提供充值'
+    elif ve_msg == ERR_MORE_THAN_ONE_OPEN_BUYORDER:
+        resp_json['return_msg'] = '请您等您正在处理的充值购买请求被确认后再发新的请求'
     elif ve_msg == ERR_INVALID_OR_MISSING_PAYMENT_PROVIDER:
         resp_json['return_msg'] = '缺失支付方式或提供的支付方式系统不支持'
     elif ve_msg == ERR_REDEEM_REQUEST_NO_PAYMENT_ACCOUNT:
