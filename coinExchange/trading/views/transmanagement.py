@@ -28,8 +28,10 @@ def gettrans(request):
                REQ_KEY_USERNAME: request.user.username,
                'weixin':weixin,
                'weixin_payment_image': weixin_payment_image, 
-               'weixin_shop_assistant_image': weixin_shop_assistant_image}
-               'buyorders' : {})
+               'weixin_shop_assistant_image': weixin_shop_assistant_image,
+               'buyorders' : {},
+               'bootstrap_datepicker': True
+              })
     except Exception as e:
        error_msg = '用户主页显示遇到错误: {0}'.format(sys.exc_info()[0])
        logger.exception(error_msg)

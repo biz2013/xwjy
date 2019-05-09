@@ -1,4 +1,8 @@
-{% extends 'base_generic.html' %} {% block content %}
+{% extends 'base_generic.html' %} {% block custom_headers %}
+<link rel="stylesheet" href="/static/css/bootstrap-datetimepicker.min.css">
+<script type="text/javascript" src="/static/scripts/moment-with-locales.min.js"></script>
+<script type="text/javascript" src="/static/scripts/bootstrap-datetimepicker.js"></script>
+{% endblock %} {% block content %}
 <div class="container">
     <div class="row">
         <ul class="nav nav-tabs">
@@ -26,6 +30,8 @@
                         </div>
                     </div>
                     <div class='col-sm-6'>
+                        <table>
+                        </table>
                         <div class="form-group">
                             <div class='input-group date' id='datetimepicker_from'>
                                 <input type='text' class="form-control" />
@@ -34,7 +40,7 @@
                                 </span>
                             </div>
                             <div>到</div>
-                            <div class='input-group date' id='datetimepicker-to'>
+                            <div class='input-group date' id='datetimepicker_to'>
                                 <input type='text' class="form-control" />
                                 <span class="input-group-addon">
                                         <span class="glyphicon glyphicon-calendar"></span>
@@ -45,10 +51,12 @@
                     <script type="text/javascript">
                         $(function() {
                             $('#datetimepicker_from').datetimepicker({
-                                locale: 'ru'
+                                locale: 'zh-CN',
+                                format: 'YYYY/MM/DD'
                             });
                             $('#datetimepicker_to').datetimepicker({
-                                locale: 'ru'
+                                locale: 'zh-CN',
+                                format: 'YYYY/MM/DD'
                             });
                         });
                     </script>
@@ -70,18 +78,18 @@
         </table>
         {% if buyorders %} {% for order in buyorders %}
         <tr>
-            <td>{% if order.trade_source== 'API' %}<img src="/">{% else %}<img src="/">{% endif %}</td>
+            <td>{% if order.trade_source == 'API' %}<img src="/">{% else %}<img src="/">{% endif %}</td>
             <td>{{ order.buyer_weixin_nickname }} / {{ order.buyer_username }} / {{ order.buyer_site }}</td>
             <td>{{ order.seller_weixin_nickname }} / {{ order.seller_username }} / {{ order.seller_site }}</td>
             <td>{{ order.total_amount }}{{ order.unit_price_currency}}@({{ order.unit_price }}x{{ order.units }})</td>
             <td>{{ order.created_at|date:"m-d" }} {{ trans.created_at|time:"H:i:s" }}</td>
             <td>{% if order.status == 'PAYING' or order.status == 'PAID' %}
                 <button class="btn btn-primary" data-toggle="modal" data-target="#payment-confirm-modal" onclick="show_order_info('{{ order.order_id}}', '{{ order.units}}','{{ order.unit_price }}', '{{ order.unit_price_currency}}')">{% if order.status == 'PAYING' %}手动{% endif %}确认</button>
-                <button class="btn btn-primary" data-toggle="modal" data-target="#payment-confirm-modal" onclick="show_order_info('{{ order.order_id}}', '{{ order.units}}','{{ order.unit_price }}', '{{ order.unit_price_currency}}')">撤消</button> 
-                {% elif order.status == 'CANCELLED' %}<img src="/"> {% elif order.status == 'FILLED' %}<img src="/"> {%endif %}</td>
+                <button class="btn btn-primary" data-toggle="modal" data-target="#payment-confirm-modal" onclick="show_order_info('{{ order.order_id}}', '{{ order.units}}','{{ order.unit_price }}', '{{ order.unit_price_currency}}')">撤消</button> {% elif
+                order.status == 'CANCELLED' %}<img src="/"> {% elif order.status == 'FILLED' %}<img src="/"> {%endif %}</td>
         </tr>
         {% endfor %} {% endif %}
     </div>
-    {% end timezone %}
+    {% endtimezone %}
 </div>
 {% endblock %}
