@@ -6,6 +6,7 @@ from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from tradeex.data.api_const import *
 from tradeex.models import *
 from tradeex.utils import *
+from tradeex.data.api_const import *
 from tradeex.data.tradeapiresponse import TradeAPIResponse
 from tradeex.responses.heepayresponse import HeepayResponse
 from trading.views.models.orderitem import *
@@ -180,6 +181,14 @@ class TradeExchangeManager(object):
                 reference_bill_no = payment_bill_no
                 )
 
+    # this is to check whether buyer has more than one open buy order.  If yes, then
+    # caller may decide not to let him/her make another purchase
+    def get_open_buy_order(self, api_site_user):
+        return APIUserTransaction.objects.filter(
+            Q(action = API_METHOD_PURCHASE) &
+            Q(attach = api_site_user) &
+            Q(trade_status = TRADE_STATUS_INPROGRESS)
+        )
     def find_last_transaction_price(self, crypto, currency):
         processed_purchases = Order.objects.filter(
             Q(status='FILLED') & 
@@ -270,11 +279,15 @@ class TradeExchangeManager(object):
         buyer_payment_provider = request_obj.payment_provider
         buyer_payment_account =  request_obj.payment_account
         api_call_order_id =  request_obj.out_trade_no
+        api_site_user = request_obj.attach
         logger.info("purchase_by_cash_amount(api_user:{0}, crypto {1}, amount {2}{3}, from account {4}:{5}, out_trade_no:{6})".format(
             api_user_id,  crypto, amount, currency, buyer_payment_provider, 
             buyer_payment_account, api_call_order_id,
         ))
 
+        open_buy_orders = self.get_open_buy_order(api_site_user)
+        if len(open_buy_orders) > 0:
+            raise ValueError(ERR_MORE_THAN_ONE_OPEN_BUYORDER)
         qualify_orders = self.get_qualified_orders_to_buy(crypto, amount, currency)
         if qualify_orders:
             logger.info("purchase_by_cash_amount(): [out_trade_no {0}] Find {1} qualified sell orders to buy from".format(
