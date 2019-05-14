@@ -7,6 +7,7 @@ from django.shortcuts import render, redirect
 # this is for test UI. A fake one
 from trading.models import *
 from trading.controller import useraccountinfomanager, userpaymentmethodmanager
+from trading.controller import ordermanager
 from trading.controller.global_constants import *
 from trading.controller.global_utils import *
 from trading.views.models.returnstatus import ReturnStatus
@@ -23,13 +24,18 @@ def gettrans(request):
        useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
        weixin, weixin_payment_image, weixin_shop_assistant_image = userpaymentmethodmanager.load_weixin_info(request.user)
        request.session[REQ_KEY_USERACCOUNTINFO] = useraccountInfo.tojson()
+       buyorders = None
+       if request.method == 'POST':
+           keyword = request.POST['keyword']
+           buyorders = ordermanager.search_orders(keyword, None, None)
+
        return render(request, 'trading/admin/transmanagement.html', 
               {'useraccountInfo': useraccountInfo,
                REQ_KEY_USERNAME: request.user.username,
                'weixin':weixin,
                'weixin_payment_image': weixin_payment_image, 
                'weixin_shop_assistant_image': weixin_shop_assistant_image,
-               'buyorders' : {},
+               'buyorders' : buyorders,
                'bootstrap_datepicker': True
               })
     except Exception as e:
