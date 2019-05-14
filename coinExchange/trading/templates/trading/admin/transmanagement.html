@@ -36,7 +36,7 @@
             <div id="div_accountInfo_error" class="text-danger"></div>
             {% csrf_token %}
             <div class="input-group">
-                <input type="text" name="keyword" class="form-control" placeholder="查询付昵称，用户名">
+                <input type="text" name="keyword" class="form-control" {% if not search_keyword %}placeholder="查询付昵称，用户名"{% endif %} value="{{ search_keyword }}" >
                 <div class="input-group-btn">
                     <button class="btn btn-default form-controll" type="submit">
                         <i class="glyphicon glyphicon-search"></i>
@@ -110,9 +110,10 @@
     </div>
     {% endtimezone %}
     <!-- popup window to confirm cancel the order -->
-    <form id="cancel-modal" tabindex="-1" class="modal fade" role="dialog" action="/trading/admin/purchase/cancel" aria-labelledby="cancel-form-lable" aria-hidden="true" method='post'>
+    <form id="cancel-modal" tabindex="-1" class="modal fade" role="dialog" action="/trading/admin/purchase/cancel/" aria-labelledby="cancel-form-lable" aria-hidden="true" method='post'>
         {% csrf_token %}
         <input type="hidden" id="txt_id_order_id_cancel_model" name="order_id" value="" />
+        <input type="hidden" id="txt_id_search_keyword" name="search_keyword" value="{{ search_keyword }}" />
         <div class="modal-dialog">
             <!-- Modal content-->
             <div class="modal-content">
