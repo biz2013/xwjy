@@ -3,15 +3,16 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils.encoding import smart_str
 
 def user_payment_method_image_filename(instance, filename):
-   return "uploads/paymentmethod/{0}/{1}_{2}".format(instance.provider.code, instance.user.id, filename)
+   return "uploads/paymentmethod/{0}/{1}_{2}".format(instance.provider.code, instance.user.id, smart_str(filename))
 
 def user_payment_method_tag_image_filename(instance, filename):
    return "uploads/paymentmethod/{0}/{1}_{2}_{3}".format(
       instance.user_payment_method.provider.code, 
       instance.user_payment_method.user.id, 
-      instance.image_tag, filename)
+      instance.image_tag, smart_str(filename))
 
 class SingletonModel(models.Model):
 
