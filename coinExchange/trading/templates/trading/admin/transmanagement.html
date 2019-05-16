@@ -1,0 +1,163 @@
+{% extends 'base_generic.html' %} {% block custom_headers %}
+<link rel="stylesheet" href="/static/css/bootstrap-datetimepicker.min.css">
+<script type="text/javascript" src="/static/scripts/moment-with-locales.min.js"></script>
+<script type="text/javascript" src="/static/scripts/bootstrap-datetimepicker.js"></script>
+<script lang="javascript">
+    function show_cancel_confirm(orderId, buyerInfo, sellerInfo, totalAmount, created_at) {
+        $("#txt_id_order_id_cancel_model").val(orderId);
+        $("#tb_id_buyer").text(buyerInfo);
+        $("#tb_id_selleer").text(sellerInfo);
+        $("#tb_id_total_amount").text(totalAmount);
+        $("#tb_id_created_at").text(created_at);
+        $("#cancel-modal").modal({
+            backdrop: "static"
+        });
+    }
+</script>
+{% endblock %} {% block content %}
+<div class="container">
+    <div class="row">
+        <ul class="nav nav-tabs">
+            <li class="active"><a href="#">买单</a></li>
+            <li><a href="#">转币</a></li>
+            <li><a href="#">统计</a></li>
+        </ul>
+        <br>
+    </div>
+    <form method="POST" action="/trading/admin/searchorders/">
+        <input type="hidden" name="action" value="" />
+        <input type="hidden" name="orderId" value="" />
+        <div class="row">
+            {% if messages %} {% for message in messages %} {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+            <div id="div_message" class="text-danger">{{ message }}</div>
+            {% else %}
+            <div id="div_message" class="text-success">{{ message }}</div>
+            {% endif %} {% endfor %} {% endif %}
+            <div id="div_accountInfo_error" class="text-danger"></div>
+            {% csrf_token %}
+            <div class="input-group">
+                <input type="text" name="keyword" class="form-control" {% if not search_keyword %}placeholder="查询付昵称，用户名"{% endif %} value="{{ search_keyword }}" >
+                <div class="input-group-btn">
+                    <button class="btn btn-default form-controll" type="submit">
+                        <i class="glyphicon glyphicon-search"></i>
+                        </button>
+                </div>
+            </div>
+            <br>
+        </div>
+        <div class="row">
+            <table class="table">
+                <tr>
+                    <td width="10%"><label for="datetimepicker_from" class="control-label">查询从</label></td>
+                    <td width="40%">
+                        <div class='input-group date col-*-offset-1' id='datetimepicker_from'>
+                            <input type='text' id="from_date" name="from_date" class="form-control" />
+                            <span class="input-group-addon">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                            </span>
+                        </div>
+                    </td>
+                    <td width="10%"><label for="datetimepicker_to" class="control-label col-*-1">&nbsp;&nbsp;到</label></td>
+                    <td width="40%">
+                        <div class='input-group date col-*-offset-1' id='datetimepicker_to'>
+                            <input type='text' name="to_date" class="form-control" />
+                            <span class="input-group-addon ">
+                        <span class="glyphicon glyphicon-calendar "></span>
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <script type="text/javascript ">
+                $(function() {
+                    $('#datetimepicker_from').datetimepicker({
+                        locale: 'zh-CN',
+                        format: 'YYYY/MM/DD'
+                    });
+                    $('#datetimepicker_to').datetimepicker({
+                        locale: 'zh-CN',
+                        format: 'YYYY/MM/DD'
+                    });
+                });
+            </script>
+        </div>
+    </form>
+    {% load tz %} {% timezone "Asia/Taipei" %}
+
+    <div class="row ">
+        <table class="table table-striped ">
+            <tr>
+                <th></th>
+                <th>买家</th>
+                <th>卖家</th>
+                <th>总额</th>
+                <th>创建日期</th>
+                <th></th>
+            </tr>
+            {% if buyorders %} {% for order in buyorders %}
+            <tr>
+                <td>{% if order.trade_source == 'API' %}<img src="/static/img/api_icon.png">{% else %}<img src="/static/img/tradesite_icon.png">{% endif %}</td>
+                <td>{{ order.buyer_weixin_nickname }} / {{ order.buyer_username }} / {{ order.buyer_site }}</td>
+                <td>{{ order.seller_weixin_nickname }} / {{ order.seller_username }} / {{ order.seller_site }}</td>
+                <td>{{ order.total_amount }}{{ order.unit_price_currency}}@({{ order.unit_price }}x{{ order.units }})</td>
+                <td>{{ order.created_at|date:"m-d " }} {{ order.created_at|time:"H:i:s " }}</td>
+                <td>{% if order.order_status == 'PAYING' or order.order_status == 'PAID' or order.order_status == 'UNKNOWN' or order.order_status == 'OPEN' %}
+                    <button class="btn btn-primary " data-toggle="modal " data-target="#payment-confirm-modal " onclick="show_order_info( '{{ order.order_id}}', '{{ order.units}}', '{{ order.unit_price }}', '{{ order.unit_price_currency}}') ">{% if order.status == 'PAYING' %}手动{% endif %}确认</button>
+                    <button class="btn btn-primary " data-toggle="modal " data-target="#payment-confirm-modal " onclick="show_cancel_confirm( '{{ order.order_id}}', '{{ order.buyer_weixin_nickname }} / {{ order.buyer_username }} / {{ order.buyer_site }}', '{{ order.seller_weixin_nickname }} / {{ order.seller_username }} / {{ order.seller_site }}','{{ order.total_amount}}{{ order.unit_price_currency}}@({{ order.unit_price }}x{{ order.units }})', '{{ order.created_at|date:"m-d " }} {{ order.created_at|time:"H:i:s " }}') ">撤消</button> {%endif %}</td>
+            </tr>
+            {% endfor %} {% endif %}
+        </table>
+    </div>
+    {% endtimezone %}
+    <!-- popup window to confirm cancel the order -->
+    <form id="cancel-modal" tabindex="-1" class="modal fade" role="dialog" action="/trading/admin/purchase/cancel/" aria-labelledby="cancel-form-lable" aria-hidden="true" method='post'>
+        {% csrf_token %}
+        <input type="hidden" id="txt_id_order_id_cancel_model" name="order_id" value="" />
+        <input type="hidden" id="txt_id_search_keyword" name="search_keyword" value="{{ search_keyword }}" />
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 id="cancel-form-lable">取消美基金买单</h4>
+                </div>
+                <div class="text-danger" id="error-message-cancel-modal"></div>
+                <div class="modal-body">
+                    <div id="div_id_quantity" class="form-group">
+                        <table class="table">
+                            <tr>
+                                <th>买家</th>
+                                <th>卖家</th>
+                                <th>总额</th>
+                                <th>购买日期</th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div id="tb_id_buyer"></div>
+                                </td>
+                                <td>
+                                    <div id="tb_id_selleer"></div>
+                                </td>
+                                <td>
+                                    <div id="tb_id_total_amount"></div>
+                                </td>
+                                <td>
+                                    <div id="tb_id_created_at"></div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" data-dismiss="submit">确认</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">返回</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+</div>
+<script>
+
+</script>
+{% endblock %}

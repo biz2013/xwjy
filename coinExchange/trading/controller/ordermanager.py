@@ -21,6 +21,7 @@ from trading.controller.global_constants import *
 from trading.controller.userpaymentmethodmanager import *
 from trading.controller.useraccountinfomanager import *
 from trading.views.models.orderitem import OrderItem
+from trading.views.models.ordertransitem import *
 from trading.views.models.userpaymentmethodview import *
 
 logger = logging.getLogger("site.ordermanager")
@@ -272,7 +273,10 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
 def update_api_trans_after_cancel_order(api_trans, final_status, payment_status, operator):
     if api_trans:
         api_trans.payment_status = payment_status
-        if final_status == 'CANCELLED' and (payment_status.upper() in [ PAYMENT_STATUS_UNKONWN.upper(), 'UNKNOWN']):
+        # this is for transaction manager cancel purchase
+        if final_status == TRADE_STATUS_USERABANDON and payment_status == PAYMENT_STATUS_USERABANDON:
+            api_trans.trade_status = final_status
+        elif final_status == 'CANCELLED' and (payment_status.upper() in [ PAYMENT_STATUS_UNKONWN.upper(), 'UNKNOWN']):
             api_trans.trade_status = TRADE_STATUS_EXPIREDINVALID
         elif final_status == TRADE_STATUS_BADRECEIVINGACCOUNT:
             api_trans.trade_status = final_status
@@ -355,11 +359,16 @@ def cancel_purchase_order(order, final_status, payment_status,
                 order.order_id, final_status, payment_status, order.units
             ))
         
-        # try to cancel the api_trans for buy and sell, if applied
+        # try to cancel the api_trans for buy order, if applicable
         api_trans_purchase = APIUserTransactionManager.get_trans_by_reference_order(order.order_id)
-        update_api_trans_after_cancel_order(api_trans_purchase, final_status, payment_status, operatorObj)
+        if api_trans_purchase:
+            update_api_trans_after_cancel_order(api_trans_purchase, final_status, payment_status, operatorObj)
+            APIUserTransactionManager.on_cancel_transaction(api_trans_purchase)
+        # try to cancel the api_trans for the sell order, if applicable. We only do this if
+        # payment status 'is bad receive account'.  Otherwise, we leave the original API
+        # sell order as it is.
         api_trans_sell = APIUserTransactionManager.get_trans_by_reference_order(sell_order.order_id)
-        if api_trans_sell:
+        if api_trans_sell and payment_status == PAYMENT_STATUS_BADRECEIVINGACCOUNT:
             update_api_trans_after_cancel_order(api_trans_sell, final_status, payment_status, operatorObj)
             updated = UserWallet.objects.filter(
                 user__id = api_trans_sell.api_user.user.id,
@@ -1115,3 +1124,113 @@ def get_user_transactions(userid, crypto):
 
 def get_order_transactions(orderid):
     return UserWalletTransaction.objects.get(reference_order__order_id = orderid)
+
+# assume the api_tran is a purchase API call, parse buyer info out of it
+def parse_buyer_info_from_apitran(api_tran):
+    username = nickname = sitename = ''
+    if api_tran.attach :
+        parts = api_tran.attach.split(':')
+        for part in parts:
+            subparts = part.split('=')
+            if len(subparts) == 2:
+                if subparts[0].strip() == 'username':
+                    username = subparts[1].strip()
+                elif subparts[0].strip() == 'weixin':
+                    nickname = subparts[1].strip()
+    if len(username) == 0 and len(nickname) == 0:
+        username = api_tran.attach if api_tran.attach else '未知'
+    if api_tran.api_user.user.username.startswith('stakinguser1'):
+        sitename = '投资网站'
+    return username, nickname, sitename    
+
+# assume the api_tran is a purchase API call, parse seller info out of it
+def parse_seller_info_from_apitran(api_tran):
+    username = nickname = sitename = ''
+    order = api_tran.reference_order.reference_order
+    if order.order_source == 'TRADESITE':
+        username = order.user.username
+        nickname = order.seller_payment_method.account_alias if order.seller_payment_method else '未知'
+        sitename = '场外交易'
+    elif order.order_source == 'API':
+        purchase_tran = APIUserTransaction.objects.get(reference_order__order_id=order.order_id)
+        return parse_buyer_info_from_apitran(purchase_tran)
+    return username, nickname, sitename    
+
+# assume the order is a buy order, parse buyer info out of it
+def parse_buyer_info_from_order(order):
+    return order.user.username, order.seller_payment_method.account_alias if order.seller_payment_method else '未知','场外交易'
+
+# assume the order is a buy order, parse seller info out of it
+def parse_seller_info_from_order(buyorder):
+    order = buyorder.reference_order
+    if order.order_source == 'TRADESITE':
+        username = order.user.username
+        nickname = order.seller_payment_method.account_alias if order.seller_payment_method else '未知'
+        sitename = '场外交易'
+    elif order.order_source == 'API':
+        purchase_tran = APITransation.objects.get(reference_order__order_id=order.order_id)
+        return parse_buyer_info_from_apitran(purchase_tran)
+    return username, nickname, sitename    
+
+
+def search_orders(keyword, from_date, to_date):
+    buyer_orders = []
+    apiTrans = APIUserTransaction.objects.filter(
+        Q(action=API_METHOD_PURCHASE),
+        Q(trade_status=TRADE_STATUS_NOTSTARTED) | Q(trade_status=TRADE_STATUS_UNKNOWN) |
+        Q(trade_status=TRADE_STATUS_INPROGRESS),
+        Q(attach__contains=keyword)).order_by('-lastupdated_at')
+
+    for api_tran in apiTrans:
+        order = api_tran.reference_order
+        buyer_username, buyer_weixin_nickname, buyer_site = parse_buyer_info_from_apitran(api_tran)
+        seller_username, seller_weixin_nickname, seller_site = parse_seller_info_from_apitran(api_tran)
+        trans_item = OrderTransactionItem(
+            order.order_id,
+            buyer_username,
+            buyer_weixin_nickname,
+            buyer_site,
+            seller_username,
+            seller_weixin_nickname,
+            seller_site,
+            order.order_source,
+            order.units,
+            order.total_amount,
+            order.unit_price,
+            order.unit_price_currency,
+            order.status,
+            order.created_at,
+            order.lastupdated_at
+        )
+
+        buyer_orders.append(trans_item)
+
+    buyorder_exchanges = Order.objects.filter(
+        Q(order_type= 'BUY'),
+        Q(order_source = 'TRADESITE'),
+        Q(status = 'OPEN') | Q(status = 'PAYING'),
+        Q(user__username__contains=keyword)
+    ).order_by('-lastupdated_at')
+    for buyorder in buyorder_exchanges:
+        buyer_username, buyer_weixin_nickname, buyer_site = parse_buyer_info_from_order(buyorder)
+        seller_username, seller_weixin_nickname, seller_site = parse_seller_info_from_order(buyorder)
+        trans_item = OrderTransactionItem(
+            buyorder.order_id,
+            buyer_username,
+            buyer_weixin_nickname,
+            buyer_site,
+            seller_username,
+            seller_weixin_nickname,
+            seller_site,
+            buyorder.order_source,
+            buyorder.units,
+            buyorder.total_amount,
+            buyorder.unit_price,
+            buyorder.unit_price_currency,
+            buyorder.status,
+            buyorder.created_at,
+            buyorder.lastupdated_at
+        )
+        buyer_orders.append(trans_item)
+
+    return buyer_orders

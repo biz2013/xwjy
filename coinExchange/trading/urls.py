@@ -24,12 +24,14 @@ from trading.views import account_cronjob, externaladdrview, paymentmethodsview
 from trading.views import redeemview, heepay_notify_view, transactionview, paypalview
 from trading.views import order_batch_process_view, wallet_address_batch
 from trading.views import testpageview, transferview, userregistrationview
-from trading.views import weixinsetupview
+from trading.views import weixinsetupview, transmanagement
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     re_path(r'^$', homeview.home, name='home'),
     re_path(r'^testpage/$', testpageview.testpage),
+    re_path(r'^admin/searchorders/', transmanagement.gettrans, name='searchorders'),
+    re_path(r'^admin/purchase/cancel/', transmanagement.cancel_purchase, name='cancel_purchase'),
     re_path(r'^accounts/accountinfo/$', accountinfoview.accountinfo, name='accountinfo'),
     re_path(r'^accounts/redeem/$', redeemview.redeem, name="redeem"),
     re_path(r'^accounts/external_address/$', externaladdrview.external_address, name="update_external_address"),
