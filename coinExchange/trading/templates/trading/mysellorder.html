@@ -68,6 +68,10 @@
                 return false;
             }
 
+            if (parseFloat(price) > 0.7) {
+                $("#error-message-sell-modal").text("您的卖单离当前最低价过高，请调整价格");
+                return false;
+            }
             var total_amount = (parseFloat(units) * parseFloat(price)).toFixed(2);
             $("#txt_id_total_amount").val("" + total_amount);
             $("#id_request_source").val("sellorder");
