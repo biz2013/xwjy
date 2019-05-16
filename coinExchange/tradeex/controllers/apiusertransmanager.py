@@ -403,6 +403,69 @@ class APIUserTransactionManager(object):
                     ))
 
     @staticmethod
+    def on_cancel_transaction(api_trans):
+        logger.debug('on_found_redeem_trans_with_badaccount')
+        total_cny_in_units = round(float(api_trans.total_fee)/100.0,8)
+
+        # send notification if needed
+        if api_trans.notify_url:
+            logger.debug('on_cancel_transaction(): has notify_url {0}'.format(api_trans.notify_url))
+        if api_trans.last_notify_response:
+            logger.debug('on_cancel_transaction(): has last_notify_response {0}'.format(
+                api_trans.last_notify_response))
+        if api_trans.last_status_description:
+            logger.debug('on_cancel_transaction(): has last_status_description {0}'.format(
+                api_trans.last_status_description))
+            
+        if api_trans.notify_url and (
+            (not api_trans.last_notify_response) or api_trans.last_status_description != 'NOTIFYSUCCESS'):
+            need_to_send_notification = False
+            if api_trans.last_notified_at:
+                since_last_notify = timezone.now() - api_trans.last_notified_at
+                since_creation = timezone.now() - api_trans.created_at
+                need_to_send_notification = since_last_notify.total_seconds() >= 180 and since_creation <= api_trans.expire_in_sec
+            else:
+                need_to_send_notification = True
+            need_to_send_notification =  need_to_send_notification or api_trans.trade_status == TRADE_STATUS_BADRECEIVINGACCOUNT
+            if need_to_send_notification:
+                logger.info('v(): send notification to seller because its trade status is {0}'.format(
+                    api_trans.trade_status
+                ))
+                notify = PurchaseAPINotify(
+                    '1.0',
+                    api_trans.api_user.apiKey,
+                    api_trans.api_user.secretKey,
+                    api_trans.api_out_trade_no,
+                    api_trans.transactionId,
+                    api_trans.payment_provider.code,
+                    api_trans.subject,
+                    api_trans.total_fee,
+                    api_trans.trade_status,
+                    api_trans.real_fee,
+                    api_trans.payment_provider_last_notified_at.strftime("%Y%m%d%H%M%S") if api_trans.payment_provider_last_notified_at else None,
+                    from_account=api_trans.payment_account,
+                    #to_account = api_trans.to_account,
+                    attach = api_trans.attach
+                )
+                api_client = APIClient(api_trans.notify_url)
+                notify_resp = ""
+                try:
+                    notify_resp = api_client.send_json_request(notify.to_json(), response_format='text')
+                    notify_resp = notify_resp[:NOTIFY_RESPONSE_LEN]
+                    if notify_resp.startswith('\ufeff'):
+                        notify_resp = notify_resp.encode('utf-8').decode("utf-8-sig")
+                    else:
+                        notify_resp = notify_resp.decode("utf-8-sig")
+                except:
+                    logger.info('send api user notification hit error {0}'.format(sys.exc_info()[0]))
+                # update notify situation
+                comment = 'NOTIFYSUCCESS' if notify_resp and notify_resp == 'ok' else 'NOTIFYFAILED: {0}'.format(notify_resp)
+                APIUserTransactionManager.update_notification_status(
+                    api_trans.transactionId, 
+                    json.dumps(notify.to_json(), ensure_ascii = False), 
+                    notify_resp, comment)
+
+    @staticmethod
     def on_found_redeem_trans_with_badaccount(api_trans):
         logger.debug('on_found_redeem_trans_with_badaccount')
         total_cny_in_units = round(float(api_trans.total_fee)/100.0,8)

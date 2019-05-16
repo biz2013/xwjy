@@ -273,7 +273,10 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
 def update_api_trans_after_cancel_order(api_trans, final_status, payment_status, operator):
     if api_trans:
         api_trans.payment_status = payment_status
-        if final_status == 'CANCELLED' and (payment_status.upper() in [ PAYMENT_STATUS_UNKONWN.upper(), 'UNKNOWN']):
+        # this is for transaction manager cancel purchase
+        if final_status == TRADE_STATUS_USERABANDON and payment_status == PAYMENT_STATUS_USERABANDON:
+            api_trans.trade_status = final_status
+        elif final_status == 'CANCELLED' and (payment_status.upper() in [ PAYMENT_STATUS_UNKONWN.upper(), 'UNKNOWN']):
             api_trans.trade_status = TRADE_STATUS_EXPIREDINVALID
         elif final_status == TRADE_STATUS_BADRECEIVINGACCOUNT:
             api_trans.trade_status = final_status
@@ -356,11 +359,16 @@ def cancel_purchase_order(order, final_status, payment_status,
                 order.order_id, final_status, payment_status, order.units
             ))
         
-        # try to cancel the api_trans for buy and sell, if applied
+        # try to cancel the api_trans for buy order, if applicable
         api_trans_purchase = APIUserTransactionManager.get_trans_by_reference_order(order.order_id)
-        update_api_trans_after_cancel_order(api_trans_purchase, final_status, payment_status, operatorObj)
+        if api_trans_purchase:
+            update_api_trans_after_cancel_order(api_trans_purchase, final_status, payment_status, operatorObj)
+            APIUserTransactionManager.on_cancel_transaction(api_trans_purchase)
+        # try to cancel the api_trans for the sell order, if applicable. We only do this if
+        # payment status 'is bad receive account'.  Otherwise, we leave the original API
+        # sell order as it is.
         api_trans_sell = APIUserTransactionManager.get_trans_by_reference_order(sell_order.order_id)
-        if api_trans_sell:
+        if api_trans_sell and payment_status == PAYMENT_STATUS_BADRECEIVINGACCOUNT:
             update_api_trans_after_cancel_order(api_trans_sell, final_status, payment_status, operatorObj)
             updated = UserWallet.objects.filter(
                 user__id = api_trans_sell.api_user.user.id,
@@ -1157,7 +1165,7 @@ def parse_seller_info_from_order(buyorder):
     order = buyorder.reference_order
     if order.order_source == 'TRADESITE':
         username = order.user.username
-        nickname = order.seller_payment_method.account_alias if order.seller_payment_method else '未知',
+        nickname = order.seller_payment_method.account_alias if order.seller_payment_method else '未知'
         sitename = '场外交易'
     elif order.order_source == 'API':
         purchase_tran = APITransation.objects.get(reference_order__order_id=order.order_id)
@@ -1207,21 +1215,21 @@ def search_orders(keyword, from_date, to_date):
         buyer_username, buyer_weixin_nickname, buyer_site = parse_buyer_info_from_order(buyorder)
         seller_username, seller_weixin_nickname, seller_site = parse_seller_info_from_order(buyorder)
         trans_item = OrderTransactionItem(
-            order.order_id,
+            buyorder.order_id,
             buyer_username,
             buyer_weixin_nickname,
             buyer_site,
             seller_username,
             seller_weixin_nickname,
             seller_site,
-            order.order_source,
-            order.units,
-            order.total_amount,
-            order.unit_price,
-            order.unit_price_currency,
-            order.status,
-            order.created_at,
-            order.lastupdated_at
+            buyorder.order_source,
+            buyorder.units,
+            buyorder.total_amount,
+            buyorder.unit_price,
+            buyorder.unit_price_currency,
+            buyorder.status,
+            buyorder.created_at,
+            buyorder.lastupdated_at
         )
         buyer_orders.append(trans_item)
 
