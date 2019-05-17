@@ -32,6 +32,7 @@ urlpatterns = [
     re_path(r'^testpage/$', testpageview.testpage),
     re_path(r'^admin/searchorders/', transmanagement.gettrans, name='searchorders'),
     re_path(r'^admin/purchase/cancel/', transmanagement.cancel_purchase, name='cancel_purchase'),
+    re_path(r'^admin/purchase/confirm/', transmanagement.confirm_payment, name='confirm_purchase'),
     re_path(r'^accounts/accountinfo/$', accountinfoview.accountinfo, name='accountinfo'),
     re_path(r'^accounts/redeem/$', redeemview.redeem, name="redeem"),
     re_path(r'^accounts/external_address/$', externaladdrview.external_address, name="update_external_address"),

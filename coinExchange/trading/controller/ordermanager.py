@@ -918,7 +918,7 @@ def confirm_purchase_order(order_id, operator):
              user_id = buyorder.user.id,
              wallet__cryptocurrency = purchase_trans.user_wallet.wallet.cryptocurrency)
 
-        new_payment_status = 'MANUALCONFIRMED' if purchase_trans.payment_status == 'UNKNOWN' else purchase_trans.payment_statu
+        new_payment_status = 'MANUALCONFIRMED' if purchase_trans.payment_status == 'UNKNOWN' else purchase_trans.payment_status
         purchase_trans.balance_begin = buyer_user_wallet.balance
         purchase_trans.balance_end = buyer_user_wallet.balance + buyorder.units
         purchase_trans.locked_balance_begin = buyer_user_wallet.locked_balance

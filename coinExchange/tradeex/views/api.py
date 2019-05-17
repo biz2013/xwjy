@@ -211,6 +211,7 @@ def prepurchase(request):
         final_resp_json = tradex.purchase_by_cash_amount(api_user,
            request_obj, 'AXFund', sitesettings, True)
         
+        logger.info("prepurchase(): sending response to buyer...")
         return JsonResponse(final_resp_json)
         #else:
         #    raise ValueError("payment provider {0} is not supported".format(request_obj.payment_provider))
