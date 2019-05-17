@@ -4,6 +4,7 @@ import sys
 from django.db.models import Q
 from django.http.response import HttpResponseBadRequest
 from django.shortcuts import render, redirect
+from django.contrib import messages
 
 # this is for test UI. A fake one
 from tradeex.data.api_const import *
@@ -57,6 +58,7 @@ def cancel_purchase(request):
            useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
            request.session[REQ_KEY_USERACCOUNTINFO] = useraccountInfo.tojson()
            buyorders = ordermanager.search_orders(keyword, None, None)
+           messages.success(request,'确认取消订单，交易完成')
        else:
            return HttpResponseBadRequest('撤销买单只能允许POST')
 
@@ -69,6 +71,32 @@ def cancel_purchase(request):
               })
     except Exception as e:
        error_msg = '用户主页显示遇到错误: {0}'.format(sys.exc_info()[0])
+       logger.exception(error_msg)
+       return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
+              '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))
+
+@login_required
+def confirm_payment(request):
+    try:
+       if request.method == 'POST':
+           order_id = request.POST['order_id']
+           keyword = request.POST['search_keyword']
+           ordermanager.confirm_purchase_order(order_id, request.user.username)
+           messages.success(request,'确认付款，交易完成')
+           useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
+           request.session[REQ_KEY_USERACCOUNTINFO] = useraccountInfo.tojson()
+           buyorders = ordermanager.search_orders(keyword, None, None)
+       else:
+           return HttpResponseBadRequest('确认买单只能允许POST')
+       return render(request, 'trading/admin/transmanagement.html', 
+              {'useraccountInfo': useraccountInfo,
+               REQ_KEY_USERNAME: request.user.username,
+               'search_keyword': keyword,
+               'buyorders' : buyorders,
+               'bootstrap_datepicker': True
+              })
+    except Exception as e:
+       error_msg = '确认付款遇到错误: {0}'.format(sys.exc_info()[0])
        logger.exception(error_msg)
        return errorpageview.show_error(request, ERR_CRITICAL_IRRECOVERABLE,
               '系统遇到问题，请稍后再试。。。{0}'.format(error_msg))

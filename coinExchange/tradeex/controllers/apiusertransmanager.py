@@ -316,6 +316,10 @@ class APIUserTransactionManager(object):
                 try:
                     notify_resp = api_client.send_json_request(notify.to_json(), response_format='text')
                     notify_resp = notify_resp[:NOTIFY_RESPONSE_LEN]
+                    if notify_resp.startswith('\ufeff'):
+                        notify_resp = notify_resp.encode('utf-8').decode("utf-8-sig")
+                    else:
+                        notify_resp = notify_resp.decode("utf-8-sig")
                 except:
                     logger.info('send api user notification hit error {0}'.format(sys.exc_info()[0]))
                 # update notify situation
