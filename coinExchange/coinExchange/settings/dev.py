@@ -97,3 +97,6 @@ LOGGING = {
     },
 }
 
+API_SITE_URL = {
+    'stakinguser1' : 'http://localhost:8080/member/getpaymentqrcode.php?out_trade_no={0}'
+}

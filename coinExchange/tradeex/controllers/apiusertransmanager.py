@@ -493,7 +493,7 @@ class APIUserTransactionManager(object):
                 need_to_send_notification = since_last_notify.total_second() >= 180 and since_creation <= api_trans.expire_in_sec
             else:
                 need_to_send_notification = True
-            need_to_send_notification =  need_to_send_notification and api_trans.trade_status == TRADE_STATUS_BADRECEIVINGACCOUNT
+            need_to_send_notification =  need_to_send_notification and (api_trans.trade_status == TRADE_STATUS_BADRECEIVINGACCOUNT or api_trans.trade_status == TRADE_STATUS_USERABANDON)
             if need_to_send_notification:
                 logger.info('on_found_redeem_trans_with_badaccount(): send notification to seller because its trade status is {0}'.format(
                     api_trans.trade_status
