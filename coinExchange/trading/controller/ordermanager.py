@@ -18,7 +18,7 @@ from tradeex.utils import *
 from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from trading.models import *
 from trading.controller.global_constants import *
-from trading.controller.userpaymentmethodmanager import *
+from trading.controller import userpaymentmethodmanager
 from trading.controller.useraccountinfomanager import *
 from trading.views.models.orderitem import OrderItem
 from trading.views.models.ordertransitem import *
@@ -57,26 +57,33 @@ def get_user_payment_account(user_id, payment_provider_code):
 def get_and_update_sell_order_payment_methods(sell_order_id):
     with transaction.atomic():
         sell_order = Order.objects.select_for_update().get(pk=sell_order_id)
-        if sell_order.selected_payment_provider and sell_order.account_at_selected_payment_provider:
-            return UserPaymentMethod.objects.get(user__id=sell_order.user.id, 
-                provider__code=sell_order.selected_payment_provider.code)
-        elif sell_order.unit_price_currency == 'CNY':
-            weixin, weixin_payment_image, weixin_shop_assistant_image = userpaymentmethodmanager.load_weixin_info(
-                sell_order.user.id)
-            if not (weixin and weixin_payment_image and weixin_shop_assistant_image):
-                raise ValueError(ERR_SELLER_WEIXIN_NOT_FULLY_SETUP)
-            sell_order.selected_payment_provider = weixin
-            sell_order.account_at_selected_payment_provider = weixin.account_at_provider
-            sell_order.save()
-            return weixin
-        elif sell_order.unit_price_currency == 'CAD':
-            paypal = userpaymentmethodmanager.get_user_paypal_payment_method(sell_order.user.id)
-            if not (paypal and paypal.client_id and paypal.client_secret):
-                raise ValueError(ERR_SELLER_PAYPAL_NOT_FULLY_SETUP)
-            sell_order.selected_payment_provider = paypal
-            sell_order.account_at_selected_payment_provider = paypal.account_at_provider
-            sell_order.save()
-            return paypal
+        if sell_order.order_source == 'TRDESITE':
+            if sell_order.selected_payment_provider and sell_order.account_at_selected_payment_provider:
+                return UserPaymentMethod.objects.get(user__id=sell_order.user.id, 
+                    provider__code=sell_order.selected_payment_provider.code)
+            elif sell_order.unit_price_currency == 'CNY':
+                weixin = userpaymentmethodmanager.get_weixin_paymentmethod(sell_order.user.id)
+                if not (weixin and weixin.provider_qrcode_image):
+                    raise ValueError(ERR_SELLER_WEIXIN_NOT_FULLY_SETUP)
+                sell_order.selected_payment_provider = weixin
+                sell_order.account_at_selected_payment_provider = weixin.account_at_provider
+                sell_order.save()
+                return weixin
+            elif sell_order.unit_price_currency == 'CAD':
+                paypal = userpaymentmethodmanager.get_user_paypal_payment_method(sell_order.user.id)
+                if not (paypal and paypal.client_id and paypal.client_secret):
+                    raise ValueError(ERR_SELLER_PAYPAL_NOT_FULLY_SETUP)
+                sell_order.selected_payment_provider = paypal
+                sell_order.account_at_selected_payment_provider = paypal.account_at_provider
+                sell_order.save()
+                return paypal
+        else:
+            try:
+                api_trans = APIUserTransaction.objects.get(reference_order_id=sell_order.order_id, action = API_METHOD_REDEEM)
+                return None
+
+            except APIUserTransaction.DoesNotExist:
+                raise ValueError(ERR_API_SELLER_NO_API_RECORD)
 
 def get_seller_buyer_payment_accounts(buyorder_id, payment_provider):
     buyorder = Order.objects.get(pk=buyorder_id)
@@ -368,7 +375,7 @@ def cancel_purchase_order(order, final_status, payment_status,
         # payment status 'is bad receive account'.  Otherwise, we leave the original API
         # sell order as it is.
         api_trans_sell = APIUserTransactionManager.get_trans_by_reference_order(sell_order.order_id)
-        if api_trans_sell and payment_status == PAYMENT_STATUS_BADRECEIVINGACCOUNT:
+        if api_trans_sell and (payment_status == PAYMENT_STATUS_BADRECEIVINGACCOUNT or final_status == TRADE_STATUS_USERABANDON):
             update_api_trans_after_cancel_order(api_trans_sell, final_status, payment_status, operatorObj)
             updated = UserWallet.objects.filter(
                 user__id = api_trans_sell.api_user.user.id,
@@ -539,8 +546,8 @@ def create_purchase_order(buyorder, reference_order_id,
 
         # if the target sell order is requires all or nothing then we have to 
         # make sure the difference between purchase amount and is the same
-        if reference_order.order_type == 'ALL_OR_NOTHING':
-            if reference_order.total_units != reference_order.units_available_to_trade:
+        if reference_order.sub_type == 'ALL_OR_NOTHING':
+            if reference_order.units != reference_order.units_available_to_trade:
                 logger.error('ALL_OR_NOTHING sell order %s\'s total unit(%f) and available units(%f) does not match' % (
                     reference_order.order_id, reference_order.total_units,
                     reference_order.units_available_to_trade
@@ -1129,7 +1136,7 @@ def get_order_transactions(orderid):
 def parse_buyer_info_from_apitran(api_tran):
     username = nickname = sitename = ''
     if api_tran.attach :
-        parts = api_tran.attach.split(':')
+        parts = api_tran.attach.split(';')
         for part in parts:
             subparts = part.split('=')
             if len(subparts) == 2:
@@ -1168,7 +1175,7 @@ def parse_seller_info_from_order(buyorder):
         nickname = order.seller_payment_method.account_alias if order.seller_payment_method else '未知'
         sitename = '场外交易'
     elif order.order_source == 'API':
-        purchase_tran = APITransation.objects.get(reference_order__order_id=order.order_id)
+        purchase_tran = APIUserTransaction.objects.get(reference_order__order_id=order.order_id)
         return parse_buyer_info_from_apitran(purchase_tran)
     return username, nickname, sitename    
 

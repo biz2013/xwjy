@@ -85,12 +85,10 @@
           return;
         }
 
-        if ($("#id_seller_payment_method").length == 1) {
-            var provider = $("#id_seller_payment_method").val();
-            if (provider.length == 0) {
-              $("#div_id_error").text("请选择付款方式");
-              return;
-            }
+        var provider = $("#id_seller_payment_method").val();
+        if (provider.length == 0) {
+          $("#div_id_error").text("请选择付款方式");
+          return;
         }
 
         $("#create_purchase").submit();
@@ -243,7 +241,7 @@
                                     <td>{{ available_units_for_purchase }}</td>
                                     <td>{{ buyorder.unit_price }} ({{ order_currency }})</td>
                                     <td>
-                                        <div id="total_cost">{{ available_units_for_purchase|mul:buyorder.unit_price|floatformat:2 }}</div>
+                                        <div id="total_cost"></div>
                                     </td>
                                 </tr>
                             </table>
@@ -260,7 +258,7 @@
                             <div class="controls"><label for="id_all_or_nothing" class="control-label">卖方要求全部购买</label>
                             </div>
                         {% endif %}
-                        {% if buyorder.selected_payment_provider == 'weixin' or buyorder.sub_type == "ALL_OR_NOTHING" %}
+                        {% if buyorder.selected_payment_provider == 'weixin' %}
                         <div id="div_id_payment_method" class="form-group">
                           <label class="control-label">付款方式</label>
                           <img src="/static/img/weixinpayicon.png" width="64" height="64" />

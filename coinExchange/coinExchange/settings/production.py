@@ -15,3 +15,7 @@ ALLOWED_HOSTS = [ '34.216.121.138', 'cnytrx.uuvc.com','www.uuvc.com', 'uuvc.com'
 TRADESITE_PAYMENT_URLPREFIX="https://www.uuvc.com/trading/paymenturl/"
 
 API_TRANS_LIMIT_IN_CENT = 1000000
+
+API_SITE_URL = {
+    'stakinguser1' : 'https://www.9lp.com/member/getpaymentqrcode.php?out_trade_no={0}'
+}

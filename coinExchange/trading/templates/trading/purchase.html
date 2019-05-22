@@ -64,7 +64,8 @@
             </tr>
             {% if sellorders %}
                {% for order in sellorders %}
-            {% if order.available_units > 0 %}
+            <!-- temporarily only allow to purchase the sell order submitted from API -->
+            {% if order.available_units > 0 and order.order_source == 'API'%}
             <tr {% if order.order_source == 'API' %} style="color: red"{% endif %}>
               <!--<td>{{ order.lastmodified_at }}</td>-->
               <td>{% if order.selected_payment_provider %}

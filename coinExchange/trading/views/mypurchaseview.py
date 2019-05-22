@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 
 from tradeex.data.api_const import *
+from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 
 from trading.config import context_processor
 from trading.controller.global_constants import *
@@ -81,7 +82,15 @@ def show_purchase_input(request):
         paypal_client_id = ''
         sell_order_payment_method = ordermanager.get_and_update_sell_order_payment_methods(reference_order_id)
         paypal_client_id = sell_order_payment_method.client_id if sell_order_payment_method and sell_order_payment_method.client_id else ''
-
+        payment_method = sell_order_payment_method.provider.code if sell_order_payment_method else ''
+        bill_no = payment_account = payment_qrcode_url = ''
+        if not sell_order_payment_method:
+            api_tran = APIUserTransactionManager.get_trans_by_reference_order(reference_order_id)
+            if api_tran is None:
+                raise ValueError('ERR_API_SELLER_NO_API_RECORD')
+            
+            bill_no, payment_method, payment_account, payment_qrcode_url = parseInfo(api_tran)
+            
         owner_login = request.POST["owner_login"]
         unit_price = float(request.POST["locked_in_unit_price"])
         order_sub_type = request.POST["sub_type"]
@@ -90,13 +99,15 @@ def show_purchase_input(request):
            total_units = float(request.POST['quantity'])
         available_units = float(request.POST["available_units_for_purchase"])
         order_currency = request.POST['sell_order_currency']
+        if order_sub_type == 'ALL_OR_NOTHING':
+            total_units = available_units
         
-        owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id) if not seller_payment_provider else [
-            UserPaymentMethodView(0,
-                0, seller_payment_provider,
-                # TODO: the name of the seller payment provider should come from DB
-                '汇钱包', seller_payment_provider_account,
-                '', "", "")]
+        #owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id) if not sell_order_payment_method else [
+        #    UserPaymentMethodView(0,
+        #        0, None,
+        #        # TODO: the name of the seller payment provider should come from DB
+        #        '微信', '',
+        #        '', "", "")]
         #for method in owner_payment_methods:
         #    print ("provider %s has image %s" % (method.provider.name, method.provider_qrcode_image))
         buyorder = OrderItem(
@@ -106,7 +117,9 @@ def show_purchase_input(request):
            unit_price, order_currency,
            total_units, 0,
            0.0, 'AXFund',
-           '','','BUY', sub_type = order_sub_type)
+           '','','BUY', sub_type = order_sub_type,
+           selected_payment_provider = payment_method,
+           account_at_payment_provider = payment_account)
         return render(request, 'trading/input_purchase.html',
                {'username': username,
                 'buyorder': buyorder,
@@ -115,7 +128,6 @@ def show_purchase_input(request):
                 'reference_order_id': reference_order_id,
                 'available_units_for_purchase': available_units,
                 'paypal_clientId': paypal_client_id,
-                'sell_order_payment_method': sell_order_payment_method,
                 'order_currency': order_currency}
                )
     except ValueError as ve:
@@ -181,6 +193,21 @@ def generate_payment_qrcode(payment_provider,payment_provider_response_json,
     else:
         raise ValueError('Payment provider {0} is not supported'.format(payment_provider))
 
+def parseInfo(api_tran):
+    username = nickname = payment_method = payment_qrcode_url = ''
+    if api_tran.attach :
+        parts = api_tran.attach.split(';')
+        for part in parts:
+            subparts = part.split('=')
+            if len(subparts) == 2:
+                if subparts[0].strip() == 'weixin':
+                    payment_method = 'weixin'
+                    nickname = subparts[1].strip()
+                elif subparts[0].strip() == 'payment_qrcode_url':
+                    payment_qrcode_url = subparts[1].strip()
+    if len(payment_qrcode_url) == 0 and api_tran.api_user.user.username.startswith('stakinguser1'):
+        payment_qrcode_url = settings.API_SITE_URL['stakinguser1'].format(api_tran.api_out_trade_no)
+    return api_tran.api_out_trade_no, payment_method, nickname, payment_qrcode_url
 @login_required
 def create_purchase_order(request):
     try:
@@ -220,32 +247,54 @@ def create_purchase_order(request):
             if buyorderid is None:
                raise ValueError('Failed to get purchase order id')
 
-            # read the sitsettings
-            sitesettings = context_processor.settings(request)['settings']
-            json_response = send_payment_request(sitesettings, seller_payment_provider,
-                buyorder.order_id, total_amount)
-            if json_response and json_response['return_code'] == 'SUCCESS':
-                ordermanager.post_open_payment_order(
-                                buyorderid, 'heepay',
-                                json_response['hy_bill_no'],
-                                json_response['hy_url'],
-                                username)
+            if settings.PAYMENT_API_STATUS['heepay'] == 'auto':
+                # read the sitsettings
+                sitesettings = context_processor.settings(request)['settings']
+                json_response = send_payment_request(sitesettings, seller_payment_provider,
+                    buyorder.order_id, total_amount)
+                if json_response and json_response['return_code'] == 'SUCCESS':
+                    ordermanager.post_open_payment_order(
+                                    buyorderid, 'heepay',
+                                    json_response['hy_bill_no'],
+                                    json_response['hy_url'],
+                                    username)
 
-                qrcode_file = generate_payment_qrcode('heepay', json_response, settings.MEDIA_ROOT)
-                return render(request, 'trading/purchase_heepay_qrcode.html',
-                         { 'total_units' : quantity, 'unit_price': unit_price,
-                           'total_amount': total_amount,
-                           'heepay_qrcode_file' : qrcode_file })
-            elif json_response and json_response['return_msg'] == HEEPAY_ERR_NONEXIST_RECEIVE_ACCOUNT:
-                purchase_order = Order.objects.get(order_id=buyorderid)
-                admin = User.objects.get(username='admin')
-                ordermanager.cancel_purchase_order(purchase_order, TRADE_STATUS_BADRECEIVINGACCOUNT, 
-                    PAYMENT_STATUS_BADRECEIVINGACCOUNT, admin)
-            
-            owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
-            useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
-            messages.error(request, '向汇钱包下单申请失败:{0}'.format(json_response['return_msg'] if json_response else '系统错误'))
-            return redirect('purchase')
+                    qrcode_file = generate_payment_qrcode('heepay', json_response, settings.MEDIA_ROOT)
+                    return render(request, 'trading/purchase_heepay_qrcode.html',
+                            { 'total_units' : quantity, 'unit_price': unit_price,
+                            'total_amount': total_amount,
+                            'heepay_qrcode_file' : qrcode_file })
+                elif json_response and json_response['return_msg'] == HEEPAY_ERR_NONEXIST_RECEIVE_ACCOUNT:
+                    purchase_order = Order.objects.get(order_id=buyorderid)
+                    admin = User.objects.get(username='admin')
+                    ordermanager.cancel_purchase_order(purchase_order, TRADE_STATUS_BADRECEIVINGACCOUNT, 
+                        PAYMENT_STATUS_BADRECEIVINGACCOUNT, admin)
+                
+                owner_payment_methods = ordermanager.get_user_payment_methods(owner_user_id)
+                useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
+                messages.error(request, '向汇钱包下单申请失败:{0}'.format(json_response['return_msg'] if json_response else '系统错误'))
+                return redirect('purchase')
+            else:
+                api_tran = APIUserTransactionManager.get_trans_by_reference_order(reference_order_id)
+                if api_tran is None:
+                    raise ValueError('ERR_API_SELLER_NO_API_RECORD')
+                
+                bill_no, payment_method, payment_account, payment_qrcode_url = parseInfo(api_tran)
+                ordermanager.post_open_payment_order(
+                                buyorderid, payment_method,
+                                bill_no,
+                                payment_qrcode_url,
+                                username)
+                useraccountInfo = useraccountinfomanager.get_user_accountInfo(request.user,'AXFund')
+                return render(request, 'trading/purchase_qrcode.html',
+                    { 'qrcode_url': payment_qrcode_url,
+                      'total_units': quantity,
+                      'unit_price': unit_price,
+                      'unit_currency': order_currency,
+                      'seller_payment_provider': payment_method,
+                      'seller_payment_provider_account': payment_account,
+                      'total_amount': total_amount}
+                )
 
     except Exception as e:
         error_msg = '创建买单遇到错误: {0}'.format(sys.exc_info()[0])
