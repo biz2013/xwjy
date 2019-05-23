@@ -27,7 +27,7 @@
               {% if heepay_qrcode_file %}
                 <td><img src="/media/{{ heepay_qrcode_file }}"></td>
               {% elif qrcode_url %}
-                <td><img src="{{ qrcode_url }}"></td>
+                <td><img src="{{ qrcode_url }}" width="300" height="400"></td>
               {% else %}
                 <td><div class="text-danger">系统显示付款二维码有错，请联系客服</div></td>
               {% endif %}
