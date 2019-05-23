@@ -65,7 +65,7 @@
             {% if sellorders %}
                {% for order in sellorders %}
             <!-- temporarily only allow to purchase the sell order submitted from API -->
-            {% if order.available_units > 0 and order.order_source == 'API'%}
+            {% if order.available_units > 0 %}
             <tr {% if order.order_source == 'API' %} style="color: red"{% endif %}>
               <!--<td>{{ order.lastmodified_at }}</td>-->
               <td>{% if order.selected_payment_provider %}
@@ -79,7 +79,7 @@
               {% if order.status == 'LOCKED' %}
               <td>被锁定</td>
               {% else %}
-              <td><button type="button" class="btn btn-primary" onclick="create_purchase_order('{{ order.order_id }}', '{{ order.owner_user_id }}', '{{ order.owner_login }}','{{ order.unit_price }}', '{{ order.available_units }}', '{{ order.sub_type }}', '{% if order.selected_payment_provider %}{{ order.selected_payment_provider }}{% endif %}', '{% if order.account_at_payment_provider %}{{ order.account_at_payment_provider }}{% endif %}', '{{ order.unit_price_currency }}')">购买</button></td>
+              <td>{% if order.order_source == 'API' %}<button type="button" class="btn btn-primary" onclick="create_purchase_order('{{ order.order_id }}', '{{ order.owner_user_id }}', '{{ order.owner_login }}','{{ order.unit_price }}', '{{ order.available_units }}', '{{ order.sub_type }}', '{% if order.selected_payment_provider %}{{ order.selected_payment_provider }}{% endif %}', '{% if order.account_at_payment_provider %}{{ order.account_at_payment_provider }}{% endif %}', '{{ order.unit_price_currency }}')">购买</button>{% endif %}</td>
               {% endif %}
             </tr>
             {% endif %}
