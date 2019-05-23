@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  {% include 'include/common_header.html' %}
+</head>
+
+<body>
+  <!-- menu section -->
+  {% include "include/topmenu.html" %}
+  <!-- body section -->
+  {% load mathfilters %}
+  <div class="container">
+    <div class="well">
+      <div class="row">
+        <div class="offset2 col-md-6">
+            <h3>购买美基金付款二维码</h3>
+          <div id="input_purchase">
+            {% if returnstatus and returnstatus.reason != 'OK' %}
+               <div id="div_id_returnstatus" class="text-danger">{{ returnstatus.reason }}. {{ returnstatus.message }}</div>
+            {% endif %}
+            <table class="table">
+              <tr>
+              <td><p>购买{{ total_units }}美基金，单价{{ unit_price }}{{ unit_currency }}，总额<div class="text-danger">{{ total_amount }}CNY</div></p></td>
+              </tr>
+              <tr>
+              {% if heepay_qrcode_file %}
+                <td><img src="/media/{{ heepay_qrcode_file }}"></td>
+              {% elif qrcode_url %}
+                <td><img src="{{ qrcode_url }}"></td>
+              {% else %}
+                <td><div class="text-danger">系统显示付款二维码有错，请联系客服</div></td>
+              {% endif %}
+              </tr>
+              <tr>
+                <td><div>请扫描二维码跳转汇钱包收银台</div></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- footer section-->
+  {% include 'include/footer.html' %}
+</body>
+<script>
+</script>
+
+</html>
