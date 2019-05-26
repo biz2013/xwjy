@@ -12,7 +12,7 @@ MEDIA_ROOT = "/var/www/coinexchange/media/"
 
 ALLOWED_HOSTS = [ '34.216.121.138', 'cnytrx.uuvc.com','www.uuvc.com', 'uuvc.com', 'localhost', '127.0.0.1', '[::1]']
 
-TRADESITE_PAYMENT_URLPREFIX="https://www.uuvc.com/trading/paymenturl/"
+TRADESITE_PAYMENT_URLPREFIX="https://www.uuvc.com/trading/payment_qrcode_url/"
 
 API_TRANS_LIMIT_IN_CENT = 1000000
 

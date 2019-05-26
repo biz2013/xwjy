@@ -1,9 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import sys
+import sys, os
 from django.db.models import Q
+from django.conf import settings
 from django.contrib import messages
-from django.http.response import HttpResponseNotAllowed,HttpResponseBadRequest,HttpResponseNotFound,HttpResponseServerError
+from django.http.response import HttpResponse, HttpResponseNotAllowed,HttpResponseBadRequest,HttpResponseNotFound,HttpResponseServerError
 from django.shortcuts import render, redirect
 from trading.controller.heepaymanager import HeePayManager
 from trading.controller.global_utils import *
@@ -112,4 +113,50 @@ def show_payment_qrcode(request):
         )
     except Order.DoesNotExist:
         logger.error("show_payment_qrcode(): Can not find related purchase order {0}".format(buyorder_id))
+        return HttpResponseNotFound('没有找到购买单据')
+
+
+def get_payment_qrcode_image(request):
+    if request.method == 'POST':
+        logger.error("get_payment_qrcode_image(): encounter illegal POST request")
+        return HttpResponseNotAllowed("读取付款二维码需要用GET请求")
+    
+    try:
+        buyorder_id = request.GET['key']
+        if not buyorder_id:
+            return HttpResponseBadRequest('请求没有购买单据')
+
+        order = Order.objects.get(order_id=buyorder_id)
+        payment_method = order.reference_order.seller_payment_method if order.reference_order.seller_payment_method else userpaymentmethodmanager.load_weixin_info(order.reference_order.user.id)
+        if not payment_method:
+            logger.error('get_payment_qrcode_image(): Cannot find valid seller payment method for sell order {0} referenced by purchase order {1}'.format(
+                order.reference_order.order_id, order.order_id
+            ))
+            return HttpResponseServerError('对应卖单没有付款方式')
+        
+        if not payment_method.provider_qrcode_image:
+            logger.error('get_payment_qrcode_image(): sell order {0} referenced by purchase order {1} does not have payment qrcode'.format(
+                order.reference_order.order_id, order.order_id
+            ))
+            return HttpResponseServerError('对应卖单没有付款方式的二维码')
+    
+        qrcode_file = os.path.join("upload", "paymentmethod", payment_method.provider.code, payment_method.provider_qrcode_image.path)
+        logger.debug("get_payment_qrcode_image: qrcode is at {0}".format(qrcode_file))
+        if not os.path.exists(qrcode_file):
+            logger.error("get_payment_qrcode_image: qrcode image at {0} does not exist".format(qrcode_file))
+            return HttpResponseNotFound("对应二维码图像找不到")
+        
+        name, extension = os.path.splitext(qrcode_file)
+        content_types = { 'png': "image/pmg",
+            'jpg': "image/jpeg",
+            'jpeg' : "image/jpeg",
+            'gif' : "image/gif"
+        }
+
+        img_content_type = content_types.get(extension, "image/png")
+        logger.debug("get_payment_qrcode_image: image content type is {0}".format(img_content_type))
+        image_data = open(qrcode_file, "rb").read()
+        return HttpResponse(image_data, content_type=img_content_type)
+    except Order.DoesNotExist:
+        logger.error("get_payment_qrcode_image(): Can not find related purchase order {0}".format(buyorder_id))
         return HttpResponseNotFound('没有找到购买单据')

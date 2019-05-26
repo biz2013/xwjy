@@ -56,7 +56,8 @@ urlpatterns = [
     re_path(r'^transhistory/$', transactionview.listusertransactions, name='mytransactions'),
     re_path(r'^registration/$',userregistrationview.registration, name="user_registration"),
     re_path(r'^activate/(?P<uidb64>b\'[0-9A-Za-z_\-]+\')/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', userregistrationview.activate_user_registration, name='activate_user_registration'),
-    re_path(r'^paymenturl/', paymentmethodsview.show_payment_qrcode, name="show_payment_qrcode")
+    re_path(r'^paymenturl/', paymentmethodsview.show_payment_qrcode, name="show_payment_qrcode"),
+    re_path(r'^payment_qrcode_url/', paymentmethodsview.get_payment_qrcode_image, name="payment_qrcode_img")
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
