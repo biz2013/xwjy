@@ -20,7 +20,7 @@
         </ul>
         <ul class="nav navbar-nav navbar-right">
         {% if not user.is_authenticated %}
-          <li><a href="{% url 'user_registration' %}"><span class="glyphicon glyphicon-user"></span>免费注册</a></li>
+          <!--<li><a href="{% url 'user_registration' %}"><span class="glyphicon glyphicon-user"></span>免费注册</a></li>-->
           <li><a href="{% url 'login' %}"><span class="glyphicon glyphicon-log-in"></span>登录</a></li>
         {% else %}
         <li><a href="{% url 'accountinfo' %}"><span class="glyphicon glyphicon-user"></span>我的账户</a></li>
