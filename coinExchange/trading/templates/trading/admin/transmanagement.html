@@ -3,8 +3,9 @@
 <script type="text/javascript" src="/static/scripts/moment-with-locales.min.js"></script>
 <script type="text/javascript" src="/static/scripts/bootstrap-datetimepicker.js"></script>
 <script lang="javascript">
-    function show_popup(orderId, buyerInfo, sellerInfo, totalAmount, created_at, action) {
+    function show_popup(orderId, buyerInfo, sellerInfo, totalAmount, created_at, action, title) {
         $('#order-confirm-cancel-modal').attr('action', action);
+        $('#cancel-form-label').text(title);
         $("#txt_id_order_id_cancel_model").val(orderId);
         $("#tb_id_buyer").text(buyerInfo);
         $("#tb_id_selleer").text(sellerInfo);
@@ -17,11 +18,11 @@
     }
 
     function show_cancel_confirm(orderId, buyerInfo, sellerInfo, totalAmount, created_at) {
-        show_popup(orderId, buyerInfo, sellerInfo, totalAmount, created_at, '{% url 'cancel_purchase' %}');
+        show_popup(orderId, buyerInfo, sellerInfo, totalAmount, created_at, '{% url 'cancel_purchase' %}', '取消美基金买单');
     }
 
     function show_order_confirm(orderId, buyerInfo, sellerInfo, totalAmount, created_at) {
-        show_popup(orderId, buyerInfo, sellerInfo, totalAmount, created_at, '{% url 'confirm_purchase' %}');
+        show_popup(orderId, buyerInfo, sellerInfo, totalAmount, created_at, '{% url 'confirm_purchase' %}', '买单收款确认');
     }
 
 </script>
@@ -130,7 +131,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 id="cancel-form-lable">取消美基金买单</h4>
+                    <h4 id="cancel-form-label">取消美基金买单</h4>
                 </div>
                 <div class="text-danger" id="error-message-cancel-modal"></div>
                 <div class="modal-body">
