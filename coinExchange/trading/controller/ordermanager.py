@@ -208,7 +208,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
                 )
                 logger.error(error_msg)
                 api_trans.last_status_description = error_msg
-                api_trans.trade_status = TRADE_STATUS_USERABANDON
+                api_trans.trade_status = TRADE_STATUS_NOTSTARTED
                 api_trans.payment_status = PAYMENT_STATUS_NOTSTARTED
                 # return transId but none orderId meaning there is no enough fund in the cny wallet
                 api_trans.save()

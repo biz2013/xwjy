@@ -120,35 +120,36 @@ def order_batch_process(request):
     try:
         sitesettings = context_processor.settings(request)['settings']
         sell_order_timeout = sitesettings.order_timeout_insec
-        confirmation_timeout = sitesettings.confirmation_timeout_insec
-        appId = sitesettings.heepay_app_id
-        appKey = sitesettings.heepay_app_key
-        orders = ordermanager.get_unfilled_purchase_orders()
-        logger.info('order_batch_process(): found {0} unfilled purchase order'.format(len(orders)))
-        for order in orders:
-            logger.info('order_batch_process(): processing order {0} status {1}'.format(order.order_id, order.status))
-            api_trans = None
-            if order.order_source == 'API':
-                api_trans = APIUserTransactionManager.get_trans_by_reference_order(order.order_id)
-            elif order.reference_order.order_source == 'API':
-                api_trans = APIUserTransactionManager.get_trans_by_reference_order(order.reference_order.order_id)
+        if settings.PROCESS_PROCESS_BACK_ORDER:
+            confirmation_timeout = sitesettings.confirmation_timeout_insec
+            appId = sitesettings.heepay_app_id
+            appKey = sitesettings.heepay_app_key
+            orders = ordermanager.get_unfilled_purchase_orders()
+            logger.info('order_batch_process(): found {0} unfilled purchase order'.format(len(orders)))
+            for order in orders:
+                logger.info('order_batch_process(): processing order {0} status {1}'.format(order.order_id, order.status))
+                api_trans = None
+                if order.order_source == 'API':
+                    api_trans = APIUserTransactionManager.get_trans_by_reference_order(order.order_id)
+                elif order.reference_order.order_source == 'API':
+                    api_trans = APIUserTransactionManager.get_trans_by_reference_order(order.reference_order.order_id)
 
-            if order.status == 'PAYING':
-                handle_paying_order(order, sell_order_timeout, appId, appKey)
-            elif order.status == 'PAID':
-                handle_paid_order(order, confirmation_timeout)
-            elif order.status == 'OPEN':
-                handle_open_order(order, sell_order_timeout, appId, appKey)
-            if api_trans:
-                api_trans.refresh_from_db()
-                if api_trans.trade_status == TRADE_STATUS_PAYSUCCESS:
-                    APIUserTransactionManager.on_trans_paid_success(api_trans)
+                if order.status == 'PAYING':
+                    handle_paying_order(order, sell_order_timeout, appId, appKey)
+                elif order.status == 'PAID':
+                    handle_paid_order(order, confirmation_timeout)
+                elif order.status == 'OPEN':
+                    handle_open_order(order, sell_order_timeout, appId, appKey)
+                if api_trans:
                     api_trans.refresh_from_db()
-                    if api_trans.trade_status == TRADE_STATUS_SUCCESS:
-                        APIUserTransactionManager.on_found_success_purchase_trans(api_trans)
+                    if api_trans.trade_status == TRADE_STATUS_PAYSUCCESS:
+                        APIUserTransactionManager.on_trans_paid_success(api_trans)
+                        api_trans.refresh_from_db()
+                        if api_trans.trade_status == TRADE_STATUS_SUCCESS:
+                            APIUserTransactionManager.on_found_success_purchase_trans(api_trans)
 
-                elif api_trans.trade_status in ['ExpiredInvald', 'UserAbandon', 'DevClose']:
-                    APIUserTransactionManager.on_trans_cancelled(api_trans)
+                    elif api_trans.trade_status in ['ExpiredInvald', 'UserAbandon', 'DevClose']:
+                        APIUserTransactionManager.on_trans_cancelled(api_trans)
 
         api_transacts = APIUserTransactionManager.get_pending_redeems()
         for api_trans in api_transacts:
