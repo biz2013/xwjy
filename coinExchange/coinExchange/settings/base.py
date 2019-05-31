@@ -245,3 +245,5 @@ PAYMENT_API_STATUS = {
     'alipay' : 'manual',
     'paypal' : 'auto'
 }
+
+PROCESS_BACK_ORDER=False
