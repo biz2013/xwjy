@@ -156,7 +156,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'axfundnoreply@gmail.com'
-EMAIL_HOST_PASSWORD = 'AXFund@017'
+EMAIL_HOST_PASSWORD = 'CNYFund@019'
 
 #List of the code of supported payment providers for the API
 SUPPORTED_API_PAYMENT_PROVIDERS=['heepay', 'weixin', 'alipay','paypal']
