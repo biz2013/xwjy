@@ -319,7 +319,10 @@ def cancel_purchase_order(order, final_status, payment_status,
             ))
         sell_order.units_locked = round(sell_order.units_locked - order.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL)
         sell_order.units_available_to_trade = round(sell_order.units_available_to_trade + order.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL)
-        sell_order.status = 'OPEN' if payment_status != PAYMENT_STATUS_BADRECEIVINGACCOUNT else TRADE_STATUS_BADRECEIVINGACCOUNT
+        if sell_order.order_source == 'API':
+            sell_order.status = 'TRADE_STATUS_USERABANDON'
+        else:
+            sell_order.status = 'OPEN' if payment_status != PAYMENT_STATUS_BADRECEIVINGACCOUNT else TRADE_STATUS_BADRECEIVINGACCOUNT
         sell_order.lastupdated_by = operatorObj
 
         # rollback the AXFund wallet of sell order if sell order is not OPEN
