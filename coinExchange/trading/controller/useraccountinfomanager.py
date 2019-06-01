@@ -381,8 +381,8 @@ def update_user_wallet_based_on_redeem(trx, user_wallet_id, min_trx_confirmation
                 ))
             #else:
             #    logger.info('update_user_wallet_based_on_redeem(): txid {0} has been reflected in transaction, nothing to do'.format(trx['txid']))
-
-
+    except ValueError as ve:
+        logger.exception('Encounter error when processing transaction: {0}'.format(trx['txid']))
 
 
 def get_send_money_trans_userid(trx):
