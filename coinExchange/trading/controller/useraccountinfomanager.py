@@ -169,12 +169,12 @@ def update_user_wallet_based_on_redeem(trx, user_wallet_id, min_trx_confirmation
                     transaction_type = 'REDEEM',
                     user_wallet__id=user_wallet_id,
                     reference_wallet_trxId=trx['txid'])
-            except UserWallet.DoesNotExist:
+            except UserWalletTransaction.DoesNotExist:
                 user_wallet_trans = UserWalletTransaction.objects.get(
                     transaction_type = 'AUTODEEM',
                     user_wallet__id=user_wallet_id,
                     reference_wallet_trxId=trx['txid'])
-            except UserWallet.MultipleObjectsReturned:
+            except UserWalletTransaction.MultipleObjectsReturned:
                 logger.error('update_user_wallet_based_on_redeem(): There are more than one REDEEM transaction related to send txid {0} for user id {1} on receiving address {2}'.format(
                     trx['txid'], user_wallet.user.id, user_wallet.wallet_addr))
                 return
