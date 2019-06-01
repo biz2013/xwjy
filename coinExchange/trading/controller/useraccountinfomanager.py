@@ -170,9 +170,8 @@ def update_user_wallet_based_on_redeem(trx, user_wallet_id, min_trx_confirmation
                     user_wallet__id=user_wallet_id,
                     reference_wallet_trxId=trx['txid'])
             except UserWalletTransaction.DoesNotExist:
-                try:
                     user_wallet_trans = UserWalletTransaction.objects.get(
-                        transaction_type = 'AUTODEEM',
+                        transaction_type = 'AUTOREDEEM',
                         user_wallet__id=user_wallet_id,
                         reference_wallet_trxId=trx['txid'])
                 except UserWalletTransaction.DoesNotExist:
