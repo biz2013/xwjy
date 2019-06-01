@@ -305,7 +305,9 @@ def update_user_wallet_based_on_redeem(trx, user_wallet_id, min_trx_confirmation
                     status = 'PENDING',
                     created_by = operator,
                     lastupdated_by = operator
-                ).save()
+                )
+
+                user_wallet_fee_trans.save()
                 logger.error('update_user_wallet_based_on_redeem(): Didnot find REDEEMFEE transaction related to send txid {0} for user id {1} on receiving address {2}'.format(
                     trx['txid'], user_wallet.user.id, user_wallet.wallet_addr))
             except UserWalletTransaction.MultipleObjectsReturned:
