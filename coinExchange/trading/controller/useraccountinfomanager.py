@@ -85,8 +85,8 @@ def update_user_wallet_based_on_deposit(trx, user_wallet_id, min_trx_confirmatio
                 )
                 logger.error(error_msg)
                 raise ValueError(error_msg)
-            else:
-                logger.info('update_user_wallet_based_on_deposit(): txid {0} has been reflected in transaction, nothing to do'.format(trx['txid']))
+            #else:
+            #    logger.info('update_user_wallet_based_on_deposit(): txid {0} has been reflected in transaction, nothing to do'.format(trx['txid']))
 
     except UserWalletTransaction.DoesNotExist:
         with transaction.atomic():
@@ -271,8 +271,8 @@ def update_user_wallet_based_on_redeem(trx, user_wallet_id, min_trx_confirmation
                 logger.error("update_user_wallet_based_on_redeem(): How come txid {0} only has {1} confirmation but wallet_trans {2} is PROCESSED".format(
                     trx['txid'], trx['confirmations'], user_wallet_trans.id
                 ))
-            else:
-                logger.info('update_user_wallet_based_on_redeem(): txid {0} has been reflected in transaction, nothing to do'.format(trx['txid']))
+            #else:
+            #    logger.info('update_user_wallet_based_on_redeem(): txid {0} has been reflected in transaction, nothing to do'.format(trx['txid']))
 
     except UserWalletTransaction.DoesNotExist:
         with transaction.atomic():
@@ -420,7 +420,6 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
     dup_receives = {}
 
     for wallet in user_wallets:
-        logger.info("Get userwallet {0}".format(wallet.id))
         if wallet.wallet_addr not in wallet_lookup_by_addr:
            wallet_lookup_by_addr[wallet.wallet_addr]= wallet.id
         else:
@@ -467,10 +466,10 @@ def update_account_balance_with_wallet_trx(crypto, trans, min_trx_confirmation):
                     ))
                     continue
                 userid = get_send_money_trans_userid(trx)
-                logger.info("Get user id {0} from trx[{1}]'s comment {2}'".format(
-                    userid, trx['txid'],
-                    trx['comment'] if 'comment' in trx else 'N/A'
-                ))
+                #logger.info("Get user id {0} from trx[{1}]'s comment {2}'".format(
+                #    userid, trx['txid'],
+                #    trx['comment'] if 'comment' in trx else 'N/A'
+                #))
                 if userid == -1:
                     logger.warn('Could not parse transaction[{0}]\'s comment for user {1}'.format(
                         trx['txid'], trx.get('comment', '')
