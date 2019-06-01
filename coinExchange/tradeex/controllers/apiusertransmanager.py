@@ -492,6 +492,9 @@ class APIUserTransactionManager(object):
                         user_wallet__id=user_cny_wallet.id,
                         reference_order__order_id=api_trans.reference_order.order_id,
                         transaction_type = 'AUTOREDEEM')
+                    logger.info('on_cancel_transaction: Found AUTOREDEEM transaction api trans {0}'.format(
+                        api_trans.transactionId
+                    ))
                 except UserWalletTransaction.DoesNotExist:
                     logger.info('on_cancel_transaction: try to auto redeem for api trans {0}'.format(
                         api_trans.transactionId

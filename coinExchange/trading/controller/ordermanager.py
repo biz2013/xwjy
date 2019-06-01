@@ -406,7 +406,7 @@ def cancel_purchase_order(order, final_status, payment_status,
         ))
 
 def get_all_open_seller_order_exclude_user(user_id):
-    sell_orders = Order.objects.filter(order_type='SELL').exclude(user__id=user_id).exclude(status='CANCELLED').exclude(status='FILLED').exclude(status=TRADE_STATUS_BADRECEIVINGACCOUNT).order_by('unit_price','-lastupdated_at')
+    sell_orders = Order.objects.filter(order_type='SELL').exclude(user__id=user_id).exclude(status='CANCELLED').exclude(status='FILLED').exclude(status=TRADE_STATUS_BADRECEIVINGACCOUNT).exclude(status=TRADE_STATUS_USERABANDON).order_by('unit_price','-lastupdated_at')
     orders = []
     for order in sell_orders:
         orders.append(OrderItem(order.order_id, order.user.id,
