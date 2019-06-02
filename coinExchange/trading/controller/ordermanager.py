@@ -281,12 +281,10 @@ def update_api_trans_after_cancel_order(api_trans, final_status, payment_status,
     if api_trans:
         api_trans.payment_status = payment_status
         # this is for transaction manager cancel purchase
-        if final_status == TRADE_STATUS_USERABANDON and payment_status == PAYMENT_STATUS_USERABANDON:
+        if final_status in [TRADE_STATUS_USERABANDON, TRADE_STATUS_BADRECEIVINGACCOUNT, TRADE_STATUS_EXPIREDINVALID]:
             api_trans.trade_status = final_status
         elif final_status == 'CANCELLED' and (payment_status.upper() in [ PAYMENT_STATUS_UNKONWN.upper(), 'UNKNOWN']):
             api_trans.trade_status = TRADE_STATUS_EXPIREDINVALID
-        elif final_status == TRADE_STATUS_BADRECEIVINGACCOUNT:
-            api_trans.trade_status = final_status
         else:
             timediff = timezone.now() - api_trans.created_at
             if timediff.total_seconds() > api_trans.expire_in_sec:
@@ -295,8 +293,6 @@ def update_api_trans_after_cancel_order(api_trans, final_status, payment_status,
                 api_trans.trade_status = TRADE_STATUS_USERABANDON
         api_trans.lastupdated_by = operator
         api_trans.save()
-        if api_trans.action == API_METHOD_REDEEM and final_status == TRADE_STATUS_BADRECEIVINGACCOUNT:
-            APIUserTransactionManager.on_found_redeem_trans_with_badaccount(api_trans)
 
 def cancel_purchase_order(order, final_status, payment_status,
                          operator):
@@ -319,10 +315,7 @@ def cancel_purchase_order(order, final_status, payment_status,
             ))
         sell_order.units_locked = round(sell_order.units_locked - order.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL)
         sell_order.units_available_to_trade = round(sell_order.units_available_to_trade + order.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL)
-        if sell_order.order_source == 'API':
-            sell_order.status = TRADE_STATUS_USERABANDON
-        else:
-            sell_order.status = 'OPEN' if payment_status != PAYMENT_STATUS_BADRECEIVINGACCOUNT else TRADE_STATUS_BADRECEIVINGACCOUNT
+        sell_order.status = 'OPEN' if payment_status != PAYMENT_STATUS_BADRECEIVINGACCOUNT else TRADE_STATUS_BADRECEIVINGACCOUNT
         sell_order.lastupdated_by = operatorObj
 
         # rollback the AXFund wallet of sell order if sell order is not OPEN
@@ -378,7 +371,7 @@ def cancel_purchase_order(order, final_status, payment_status,
         # payment status 'is bad receive account'.  Otherwise, we leave the original API
         # sell order as it is.
         api_trans_sell = APIUserTransactionManager.get_trans_by_reference_order(sell_order.order_id)
-        if api_trans_sell and (payment_status == PAYMENT_STATUS_BADRECEIVINGACCOUNT or final_status == TRADE_STATUS_USERABANDON):
+        if api_trans_sell and final_status == TRADE_STATUS_BADRECEIVINGACCOUNT:
             update_api_trans_after_cancel_order(api_trans_sell, final_status, payment_status, operatorObj)
             APIUserTransactionManager.on_cancel_transaction(api_trans_sell)
             updated = UserWallet.objects.filter(
@@ -407,7 +400,7 @@ def cancel_purchase_order(order, final_status, payment_status,
         ))
 
 def get_all_open_seller_order_exclude_user(user_id):
-    sell_orders = Order.objects.filter(order_type='SELL').exclude(user__id=user_id).exclude(status='CANCELLED').exclude(status='FILLED').exclude(status=TRADE_STATUS_BADRECEIVINGACCOUNT).exclude(status=TRADE_STATUS_USERABANDON).order_by('unit_price','-lastupdated_at')
+    sell_orders = Order.objects.filter(order_type='SELL').exclude(user__id=user_id).exclude(status='CANCELLED').exclude(status='FILLED').exclude(status=TRADE_STATUS_BADRECEIVINGACCOUNT).exclude(status=TRADE_STATUS_USERABANDON).exclude(status=TRADE_STATUS_EXPIREDINVALID).order_by('unit_price','-lastupdated_at')
     orders = []
     for order in sell_orders:
         orders.append(OrderItem(order.order_id, order.user.id,
@@ -1210,6 +1203,7 @@ def search_orders(keyword, from_date, to_date):
             order.unit_price,
             order.unit_price_currency,
             order.status,
+            order.reference_order.order_source,
             order.created_at,
             order.lastupdated_at
         )
@@ -1239,6 +1233,7 @@ def search_orders(keyword, from_date, to_date):
             buyorder.unit_price,
             buyorder.unit_price_currency,
             buyorder.status,
+            buyorder.reference_order.order_source,
             buyorder.created_at,
             buyorder.lastupdated_at
         )

@@ -3,26 +3,32 @@
 <script type="text/javascript" src="/static/scripts/moment-with-locales.min.js"></script>
 <script type="text/javascript" src="/static/scripts/bootstrap-datetimepicker.js"></script>
 <script lang="javascript">
-    function show_popup(orderId, buyerInfo, sellerInfo, totalAmount, created_at, action, title) {
+    function show_popup(orderId, buyerInfo, sellerInfo, totalAmount, created_at, action, title, sell_order_source, isConfirm) {
         $('#order-confirm-cancel-modal').attr('action', action);
+        $( "#cancelsellorder" ).prop( "checked", false );
         $('#cancel-form-label').text(title);
         $("#txt_id_order_id_cancel_model").val(orderId);
         $("#tb_id_buyer").text(buyerInfo);
         $("#tb_id_selleer").text(sellerInfo);
         $("#tb_id_total_amount").text(totalAmount);
         $("#tb_id_created_at").text(created_at);
+        if (sell_order_source == 'API' && !isConfirm) {
+            $("#div_checkbox").show();
+        } else {
+            $("#div_checkbox").hide();
+        }
         $("#order-confirm-cancel-modal").modal({
             backdrop: "static"
         });
 
     }
 
-    function show_cancel_confirm(orderId, buyerInfo, sellerInfo, totalAmount, created_at) {
-        show_popup(orderId, buyerInfo, sellerInfo, totalAmount, created_at, '{% url 'cancel_purchase' %}', '取消美基金买单');
+    function show_cancel_confirm(orderId, buyerInfo, sellerInfo, totalAmount, created_at, sell_order_source, isConfirm) {
+        show_popup(orderId, buyerInfo, sellerInfo, totalAmount, created_at, '{% url 'cancel_purchase' %}', '取消美基金买单', sell_order_source, isConfirm);
     }
 
-    function show_order_confirm(orderId, buyerInfo, sellerInfo, totalAmount, created_at) {
-        show_popup(orderId, buyerInfo, sellerInfo, totalAmount, created_at, '{% url 'confirm_purchase' %}', '买单收款确认');
+    function show_order_confirm(orderId, buyerInfo, sellerInfo, totalAmount, created_at, sell_order_source, isConfirm) {
+        show_popup(orderId, buyerInfo, sellerInfo, totalAmount, created_at, '{% url 'confirm_purchase' %}', '买单收款确认', sell_order_source, isConfirm);
     }
 
 </script>
@@ -114,8 +120,8 @@
                 <td>{{ order.total_amount }}{{ order.unit_price_currency}}@({{ order.unit_price }}x{{ order.units }})</td>
                 <td>{{ order.created_at|date:"m-d " }} {{ order.created_at|time:"H:i:s " }}</td>
                 <td>{% if order.order_status == 'PAYING' or order.order_status == 'PAID' or order.order_status == 'UNKNOWN' or order.order_status == 'OPEN' %}
-                    <button class="btn btn-primary " data-toggle="modal " data-target="#payment-confirm-modal " onclick="show_order_confirm( '{{ order.order_id}}', '{{ order.buyer_weixin_nickname }} / {{ order.buyer_username }} / {{ order.buyer_site }}', '{{ order.seller_weixin_nickname }} / {{ order.seller_username }} / {{ order.seller_site }}','{{ order.total_amount}}{{ order.unit_price_currency}}@({{ order.unit_price }}x{{ order.units }})', '{{ order.created_at|date:"m-d " }} {{ order.created_at|time:"H:i:s " }}')">{% if order.status == 'PAYING' %}手动{% endif %}确认</button>
-                    <button class="btn btn-primary " data-toggle="modal " data-target="#payment-confirm-modal " onclick="show_cancel_confirm( '{{ order.order_id}}', '{{ order.buyer_weixin_nickname }} / {{ order.buyer_username }} / {{ order.buyer_site }}', '{{ order.seller_weixin_nickname }} / {{ order.seller_username }} / {{ order.seller_site }}','{{ order.total_amount}}{{ order.unit_price_currency}}@({{ order.unit_price }}x{{ order.units }})', '{{ order.created_at|date:"m-d " }} {{ order.created_at|time:"H:i:s " }}')">撤消</button> {%endif %}</td>
+                    <button class="btn btn-primary " data-toggle="modal " data-target="#payment-confirm-modal " onclick="show_order_confirm( '{{ order.order_id}}', '{{ order.buyer_weixin_nickname }} / {{ order.buyer_username }} / {{ order.buyer_site }}', '{{ order.seller_weixin_nickname }} / {{ order.seller_username }} / {{ order.seller_site }}','{{ order.total_amount}}{{ order.unit_price_currency}}@({{ order.unit_price }}x{{ order.units }})', '{{ order.created_at|date:"m-d " }} {{ order.created_at|time:"H:i:s " }}', '{{ order.sell_order_source}}', true)">{% if order.status == 'PAYING' %}手动{% endif %}确认</button>
+                    <button class="btn btn-primary " data-toggle="modal " data-target="#payment-confirm-modal " onclick="show_cancel_confirm( '{{ order.order_id}}', '{{ order.buyer_weixin_nickname }} / {{ order.buyer_username }} / {{ order.buyer_site }}', '{{ order.seller_weixin_nickname }} / {{ order.seller_username }} / {{ order.seller_site }}','{{ order.total_amount}}{{ order.unit_price_currency}}@({{ order.unit_price }}x{{ order.units }})', '{{ order.created_at|date:"m-d " }} {{ order.created_at|time:"H:i:s " }}', '{{ order.sell_order_source}}', false)">撤消</button> {%endif %}</td>
             </tr>
             {% endfor %} {% endif %}
         </table>
@@ -158,6 +164,9 @@
                                 </td>
                             </tr>
                         </table>
+                    </div>
+                    <div class="checkbox" id="div_checkbox">
+                       <label><input type="checkbox" id="cancelsellorder" name="cancelsellorder" value="true">卖单需要一起取消。</label>
                     </div>
                 </div>
                 <div class="modal-footer">
