@@ -408,7 +408,7 @@ class APIUserTransactionManager(object):
 
     @staticmethod
     def on_cancel_transaction(api_trans):
-        logger.debug('on_found_redeem_trans_with_badaccount')
+        logger.debug('on_cancel_transaction()')
         total_cny_in_units = round(float(api_trans.total_fee)/100.0,8)
 
         # send notification if needed
