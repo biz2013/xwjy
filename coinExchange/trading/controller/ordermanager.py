@@ -380,6 +380,7 @@ def cancel_purchase_order(order, final_status, payment_status,
         api_trans_sell = APIUserTransactionManager.get_trans_by_reference_order(sell_order.order_id)
         if api_trans_sell and (payment_status == PAYMENT_STATUS_BADRECEIVINGACCOUNT or final_status == TRADE_STATUS_USERABANDON):
             update_api_trans_after_cancel_order(api_trans_sell, final_status, payment_status, operatorObj)
+            APIUserTransactionManager.on_cancel_transaction(api_trans_sell)
             updated = UserWallet.objects.filter(
                 user__id = api_trans_sell.api_user.user.id,
                 wallet__cryptocurrency__currency_code = 'CNY'
