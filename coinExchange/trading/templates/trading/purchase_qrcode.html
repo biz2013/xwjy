@@ -20,6 +20,8 @@
                <div id="div_id_returnstatus" class="text-danger">{{ returnstatus.reason }}. {{ returnstatus.message }}</div>
             {% endif %}
             <table class="table">
+              <tr><td><div class="text-danger">请长按识别或扫描二维码， <h4>付款时务必在备注栏填入本站注册手机号码，否则不能及时到账</h4></div></td>
+              </tr>
               <tr>
               <td><p>购买{{ total_units }}美基金，单价{{ unit_price }}{{ unit_currency }}，总额<div class="text-danger">{{ total_amount }}CNY</div></p></td>
               </tr>
