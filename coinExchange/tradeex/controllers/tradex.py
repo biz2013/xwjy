@@ -102,19 +102,29 @@ class TradeExchangeManager(object):
     def get_qualified_orders_to_buy(self, crypto, amount, currency):
         # query all the orders that best fit the buy order
         candidates = []
+        apitrans = APIUserTransaction.objects.filter(
+            Q(action = API_METHOD_PURCHASE) &
+            ~Q(trade_status = TRADE_STATUS_SUCCESS) &
+            ~Q(trade_status = TRADE_STATUS_BADRECEIVINGACCOUNT) &
+            ~Q(trade_status = TRADE_STATUS_USERABANDON) & 
+            ~Q(trade_status = TRADE_STATUS_EXPIREDINVALID))
+        api_orders = []
+        for tran in apitrans:
+            api_orders.append(tran.reference_order.order_id)
         orders =  Order.objects.filter(
             (Q(status='OPEN') | Q(status='PARTIALFILLED')) & 
             Q(order_type='SELL') & Q(units_available_to_trade__gt=0.0) &
             Q(unit_price_currency=currency) &
             Q(cryptocurrency__currency_code=crypto)).order_by('unit_price', 'total_amount','created_at')
         for order in orders:
-            available_amount = order.unit_price * order.units_available_to_trade
-            diff = round(available_amount - amount, 2)
-            if diff >= 0.0:
-                if order.sub_type == 'ALL_OR_NOTHING':
-                    if diff > 0.01:
-                        continue
-                candidates.append(order)
+            if not order.order_id in api_orders:
+                available_amount = order.unit_price * order.units_available_to_trade
+                diff = round(available_amount - amount, 2)
+                if diff >= 0.0:
+                    if order.sub_type == 'ALL_OR_NOTHING':
+                        if diff > 0.01:
+                            continue
+                    candidates.append(order)
 
         return candidates if len(candidates) > 0 else None
 
