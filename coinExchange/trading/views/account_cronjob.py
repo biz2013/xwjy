@@ -12,6 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 # this is for test UI. A fake one
 from trading.config import context_processor
 from trading.controller.axfd_utils import *
+from trading.controller.coin_utils import *
 from trading.models import *
 from trading.controller import useraccountinfomanager
 from trading.controller.global_constants import *
@@ -31,7 +32,8 @@ def update_account_with_receiving_fund(request):
             return HttpResponseForbidden()
         sitesettings = context_processor.settings(request)['settings']
         min_trx_confirmation = sitesettings.min_trx_confirmation
-        axfd_tool = AXFundUtility(sitesettings)
+
+        axfd_tool = get_axfd_utils(sitesettings, settings)
         # get all past 10000 transactions in wallet
         trans = axfd_tool.listtransactions()
 

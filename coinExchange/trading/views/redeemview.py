@@ -10,8 +10,10 @@ from trading.controller.global_utils import *
 # this is for test UI. A fake one
 from trading.controller.global_constants import *
 from trading.controller.axfd_utils import *
+from trading.controller.coin_utils import *
 from trading.controller import redeemmanager
 
+from django.conf import settings
 from trading.models import *
 from trading.config import context_processor
 from trading.views import errorpageview
@@ -41,7 +43,7 @@ def redeem(request):
            redeem_cmd = RedeemItem(userid, toaddr, amount, crypto)
 
            sitesettings = context_processor.settings(request)['settings']
-           axfd_tool = AXFundUtility(sitesettings)
+           axfd_tool = get_axfd_utils(sitesettings, settings)
 
            redeemmanager.redeem(redeem_cmd,request.user.username, axfd_tool)
            return redirect('accountinfo')

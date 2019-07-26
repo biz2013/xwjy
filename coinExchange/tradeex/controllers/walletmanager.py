@@ -342,6 +342,8 @@ class WalletManager(object):
     @staticmethod
     def check_wallets(crypto_util, crypto):
         try:
+            # TODO: Discuss config for cny coin, are we suppose to read these from database wallet table?
+            # It's better to consolidate AXFD and CNYFD
             crypto_util = CryptoUtility(config_json)
             trans = crypto_util.listtransactions()
             min_trx_confirmation = crypto_util.min_trx_confirmation

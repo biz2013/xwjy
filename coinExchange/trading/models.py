@@ -52,6 +52,8 @@ class SiteSettings(SingletonModel):
     axfd_datadir = models.CharField(max_length=255, default='')
     axfd_account_name = models.CharField(max_length=64, blank=True, default='')
     axfd_list_trans_count = models.IntegerField(default=1000)
+    axfd_rpc_user = models.CharField(max_length=32, default='')
+    axfd_rpc_user_password = models.CharField(max_length=255, default='')
     min_trx_confirmation = models.IntegerField(default=8)
     per_transaction_limit = models.IntegerField(default=100)
     axfd_passphrase = models.CharField(max_length=64, blank=True, default='')
