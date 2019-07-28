@@ -7,6 +7,7 @@ from django.utils.encoding import smart_str
 
 AXFUND_CRYPTO_CODE = "AXFund"
 CNYFUND_CRYPTO_CODE = "CNY"
+DEFAULT_EXTERNAL_CNY_REC_ADDRESS = "NoCustomerExternalCnyReceiveAddress"
 
 def user_payment_method_image_filename(instance, filename):
    return "uploads/paymentmethod/{0}/{1}_{2}".format(instance.provider.code, instance.user.id, smart_str(filename))
@@ -278,6 +279,9 @@ class Order(models.Model):
    # the total amount of original units x unit price, used by
    # purchase order. To the two decimal places
    total_amount = models.FloatField(default = 0.0)
+
+   # cny address from 3rd party api purchase, use to receive the purchased cnyf.
+   external_cny_rec_address = models.CharField(max_length=42, default=DEFAULT_EXTERNAL_CNY_REC_ADDRESS)
 
    # the out_order_no in api call that associated with this order
    api_call_reference_order_id = models.CharField(max_length=64, null=True)

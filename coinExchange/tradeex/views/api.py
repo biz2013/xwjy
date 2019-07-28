@@ -207,7 +207,10 @@ def prepurchase(request):
         #))
         
         tradex = TradeExchangeManager()
+
+        # [Chi Question] Has the code merge to master yet? the setting object returned here has nothing to do with the request.
         sitesettings = context_processor.settings(request)['settings']
+
         final_resp_json = tradex.purchase_by_cash_amount(api_user,
            request_obj, 'AXFund', sitesettings, True)
         

@@ -15,7 +15,6 @@ from trading.controller import ordermanager, userpaymentmethodmanager
 from trading.controller.heepaymanager import *
 from trading.controller.global_constants import *
 
-
 import logging
 import datetime as dt
 import pytz
@@ -280,6 +279,8 @@ class TradeExchangeManager(object):
             return None  
 
     # This is the interface that handles the api call of purchase
+    # Expect to have `external_cny_rec_address` field in request_obj if it's a 3rd party purchase, since we need to transfer cnyf to that address
+    # to indicate payment complete, so third party payment system could move forward.
     def purchase_by_cash_amount(self, api_user, request_obj, crypto, sitesettings, is_api_call=True):
         api_user_id = api_user.user.id
         amount_in_cent = int(request_obj.total_fee) 
@@ -290,10 +291,20 @@ class TradeExchangeManager(object):
         buyer_payment_account =  request_obj.payment_account
         api_call_order_id =  request_obj.out_trade_no
         api_site_user = request_obj.attach
+
+        external_cny_rec_address = DEFAULT_EXTERNAL_CNY_REC_ADDRESS
+        if hasattr(request_obj, 'external_cny_rec_address'):
+            external_cny_rec_address = request_obj.external_cny_rec_address
+
         logger.info("purchase_by_cash_amount(api_user:{0}, crypto {1}, amount {2}{3}, from account {4}:{5}, out_trade_no:{6})".format(
             api_user_id,  crypto, amount, currency, buyer_payment_provider, 
             buyer_payment_account, api_call_order_id,
         ))
+
+        if external_cny_rec_address != DEFAULT_EXTERNAL_CNY_REC_ADDRESS and \
+            len(external_cny_rec_address) != len("CJBNs9nwVxKD6PkkHJYjqtGruTopWFdhos"):
+            logger.error("external_cny_rec_address {0} is not correct in request obj {1}".format(external_cny_rec_address, request_obj))
+            raise ValueError(ERR_BUYER_RECEIVE_ADDRESS_INCORRECT)
 
         open_buy_orders = self.get_open_buy_order(api_site_user)
         if len(open_buy_orders) > 0:
@@ -319,7 +330,8 @@ class TradeExchangeManager(object):
                crypto,
                '', # no need for lastmodified_at
                '', # no need for status
-               'BUY') # order type is buy
+               'BUY',
+                external_cny_rec_address= external_cny_rec_address) # order type is buy
 
             # this is for backward compatible with heepay api call
             seller_payment_account = ''

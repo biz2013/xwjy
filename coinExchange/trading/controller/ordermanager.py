@@ -510,10 +510,11 @@ def create_purchase_order(buyorder, reference_order_id,
         buyorder.unit_price_currency, buyorder.total_units,
         buyorder.unit_price)
     else:
-        operation_comment = 'API call out_order_no: {0} create buy order {1} with total {2}{3}({4}x@{5})'.format(
+        operation_comment = 'API call out_order_no: {0} create buy order {1} with total {2}{3}({4}x@{5}) with external address {6}'.format(
         buyorder.owner_user_id, buyorder.order_id, buyorder.total_amount,
         buyorder.unit_price_currency, buyorder.total_units,
-        buyorder.unit_price)
+        buyorder.unit_price,
+        buyorder.external_cny_rec_address)
 
     logger.info('create_purchase_order(): {0}'.format(operation_comment))
     logger.info('create_purchase_order(): selected sellorder {0}'.format(reference_order_id))
@@ -578,6 +579,7 @@ def create_purchase_order(buyorder, reference_order_id,
             unit_price = buyorder.unit_price,
             unit_price_currency = buyorder.unit_price_currency,
             total_amount = buyorder.total_amount,
+            external_cny_rec_address = buyorder.external_cny_rec_address,
             status = 'OPEN',
             api_call_reference_order_id = api_call_order_id if is_api_call else None)
         order.save()
