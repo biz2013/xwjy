@@ -22,12 +22,9 @@ def create_wallet_address(request):
             logger.error(message)
             return HttpResponseForbidden()
 
-        # TODO ?? Why not define variables in config instead of using db ?? for security reason?
-        # What should in config, what should in db setting?
+        axfd_tool = get_coin_utils(AXFUND_CRYPTO_CODE)
 
         sitesettings = context_processor.settings(request)['settings']
-        axfd_tool = get_axfd_utils(sitesettings, settings)
-
         config_json = json.loads(sitesettings.config_json)
         batch_size = 20
         if 'wallet_address_batch_size' in config_json:

@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponseServerError, HttpResponseBadRequest
 from django.utils import timezone
+from trading.controller.coin_utils import *
 
 from trading.models import *
 from tradeex.models import *
@@ -77,7 +78,7 @@ def create_user(username, password, email, appId, secret,
                 existingwallets[0].id, existingwallets[0].wallet_addr, username
             ))
         else:
-            cnyutil = WalletManager.create_fund_util('CNY')
+            cnyutil = get_coin_utils(CNYFUND_CRYPTO_CODE)
             addr = cnyutil.create_wallet_address() if not cny_address else cny_address
             userwallet=UserWallet.objects.create(
                 user = user1,

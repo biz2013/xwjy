@@ -41,9 +41,7 @@ def redeem(request):
                return redirect('accountinfo')
            logger.info('[{0}] redeem request: Pass the address check'.format(request.user.username))
            redeem_cmd = RedeemItem(userid, toaddr, amount, crypto)
-
-           sitesettings = context_processor.settings(request)['settings']
-           axfd_tool = get_axfd_utils(sitesettings, settings)
+           axfd_tool = get_coin_utils(crypto)
 
            redeemmanager.redeem(redeem_cmd,request.user.username, axfd_tool)
            return redirect('accountinfo')

@@ -247,23 +247,3 @@ PAYMENT_API_STATUS = {
 }
 
 PROCESS_BACK_ORDER=False
-
-# settings for coin wallet communication
-axfd_path = ""
-axfd_account = ""
-axfd_passphrase = ""
-axfd_lookback_count = ""
-axfd_host = ""
-axfd_host_port = 80
-axfd_rpc_user = "rpcuser"
-axfd_rpc_userpassword = "rpcuser password"
-
-cnyd_path = ""
-cnyd_account = ""
-cnyd_passphrase = ""
-cnyd_lookback_count = ""
-cnyd_host = ""
-cnyd_host_port = 80
-cnyd_rpc_user = "rpcuser"
-cnyd_rpc_userpassword = "rpcuser password"
-

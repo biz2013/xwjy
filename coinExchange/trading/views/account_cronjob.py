@@ -16,7 +16,9 @@ from trading.controller.coin_utils import *
 from trading.models import *
 from trading.controller import useraccountinfomanager
 from trading.controller.global_constants import *
+from trading.controller.coin_utils import *
 from trading.controller.global_utils import *
+from trading.models import CNYFUND_CRYPTO_CODE, AXFUND_CRYPTO_CODE
 from trading.views.models.returnstatus import ReturnStatus
 from tradeex.controllers.walletmanager import WalletManager
 
@@ -33,7 +35,7 @@ def update_account_with_receiving_fund(request):
         sitesettings = context_processor.settings(request)['settings']
         min_trx_confirmation = sitesettings.min_trx_confirmation
 
-        axfd_tool = get_axfd_utils(sitesettings, settings)
+        axfd_tool = get_coin_utils(AXFUND_CRYPTO_CODE)
         # get all past 10000 transactions in wallet
         trans = axfd_tool.listtransactions()
 
@@ -44,7 +46,7 @@ def update_account_with_receiving_fund(request):
                 'AXFund', trans, min_trx_confirmation)
 
         logger.info("Check CNY wallet transactions")
-        cnyutil = WalletManager.create_fund_util('CNY')
+        cnyutil = get_coin_utils(CNYFUND_CRYPTO_CODE)
         trans = cnyutil.listtransactions()
         logger.info("We get {0} CNY trans".format(len(trans)))
 

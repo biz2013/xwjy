@@ -32,6 +32,18 @@
        "fields":{
           "name":"AXFundWallet",
           "cryptocurrency":"AXFund",
+          "config_json": {
+             "bin_path": "",
+             "data_dir": "",
+             "host_ip": "",
+             "rpc_port": "",
+             "rpc_user": "",
+             "rpc_user_password": "",
+             "transaction_lookback_count": 5,
+             "account": "",
+             "passphrase": "",
+             "min_trx_confirmation": 5
+          },
           "created_at":"2017-12-17T21:14:00+08:00",
           "lastupdated_at":"2017-12-17T21:14:00+08:00"
        }

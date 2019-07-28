@@ -22,7 +22,7 @@ class CoinRpcTestCase(unittest.TestCase):
     }
 
     self.connMock.configure_mock(**config)
-    self.coin_rpc = CoinProxy("192.168.1.214", "8516", "rpcuser", "rpcpassword", "account", self.connMock)
+    self.coin_rpc = CoinProxy.fromMockConn("192.168.1.214", "8516", "rpcuser", "rpcpassword", "account", self.connMock)
 
   def test_listtransactions(self):
     transactions = self.coin_rpc.listtransactions(10)
