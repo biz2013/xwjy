@@ -15,7 +15,7 @@ from tradeex.controllers.walletmanager import WalletManager
 from trading.controller.coin_utils import *
 from tradeex.data.api_const import *
 from tradeex.models import APIUserTransaction
-from trading.models import User, UserWallet, UserWalletTransaction, CNYFUND_CRYPTO_CODE, PaymentProvider
+from trading.models import User, UserWallet, UserWalletTransaction, CNYFUND_CRYPTO_CODE, PaymentProvider, DEFAULT_EXTERNAL_CNY_REC_ADDRESS
 from tradeex.data.purchase_notify import PurchaseAPINotify
 
 logger = logging.getLogger("tradeex.apiusertransmanager")
@@ -330,7 +330,16 @@ class APIUserTransactionManager(object):
                     notify_resp, comment)
         
         if api_trans.action == API_METHOD_PURCHASE:
+            # [Chi Question] How UserExternalWalletAddress table is used? is below logic works for separate existing tradex traffic with
+            # 3rd party api request?
+            #   My solution is to add an external_crypto_addr column for purchase order created by api user, if it's not DEFAULT_EXTERNAL_CNY_REC_ADDRESS
+            #   then it's created from 3rd party.
             external_crypto_addr = APIUserManager.get_api_user_external_crypto_addr(api_trans.api_user.user.id, 'CNY')
+
+            purchase_order = api_trans.reference_order
+            if purchase_order.external_cny_rec_address and purchase_order.external_cny_rec_address != DEFAULT_EXTERNAL_CNY_REC_ADDRESS:
+                external_crypto_addr = purchase_order.external_cny_rec_address
+
             if not external_crypto_addr:
                 logger.info('on_found_success_purchase_trans: buyer for api trans {0} has no external cny wallet, nothing to do'.format(
                     api_trans.transactionId
