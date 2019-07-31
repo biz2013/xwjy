@@ -75,6 +75,7 @@ class APIUserTransaction(models.Model):
     expire_in_sec = models.IntegerField(default=600)
     payment_status = models.CharField(max_length=32, choices=PAYMENT_STATUS, default='UNKNOWN')
     trade_status = models.CharField(max_length=32, choices=TRADE_STATUS, default='UNKNOWN')
+    external_cny_receive_addr = models.CharField(max_length=64, null=True, default=None)
     notify_url = models.CharField(max_length=1024, null=True)
     return_url = models.CharField(max_length=1024, null=True)
     last_notify = models.CharField(max_length=2048, null=True)

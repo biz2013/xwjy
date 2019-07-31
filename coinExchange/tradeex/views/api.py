@@ -75,6 +75,14 @@ def validateUserInput(expected_method, request_obj, secretKey):
             logger.error('parseUserInput(): missing payment account')
             raise ValueError(ERR_REDEEM_REQUEST_NO_PAYMENT_ACCOUNT)
 
+        # [Chi Question]: want to validate external address for non 投资网站 request, is there a way to check by user?
+        if request_obj.method == API_METHOD_REDEEM and request_obj.user not in [] and not hasattr(request_obj, 'external_cny_rec_address'):
+            logger.error('parseUserInput(): missing external_cny_rec_address info')
+            raise ValueError(ERR_REDEEM_REQUEST_NO_PAYMENT_ACCOUNT)
+
+        # making sure we have external_cny_rec_address attribute in request object.
+        setattr(request_obj, "external_cny_rec_address", None)
+
         amount = int(request_obj.total_fee) if type(request_obj.total_fee) is str else request_obj.total_fee
         logger.debug("The request's amount is {0}".format(amount))
 

@@ -628,6 +628,7 @@ def create_purchase_order(buyorder, reference_order_id,
                 notify_url = api_purchase_request.notify_url,
                 return_url = api_purchase_request.return_url,
                 expire_in_sec=api_purchase_request.expire_minute * 60,
+                external_cny_receive_addr=api_purchase_request.external_cny_rec_address,
                 created_by = operatorObj,
                 lastupdated_by= operatorObj
             )

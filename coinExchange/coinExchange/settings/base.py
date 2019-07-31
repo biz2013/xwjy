@@ -159,7 +159,7 @@ EMAIL_HOST_USER = 'axfundnoreply@gmail.com'
 EMAIL_HOST_PASSWORD = 'CNYFund@019'
 
 #List of the code of supported payment providers for the API
-SUPPORTED_API_PAYMENT_PROVIDERS=['heepay', 'weixin', 'alipay','paypal']
+SUPPORTED_API_PAYMENT_PROVIDERS=['weixin', 'alipay','paypal']
 
 LOGGING = {
     'version': 1,
