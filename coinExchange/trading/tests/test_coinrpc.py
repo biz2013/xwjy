@@ -18,16 +18,18 @@ class CoinRpcTestCase(unittest.TestCase):
       'listtransactions.return_value': cny_list_transactions_ret_expect,
       'sendtoaddress.return_value': cny_sendtoaddress_ret_expect,
       'getnewaddress.return_value': cny_getnewaddress_ret_expect,
-      'walletpassphrase.return_value': ''
+      'walletpassphrase.return_value': '',
+      'getbalance.return_value' : '34.5'
     }
 
     self.connMock.configure_mock(**config)
-    self.coin_rpc = CoinProxy.fromMockConn("192.168.1.214", "8516", "rpcuser", "rpcpassword", "account", self.connMock)
+    self.coin_rpc = CoinProxy.fromMockConn("192.168.1.214", "8516", "rpcuser", "rpcpassword", self.connMock)
 
   def test_listtransactions(self):
-    transactions = self.coin_rpc.listtransactions(10)
+    account = ""
+    transactions = self.coin_rpc.listtransactions(account, 10)
     self.assertEqual(transactions, cny_list_transactions_ret_expect)
-    self.connMock.listtransactions.assert_called_once_with(10)
+    self.connMock.listtransactions.assert_called_once_with(account, 10)
 
   def test_sendtoaddress(self):
     recieve_address = "any_address"
@@ -49,5 +51,13 @@ class CoinRpcTestCase(unittest.TestCase):
     address = self.coin_rpc.getnewaddress(account)
     self.assertEqual(address, cny_getnewaddress_ret_expect)
     self.connMock.getnewaddress.assert_called_once_with(account)
+
+  def test_getbalance(self):
+    account = ""
+    balance = self.coin_rpc.getbalance(account)
+    self.assertEqual(34.5, float(balance))
+    self.connMock.getbalance.assert_called_once_with(account)
+
+
 
 

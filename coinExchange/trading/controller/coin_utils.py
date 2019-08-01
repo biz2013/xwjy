@@ -6,7 +6,7 @@ logger = logging.getLogger("site.coin_util")
 
 # Sample config object: trading/tests/data/wallet_config.json
 # config object is read from database, Wallet table, config_json column
-def get_coin_utils(coin_name, config):
+def get_coin_utils_imp(coin_name, config):
   if not config['account']:
     # Default account is ""
     config['account'] = ""
@@ -52,7 +52,7 @@ def get_coin_utils(coin_code):
     if not wallet.config_json:
       logger.error('get_coin_utils({0}): the wallet does not have config'.format(coin_code))
       raise ValueError('{0}: CRYPTO_WALLET_NO_CONFIG'.format(coin_code))
-    return get_coin_utils(coin_name, json.loads(wallet.config_json))
+    return get_coin_utils_imp(coin_name, json.loads(wallet.config_json))
 
   except Wallet.DoesNotExist:
     logger.error('get_coin_utils({0}): the wallet does not exist'.format(coin_code))
@@ -87,18 +87,40 @@ class CoinUtils(object):
       self.host,
       self.rpc_port,
       self.rpc_user,
-      self.rpc_userpassword,
-      self.account)
+      self.rpc_userpassword)
     logger.info("create coin_util for {0} on host {1}:{2}".format(coin_name, coin_host_ip, coin_rpc_port))
 
-  def listtransactions(self):
-    res = self.coin_rpc.listtransactions(self.transaction_lookback_count)
+  def listtransactions(self, account = None, transaction_lookback_count = None):
+    if account is None:
+      wallet_account = self.account
+    else:
+      wallet_account = account
+
+    if transaction_lookback_count is None:
+      wallet_transaction_lookback_count = self.transaction_lookback_count
+    else:
+      wallet_transaction_lookback_count = transaction_lookback_count
+
+    res = self.coin_rpc.listtransactions(wallet_account, wallet_transaction_lookback_count)
     logger.info("listtransaction return: {0}".format(res))
 
     return res
 
+  def getbalance(self, account = None):
+    if account is None:
+      wallet_account = self.account
+    else:
+      wallet_account = account
+
+    res = self.coin_rpc.getbalance(wallet_account)
+    logger.info("getbalance return: {0}".format(res))
+
+    return res
+
+  # return entire transaction
+  # ex: {'account': '', 'address': 'CcwbnuPii3PUMuCE9dXfFK9jPxGRresBXp', 'category': 'send', 'amount': Decimal('-1.10000000'), 'fee': Decimal('-0.01000000'), 'confirmations': 0, 'txid': '606b6bef69216e53215c7ab8b8fab85b928c2c8b0bdd89a8b0e9e4b6596481db', 'time': 1564680775, 'timereceived': 1564680775, 'comment': 'unittest transaction'}
   def send_fund(self, dst, amount, comment):
-    logger.info('{0} {1} {2} \'{5}\''.format(
+    logger.info('{0} {1} {2} \'{3}\''.format(
       'sendtoaddress', dst, str(amount), comment
     ))
 
@@ -115,12 +137,22 @@ class CoinUtils(object):
         return trans
     raise ValueError("Not redeem transaction for txid {0}".format(transaction_id))
 
-  def unlock_wallet(self, timeout_in_sec):
-    logger.info("unlock_wallet with {0} seconds".format(timeout_in_sec))
-    self.coin_rpc.unlockwallet(self.passphrase, timeout_in_sec)
+  def unlock_wallet(self, timeout_in_sec, passphrase = None):
+    if passphrase is None:
+      wallet_passphrase = self.passphrase
+    else:
+      wallet_passphrase = passphrase
 
-  def create_wallet_address(self):
-    new_address = self.coin_rpc.getnewaddress(self.account)
+    logger.info("unlock_wallet with {0} seconds".format(timeout_in_sec))
+    self.coin_rpc.unlockwallet(wallet_passphrase, timeout_in_sec)
+
+  def create_wallet_address(self, account = None):
+    if account is None:
+      wallet_account = self.account
+    else:
+      wallet_account = account
+
+    new_address = self.coin_rpc.getnewaddress(wallet_account)
     logger.info("Wallet address {0} created".format(new_address))
 
     return new_address

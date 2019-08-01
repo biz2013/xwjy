@@ -5,7 +5,7 @@ logger = logging.getLogger("site.coin_rpc")
 
 class CoinProxy(object):
 
-  def __init__(self, server_ip, port, user_name, user_password, account):
+  def __init__(self, server_ip, port, user_name, user_password):
     self.server_ip = server_ip
     # found in coin conf, rpcport
     self.port = port
@@ -14,24 +14,21 @@ class CoinProxy(object):
     # found in coin conf, rpcpassword
     self.user_password = user_password
 
-    # wallet account, group of addresses.
-    self.account = account
-
     # "http://<user>:<password>@<server_ip>:<port>"
     # we could use below curl request for debugging.
     # curl  -v --data-binary '{"jsonrpc":"1.0","id":"curltext","method":"getblockcount","params":[]}' -H 'content-type:text/plain;'  http://cnyfundrpc:J4oxViM8jsC6ySbqoweniVML1t65LtYmbuHB7DsFYdH@192.168.1.214:18189/
     self.conn = AuthServiceProxy("http://%s:%s@%s:%s"%(user_name, user_password, server_ip, port))
 
   @classmethod
-  def fromMockConn(self, server_ip, port, user_name, user_password, account, conn):
-    proxy = CoinProxy(server_ip, port, user_name, user_name, account)
+  def fromMockConn(self, server_ip, port, user_name, user_password, conn):
+    proxy = CoinProxy(server_ip, port, user_name, user_password)
     proxy.conn = conn
 
     return proxy
 
-  def listtransactions(self, lookback_count):
-    logger.info("wallet rpc: list transactions with count {0} on server {1}".format(lookback_count, self.server_ip))
-    return self.conn.listtransactions(lookback_count)
+  def listtransactions(self, account, lookback_count):
+    logger.info("wallet rpc: list transactions with account{0} and count {1} on server {2}".format(account, lookback_count, self.server_ip))
+    return self.conn.listtransactions(account, lookback_count)
 
   def sendtoaddress(self, dest_addr, amount, comment):
     logger.info("wallet rpc: send {0} to address {1} with comment {2}".format(amount, dest_addr, comment))
@@ -44,3 +41,7 @@ class CoinProxy(object):
   def getnewaddress(self, account):
     logger.info("wallet rpc: get new address for account {0}".format(account))
     return self.conn.getnewaddress(account)
+
+  def getbalance(self, account):
+    logger.info("wallet rpc: get balance for account {0}".format(account))
+    return self.conn.getbalance(account)
