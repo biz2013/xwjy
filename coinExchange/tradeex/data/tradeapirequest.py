@@ -51,6 +51,7 @@ class TradeAPIRequest(object):
         self.sign = sign
         self.meta_option = None
         self.pay_option = None
+        self.external_cny_rec_address = None
         self.original_json_request = original_json_request
         if kwargs:
             for key,value in kwargs.items():
@@ -58,6 +59,8 @@ class TradeAPIRequest(object):
                     self.meta_option = value
                 elif key == 'pay_option':
                     self.pay_option = value
+                elif key == 'external_cny_rec_address':
+                    self.external_cny_rec_address = value
         if not self.sign:
             if not self.secret_key:
                 raise ValueError('Not secrete key to sign the request')
@@ -108,7 +111,8 @@ class TradeAPIRequest(object):
             sign = json_input['sign'],
             original_json_request = json_input, 
             meta_option = biz_content_json.get('meta_option', None),
-            pay_option = biz_content_json.get('pay_option', None))
+            pay_option = biz_content_json.get('pay_option', None),
+            external_cny_rec_address = json_input.get('external_cny_rec_address', None))
 
     def __get_biz_content_json(self):
         biz_content_json = {}
@@ -144,6 +148,9 @@ class TradeAPIRequest(object):
         jsonobj['charset'] = self.charset
         jsonobj['sign_type'] = self.sign_type
         jsonobj['timestamp'] = self.timestamp
+        if self.external_cny_rec_address is not None:
+            jsonobj['external_cny_rec_address'] = self.external_cny_rec_address
+
         biz_content_json = self.__get_biz_content_json()
 
         jsonobj['biz_content'] = json.dumps(biz_content_json, separators=(',',':'), ensure_ascii=False, sort_keys=True)
