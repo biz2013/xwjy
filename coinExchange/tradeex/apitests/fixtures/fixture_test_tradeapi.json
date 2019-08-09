@@ -11,10 +11,6 @@
       "heepay_app_id" : "hyq17121610000800000911220E16AB0",
       "heepay_app_key" : "4AE4583FD4D240559F80ED39",
       "heepay_expire_in_sec" : 90,
-      "axfd_path": "/home/ubuntu/workspace/xwjy/smwy/src/axfd",
-      "axfd_datadir": "/home/ubuntu/workspace/xwjy/qb",
-      "axfd_account_name": "",
-      "axfd_list_trans_count": 1000,
       "confirmation_timeout_insec" : 0
     }
   },
@@ -60,7 +56,7 @@
      "fields":{
        "name":"AXFundWallet",
        "cryptocurrency": "AXFund",
-       "config_json": "{\"bin_path\":\"\/opt\/axfund\/bin\/axfund\",\"data_dir\":\"\/axfund\",\"host_ip\":\"192.168.1.214\",\"rpc_port\":\"18200\",\"rpc_user\":\"axfundrpc\",\"rpc_user_password\":\"FD45ViM8jsC6ySbqoweniVML1t65LtYmbuHB7Ds67JH\",\"transaction_lookback_count\":5,\"account\":\"\",\"passphrase\":\"axfund_xxx\",\"min_trx_confirmation\":5}",
+       "config_json": "{\"bin_path\":\"\/opt\/axfund\/bin\/axfund\",\"data_dir\":\"\/axfund\",\"host_ip\":\"192.168.1.214\",\"rpc_port\":\"18200\",\"rpc_user\":\"axfundrpc\",\"rpc_user_password\":\"FD45ViM8jsC6ySbqoweniVML1t65LtYmbuHB7Ds67JH\",\"transaction_lookback_count\":1000,\"account\":\"\",\"passphrase\":\"axfund_xxx\",\"min_trx_confirmation\":5}",
        "created_at": "2017-12-17T21:14:00+08:00",
        "lastupdated_at": "2017-12-17T21:14:00+08:00",
        "created_by": 1,
@@ -73,7 +69,7 @@
     "fields":{
       "name":"CNYWallet",
       "cryptocurrency": "CNY",
-      "config_json": "{\"bin_path\":\"\/opt\/cnyfund\/bin\/cnyfund\",\"data_dir\":\"\/cnyfund\",\"host_ip\":\"192.168.1.214\",\"rpc_port\":\"18189\",\"rpc_user\":\"cnyfundrpc\",\"rpc_user_password\":\"J4oxViM8jsC6ySbqoweniVML1t65LtYmbuHB7DsFYdH\",\"transaction_lookback_count\":5,\"account\":\"\",\"passphrase\":\"xxxx\",\"min_trx_confirmation\":5}"
+      "config_json": "{\"bin_path\":\"\/opt\/cnyfund\/bin\/cnyfund\",\"data_dir\":\"\/cnyfund\",\"host_ip\":\"192.168.1.214\",\"rpc_port\":\"18189\",\"rpc_user\":\"cnyfundrpc\",\"rpc_user_password\":\"J4oxViM8jsC6ySbqoweniVML1t65LtYmbuHB7DsFYdH\",\"transaction_lookback_count\":1000,\"account\":\"\",\"passphrase\":\"xxxx\",\"min_trx_confirmation\":5}",
       "created_at": "2017-12-17T21:14:00+08:00",
       "lastupdated_at": "2017-12-17T21:14:00+08:00",
       "created_by": 1,

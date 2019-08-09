@@ -79,7 +79,11 @@ def create_user(username, password, email, appId, secret,
             ))
         else:
             cnyutil = get_coin_utils(CNYFUND_CRYPTO_CODE)
-            addr = cnyutil.create_wallet_address() if not cny_address else cny_address
+            if not cny_address:
+                addr = cnyutil.create_wallet_address()
+            else:
+                addr = cny_address
+
             userwallet=UserWallet.objects.create(
                 user = user1,
                 wallet = cny_wallet,
@@ -190,8 +194,6 @@ def create(request):
 
         login = User.objects.get(username='admin')
         with transaction.atomic():
-            cny_wallet = Wallet.objects.select_for_update().get(cryptocurrency__currency_code='CNY')
-
             if not create_user(username, password, email, appId, secret, 
                     payment_account, external_addr, login):
                 raise ValueError('failed to create test user')
@@ -199,6 +201,7 @@ def create(request):
             api_user = APIUserAccount.objects.get(user__username=username)
             response_json = {}
             response_json["result"] = 'ok'
+            # apiKey is used as app id.
             response_json["apiKey"] = api_user.apiKey
             response_json["secretKey"] = api_user.secretKey
             response_json["accountNo"] = api_user.accountNo    

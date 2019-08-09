@@ -6,6 +6,23 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 INSTALLED_APPS += ['testsetup',]
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'mydb',
+        'USER': 'tradeAdmin',
+        'PASSWORD': 'AXFund@017',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'TEST':{
+           'CHARSET': 'UTF8',
+           },
+      'OPTIONS': {
+        'init_command': 'SET default_storage_engine=INNODB',
+      }
+    }
+}
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

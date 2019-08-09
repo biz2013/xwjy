@@ -6,7 +6,8 @@ from unittest.mock import Mock, MagicMock, patch
 from django.test import TransactionTestCase
 from django.test import Client
 
-from tradeex.controllers.crypto_utils import CryptoUtility
+from trading.controller.coin_utils import CoinUtils
+
 from tradeex.models import *
 from trading.models import *
 
@@ -15,9 +16,10 @@ logger = logging.getLogger('tradeex.apitests.test_api_user')
 class TestAPIUser(TransactionTestCase):
     fixtures = ['fixture_test_tradeapi.json']
 
-    @patch.object(CryptoUtility, 'create_wallet_address')
+    @patch.object(CoinUtils, 'create_wallet_address')
     def test_create_user(self, mock_create_wallet_address):
-        mock_create_wallet_address.return_value = 'PEsgfqtqbAp7xE1uRgen89RhmZr4w1YE5W'
+        cny_wallet_address = 'PEsgfqtqbAp7xE1uRgen89RhmZr4w1YE5W'
+        mock_create_wallet_address.return_value = cny_wallet_address
         request_json = {}
         request_json['email'] = 'tttzhang2000@gmail.com'
         request_json['payment_account'] = '18600701961'
@@ -37,7 +39,9 @@ class TestAPIUser(TransactionTestCase):
         
             self.assertEqual('OK', resp_json['result'].upper())
 
-            user = APIUserAccount.objects.get(user__username='tttzhang2000@gmail.com')
+            user_name = 'tttzhang2000@gmail.com'
+            user = APIUserAccount.objects.get(user__username = user_name)
+
             payment = UserPaymentMethod.objects.get(user__id = user.user.id)
             self.assertEqual('18600701961', payment.account_at_provider) 
             self.assertEqual('heepay', payment.provider.code)
@@ -51,10 +55,13 @@ class TestAPIUser(TransactionTestCase):
             self.assertEqual(0, cny_wallet.balance)
             self.assertEqual(0, cny_wallet.locked_balance)
             self.assertEqual(0, cny_wallet.available_balance)
+            self.assertEqual(cny_wallet_address, cny_wallet.wallet_addr)
 
             user_external_addr = UserExternalWalletAddress.objects.get(
                 user__id = user.user.id, cryptocurrency__currency_code='CNY',
                 address = 'EXTERNAL_CNY_ADDRESS')
+            self.assertIsNotNone(user_external_addr)
+
         except:
             self.fail('test_create_user encounter exeption {0}'.format(
                 sys.exc_info()[0]
