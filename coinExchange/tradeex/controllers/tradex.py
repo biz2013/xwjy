@@ -214,73 +214,73 @@ class TradeExchangeManager(object):
     # This function wrap old routine that call heepay to create order
     # It will return heepay's response which contains the payment url that will be
     # shown to the buyer
-    # def create_response_based_on_heepay_call(self, buyerorder_id, request_obj, seller_payment_account, sitesettings, api_user,api_trans_id):
-    #     notify_url = settings.HEEPAY_NOTIFY_URL_FORMAT.format(
-    #     sitesettings.heepay_notify_url_host,
-    #     sitesettings.heepay_notify_url_port)
-    #     return_url = request_obj.return_url
-    #
-    #     heepay_api_key = sitesettings.heepay_app_id
-    #     heepay_api_secret = sitesettings.heepay_app_key
-    #
-    #     heepay = HeePayManager()
-    #     json_payload = heepay.create_heepay_payload('wallet.pay.apply', buyorder_id, heepay_api_key,
-    #         heepay_api_secret, "127.0.0.1", float(request_obj.total_fee)/100.0,
-    #         seller_payment_account, request_obj.payment_account,
-    #         notify_url, return_url, request_obj.expire_minute, subject = request_obj.subject)
-    #     try:
-    #         status, reason, message = heepay.send_buy_apply_request(json_payload)
-    #     except:
-    #         logger.error('purchase_by_cash_amount(): sending request to heepay hit exception {0}'.format(
-    #             sys.exc_info()[0]
-    #         ))
-    #         raise ValueError(ERR_HEEPAY_REQUEST_EXCEPTION)
-    #     response_json = json.loads(message) if status == 200 else None
-    #     if status != 200:
-    #         logger.error('purchase_by_cash_amount(): sending request to heepay get error {0}:{1}-{2}'.format(
-    #             status, reason, message
-    #         ))
-    #         raise ValueError(ERR_HEEPAY_REQUEST_ERROR)
-    #
-    #     # TODO: hard coded right now
-    #     #api_client = APIClient('https://wallet.heepay.com/api/v1/payapply')
-    #     #response_json = api_client.send_json_request(heepay_request)
-    #     logger.info("prepurchase(): [out_trade_no:{0}] heepay reply: {1}".format(
-    #         request_obj.out_trade_no, json.dumps(response_json, ensure_ascii=False)
-    #     ))
-    #
-    #     if response_json['return_code'] == 'SUCCESS':
-    #         ordermanager.post_open_payment_order(
-    #                     buyorder_id, 'heepay',
-    #                     response_json['hy_bill_no'],
-    #                     response_json['hy_url'],
-    #                     api_user.user.username)
-    #
-    #         heepay_response = HeepayResponse.parseFromJson(response_json, heepay_api_secret)
-    #         final_resp_json = create_prepurchase_response_from_heepay(
-    #             heepay_response, api_user,api_trans_id, request_obj.out_trade_no,
-    #             request_obj.subject, request_obj.attach)
-    #         logger.info('prepurchase(): send final reply {0}'.format(
-    #             json.dumps(final_resp_json, ensure_ascii=False)
-    #         ))
-    #         return final_resp_json
-    #     else:
-    #         if response_json['return_msg'] == HEEPAY_ERR_NONEXIST_RECEIVE_ACCOUNT:
-    #             logger.error('purchase_by_cash_amount(): target sell order {0} had bad account, cancel the sell order and the purchase order'.format(
-    #                 sell_order.order_id
-    #             ))
-    #             purchase_order = Order.objects.get(order_id=buyorder_id)
-    #             admin = User.objects.get(username='admin')
-    #
-    #             # cancel purchase order will flag sell order as bad account here
-    #             ordermanager.cancel_purchase_order(purchase_order, TRADE_STATUS_BADRECEIVINGACCOUNT,
-    #                 PAYMENT_STATUS_BADRECEIVINGACCOUNT, admin)
-    #         else:
-    #             logger.error('purchase_by_cash_amount(): submit heepay request for seller order {0} hit error {1}.  Move to next one'.format(
-    #                 sell_order.order_id, response_json['return_msg']
-    #             ))
-    #         return None
-    #
+    def create_response_based_on_heepay_call(self, buyorder_id, sellorder_id, request_obj, seller_payment_account, sitesettings, api_user,api_trans_id):
+        notify_url = settings.HEEPAY_NOTIFY_URL_FORMAT.format(
+        sitesettings.heepay_notify_url_host,
+        sitesettings.heepay_notify_url_port)
+        return_url = request_obj.return_url
+
+        heepay_api_key = sitesettings.heepay_app_id
+        heepay_api_secret = sitesettings.heepay_app_key
+
+        heepay = HeePayManager()
+        json_payload = heepay.create_heepay_payload('wallet.pay.apply', buyorder_id, heepay_api_key,
+            heepay_api_secret, "127.0.0.1", float(request_obj.total_fee)/100.0,
+            seller_payment_account, request_obj.payment_account,
+            notify_url, return_url, request_obj.expire_minute, subject = request_obj.subject)
+        try:
+            status, reason, message = heepay.send_buy_apply_request(json_payload)
+        except:
+            logger.error('purchase_by_cash_amount(): sending request to heepay hit exception {0}'.format(
+                sys.exc_info()[0]
+            ))
+            raise ValueError(ERR_HEEPAY_REQUEST_EXCEPTION)
+        response_json = json.loads(message) if status == 200 else None
+        if status != 200:
+            logger.error('purchase_by_cash_amount(): sending request to heepay get error {0}:{1}-{2}'.format(
+                status, reason, message
+            ))
+            raise ValueError(ERR_HEEPAY_REQUEST_ERROR)
+
+        # TODO: hard coded right now
+        #api_client = APIClient('https://wallet.heepay.com/api/v1/payapply')
+        #response_json = api_client.send_json_request(heepay_request)
+        logger.info("prepurchase(): [out_trade_no:{0}] heepay reply: {1}".format(
+            request_obj.out_trade_no, json.dumps(response_json, ensure_ascii=False)
+        ))
+
+        if response_json['return_code'] == 'SUCCESS':
+            ordermanager.post_open_payment_order(
+                        buyorder_id, 'heepay',
+                        response_json['hy_bill_no'],
+                        response_json['hy_url'],
+                        api_user.user.username)
+
+            heepay_response = HeepayResponse.parseFromJson(response_json, heepay_api_secret)
+            final_resp_json = create_prepurchase_response_from_heepay(
+                heepay_response, api_user,api_trans_id, request_obj.out_trade_no,
+                request_obj.subject, request_obj.attach)
+            logger.info('prepurchase(): send final reply {0}'.format(
+                json.dumps(final_resp_json, ensure_ascii=False)
+            ))
+            return final_resp_json
+        else:
+            if response_json['return_msg'] == HEEPAY_ERR_NONEXIST_RECEIVE_ACCOUNT:
+                logger.error('purchase_by_cash_amount(): target sell order {0} had bad account, cancel the sell order and the purchase order'.format(
+                     sellorder_id
+                ))
+                purchase_order = Order.objects.get(order_id=buyorder_id)
+                admin = User.objects.get(username='admin')
+
+                # cancel purchase order will flag sell order as bad account here
+                ordermanager.cancel_purchase_order(purchase_order, TRADE_STATUS_BADRECEIVINGACCOUNT,
+                    PAYMENT_STATUS_BADRECEIVINGACCOUNT, admin)
+            else:
+                logger.error('purchase_by_cash_amount(): submit heepay request for seller order {0} hit error {1}.  Move to next one'.format(
+                    sellorder_id, response_json['return_msg']
+                ))
+            return None
+
 
     # # This is the interface that handles the api call of purchase
     def purchase_by_cash_amount(self, api_user, request_obj, crypto, sitesettings, is_api_call=True):
@@ -337,7 +337,7 @@ class TradeExchangeManager(object):
         
             # in case heepay api is working again... we need more logic
             if buyer_payment_provider == PAYMENTMETHOD_HEEPAY and settings.PAYMENT_API_STATUS[PAYMENTMETHOD_HEEPAY] == 'auto':
-                seller_payment_account = seller_payment_method.account_at_payment_provider
+                seller_payment_account = seller_payment_method.account_at_provider
             
             buyorder_id = None
             try:
@@ -371,11 +371,10 @@ class TradeExchangeManager(object):
             # This part is the legacy heepay call.  It will call heepay to create purchase order, extract
             # the payment url and return that to caller.
             if request_obj.payment_provider == 'heepay' and settings.PAYMENT_API_STATUS['heepay'] == 'auto':
-                raise ValueError(ERR_HEEPAY_NO_LONGER_SUPPORT_ERROR)
-                # final_response = create_response_based_on_heepay_call(buyerorder_id, request_obj, seller_payment_account,
-                #     sitesettings, api_user,api_trans_id)
-                # if final_response:
-                #     return final_response
+                final_response = self.create_response_based_on_heepay_call(buyorder_id, sell_order.order_id, request_obj, seller_payment_account,
+                    sitesettings, api_user,api_trans_id)
+                if final_response:
+                    return final_response
             
             payment_url = self.create_manual_payment_url(api_user, api_trans_id, buyorder_id)
             ordermanager.post_open_payment_order(

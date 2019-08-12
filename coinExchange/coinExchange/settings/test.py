@@ -23,6 +23,8 @@ DATABASES = {
     }
 }
 
+TRADESITE_PAYMENT_URLPREFIX="http://localhost:8000/trading/payment_qrcode_url/"
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

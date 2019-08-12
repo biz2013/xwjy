@@ -142,7 +142,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
     seller_payment_account =  order.account_at_payment_provider
     if not seller_payment_account:
         try:
-            userpaymentmethod = UserPaymentMethod.objects.get(user__id=userobj.id, provider__code=payment_provider_code)
+            userpaymentmethod = UserPaymentMethod.objects.get(user__id=userobj.id, provider__code=order.selected_payment_provider)
             seller_payment_account = userpaymentmethod.account_at_provider
         except:
             logger.error('create_sell_order(): failed to find user payment method for seller {0}:{1}'.format(
