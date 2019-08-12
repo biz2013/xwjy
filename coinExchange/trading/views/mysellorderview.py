@@ -23,9 +23,7 @@ from django.contrib.auth.decorators import login_required
 logger = logging.getLogger("site.sellorder")
 
 def get_payment_method(payment_method, user):
-    if payment_method == PAYMENTMETHOD_HEEPAY:
-        return None
-    return userpaymentmethodmanager.get_weixin_paymentmethod(user.id)
+    return userpaymentmethodmanager.get_user_payment_method_by_provider(user.id, payment_method)
 
 def read_order_input(request):
     username = request.user.username

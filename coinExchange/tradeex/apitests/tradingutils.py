@@ -3,6 +3,7 @@
 
 from django.test import Client
 from trading.models import *
+from trading.controller.global_constants import PAYMENTMETHOD_HEEPAY
 
 def create_axfund_sell_order(username, passwd, units, unit_price, unit_price_currency):
 
@@ -12,7 +13,9 @@ def create_axfund_sell_order(username, passwd, units, unit_price, unit_price_cur
             'unit_price' : unit_price,
             'unit_price_currency': unit_price_currency,
             'crypto': 'AXFund',
-            'total_amount': round(units * unit_price, 8) }
+            'total_amount': round(units * unit_price, 8),
+            'payment_method': PAYMENTMETHOD_HEEPAY
+    }
     c = Client()
     if not c.login(username=username, password='user@123'):
         raise ValueError('{0}:{1} cannot login'.format(username, passwd))
