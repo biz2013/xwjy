@@ -31,6 +31,9 @@ coinExchange/deploy/mod_wsgi-4.5.24$ ./configure --with-python=/usr/bin/python3
 
 3) Build
 ```
+First you need to use dev variant of python3.  To install, run
+sudo apt-get install python3-dev
+then under coinExchange/deploy/mod_wsgi-4.5.24$ run
 sudo make install
 ```
 
