@@ -1,0 +1,12 @@
+{
+  "bin_path": "/opt/cnyfund/bin/cnyfund",
+  "data_dir": "/cnyfund",
+  "host_ip": "192.168.1.214",
+  "rpc_port": "18189",
+  "rpc_user": "cnyfundrpc",
+  "rpc_user_password": "J4oxViM8jsC6ySbqoweniVML1t65LtYmbuHB7DsFYdH",
+  "transaction_lookback_count": 5,
+  "account": "",
+  "passphrase": "xxxx",
+  "min_trx_confirmation": 5
+}

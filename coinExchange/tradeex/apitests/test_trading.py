@@ -323,6 +323,39 @@ class TestTradingAPI(TransactionTestCase):
         self.assertEqual(resp_json['return_msg'], "收钱方账号不存在")
     """
 
+    # happy path for purchasing from 3rd party by using weixing (manual)
+    def test_purchase_order_from_3rdParty_success_by_weixing(self):
+        return True
+
+    # 3rd party purchase request fail when
+    def test_purchase_order_from_3rdParty_fail_by_missing_externalAddress(self):
+        # API_USER2 is from www.3rdparty.com, check tradeex/apitests/fixtures/fixture_test_tradeapi.json, "model": "tradeex.apiuseraccount".
+        request = TradeAPIRequest(
+            API_METHOD_PURCHASE,
+            TEST_API_USER2_APPKEY, TEST_API_USER2_SECRET,
+            "any_out_trade_no",  # out_trade_no
+            total_fee=TEST_PURCHASE_AMOUNT,  # total fee
+            expire_minute=10,  # expire_minute
+            payment_provider='heepay',
+            payment_account='12738456',
+            client_ip='127.0.0.1',  # client ip
+            attach='userid:1',
+            subject='人民币充值成功测试',
+            notify_url='http://testurl',
+            return_url='http://testurl',
+            # external_cny_rec_address = "xxxxx", missing this variable is the reason why it fails.
+        )
+
+        c = Client()
+        request_str = request.getPayload()
+        print('test_purchase_order_from_3rdParty_fail_by_missing_externalAddress(): send request {0}'.format(request_str))
+        response = c.post('/api/v1/applypurchase/', request_str,
+                          content_type='application/json')
+        resp_json = json.loads(response.content.decode('utf-8'))
+        print('response is {0}'.format(json.dumps(resp_json, ensure_ascii=False)))
+
+        self.assertEqual('FAIL', resp_json['return_code'])
+        self.assertEqual('请提供相应的支付账号', resp_json['return_msg'])
 
     @patch('tradeex.controllers.crypto_utils.CryptoUtility.unlock_wallet', side_effect=unlock_wallet_for_purchase_test)
     @patch('tradeex.controllers.crypto_utils.CryptoUtility.send_fund', side_effect=send_fund_for_purchase_test)

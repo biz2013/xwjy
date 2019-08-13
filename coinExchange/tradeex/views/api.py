@@ -29,7 +29,7 @@ from trading.config import context_processor
 from trading.controller.global_constants import *
 from trading.controller import ordermanager
 from trading.controller.heepaymanager import *
-import logging,json
+import logging, json, re
 
 logger = logging.getLogger("tradeex.api")
 
@@ -58,7 +58,7 @@ def parseUserInput(request_json):
     api_user = APIUserManager.get_api_user_by_apikey(request_obj.apikey)
     return request_obj, api_user
 
-def validateUserInput(expected_method, request_obj, secretKey):
+def validateUserInput(expected_method, request_obj, api_user):
     if request_obj.method != expected_method:
         raise ValueError('{0}: expected:{1}, actual:{2}'.format(
             ERR_UNEXPECTED_METHOD,
@@ -75,6 +75,17 @@ def validateUserInput(expected_method, request_obj, secretKey):
             logger.error('parseUserInput(): missing payment account')
             raise ValueError(ERR_REDEEM_REQUEST_NO_PAYMENT_ACCOUNT)
 
+        # making sure all purchase traffic not from investment site (www.91.com) has external_cny_rec_address defined.
+        if request_obj.method == API_METHOD_PURCHASE and not re.search('www.91.com', api_user.source, re.IGNORECASE)  \
+             and ( not hasattr(request_obj, 'external_cny_rec_address') or not request_obj.external_cny_rec_address ):
+            logger.error('parseUserInput(): missing external_cny_rec_address info')
+            # return same error as missing payment account to hide we need cny_address.
+            raise ValueError(ERR_REDEEM_REQUEST_NO_PAYMENT_ACCOUNT)
+
+        # making sure we have external_cny_rec_address attribute in purchase request object.
+        if request_obj.method == API_METHOD_PURCHASE and not hasattr(request_obj, 'external_cny_rec_address'):
+            setattr(request_obj, "external_cny_rec_address", None)
+
         amount = int(request_obj.total_fee) if type(request_obj.total_fee) is str else request_obj.total_fee
         logger.debug("The request's amount is {0}".format(amount))
 
@@ -83,7 +94,7 @@ def validateUserInput(expected_method, request_obj, secretKey):
                 ERR_OVER_TRANS_LIMIT, request_obj.total_fee, settings.API_TRANS_LIMIT))
             raise ValueError(ERR_OVER_TRANS_LIMIT)
 
-    if not request_obj.is_valid(secretKey):
+    if not request_obj.is_valid(api_user.secretKey):
         raise ValueError(ERR_INVALID_SIGNATURE)
 
 def handleValueError(ve_msg, secretKey):
@@ -193,7 +204,7 @@ def prepurchase(request):
             raise ValueError(ERR_INVALID_JSON_INPUT)
 
         request_obj, api_user = parseUserInput(request_json)
-        validateUserInput(API_METHOD_PURCHASE, request_obj, api_user.secretKey)
+        validateUserInput(API_METHOD_PURCHASE, request_obj, api_user)
 
         #if request_obj.total_fee > settings.API_TRANS_LIMIT:
         #    raise ValueError('OVERLIMIT: amount:{0}, limit:{1}'.format(request_obj.total_fee, settings.API_TRANS_LIMIT))
@@ -245,7 +256,7 @@ def selltoken(request):
             raise ValueError(ERR_INVALID_JSON_INPUT)
 
         request_obj, api_user = parseUserInput(request_json)
-        validateUserInput(API_METHOD_REDEEM, request_obj, api_user.secretKey)
+        validateUserInput(API_METHOD_REDEEM, request_obj, api_user)
         logger.info('selltoken(): [out_trade_no:{0}] find out api user id is {1}, key {2}'.format(
             request_obj.out_trade_no, api_user.user.id, api_user.secretKey
         ))
@@ -280,7 +291,7 @@ def query_order_status(request) :
             raise ValueError(ERR_INVALID_JSON_INPUT)
 
         request_obj, api_user = parseUserInput(request_json)
-        validateUserInput(API_METHOD_QUERY, request_obj, api_user.secretKey)
+        validateUserInput(API_METHOD_QUERY, request_obj, api_user)
         tradeex = TradeExchangeManager()
         api_trans = tradeex.find_transaction(request_obj.trx_bill_no)
         sitesettings = context_processor.settings(request)['settings']

@@ -12,7 +12,10 @@ class APIUserAccount(models.Model):
         ('CLOSED', 'Closed'))
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     accountNo = models.CharField(max_length=32, unique=True)
+    # apiKey is the identity of api users.
     apiKey = models.CharField(max_length=128, primary_key=True)
+    # source: url of the 3rd party website, shows who is calling our api.
+    source = models.CharField(max_length=128)
     secretKey = models.CharField(max_length=128, unique=True)
     status = models.CharField(max_length=32, choices=ACCOUNT_STATUS)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -75,6 +78,7 @@ class APIUserTransaction(models.Model):
     expire_in_sec = models.IntegerField(default=600)
     payment_status = models.CharField(max_length=32, choices=PAYMENT_STATUS, default='UNKNOWN')
     trade_status = models.CharField(max_length=32, choices=TRADE_STATUS, default='UNKNOWN')
+    external_cny_receive_addr = models.CharField(max_length=64, null=True, default=None)
     notify_url = models.CharField(max_length=1024, null=True)
     return_url = models.CharField(max_length=1024, null=True)
     last_notify = models.CharField(max_length=2048, null=True)

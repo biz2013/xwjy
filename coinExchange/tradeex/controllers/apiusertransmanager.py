@@ -12,10 +12,10 @@ from django.utils import timezone
 from tradeex.client.apiclient import APIClient
 from tradeex.controllers.apiusermanager import APIUserManager
 from tradeex.controllers.walletmanager import WalletManager
-from tradeex.controllers.crypto_utils import CryptoUtility
+from trading.controller.coin_utils import *
 from tradeex.data.api_const import *
 from tradeex.models import APIUserTransaction
-from trading.models import User, UserWallet, UserWalletTransaction,PaymentProvider
+from trading.models import User, UserWallet, UserWalletTransaction, CNYFUND_CRYPTO_CODE, PaymentProvider
 from tradeex.data.purchase_notify import PurchaseAPINotify
 
 logger = logging.getLogger("tradeex.apiusertransmanager")
@@ -330,7 +330,12 @@ class APIUserTransactionManager(object):
                     notify_resp, comment)
         
         if api_trans.action == API_METHOD_PURCHASE:
-            external_crypto_addr = APIUserManager.get_api_user_external_crypto_addr(api_trans.api_user.user.id, 'CNY')
+            external_crypto_addr = api_trans.external_cny_receive_addr
+
+            # if there is no external cny address from user request (save as api transaction), read from APIUserExternalWalletAddress
+            if not external_crypto_addr:
+                external_crypto_addr = APIUserManager.get_api_user_external_crypto_addr(api_trans.api_user.user.id, 'CNY')
+
             if not external_crypto_addr:
                 logger.info('on_found_success_purchase_trans: buyer for api trans {0} has no external cny wallet, nothing to do'.format(
                     api_trans.transactionId
@@ -356,7 +361,7 @@ class APIUserTransactionManager(object):
                     logger.info('on_found_paid_purchase_trans: try to auto redeem for api trans {0}'.format(
                         api_trans.transactionId
                     ))
-                    crypto_util = WalletManager.create_fund_util('CNY')
+                    crypto_util = get_coin_utils(CNYFUND_CRYPTO_CODE)
                     comment = 'userId:{0},amount:{1},trxId:{2},out_trade_no:{3}'.format(
                         api_trans.api_user.user.id, total_cny_in_units, 
                         api_trans.transactionId, api_trans.api_out_trade_no)
@@ -499,7 +504,7 @@ class APIUserTransactionManager(object):
                     logger.info('on_cancel_transaction: try to auto redeem for api trans {0}'.format(
                         api_trans.transactionId
                     ))
-                    crypto_util = WalletManager.create_fund_util('CNY')
+                    crypto_util = get_coin_utils(CNYFUND_CRYPTO_CODE)
                     comment = 'userId:{0},amount:{1},trxId:{2},out_trade_no:{3}'.format(
                         api_trans.api_user.user.id, total_cny_in_units, 
                         api_trans.transactionId, api_trans.api_out_trade_no)
