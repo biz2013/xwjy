@@ -12,9 +12,10 @@ class APIUserAccount(models.Model):
         ('CLOSED', 'Closed'))
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     accountNo = models.CharField(max_length=32, unique=True)
+    # apiKey is the identity of api users.
     apiKey = models.CharField(max_length=128, primary_key=True)
     # source: url of the 3rd party website, shows who is calling our api.
-    source = models.CharField(max_length=128, null=True)
+    source = models.CharField(max_length=128)
     secretKey = models.CharField(max_length=128, unique=True)
     status = models.CharField(max_length=32, choices=ACCOUNT_STATUS)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -21,7 +21,7 @@ class TradeAPIRequest(object):
             client_ip='127.0.0.1', 
             subject=None, attach=None, notify_url=None, return_url=None,
             version='1.0', charset='utf-8', sign_type='MD5', timestamp=0,
-            sign=None, original_json_request=None, **kwargs):
+            sign=None, original_json_request=None, external_cny_rec_address = None, **kwargs):
         self.version = version
         self.charset = charset
         self.sign_type = sign_type
@@ -51,7 +51,7 @@ class TradeAPIRequest(object):
         self.sign = sign
         self.meta_option = None
         self.pay_option = None
-        self.external_cny_rec_address = None
+        self.external_cny_rec_address = external_cny_rec_address
         self.original_json_request = original_json_request
         if kwargs:
             for key,value in kwargs.items():

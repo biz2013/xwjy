@@ -3,7 +3,7 @@
 import sys
 
 from django.conf import settings
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
@@ -22,7 +22,7 @@ logger = logging.getLogger("tradeex.apiuser")
 
 
 def create_user(username, password, email, appId, secret, 
-        payment_account, external_addr, operator, cny_address = None):
+        payment_account, external_addr, source, operator, cny_address = None):
     cny_wallet = Wallet.objects.get(cryptocurrency__currency_code = 'CNY')
     axf_wallet = Wallet.objects.get(cryptocurrency__currency_code = 'AXFund')
     cny = Cryptocurrency.objects.get(currency_code = 'CNY')
@@ -48,16 +48,22 @@ def create_user(username, password, email, appId, secret,
         api_user = APIUserAccount.objects.get(user__username = username)
         logger.info("{0}:{1} api user object already exists".format(username, appId))
     except APIUserAccount.DoesNotExist:
-        api_user = APIUserAccount.objects.create(
-            user = user1,
-            accountNo = account_no,
-            apiKey = appId,
-            secretKey = secret,
-            status = 'ACTIVE',
-            created_by = operator,
-            lastupdated_by = operator
-        )
-        logger.info("Create {0}:{1} user object".format(username, appId))
+        try:
+            api_user = APIUserAccount.objects.create(
+                user = user1,
+                accountNo = account_no,
+                apiKey = appId,
+                secretKey = secret,
+                status = 'ACTIVE',
+                source = source,
+                created_by = operator,
+                lastupdated_by = operator
+            )
+            logger.info("Create {0}:{1} user object".format(username, appId))
+        except IntegrityError:
+            logger.error('Some required field is None, please check username:{0}, accountNo:{1}, apiKey:{2},\
+                         secretKey:{3}, source:{4}'.format(username, account_no, appId, secret, source))
+            return False
     except APIUserAccount.MultipleObjectsReturned:
         logger.error('There are more than one {0}:{1} api user object'.format(username, appId))
         return False
@@ -191,11 +197,12 @@ def create(request):
         password = request_json['password'] if 'password' in request_json else id_generator(16)
         payment_account = request_json.get('payment_account', None)
         external_addr = request_json.get('external_cny_addr', None)
+        source = request_json.get('source', None)
 
         login = User.objects.get(username='admin')
         with transaction.atomic():
             if not create_user(username, password, email, appId, secret, 
-                    payment_account, external_addr, login):
+                    payment_account, external_addr, source, login):
                 raise ValueError('failed to create test user')
 
             api_user = APIUserAccount.objects.get(user__username=username)
