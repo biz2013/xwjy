@@ -323,11 +323,10 @@ class TestTradingAPI(TransactionTestCase):
         self.assertEqual(resp_json['return_msg'], "收钱方账号不存在")
     """
 
-    # happy path for purchasing from 3rd party by using weixing (manual)
-    def test_purchase_order_from_3rdParty_success_by_weixing(self):
-        return True
 
-    # 3rd party purchase request fail when
+
+
+    # 3rd party purchase request fail when missing external cny address, external cny address is optional only for investment site request.
     def test_purchase_order_from_3rdParty_fail_by_missing_externalAddress(self):
         # API_USER2 is from www.3rdparty.com, check tradeex/apitests/fixtures/fixture_test_tradeapi.json, "model": "tradeex.apiuseraccount".
         request = TradeAPIRequest(
@@ -357,12 +356,27 @@ class TestTradingAPI(TransactionTestCase):
         self.assertEqual('FAIL', resp_json['return_code'])
         self.assertEqual('请提供相应的支付账号', resp_json['return_msg'])
 
+    def test_purchase_order_from_3rd_party_success_with_Heepay(self):
+        self.assertTrue(True)
+
+    def test_purchase_order_from_3rd_party_success_with_Weixing(self):
+        self.assertTrue(True)
+
+    def test_purchase_order_from_3rd_party_success_with_Paypal(self):
+        self.assertTrue(True)
+
+
+    # happy path for purchasing from 3rd party by using weixing (manual)
+    def test_purchase_order_from_investment_site_success_with_Weixing(self):
+        self.assertTrue(True)
+
     @patch('tradeex.controllers.crypto_utils.CryptoUtility.unlock_wallet', side_effect=unlock_wallet_for_purchase_test)
     @patch('tradeex.controllers.crypto_utils.CryptoUtility.send_fund', side_effect=send_fund_for_purchase_test)
     @patch('trading.controller.heepaymanager.HeePayManager.send_buy_apply_request', 
            side_effect=send_buy_apply_request_side_effect)
     @patch('tradeex.client.apiclient.APIClient.send_json_request', side_effect=send_json_request_for_purchase_test)
-    def test_purchase_order_succeed(self,send_json_request_function,
+    def test_purchase_order_from_investment_site_success_with_Heepay_succeed(self
+            ,send_json_request_function,
             send_buy_apply_request_function,
             send_fund_function,
             unlock_wallet_function):
@@ -461,7 +475,6 @@ class TestTradingAPI(TransactionTestCase):
         self.assertEqual(155, buy_order.reference_order.units_locked)
         self.assertEqual(1.0, buy_order.reference_order.units_available_to_trade)
 
-
         print('-----------------------------------------------')
         print('test_purchase_order_succeed(): show wallet and orders after send api request')
         show_user_wallet_overview()
@@ -558,7 +571,6 @@ class TestTradingAPI(TransactionTestCase):
         self.assertEqual(tttzhang2000_axf_wallets.balance, tttzhang2000_axf_wallets_prev.balance)
         self.assertEqual(tttzhang2000_axf_wallets.locked_balance, tttzhang2000_axf_wallets_prev.locked_balance)
         self.assertEqual(tttzhang2000_axf_wallets.available_balance, tttzhang2000_axf_wallets_prev.available_balance)
-
 
         tttzhang2000_axf_wallets_prev = tttzhang2000_axf_wallets
         yingzhou_axf_wallets_prev = yingzhou_axf_wallets
@@ -894,7 +906,6 @@ class TestTradingAPI(TransactionTestCase):
             user_wallet__wallet__cryptocurrency__currency_code='CNY')
         self.assertEqual(1, len(master_trans))
         dump_userwallet_trans(master_trans[0])
-
 
     @patch('tradeex.controllers.crypto_utils.CryptoUtility.unlock_wallet', side_effect=unlock_wallet_for_purchase_test)
     @patch('tradeex.controllers.crypto_utils.CryptoUtility.send_fund', side_effect=send_fund_for_purchase_test)
