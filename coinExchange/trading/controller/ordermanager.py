@@ -350,6 +350,7 @@ def cancel_purchase_order(order, final_status, payment_status,
             logger.error("cancel_purchase_order({0}, purchase units: {3} order status:{1}, payment status:{2}): purchase order does not have PENDING userwallettrans to be updated".format(
                 order.order_id, final_status, payment_status, order.units
             ))
+            return
 
         updated = Order.objects.filter(
            Q(status = 'PAYING')|Q(status='OPEN'), Q(order_id = order.order_id)).update(
@@ -361,6 +362,7 @@ def cancel_purchase_order(order, final_status, payment_status,
             logger.error("cancel_purchase_order({0}, purchase units: {3} order status:{1}, payment status:{2}): purchase order status is not OPEN or PAYING, maybe someone had changed its status".format(
                 order.order_id, final_status, payment_status, order.units
             ))
+            return
         
         # try to cancel the api_trans for buy order, if applicable
         api_trans_purchase = APIUserTransactionManager.get_trans_by_reference_order(order.order_id)

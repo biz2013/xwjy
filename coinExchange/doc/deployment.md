@@ -31,6 +31,9 @@ coinExchange/deploy/mod_wsgi-4.5.24$ ./configure --with-python=/usr/bin/python3
 
 3) Build
 ```
+First you need to use dev variant of python3.  To install, run
+sudo apt-get install python3-dev
+then under coinExchange/deploy/mod_wsgi-4.5.24$ run
 sudo make install
 ```
 
@@ -154,6 +157,10 @@ sudo vi /etc/apache2/sites-available/000-default.conf
 
 </VirtualHost>
 ```
+## Additional Manual Fix
+For whatever reason the latest python won't run django with mysqlclient correctly (this is 2019-08-11). So, I have to follow this doc to manually change the django mysql driver code for latest django version
+https://stackoverflow.com/questions/55657752/django-installing-mysqlclient-error-mysqlclient-1-3-13-or-newer-is-required
+This is very annoying
 
 ## Prepare static files
 
@@ -193,6 +200,14 @@ http://blog.dscpl.com.au/2015/04/introducing-modwsgi-express.html
 https://pypi.python.org/pypi/mod_wsgi 
 
 mod_wsgi-express start-server coinExchange/wsgi.py
+## Other Little Things
+
+1. Donot forget to change the ALLOWED_HOST list in the production.py to match your machine
+2. Donot forget to add Listen <port> to /etc/apache2/apache2.conf if you not just listen to 80 and 443
+3. Donot forget to change 000-default.conf and your site's .conf file to put right server name in it
+4. Donot forget to run sudo a2ensite <your site>.conf to enable the site, and probably you need run sudo a2dissite 000-default.conf to add default site node
+5. Donot forget to add /var/log/coinexchange, and /var/www/... for media and static and make www-data:www-data as owner and group for them
+   <??? it seems the python manager run will have different permission, maybe when we run them we can't use the same production settings)
 
 ## Other useful commands
 ```

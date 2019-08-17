@@ -14,6 +14,7 @@ from trading.controller.global_utils import *
 from trading.controller.global_constants import *
 from trading.controller import userpaymentmethodmanager
 from trading.models import *
+from tradeex.models import *
 from trading.views.models.userpaymentmethodview import *
 from trading.views.models.orderitem import OrderItem
 from trading.views.models.returnstatus import ReturnStatus
@@ -122,19 +123,34 @@ def get_payment_qrcode_image(request):
         logger.error("get_payment_qrcode_image(): encounter illegal POST request")
         return HttpResponseNotAllowed("读取付款二维码需要用GET请求")
     
+    buyorder_id = out_trade_no = None
     try:
-        buyorder_id = request.GET['key']
-        if not buyorder_id:
-            return HttpResponseBadRequest('请求没有购买单据')
+        payment_methpd = None
+        order = NotImplementedError
+        if 'key' in request.GET:
+            buyorder_id = request.GET['key']
+            order = Order.objects.get(order_id=buyorder_id)
+        elif 'out_trade_no' in request.GET:
+            out_trade_no = request.GET['out_trade_no']
+            api_tran = APIUserTransaction.objects.get(api_out_trade_no = out_trade_no)
+            order = api_tran.reference_order
+            if not order:
+                return HttpResponseBadRequest('没有找到相关out_trade_no的购买单据')
+        else:
+            return HttpResponseBadRequest('请求没有out_trade_no或key')
 
-        order = Order.objects.get(order_id=buyorder_id)
+        if order.order_type != 'BUY':
+            logger.error('get_payment_qrcode_image(): The order found by {0}:{1} is not a BUY order'.format(
+                'buy order id' if buyorder_id else 'out_trade_no', 
+                buyorder_id if buyorder_id else out_trade_no))
+            return HttpResponseBadRequest('请求的相关单据不是买单')
+
         payment_method = order.reference_order.seller_payment_method if order.reference_order.seller_payment_method else userpaymentmethodmanager.load_weixin_info(order.reference_order.user.id)
         if not payment_method:
             logger.error('get_payment_qrcode_image(): Cannot find valid seller payment method for sell order {0} referenced by purchase order {1}'.format(
                 order.reference_order.order_id, order.order_id
             ))
             return HttpResponseServerError('对应卖单没有付款方式')
-        
         if not payment_method.provider_qrcode_image:
             logger.error('get_payment_qrcode_image(): sell order {0} referenced by purchase order {1} does not have payment qrcode'.format(
                 order.reference_order.order_id, order.order_id
@@ -160,4 +176,15 @@ def get_payment_qrcode_image(request):
         return HttpResponse(image_data, content_type=img_content_type)
     except Order.DoesNotExist:
         logger.error("get_payment_qrcode_image(): Can not find related purchase order {0}".format(buyorder_id))
-        return HttpResponseNotFound('没有找到购买单据')
+        return HttpResponseNotFound('没有找到购买单据{0}'.format(buyorder_id))
+    except APIUserTransaction.DoesNotExist:
+        logger.error("get_payment_qrcode_image(): Can not find api user transaction based on out_trade_no {0}".format(out_trade_no))
+        return HttpResponseNotFound('没有找到out_trade_no相关的充值请求'.format(buyorder_id))
+    except:
+        error_msg = 'get_payment_qrcode_image()遇到错误: {0}'.format(sys.exc_info()[0])
+        logger.exception(error_msg)
+        return HttpResponseServerError(content='请求遇到错误')      
+
+        
+
+    
