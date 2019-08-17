@@ -164,6 +164,7 @@ def update_user_wallet_based_on_redeem(trx, user_wallet_id, min_trx_confirmation
     try:
         with transaction.atomic():
             user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet_id)
+            user_wall_trans = None
             try:
                 user_wallet_trans = UserWalletTransaction.objects.get(
                     transaction_type = 'REDEEM',
