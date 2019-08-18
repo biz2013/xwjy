@@ -3,6 +3,7 @@
 import json, logging
 from trading.models import Wallet
 from tradeex.controllers.crypto_utils import CryptoUtility
+from trading.controller.coin_utils import *
 
 logger = logging.getLogger("tradeex.walletmanager")
 
@@ -342,7 +343,7 @@ class WalletManager(object):
     @staticmethod
     def check_wallets(crypto_util, crypto):
         try:
-            crypto_util = CryptoUtility(config_json)
+            crypto_util = get_coin_utils(crypto)
             trans = crypto_util.listtransactions()
             min_trx_confirmation = crypto_util.min_trx_confirmation
 
@@ -420,18 +421,3 @@ class WalletManager(object):
             logger.error('get_config_json({0}): there are more than one wallets'.format(crypto))
             raise ValueError('CRYPTO_WALLET_NOT_UNIQUE')    
 
-    @staticmethod
-    def create_fund_util(crypto):
-        try:
-            wallet = Wallet.objects.get(cryptocurrency__currency_code=crypto)
-            if not wallet.config_json:
-                logger.error('create_fund_util({0}): the wallet does not have config'.format(crypto))
-                raise ValueError('CRYPTO_WALLET_NO_CONFIG')
-            return CryptoUtility(json.loads(wallet.config_json))
-
-        except Wallet.DoesNotExist:
-            logger.error('create_fund_util({0}): the wallet does not exist'.format(crypto))
-            raise ValueError('CRYPTO_WALLET_NOTFOUND')
-        except Wallet.MultipleObjectsReturned:
-            logger.error('create_fund_util({0}): there are more than one wallets'.format(crypto))
-            raise ValueError('CRYPTO_WALLET_NOT_UNIQUE') 

@@ -120,7 +120,7 @@ def order_batch_process(request):
     try:
         sitesettings = context_processor.settings(request)['settings']
         sell_order_timeout = sitesettings.order_timeout_insec
-        if settings.PROCESS_PROCESS_BACK_ORDER:
+        if settings.PROCESS_BACK_ORDER:
             confirmation_timeout = sitesettings.confirmation_timeout_insec
             appId = sitesettings.heepay_app_id
             appKey = sitesettings.heepay_app_key

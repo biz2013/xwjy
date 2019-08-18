@@ -9,6 +9,8 @@ from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from tradeex.models import *
+from trading.models import CNYFUND_CRYPTO_CODE
+from trading.controller.coin_utils import *
 from tradeex.utils import *
 from tradeex.controllers.walletmanager import WalletManager
 
@@ -82,7 +84,7 @@ def setupbasic(operator, master_cny_address= None):
                 existingwallets[0].id, existingwallets[0].wallet_addr
             ))
         else:
-            cnyutil = WalletManager.create_fund_util('CNY')
+            cnyutil = get_coin_utils(CNYFUND_CRYPTO_CODE)
             addr = cnyutil.create_wallet_address() if not master_cny_address else master_cny_address
             userwallet=UserWallet.objects.create(
                 user = admin,
@@ -160,7 +162,7 @@ def create_user(username, password, email, apiaccount, appId, secret,
                 existingwallets[0].id, existingwallets[0].wallet_addr, username
             ))
         else:
-            cnyutil = WalletManager.create_fund_util('CNY')
+            cnyutil = get_coin_utils(CNYFUND_CRYPTO_CODE)
             addr = cnyutil.create_wallet_address() if not cny_address else cny_address
             userwallet=UserWallet.objects.create(
                 user = user1,
