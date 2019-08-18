@@ -11,8 +11,6 @@ sys.path.append('../stakingsvc/')
 from django.contrib.auth.models import User
 from django.test import TestCase, TransactionTestCase
 from django.test import Client
-
-
 from unittest.mock import Mock, MagicMock, patch
 
 from tradeex.data.tradeapirequest import TradeAPIRequest
@@ -21,9 +19,9 @@ from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from tradeex.apitests.tradingutils import *
 from tradeex.apitests.util_tests import *
 from tradeex.responses.heepaynotify import HeepayNotification
-from tradeex.controllers.crypto_utils import *
 from tradeex.models import *
 from trading.models import *
+from trading.controller.coin_utils import CoinUtils
 from trading.controller import useraccountinfomanager, ordermanager
 import json
 
@@ -164,7 +162,8 @@ class TestTradingAPI(TransactionTestCase):
         self.assertTrue(useraccountInfo.balance > 0, "the balance of {0} should be larger than 0".format(username))
         self.assertTrue(useraccountInfo.available_balance > 0, "the available balance of {0} should be larger than 0".format(username))
         self.assertTrue(useraccountInfo.paymentmethods, "user {0} should have payment info".format(username))
-        self.assertEqual(1, len(useraccountInfo.paymentmethods), "There should be 1 payment method for user {0}".format(username))
+        # we are supporting weixin, heepay, paypal and others in future.
+        #self.assertEqual(1, len(useraccountInfo.paymentmethods), "There should be 1 payment method for user {0}".format(username))
         self.assertEqual('heepay', useraccountInfo.paymentmethods[0].provider_code, "user {0}\'s payment method should come from heepay".format(username))
         self.assertTrue(useraccountInfo.paymentmethods[0].account_at_provider, "User {0} should have account at heepay".format(username))
 
@@ -184,37 +183,37 @@ class TestTradingAPI(TransactionTestCase):
         self.assertEqual('API', api_trans.reference_order.order_source)
         self.assertTrue(math.fabs(round(request_obj.total_fee/100.0, 8) - api_trans.reference_order.total_amount) < 0.00000001)
 
-    def create_no_fitting_order(self):
+    def create_no_fitting_order(self, amount, unit_price = 0.4, payment_method = PAYMENTMETHOD_HEEPAY):
         print('create_no_fitting_order()')
         self.validate_user_info('tttzhang2000@yahoo.com')
-        resp = create_axfund_sell_order('tttzhang2000@yahoo.com', 'user@123', 100, 0.5, 'CNY')
-        self.assertEqual(200, resp.status_code, "Create order of 100 units should return 200")
+        resp = create_axfund_sell_order('tttzhang2000@yahoo.com', 'user@123', amount - 1, unit_price + 0.1, 'CNY', payment_method)
+        self.assertEqual(200, resp.status_code, "Create order of {0} units should return 200".format(amount-1))
         self.assertFalse('系统遇到问题'.encode('utf-8') in resp.content,'Create order of 100 units hit issue')
 
         self.validate_user_info('yingzhou61@yahoo.ca')
-        resp = create_axfund_sell_order('yingzhou61@yahoo.ca', 'user@123', 200, 0.3, 'CNY')
-        self.assertEqual(200, resp.status_code, "Create order of 200 units should return 200")
+        resp = create_axfund_sell_order('yingzhou61@yahoo.ca', 'user@123', amount + 1, unit_price - 0.1, 'CNY', payment_method)
+        self.assertEqual(200, resp.status_code, "Create order of {0} units should return 200".format(amount+1))
         self.assertFalse('系统遇到问题'.encode('utf-8') in resp.content, 'Create order of 200 units hit issue')
 
         show_order_overview()
 
-    def create_fitting_order(self, amount):
+    def create_fitting_order(self, amount, unit_price = 0.4, payment_method = PAYMENTMETHOD_HEEPAY):
         print('create_fitting_order({0})'.format(amount))
         self.validate_user_info('tttzhang2000@yahoo.com')
-        resp = create_axfund_sell_order('tttzhang2000@yahoo.com', 'user@123', 200, 0.5, 'CNY')
+        resp = create_axfund_sell_order('tttzhang2000@yahoo.com', 'user@123', amount + 1, unit_price + 0.1, 'CNY', payment_method)
         self.assertEqual(200, resp.status_code, "Create order of 200 units should return 200")
         self.assertFalse('系统遇到问题'.encode('utf-8') in resp.content,'Create order of 200*0.5 units hit issue')
 
-        resp = create_axfund_sell_order('yingzhou61@yahoo.ca', 'user@123', 156, 0.4, 'CNY')
+        resp = create_axfund_sell_order('yingzhou61@yahoo.ca', 'user@123', amount, unit_price, 'CNY', payment_method)
         self.assertEqual(200, resp.status_code, "Create order of 150*0.4 units should return 200")
         self.assertFalse('系统遇到问题'.encode('utf-8') in resp.content, 'Create order of 150*0.4 units hit issue')
 
-        resp = create_axfund_sell_order('tttzhang2000@yahoo.com', 'user@123', 156, 0.4, 'CNY')
+        resp = create_axfund_sell_order('tttzhang2000@yahoo.com', 'user@123', amount, unit_price + 0.1, 'CNY', payment_method)
         self.assertEqual(200, resp.status_code, "Create order of 156*0.4 units should return 200")
         self.assertFalse('系统遇到问题'.encode('utf-8') in resp.content,'Create order of 156*0.5 units hit issue')        
 
         self.validate_user_info('yingzhou61@yahoo.ca')
-        resp = create_axfund_sell_order('yingzhou61@yahoo.ca', 'user@123', 150, 0.4, 'CNY')
+        resp = create_axfund_sell_order('yingzhou61@yahoo.ca', 'user@123', amount - 1, unit_price, 'CNY', payment_method)
         self.assertEqual(200, resp.status_code, "Create order of 200*0.4 units should return 200")
         self.assertFalse('系统遇到问题'.encode('utf-8') in resp.content, 'Create order of 200*0.4 units hit issue')
 
@@ -323,9 +322,6 @@ class TestTradingAPI(TransactionTestCase):
         self.assertEqual(resp_json['return_msg'], "收钱方账号不存在")
     """
 
-
-
-
     # 3rd party purchase request fail when missing external cny address, external cny address is optional only for investment site request.
     def test_purchase_order_from_3rdParty_fail_by_missing_externalAddress(self):
         # API_USER2 is from www.3rdparty.com, check tradeex/apitests/fixtures/fixture_test_tradeapi.json, "model": "tradeex.apiuseraccount".
@@ -365,24 +361,26 @@ class TestTradingAPI(TransactionTestCase):
     def test_purchase_order_from_3rd_party_success_with_Paypal(self):
         self.assertTrue(True)
 
-
-    # happy path for purchasing from 3rd party by using weixing (manual)
-    def test_purchase_order_from_investment_site_success_with_Weixing(self):
+    def test_purchase_order_from_investment_site_with_Heepay_succeed(self):
         self.assertTrue(True)
 
-    @patch('tradeex.controllers.crypto_utils.CryptoUtility.unlock_wallet', side_effect=unlock_wallet_for_purchase_test)
-    @patch('tradeex.controllers.crypto_utils.CryptoUtility.send_fund', side_effect=send_fund_for_purchase_test)
+    def test_purchase_order_from_investment_site_with_Paypal_succeed(self):
+        self.assertTrue(True)
+
+    # happy path for purchasing from 3rd party by using weixing (manual)
+    @patch('trading.controller.coin_utils.CoinUtils.unlock_wallet', side_effect=unlock_wallet_for_purchase_test)
+    @patch('trading.controller.coin_utils.CoinUtils.send_fund', side_effect=send_fund_for_purchase_test)
     @patch('trading.controller.heepaymanager.HeePayManager.send_buy_apply_request', 
            side_effect=send_buy_apply_request_side_effect)
     @patch('tradeex.client.apiclient.APIClient.send_json_request', side_effect=send_json_request_for_purchase_test)
-    def test_purchase_order_from_investment_site_success_with_Heepay_succeed(self
+    def test_purchase_order_from_investment_site_with_Weixing_succeed(self
             ,send_json_request_function,
             send_buy_apply_request_function,
             send_fund_function,
             unlock_wallet_function):
 
         # create test sell orders
-        self.create_fitting_order(62)
+        self.create_fitting_order(156, 0.4, PAYMENTMETHOD_WEIXIN)
         print('-----------------------------------------------')
         print('test_purchase_order_succeed(): check userwallet and orders after creating sell orders')
         show_user_wallet_overview()
@@ -733,7 +731,7 @@ class TestTradingAPI(TransactionTestCase):
            side_effect=send_buy_apply_for_redeem_side_effect)
     @patch('tradeex.client.apiclient.APIClient.send_json_request', 
             side_effect=send_json_request_for_redeem_test)
-    @patch.object(CryptoUtility, 'send_fund')
+    @patch.object(CoinUtils, 'send_fund')
     def test_redeem_order_async_succeed(self, mock_send_fund,
         send_json_request_function, send_buy_apply_request_function):
         cyn_trans = {}
