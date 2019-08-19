@@ -117,10 +117,7 @@ def show_payment_qrcode(request):
         logger.error("show_payment_qrcode(): Can not find related purchase order {0}".format(buyorder_id))
         return HttpResponseNotFound('没有找到购买单据')
 
-<<<<<<< HEAD
 @never_cache
-=======
->>>>>>> d281f40eae4a6e4e0240aba881fd940b11569a86
 def get_payment_qrcode_image(request):
     if request.method == 'POST':
         logger.error("get_payment_qrcode_image(): encounter illegal POST request")

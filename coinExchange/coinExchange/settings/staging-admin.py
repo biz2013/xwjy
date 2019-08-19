@@ -1,34 +1,23 @@
 from .base import *
 
-# send email to console
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEBUG=False
+
+# https://docs.djangoproject.com/en/2.0/ref/settings/#allowed-hosts
+# A list of strings representing the host/domain names that this Django site can serve. This is a security measure to prevent HTTP Host header attacks, 
+# which are possible even under many seemingly-safe web server configurations.
 
 STATIC_ROOT = "/var/www/coinexchange/static/"
 
-MEDIA_ROOT = "/Users/taozhang/workspace/xwjy/coinExchange/media/"
+MEDIA_ROOT = "/var/www/coinexchange/media/"
 
-ALLOWED_HOSTS = ['52.43.117.129', '172.31.0.229', 'ip-172-31-0-229.us-west-2.compute.internal', 'localhost', '127.0.0.1', '[::1]', '0.0.0.0']
+ALLOWED_HOSTS = [ '52.43.117.129', 'localhost', '127.0.0.1', '[::1]']
 
-TRADESITE_PAYMENT_URLPREFIX="http://localhost:8000/trading/payment_qrcode_url/"
+TRADESITE_PAYMENT_URLPREFIX="http://52.43.117.129:8081/trading/payment_qrcode_url/"
 
-API_TRANS_LIMIT = 10
+API_TRANS_LIMIT_IN_CENT = 1000000
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mydb',
-        'USER': 'root',
-        # 'USER': 'tradeAdmin',
-        'PASSWORD': 'AXFund@019',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
-        'TEST':{
-           'CHARSET': 'UTF8',
-           },
-      'OPTIONS': {
-        'init_command': 'SET default_storage_engine=INNODB',
-      }
-    }
+API_SITE_URL = {
+    'stakinguser1' : 'https://www.9lp.com/member/getpaymentqrcode.php?out_trade_no={0}'
 }
 
 LOGGING = {
@@ -51,7 +40,7 @@ LOGGING = {
         'siteTimeRotateFile': {
             'level': 'DEBUG',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': './coinexchange.log',
+            'filename': os.path.join(BASE_DIR, "site_test.log"),
             'when': 'D',
             'interval': 1,
             'backupCount': 30,
@@ -98,6 +87,3 @@ LOGGING = {
     },
 }
 
-API_SITE_URL = {
-    'stakinguser1' : 'http://localhost:8080/member/getpaymentqrcode.php?out_trade_no={0}'
-}
