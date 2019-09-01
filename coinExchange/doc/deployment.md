@@ -208,7 +208,6 @@ mod_wsgi-express start-server coinExchange/wsgi.py
 4. Donot forget to run sudo a2ensite <your site>.conf to enable the site, and probably you need run sudo a2dissite 000-default.conf to add default site node
 5. Donot forget to add /var/log/coinexchange, and /var/www/... for media and static and make www-data:www-data as owner and group for them
    <??? it seems the python manager run will have different permission, maybe when we run them we can't use the same production settings)
-
 6. Donot forget to download the backup upload images and untar to /, it will extended into the images folder otherwise the QRCODE images are gone.
 7. Donot forget to set wallet setting json for axfund and cnyfund
 8. Donot forget to encrypt wallet (and not forget password) and restart wallet, otherwise when program send money it will fail to unlock wallet
