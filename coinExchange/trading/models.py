@@ -5,6 +5,9 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.encoding import smart_str
 
+AXFUND_CRYPTO_CODE = "AXFund"
+CNYFUND_CRYPTO_CODE = "CNY"
+
 def user_payment_method_image_filename(instance, filename):
    return "uploads/paymentmethod/{0}/{1}_{2}".format(instance.provider.code, instance.user.id, smart_str(filename))
 
@@ -47,14 +50,9 @@ class SiteSettings(SingletonModel):
     heepay_return_url_port = models.IntegerField(default=8000)
     heepay_app_id= models.CharField(max_length=128)
     heepay_app_key= models.CharField(max_length=128)
-    heepay_expire_in_sec = models.IntegerField(default=300)
-    axfd_path= models.CharField(max_length=255, default='')
-    axfd_datadir = models.CharField(max_length=255, default='')
-    axfd_account_name = models.CharField(max_length=64, blank=True, default='')
-    axfd_list_trans_count = models.IntegerField(default=1000)
     min_trx_confirmation = models.IntegerField(default=8)
+    heepay_expire_in_sec = models.IntegerField(default=300)
     per_transaction_limit = models.IntegerField(default=100)
-    axfd_passphrase = models.CharField(max_length=64, blank=True, default='')
     order_timeout_insec = models.IntegerField(default=600)
     confirmation_timeout_insec = models.IntegerField(default=300)
     config_json = models.CharField(max_length=8192, default='{}')
@@ -117,6 +115,19 @@ class Wallet(models.Model):
    name = models.CharField(max_length=32, unique=True, default='first')
    cryptocurrency = models.ForeignKey('Cryptocurrency', on_delete=models.CASCADE)
    config_json = models.TextField()
+   # Wallet configuration schema
+   # Please check trading/tests/data/wallet_config.json for example
+   # "config_json": {
+   #   "bin_path": "",    wallet binary path on host
+   #   "data_dir": "",    wallet data dir
+   #   "host_ip": "",     wallet host ip
+   #   "rpc_port": "",    wallet rpc port
+   #   "rpc_user": "",    wallet rpc call user
+   #   "rpc_user_password": "",   wallet rpc password
+   #   "transaction_lookback_count": 5,
+   #   "account": "",     wallet account
+   #   "passphrase": ""
+   # },
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey(User, related_name='Wallet_created_by', on_delete=models.SET_NULL, null=True)
    lastupdated_at = models.DateTimeField(auto_now=True)

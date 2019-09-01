@@ -1,29 +1,24 @@
 from .base import *
 
-ALLOWED_HOSTS = ['54.203.195.52', 'localhost', '127.0.0.1']
-# send email to console
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEBUG=False
 
-INSTALLED_APPS += ['testsetup',]
+# https://docs.djangoproject.com/en/2.0/ref/settings/#allowed-hosts
+# A list of strings representing the host/domain names that this Django site can serve. This is a security measure to prevent HTTP Host header attacks, 
+# which are possible even under many seemingly-safe web server configurations.
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mydb',
-        'USER': 'tradeAdmin',
-        'PASSWORD': 'AXFund@017',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
-        'TEST':{
-           'CHARSET': 'UTF8',
-           },
-      'OPTIONS': {
-        'init_command': 'SET default_storage_engine=INNODB',
-      }
-    }
+STATIC_ROOT = "/var/www/coinexchange/static/"
+
+MEDIA_ROOT = "/var/www/coinexchange/media/"
+
+ALLOWED_HOSTS = [ '52.43.117.129', 'localhost', '127.0.0.1', '[::1]']
+
+TRADESITE_PAYMENT_URLPREFIX="http://52.43.117.129:8081/trading/payment_qrcode_url/"
+
+API_TRANS_LIMIT_IN_CENT = 1000000
+
+API_SITE_URL = {
+    'stakinguser1' : 'https://www.9lp.com/member/getpaymentqrcode.php?out_trade_no={0}'
 }
-
-TRADESITE_PAYMENT_URLPREFIX="http://localhost:8000/trading/payment_qrcode_url/"
 
 LOGGING = {
     'version': 1,
@@ -91,3 +86,4 @@ LOGGING = {
         },
     },
 }
+
