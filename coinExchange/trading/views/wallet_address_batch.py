@@ -8,9 +8,8 @@ from django.http import HttpResponse, HttpResponseServerError,HttpResponseForbid
 
 from trading.config import context_processor
 from trading.controller.global_utils import *
-from trading.controller.axfd_utils import *
+from trading.controller.coin_utils import *
 from trading.models import *
-from trading.controller import axfd_utils
 from trading.controller import wallet_address_query
 
 logger = logging.getLogger("site.wallet_address_batch")
@@ -22,12 +21,10 @@ def create_wallet_address(request):
             message = 'create_wallet_address() only accept request from localhost. The client ip is {0}'.format(client_ip)
             logger.error(message)
             return HttpResponseForbidden()
+
+        axfd_tool = get_coin_utils(AXFUND_CRYPTO_CODE)
+
         sitesettings = context_processor.settings(request)['settings']
-        axfd_bin_path = sitesettings.axfd_path
-        axfd_datadir = sitesettings.axfd_datadir
-        wallet_account_name = sitesettings.axfd_account_name
-        axfd_passphrase = sitesettings.axfd_passphrase
-        axfd_tool = AXFundUtility(sitesettings)
         config_json = json.loads(sitesettings.config_json)
         batch_size = 20
         if 'wallet_address_batch_size' in config_json:
