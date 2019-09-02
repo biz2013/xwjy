@@ -913,7 +913,7 @@ def confirm_purchase_order(order_id, operator):
         sell_order.units_locked = round(sell_order.units_locked - buyorder.units, MIN_CRYPTOCURRENCY_UNITS_DECIMAL)
         sell_order.status = 'PARTIALFILLED'
         if sell_order.units_available_to_trade - MIN_CRYPTOCURRENCY_UNITS <= 0:
-            sell_order.status == 'FILLED'
+            sell_order.status = 'FILLED'
         sell_order.lastupdated_by = operatorObj
         sell_order.save()
         sell_order.refresh_from_db()

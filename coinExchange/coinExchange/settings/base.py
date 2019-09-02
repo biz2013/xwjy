@@ -241,7 +241,7 @@ API_TRANS_LIMIT_IN_CENT = 1000000
 
 PAYMENT_API_STATUS = {
     'weixin' : 'manual',
-    'heepay' : 'manual',
+    'heepay' : 'auto',
     'alipay' : 'manual',
     'paypal' : 'auto'
 }
