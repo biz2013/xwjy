@@ -107,11 +107,11 @@ def update_user_wallet_based_on_deposit(trx, user_wallet_id, min_trx_confirmatio
             if trx['confirmations'] >= min_trx_confirmation:
                 trans_status = 'PROCESSED'
                 balance_begin = user_wallet.balance
-                balance_end = balance_begin + trx['amount']
+                balance_end = balance_begin + float(trx['amount'])
                 locked_balance_begin = user_wallet.locked_balance
                 locked_balance_end = locked_balance_begin
                 available_to_trade_begin = user_wallet.available_balance
-                available_to_trade_end = available_to_trade_begin + trx['amount']
+                available_to_trade_end = available_to_trade_begin + float(trx['amount'])
 
             wallet_trans = UserWalletTransaction.objects.create(
                 user_wallet = user_wallet,
@@ -164,6 +164,7 @@ def update_user_wallet_based_on_redeem(trx, user_wallet_id, min_trx_confirmation
     try:
         with transaction.atomic():
             user_wallet = UserWallet.objects.select_for_update().get(pk=user_wallet_id)
+            user_wallet_trans = None
             try:
                 user_wallet_trans = UserWalletTransaction.objects.get(
                     transaction_type = 'REDEEM',
@@ -224,7 +225,7 @@ def update_user_wallet_based_on_redeem(trx, user_wallet_id, min_trx_confirmation
                         logger.info('update_user_wallet_based_on_redeem(): about to create {0} user wallet trasaction for txid {1}'.format(
                             trans_status, trx['txid']
                         ))
-                        UserWalletTransaction.objects.create(
+                        user_wallet_trans = UserWalletTransaction.objects.create(
                             user_wallet = user_wallet,
                             balance_begin= balance_begin,
                             balance_end = balance_end ,
@@ -242,7 +243,8 @@ def update_user_wallet_based_on_redeem(trx, user_wallet_id, min_trx_confirmation
                             status = trans_status,
                             created_by = operator,
                             lastupdated_by = operator
-                        ).save()
+                        )
+                        user_wallet_trans.save();
 
                         UserWalletTransaction.objects.create(
                             user_wallet = user_wallet,

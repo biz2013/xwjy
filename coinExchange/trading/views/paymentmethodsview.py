@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.http.response import HttpResponse, HttpResponseNotAllowed,HttpResponseBadRequest,HttpResponseNotFound,HttpResponseServerError
 from django.shortcuts import render, redirect
+from django.views.decorators.cache import never_cache
 from trading.controller.heepaymanager import HeePayManager
 from trading.controller.global_utils import *
 
@@ -116,6 +117,7 @@ def show_payment_qrcode(request):
         logger.error("show_payment_qrcode(): Can not find related purchase order {0}".format(buyorder_id))
         return HttpResponseNotFound('没有找到购买单据')
 
+@never_cache
 def get_payment_qrcode_image(request):
     if request.method == 'POST':
         logger.error("get_payment_qrcode_image(): encounter illegal POST request")

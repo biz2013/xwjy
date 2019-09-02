@@ -7,6 +7,5 @@
   "rpc_user_password": "J4oxViM8jsC6ySbqoweniVML1t65LtYmbuHB7DsFYdH",
   "transaction_lookback_count": 5,
   "account": "",
-  "passphrase": "xxxx",
-  "min_trx_confirmation": 5
+  "passphrase": "xxxx"
 }

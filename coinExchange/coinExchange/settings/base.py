@@ -98,6 +98,7 @@ DATABASES = {
     }
 }
 
+
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
 
@@ -246,4 +247,5 @@ PAYMENT_API_STATUS = {
     'paypal' : 'auto'
 }
 
+INVESTMENT_SITE='www.9lp.com'
 PROCESS_BACK_ORDER=False
