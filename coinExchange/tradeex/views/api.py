@@ -75,8 +75,8 @@ def validateUserInput(expected_method, request_obj, api_user):
             logger.error('parseUserInput(): missing payment account')
             raise ValueError(ERR_REDEEM_REQUEST_NO_PAYMENT_ACCOUNT)
 
-        # making sure all purchase traffic not from investment site (www.91.com) has external_cny_rec_address defined.
-        if request_obj.method == API_METHOD_PURCHASE and not re.search('www.91.com', api_user.source, re.IGNORECASE)  \
+        # making sure all purchase traffic not from investment site (www.9lp.com) has external_cny_rec_address defined.
+        if request_obj.method == API_METHOD_PURCHASE and not re.search(settings.INVESTMENT_SITE, api_user.source, re.IGNORECASE)  \
              and ( not hasattr(request_obj, 'external_cny_rec_address') or not request_obj.external_cny_rec_address ):
             logger.error('parseUserInput(): missing external_cny_rec_address info')
             # return same error as missing payment account to hide we need cny_address.
