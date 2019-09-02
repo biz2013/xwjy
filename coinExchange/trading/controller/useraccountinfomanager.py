@@ -41,8 +41,8 @@ def update_user_wallet_based_on_deposit(trx, user_wallet_id, min_trx_confirmatio
 
                 logger.info('update_user_wallet_based_on_deposit(): before updating existing deposit trans, userwallet[{0}:{1}]: balance {2} locked {3} available {4}'.format(
                     user_wallet.id, user_wallet.wallet_addr, user_wallet.balance, user_wallet.locked_balance, user_wallet.available_balance))
-                balance_end = user_wallet.balance + trx['amount']
-                available_to_trade_end = user_wallet.available_balance + trx['amount']
+                balance_end = user_wallet.balance + float(trx['amount'])
+                available_to_trade_end = user_wallet.available_balance + float(trx['amount'])
                 updated = UserWalletTransaction.objects.filter(
                     id = user_wallet_trans.id,
                     lastupdated_at = user_wallet_trans.lastupdated_at

@@ -102,7 +102,7 @@ class CoinUtils(object):
       wallet_transaction_lookback_count = transaction_lookback_count
 
     res = self.coin_rpc.listtransactions(wallet_account, wallet_transaction_lookback_count)
-    logger.info("listtransaction return: {0}".format(res))
+    logger.debug("listtransaction return: {0}".format(res))
 
     return res
 

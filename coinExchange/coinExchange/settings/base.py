@@ -202,17 +202,17 @@ LOGGING = {
         # The catch-all logger for messages in the site hierarchy. loggers for 'site', 'site.registration' all go here.
         'site': {
             'handlers': ['siteTimeRotateFile', 'console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': True,
         },
         'tradeex': {
             'handlers': ['siteTimeRotateFile', 'console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': True,
         },
         'tradeapi': {
             'handlers': ['siteTimeRotateFile', 'console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': True,
         },
         # TODO: add django.server, django.template, django.db.backends and other django framework component logging.

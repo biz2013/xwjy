@@ -211,6 +211,7 @@ mod_wsgi-express start-server coinExchange/wsgi.py
 6. Donot forget to download the backup upload images and untar to /, it will extended into the images folder otherwise the QRCODE images are gone.
 7. Donot forget to set wallet setting json for axfund and cnyfund
 8. Donot forget to encrypt wallet (and not forget password) and restart wallet, otherwise when program send money it will fail to unlock wallet
+9. Donot forget in order to use latest mysqlclient you need to follow https://stackoverflow.com/questions/55657752/django-installing-mysqlclient-error-mysqlclient-1-3-13-or-newer-is-required to explicitly comment out some code
 
 ## Other useful commands
 ```
