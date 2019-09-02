@@ -341,8 +341,8 @@ class APIUserTransactionManager(object):
                     api_trans.transactionId
                 ))
                 return
-            logger.info('on_found_success_purchase_trans: buyer for api trans {0} has external cny wallet, transfer fund'.format(
-                api_trans.transactionId
+            logger.info('on_found_success_purchase_trans: buyer for api trans {0} has external cny wallet address {1}, transfer fund'.format(
+                api_trans.transactionId, external_crypto_addr
             ))
 
             operatorObj = User.objects.get(username='admin')
@@ -402,8 +402,10 @@ class APIUserTransactionManager(object):
                         #unlock the wallet
                         user_cny_wallet.save()
                     except:
-                        logger.error('on_found_success_purchase_trans(api trans {0}): sending cny upon purchase hit exception {1}'.format(
-                            api_trans.transactionId, sys.exc_info()[0]
+                        error_msg = traceback.format_exc()
+
+                        logger.error('on_found_success_purchase_trans(api trans {0}): sending cny upon purchase hit exception {1}, detail is {2}'.format(
+                            api_trans.transactionId, sys.exc_info()[0], error_msg
                         ))
                         traceback.print_exc(file=sys.stdout)
                 except UserWalletTransaction.MultipleObjectsReturned:

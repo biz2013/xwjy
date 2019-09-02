@@ -50,6 +50,7 @@ class SiteSettings(SingletonModel):
     heepay_return_url_port = models.IntegerField(default=8000)
     heepay_app_id= models.CharField(max_length=128)
     heepay_app_key= models.CharField(max_length=128)
+    min_trx_confirmation = models.IntegerField(default=8)
     heepay_expire_in_sec = models.IntegerField(default=300)
     per_transaction_limit = models.IntegerField(default=100)
     order_timeout_insec = models.IntegerField(default=600)
@@ -125,8 +126,7 @@ class Wallet(models.Model):
    #   "rpc_user_password": "",   wallet rpc password
    #   "transaction_lookback_count": 5,
    #   "account": "",     wallet account
-   #   "passphrase": "",
-   #   "min_trx_confirmation": 5
+   #   "passphrase": ""
    # },
    created_at = models.DateTimeField(auto_now_add=True)
    created_by = models.ForeignKey(User, related_name='Wallet_created_by', on_delete=models.SET_NULL, null=True)

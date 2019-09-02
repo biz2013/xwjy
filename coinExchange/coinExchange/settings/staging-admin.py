@@ -10,9 +10,15 @@ STATIC_ROOT = "/var/www/coinexchange/static/"
 
 MEDIA_ROOT = "/var/www/coinexchange/media/"
 
-ALLOWED_HOSTS = [ '34.216.121.138', 'cnytrx.uuvc.com','www.uuvc.com', 'uuvc.com', 'localhost', '127.0.0.1', '[::1]']
+ALLOWED_HOSTS = [ '52.43.117.129', 'localhost', '127.0.0.1', '[::1]']
+
+TRADESITE_PAYMENT_URLPREFIX="http://52.43.117.129:8081/trading/payment_qrcode_url/"
 
 API_TRANS_LIMIT_IN_CENT = 1000000
+
+API_SITE_URL = {
+    'stakinguser1' : 'https://www.9lp.com/member/getpaymentqrcode.php?out_trade_no={0}'
+}
 
 LOGGING = {
     'version': 1,
@@ -34,7 +40,7 @@ LOGGING = {
         'siteTimeRotateFile': {
             'level': 'DEBUG',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': './coinexchange-admin.log',
+            'filename': os.path.join(BASE_DIR, "site_test.log"),
             'when': 'D',
             'interval': 1,
             'backupCount': 30,
@@ -80,3 +86,4 @@ LOGGING = {
         },
     },
 }
+
