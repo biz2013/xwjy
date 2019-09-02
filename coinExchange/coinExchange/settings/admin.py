@@ -34,7 +34,7 @@ LOGGING = {
         'siteTimeRotateFile': {
             'level': 'DEBUG',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': '/var/log/coinexchange/coinexchange-admin.log',
+            'filename': './coinexchange-admin.log',
             'when': 'D',
             'interval': 1,
             'backupCount': 30,
