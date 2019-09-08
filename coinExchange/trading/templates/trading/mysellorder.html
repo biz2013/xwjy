@@ -105,6 +105,8 @@
                     <th>更改时间</th>
                     <th></th>
                 </tr>
+                {% load tz %}
+                {% timezone "Asia/Taipei" %}
                 {% for order in buyorders %}
                 <tr>
                     <td>{{ order.owner_login}}</td>
@@ -117,6 +119,7 @@
                     </td>
                 </tr>
                 {% endfor %}
+                {% endtimezone %}
             </table>
             {% endif %}
         </div>
