@@ -57,7 +57,7 @@ def get_user_payment_account(user_id, payment_provider_code):
 def get_and_update_sell_order_payment_methods(sell_order_id):
     with transaction.atomic():
         sell_order = Order.objects.select_for_update().get(pk=sell_order_id)
-        if sell_order.order_source == 'TRDESITE':
+        if sell_order.order_source == 'TRADESITE':
             if sell_order.selected_payment_provider and sell_order.account_at_selected_payment_provider:
                 return UserPaymentMethod.objects.get(user__id=sell_order.user.id, 
                     provider__code=sell_order.selected_payment_provider.code)
