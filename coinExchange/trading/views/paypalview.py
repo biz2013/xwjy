@@ -175,7 +175,7 @@ def confirm_paypal_order(request):
         # Update buy order transaction as "SUCCESS".
         ordermanager.update_purchase_order_payment_transaction(buy_order_id, TRADE_STATUS_SUCCESS, "")
         # Confirm order complete.
-        ordermanager.confirm_purchase_order(buy_order_id, 'admin')
+        ordermanager.confirm_purchase_order(buy_order_id, buy_order_info.user.username)
         return HttpResponse(content='OK')
       elif capture.status.upper() == 'PENDING' and capture.status_details.reason.upper() == "RECEIVING_PREFERENCE_MANDATES_MANUAL_ACTION":
         # Paid by buyer but unclaimed from seller.

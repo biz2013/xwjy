@@ -2,6 +2,8 @@ from django.db.models import Q
 from django.db import transaction
 from django.contrib import messages
 from django.shortcuts import render, redirect
+from django.utils import timezone
+
 from trading.controller.token import account_activation_token
 
 from django.template.loader import render_to_string
@@ -48,14 +50,29 @@ def registration(request):
             # login(request, user)
             # return redirect('home')
 
+            # TODO, provide better table verification like apiuser.create_user().
+            cny_wallet = Wallet.objects.get(cryptocurrency__currency_code='CNY')
+            axf_wallet = Wallet.objects.get(cryptocurrency__currency_code='AXFund')
+
             user = None
             with transaction.atomic():
                 user = form.save(commit=False)
                 user.is_active = False
+                user.last_login = timezone.now()
                 user.save()
-                user_wallet = UserWallet.objects.select_for_update().filter(Q(user__isnull=True))[0]
-                user_wallet.user = user
-                user_wallet.save()
+                # create user wallet
+                cny_userwallet = UserWallet.objects.create(
+                    wallet=cny_wallet
+                )
+                cny_userwallet.user = user
+                cny_userwallet.save()
+
+                axf_userwallet = UserWallet.objects.create(
+                    wallet=axf_wallet
+                )
+                axf_userwallet.user = user
+                axf_userwallet.save()
+
 
             rlogger.info('User created in db, but deactive') 
 

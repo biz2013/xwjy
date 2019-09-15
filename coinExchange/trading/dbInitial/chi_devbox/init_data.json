@@ -1,81 +1,180 @@
 [
-    {
-       "model":"trading.sitesettings",
-       "pk":"1",
-       "fields":{
-          "support":"",
-          "heepay_notify_url_host":"localhost",
-          "heepay_notify_url_port":8000,
-          "heepay_return_url_host":"localhost",
-          "heepay_return_url_port":8000,
-          "heepay_app_id":"hyq17121610000800000911220E16AB0",
-          "heepay_app_key":"4AE4583FD4D240559F80ED39",
-          "heepay_expire_in_sec":90,
-          "axfd_path":"/home/chi/workspace/python/projects/xwjy/smwy/src/axfd",
-          "axfd_datadir":"/home/chi/workspace/python/projects/xwjy/qb",
-          "axfd_account_name":"",
-          "axfd_list_trans_count":1000
-       }
-    },
-    {
-       "model":"trading.cryptocurrency",
-       "pk":"AXFund",
-       "fields":{
-          "name":"美基金",
-          "created_at":"2017-12-17T21:14:00+08:00",
-          "lastupdated_at":"2017-12-17T21:14:00+08:00"
-       }
-    },
-    {
-       "model":"trading.wallet",
-       "pk":1,
-       "fields":{
-          "name":"AXFundWallet",
-          "cryptocurrency":"AXFund",
-          "config_json": {
-             "bin_path": "",
-             "data_dir": "",
-             "host_ip": "",
-             "rpc_port": "",
-             "rpc_user": "",
-             "rpc_user_password": "",
-             "transaction_lookback_count": 5,
-             "account": "",
-             "passphrase": "",
-             "min_trx_confirmation": 5
-          },
-          "created_at":"2017-12-17T21:14:00+08:00",
-          "lastupdated_at":"2017-12-17T21:14:00+08:00"
-       }
-    },
-    {
-       "model":"trading.paymentprovider",
-       "pk":"weixin",
-       "fields":{
-          "name":"微信支付",
-          "config_json":"",
-          "created_at":"2017-12-17T21:14:00+08:00",
-          "lastupdated_at":"2017-12-17T21:14:00+08:00"
-       }
-    },
-    {
-       "model":"trading.paymentprovider",
-       "pk":"alipay",
-       "fields":{
-          "name":"支付宝",
-          "config_json":"",
-          "created_at":"2017-12-17T21:14:00+08:00",
-          "lastupdated_at":"2017-12-17T21:14:00+08:00"
-       }
-    },
-    {
-       "model":"trading.paymentprovider",
-       "pk":"heepay",
-       "fields":{
-          "name":"汇钱包",
-          "config_json":"",
-          "created_at":"2017-12-17T21:14:00+08:00",
-          "lastupdated_at":"2017-12-17T21:14:00+08:00"
-       }
+  {
+    "model": "trading.sitesettings",
+    "pk": 1,
+    "fields": {
+      "support": "",
+      "heepay_notify_url_host": "localhost",
+      "heepay_notify_url_port": 8000,
+      "heepay_return_url_host": "localhost",
+      "heepay_return_url_port": 8000,
+      "heepay_app_id": "hyq17121610000800000911220E16AB0",
+      "heepay_app_key": "4AE4583FD4D240559F80ED39",
+      "heepay_expire_in_sec": 90,
+      "confirmation_timeout_insec": 0,
+      "min_trx_confirmation": 10
     }
- ]
+  },
+  {
+    "model": "trading.cryptocurrency",
+    "pk": "AXFund",
+    "fields": {
+      "name": "美基金",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00"
+    }
+  },
+  {
+    "model": "trading.cryptocurrency",
+    "pk": "CNY",
+    "fields": {
+      "name": "人民币",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00"
+    }
+  },
+  {
+    "model": "trading.wallet",
+    "pk": 1,
+    "fields": {
+      "name": "AXFundWallet",
+      "cryptocurrency": "AXFund",
+      "config_json": "{\"bin_path\":\"\",\"data_dir\":\"\",\"host_ip\":\"192.168.1.214\",\"rpc_port\":\"18200\",\"rpc_user\":\"axfundrpc\",\"rpc_user_password\":\"FD45ViM8jsC6ySbqoweniVML1t65LtYmbuHB7Ds67JH\",\"transaction_lookback_count\":1000,\"account\":\"\",\"passphrase\":\"axfund_xxx\"}",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": null,
+      "lastupdated_by": null
+    }
+  },
+  {
+    "model": "trading.wallet",
+    "pk": 2,
+    "fields": {
+      "name": "CNYWallet",
+      "cryptocurrency": "CNY",
+      "config_json": "{\"bin_path\":\"\",\"\":\"\/cnyfund\",\"host_ip\":\"192.168.1.214\",\"rpc_port\":\"18189\",\"rpc_user\":\"cnyfundrpc\",\"rpc_user_password\":\"J4oxViM8jsC6ySbqoweniVML1t65LtYmbuHB7DsFYdH\",\"transaction_lookback_count\":1000,\"account\":\"\",\"passphrase\":\"xxxx\"}",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": null,
+      "lastupdated_by": null
+    }
+  },
+  {
+    "model": "trading.paymentprovider",
+    "pk": "weixin",
+    "fields": {
+      "name": "微信支付",
+      "config_json": "",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00"
+    }
+  },
+  {
+    "model": "trading.paymentprovider",
+    "pk": "alipay",
+    "fields": {
+      "name": "支付宝",
+      "config_json": "",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00"
+    }
+  },
+  {
+    "model": "trading.paymentprovider",
+    "pk": "paypal",
+    "fields": {
+      "name": "Paypal",
+      "config_json": "",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00"
+    }
+  },
+  {
+    "model": "trading.paymentprovider",
+    "pk": "heepay",
+    "fields": {
+      "name": "汇钱包",
+      "config_json": "",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00"
+    }
+  },
+  {
+    "model": "auth.user",
+    "_comment": "pwd is test@2019",
+    "pk": 1,
+    "fields": {
+      "username": "xb2.wang@gmail.com",
+      "password": "pbkdf2_sha256$150000$p86ojDmUXv5N$gd+85teWPuVHEafWkuPwe4twDaNHiqLbeXpqYIdeycs=",
+      "last_login": "2018-01-30T23:40:33.325Z",
+      "first_name": "",
+      "last_name": "",
+      "email": "xb2.wang@gmail.com",
+      "is_superuser": 0,
+      "is_staff": 0,
+      "is_active": 1,
+      "date_joined": "2017-12-17T21:14:00+08:00"
+    }
+  },
+  {
+    "model": "auth.user",
+    "_comment": "pwd is test@2019",
+    "pk": 2,
+    "fields": {
+      "username": "xb3.wang@gmail.com",
+      "password": "pbkdf2_sha256$150000$p86ojDmUXv5N$gd+85teWPuVHEafWkuPwe4twDaNHiqLbeXpqYIdeycs=",
+      "last_login": "2018-01-30T23:40:33.325Z",
+      "first_name": "",
+      "last_name": "",
+      "email": "xb3.wang@gmail.com",
+      "is_superuser": 0,
+      "is_staff": 0,
+      "is_active": 1,
+      "date_joined": "2017-12-17T21:14:00+08:00"
+    }
+  },
+  {
+    "model": "trading.userwallet",
+    "pk": "1",
+    "fields": {
+      "user": 1,
+      "wallet": 1,
+      "wallet_addr": "ANG53xNLvM4YkjHCeiaLMgobMZv3i6hT5m",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00"
+    }
+  },
+  {
+    "model": "trading.userwallet",
+    "pk": "2",
+    "fields": {
+      "user": 1,
+      "wallet": 2,
+      "wallet_addr": "ARBNHx31uYkhbiqnMmjsZdcH16BZieg9jo",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00"
+    }
+  },
+  {
+    "model": "trading.userwallet",
+    "pk": "3",
+    "fields": {
+      "user": 2,
+      "wallet": 1,
+      "wallet_addr": "AcinEAwDsYgUDHeZijSDD7AHYNuDdqBn5j",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00"
+    }
+  },
+  {
+    "model": "trading.userwallet",
+    "pk": "4",
+    "fields": {
+      "user": 2,
+      "wallet": 2,
+      "wallet_addr": "CCBNHx31uYkhbiqnMmjsZdcH16BZieg9tr",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00"
+    }
+  }
+]

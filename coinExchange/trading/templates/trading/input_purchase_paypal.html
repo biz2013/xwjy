@@ -85,11 +85,11 @@
           return;
         }
 
-        var provider = $("#id_seller_payment_method").val();
-        if (provider.length == 0) {
-          $("#div_id_error").text("请选择付款方式");
-          return;
-        }
+        {#var provider = $("#id_seller_payment_method").val();#}
+        {#if (provider.length == 0) {#}
+        {#  $("#div_id_error").text("请选择付款方式");#}
+        {#  return;#}
+        {#}#}
 
         $("#create_purchase").submit();
       }

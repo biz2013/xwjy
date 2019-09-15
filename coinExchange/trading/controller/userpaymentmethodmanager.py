@@ -45,6 +45,9 @@ def get_user_payment_method_by_provider(userid, provider_code):
 def get_weixin_paymentmethod(userid):
     return get_user_payment_method_by_provider(userid, PAYMENTMETHOD_WEIXIN)
 
+def get_paypal_paymentmethod(userid):
+    return get_user_payment_method_by_provider(userid, PAYMENTMETHOD_PAYPAL)
+
 def get_user_paypal_payment_method(userid):
     try:
         paypal = UserPaymentMethod.objects.get(user__id = userid, provider__code = PAYMENTMETHOD_PAYPAL)

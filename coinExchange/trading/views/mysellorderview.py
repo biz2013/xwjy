@@ -72,6 +72,7 @@ def sell_axfund(request):
                 {'sellorders': sellorders,
                 'buyorders': buyorders,
                 'settings': sitesettings,
+                'isPrimaryPaypalUser': context_processor.is_paypal_primary_user(request.user.username),
                 'useraccountInfo': accountinfo})
 
     except Exception as e:
