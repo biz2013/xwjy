@@ -7,7 +7,7 @@ class PayPalClient:
     def __init__(self, clientID, secretID):
         self.client_id = clientID
         self.client_secret = secretID
-        test = context_processor.is_paypal_live()
+        test = not context_processor.is_paypal_live()
 
         """Set up and return PayPal Python SDK environment with PayPal access credentials.
            This sample uses SandboxEnvironment. In production, use ProductionEnvironment."""
