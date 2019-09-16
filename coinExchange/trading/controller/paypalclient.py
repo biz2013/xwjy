@@ -1,11 +1,13 @@
 from paypalcheckoutsdk.core import PayPalHttpClient, SandboxEnvironment, LiveEnvironment
 
 import sys
+from trading.config import context_processor
 
 class PayPalClient:
-    def __init__(self, clientID, secretID, test=True):
+    def __init__(self, clientID, secretID):
         self.client_id = clientID
         self.client_secret = secretID
+        test = context_processor.is_paypal_live()
 
         """Set up and return PayPal Python SDK environment with PayPal access credentials.
            This sample uses SandboxEnvironment. In production, use ProductionEnvironment."""
