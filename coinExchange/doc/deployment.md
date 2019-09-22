@@ -16,8 +16,48 @@ sudo ufw status
 sudo ufw allow 'Apache Full'
 ```
 
+## Install Python 3.6 and set up virtual env.
+1) Download python 3.6 on ubuntu 16.04 and install.
+http://ubuntuhandbook.org/index.php/2017/07/install-python-3-6-1-in-ubuntu-16-04-lts/
+```
+sudo add-apt-repository ppa:jonathonf/python-3.6
+sudo apt-get update
+sudo apt-get install python3.6
+```
+
+We could find python3.6 in /usr/bin/python3.6
+
+2) set up virtual environment
+our project dir is at: /home/ubuntu/workspace/xwjy/coinExchange
+
+create p3.6 virtual env
+```
+cd /home/ubuntu/workspace/xwjy/coinExchange
+// virtualenv --python=/usr/bin/python3.6 <path/to/new/virtualenv/>
+virtualenv --python=/usr/bin/python3.6 djenv_p36
+```
+
+3) install project dependency
+
+```bash
+sudo apt-get install libmysqlclient-dev
+sudo apt-get install python3-pymysql
+sudo apt-get install python3.6-dev
+
+pip install -r requirement.txt
+```
+
+Manually fix install errors for base.py and operations.py.
+```bash
+vi /home/ubuntu/workspace/xwjy/coinExchange/dj2env_p36/lib/python3.6/site-packages/django/db/backends/mysql/base.py
+vi /home/ubuntu/workspace/xwjy/coinExchange/dj2env_p36/lib/python3.6/site-packages/django/db/backends/mysql/operations.py 
+
+```
+
 ## Install wsgi module
 Installation steps below come from the following doc: http://modwsgi.readthedocs.io/en/develop/user-guides/quick-installation-guide.html
+wsgi module need to be built with same python version used in django, ex: we need to use python3.6 to build a new wsgi module
+for apache, otherwise apache will fail to load wsgi.
 
 1) Get modwsgi source code from: https://github.com/GrahamDumpleton/mod_wsgi/releases
 ```
@@ -26,7 +66,8 @@ tar xvfz mod_wsgi-4.5.24.tar.gz
 
 2) To setup the package ready for building run the “configure” script from within the source code directory, this command will create makefile.
 ```
-coinExchange/deploy/mod_wsgi-4.5.24$ ./configure --with-python=/usr/bin/python3
+coinExchange/deploy/mod_wsgi-4.5.24$ ./configure --with-python=/usr/bin/python3.6
+coinExchange/deploy/mod_wsgi-4.5.24$ ./configure --with-python=/usr/bin/<python version>
 ```
 
 3) Build
@@ -43,6 +84,9 @@ Libraries have been installed in:
    /usr/lib/apache2/modules
 
 4) Load wsgi module in apache
+
+We could copy the new built mod_wsgi in workspace or copy to apache module folder, we chooe later 
+in our case. (/usr/lib/apache2/modules/)
 
 ```
 // Add below line to apache config: /etc/apache2/apache2.conf
