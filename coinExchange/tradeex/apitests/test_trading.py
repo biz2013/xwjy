@@ -251,23 +251,23 @@ class TestTradingAPI(TransactionTestCase):
 
         show_order_overview()
 
-    def create_fitting_order(self, amount, unit_price = 0.4, payment_method = PAYMENTMETHOD_HEEPAY):
+    def create_fitting_order(self, amount, unit_price = 0.4, payment_method = PAYMENTMETHOD_HEEPAY, order_currency = 'CNY'):
         print('create_fitting_order({0})'.format(amount))
         self.validate_user_info('tttzhang2000@yahoo.com')
-        resp = create_axfund_sell_order('tttzhang2000@yahoo.com', 'user@123', amount + 1, unit_price + 0.1, 'CNY', payment_method)
+        resp = create_axfund_sell_order('tttzhang2000@yahoo.com', 'user@123', amount + 1, unit_price + 0.1, order_currency, payment_method)
         self.assertEqual(200, resp.status_code, "Create order of 200 units should return 200")
         self.assertFalse('系统遇到问题'.encode('utf-8') in resp.content,'Create order of 200*0.5 units hit issue')
 
-        resp = create_axfund_sell_order('yingzhou61@yahoo.ca', 'user@123', amount, unit_price, 'CNY', payment_method)
+        resp = create_axfund_sell_order('yingzhou61@yahoo.ca', 'user@123', amount, unit_price, order_currency, payment_method)
         self.assertEqual(200, resp.status_code, "Create order of 150*0.4 units should return 200")
         self.assertFalse('系统遇到问题'.encode('utf-8') in resp.content, 'Create order of 150*0.4 units hit issue')
 
-        resp = create_axfund_sell_order('tttzhang2000@yahoo.com', 'user@123', amount, unit_price + 0.1, 'CNY', payment_method)
+        resp = create_axfund_sell_order('tttzhang2000@yahoo.com', 'user@123', amount, unit_price + 0.1, order_currency, payment_method)
         self.assertEqual(200, resp.status_code, "Create order of 156*0.4 units should return 200")
         self.assertFalse('系统遇到问题'.encode('utf-8') in resp.content,'Create order of 156*0.5 units hit issue')        
 
         self.validate_user_info('yingzhou61@yahoo.ca')
-        resp = create_axfund_sell_order('yingzhou61@yahoo.ca', 'user@123', amount - 2, unit_price, 'CNY', payment_method)
+        resp = create_axfund_sell_order('yingzhou61@yahoo.ca', 'user@123', amount - 2, unit_price, order_currency, payment_method)
         self.assertEqual(200, resp.status_code, "Create order of 200*0.4 units should return 200")
         self.assertFalse('系统遇到问题'.encode('utf-8') in resp.content, format('Create order of {0} *0.4 units hit issue', str(amount - 2)))
 
@@ -418,8 +418,264 @@ class TestTradingAPI(TransactionTestCase):
     def test_purchase_order_from_investment_site_with_Heepay_succeed(self):
         self.assertTrue(True)
 
-    def test_purchase_order_from_investment_site_with_Paypal_succeed(self):
+    def test_purchase_order_from_investment_site_with_Paypal_fail_only_allow_primaryuser_create_paypal_order(self):
         self.assertTrue(True)
+
+    # happy path for purchasing from 3rd party by using paypal (auto)
+    @patch('trading.controller.coin_utils.CoinUtils.unlock_wallet', side_effect=unlock_wallet_for_purchase_test)
+    @patch('trading.controller.coin_utils.CoinUtils.send_fund')
+    @patch('trading.controller.heepaymanager.HeePayManager.send_buy_apply_request',
+           side_effect=mock_heepay_send_buy_apply_request)
+    @patch('tradeex.client.apiclient.APIClient.send_json_request')
+    def test_purchase_order_from_investment_site_with_paypal_succeed(
+        self,
+        send_gateway_notification_function,
+        send_heepay_payment_creation_request,
+        send_cny_fund_function,
+        unlock_wallet_function):
+
+        # (1) create test sell orders for serving the purchase request.
+        paypal_primary_user_name = 'yingzhou61@yahoo.ca'
+        resp = create_axfund_sell_order(paypal_primary_user_name, 'user@123', 156, 0.4, 'CAD', PAYMENTMETHOD_PAYPAL)
+        self.assertEqual(200, resp.status_code, "Create order of 150*0.4 units should return 200")
+        self.assertFalse('系统遇到问题'.encode('utf-8') in resp.content, 'Create order of 150*0.4 units hit issue')
+
+        # Heepay sell order shouldn't be picked up.
+        self.create_fitting_order(156, 0.4, PAYMENTMETHOD_HEEPAY)
+        print('-----------------------------------------------')
+        print('test_purchase_order_succeed(): check userwallet and orders after creating sell orders')
+        show_user_wallet_overview()
+        show_order_overview()
+
+        tttzhang2000_axf_wallets_prev = UserWallet.objects.get(user__username='tttzhang2000@yahoo.com',
+                                                               wallet__cryptocurrency__currency_code='AXFund')
+        yingzhou_axf_wallets_prev = UserWallet.objects.get(user__username='yingzhou61@yahoo.ca',
+                                                           wallet__cryptocurrency__currency_code='AXFund')
+        testuser2_axf_wallets_prev = UserWallet.objects.get(user__username='tradeex_api_user2',
+                                                            wallet__cryptocurrency__currency_code='AXFund')
+        testuser2_cny_wallets_prev = UserWallet.objects.get(user__username='tradeex_api_user2',
+                                                            wallet__cryptocurrency__currency_code='CNY')
+        master_cny_wallets_prev = UserWallet.objects.get(user__username='admin',
+                                                         wallet__cryptocurrency__currency_code='CNY')
+
+        # (2) create api purchase request.
+
+        # these are the app_id and secret from fixture apiuseraccount
+        app_id = TEST_API_USER2_APPKEY  # from 3rd party request
+        secret_key = TEST_API_USER2_SECRET
+        test_out_trade_no = 'external_api_user_id_paypal_api_purchase'
+        test_purchase_amount = TEST_PURCHASE_AMOUNT_IN_CENT
+        test_user_paypal_from_account = 'paypal' # paypal doesn't require payer account to create payment, so this could be any string.
+        test_attach = 'userid:1'
+        test_subject = '人民币充值成功测试'
+        test_notify_url = '' # in purchase paypal scenario, paypal notification url is hard code at "paypal/confirm_payment/"
+        test_return_url = 'http://testurl'  # need to verify if paypal button could jump to redirect url.
+        cny_rec_address = 'customer_cny_address'
+        exchange_rate = 5.34 # we need to give a default value like 6, in case pass in a default number 1 for CAD order, or we simply failed the request.
+
+        request = TradeAPIRequest(
+            API_METHOD_PURCHASE,
+            app_id, secret_key,
+            test_out_trade_no,  # out_trade_no
+            total_fee=test_purchase_amount,  # total fee
+            expire_minute=10,  # expire_minute
+            payment_provider=PAYMENTMETHOD_PAYPAL,
+            payment_account=test_user_paypal_from_account,
+            client_ip='127.0.0.1',  # client ip
+            attach=test_attach,
+            subject=test_subject,
+            notify_url=test_notify_url,
+            return_url=test_return_url,
+            external_cny_rec_address=cny_rec_address,
+            cad_cny_exchange_rate = exchange_rate
+        )
+        c = Client()
+        request_str = request.getPayload()
+        print('test_purchase_order_succeed(): send request {0}'.format(request_str))
+        response = c.post('/api/v1/applypurchase/', request_str,
+                          content_type='application/json')
+        print(
+            'response is {0}'.format(json.dumps(json.loads(response.content.decode('utf-8')), ensure_ascii=False)))
+
+        # no send fund is called, since it should wait for manul confirm.
+        unlock_wallet_function.assert_not_called()
+        send_cny_fund_function.assert_not_called()
+        send_gateway_notification_function.assert_not_called()
+
+        send_gateway_notification_function.return_value = "OK";
+        send_cny_fund_function.return_value = {'account': '', 'address': 'CcwbnuPii3PUMuCE9dXfFK9jPxGRresBXp',
+                                               'category': 'send', 'amount': float('-1.10000000'),
+                                               'fee': float('-0.01000000'), 'confirmations': 0,
+                                               'txid': '606b6bef69216e53215c7ab8b8fab85b928c2c8b0bdd89a8b0e9e4b6596481db',
+                                               'time': 1564680775, 'timereceived': 1564680775,
+                                               'comment': 'unittest transaction'}
+
+        # verify sent heepay payment creation request.
+        send_heepay_payment_creation_request.assert_called_once()
+
+        self.assertEqual(200, response.status_code)
+        resp_json = json.loads(response.content.decode('utf-8'))
+
+        self.assertEqual('SUCCESS', resp_json['return_code'])
+        self.assertEqual('执行完成', resp_json['return_msg'])
+        self.assertEqual('SUCCESS', resp_json['result_code'])
+        self.assertEqual('下单申请成功', resp_json['result_msg'])
+        self.assertEqual('UNKNOWN', resp_json['trade_status'])
+        self.assertEqual(test_attach, resp_json['attach'])
+        self.assertEqual(test_subject, resp_json['subject'])
+        self.assertEqual(test_out_trade_no, resp_json['out_trade_no'])
+        self.assertEqual(test_purchase_amount, int(resp_json['total_fee']))
+        self.assertEqual(TEST_API_USER2_APPKEY, resp_json['api_key'])
+
+        api_trans = self.get_api_trans(test_out_trade_no)
+        self.assertEqual(resp_json['trx_bill_no'], api_trans.transactionId)
+        self.assertEqual(TEST_HY_BILL_NO, api_trans.reference_bill_no)
+
+        global TEST_CRYPTO_SEND_COMMENT
+        TEST_CRYPTO_SEND_COMMENT = 'userId:{3},amount:{0},trxId:{1},out_trade_no:{2}'.format(
+            float(TEST_PURCHASE_AMOUNT_IN_CENT) / 100.0, api_trans.transactionId,
+            api_trans.api_out_trade_no, api_trans.api_user.user.id)
+        self.validate_api_trans_before_confirm(api_trans, app_id,
+                                               secret_key, test_out_trade_no,
+                                               expected_total_fee=test_purchase_amount,
+                                               expected_from_account=test_user_heepay_from_account,
+                                               expected_subject=test_subject, expected_attach=test_attach,
+                                               expected_return_url=test_return_url,
+                                               expected_notify_url=test_notify_url)
+
+        buy_order = api_trans.reference_order
+        self.assertTrue(buy_order, "api_trans should have buyorder")
+        self.assertEqual('BUY', buy_order.order_type)
+        self.assertEqual('ALL_OR_NOTHING', buy_order.sub_type)
+        self.assertEqual('API', buy_order.order_source)
+        self.assertEqual(test_purchase_amount, int(round(buy_order.total_amount, 2) * 100))
+        self.assertEqual(155, buy_order.units)
+        self.assertEqual(156, buy_order.reference_order.units)
+        # yingzhou's sell order with 156 is older than the tttzhang2000's order with same amount
+        # we will need to pick the older order, so system grab the first one
+        self.assertEqual('yingzhou61@yahoo.ca', buy_order.reference_order.user.username)
+        self.assertEqual('OPEN', buy_order.reference_order.status)
+        self.assertEqual(155, buy_order.reference_order.units_locked)
+        self.assertEqual(1.0, buy_order.reference_order.units_available_to_trade)
+
+        print('-----------------------------------------------')
+        print('test_purchase_order_succeed(): show wallet and orders after send api request')
+        show_user_wallet_overview()
+        show_order_overview()
+
+        logger.info('finish issue purchase request, about to test receiving heepay notification')
+
+        # NOTE: the trade status is case-sensitive thing
+        heepay_confirm = self.create_heepay_confirm('tradeex/apitests/data/heepay_confirm_template.j2',
+                                                    api_trans, 'Success',
+                                                    timegm(dt.datetime.utcnow().utctimetuple()))
+        self.assertTrue(heepay_confirm, 'There is problem when the heepay confirmation data')
+        request_str = json.dumps(heepay_confirm, ensure_ascii=False)
+        print('send heepay confirmation request {0}'.format(request_str))
+
+        c1 = Client()
+        response = c1.post('/trading/heepay/confirm_payment/', request_str,
+                           content_type='application/json')
+
+        print('-----------------------------------------------')
+        print('test_purchase_order_succeed(): check userwallet and orders after heepay confirmation')
+        show_user_wallet_overview()
+        show_order_overview()
+
+        self.assertEqual('OK', response.content.decode('utf-8'),
+                         "The response to the payment confirmation should be OK")
+
+        # verify this has been called once and money has transfered
+        unlock_wallet_function.assert_called_once()
+        send_cny_fund_function.assert_called_with(cny_rec_address, float(TEST_PURCHASE_AMOUNT_IN_CENT / 100),
+                                                  AnyStringWith(""))
+        send_gateway_notification_function.assert_called_once()
+
+        tttzhang2000_axf_wallets = UserWallet.objects.get(user__username='tttzhang2000@yahoo.com',
+                                                          wallet__cryptocurrency__currency_code='AXFund')
+        yingzhou_axf_wallets = UserWallet.objects.get(user__username='yingzhou61@yahoo.ca',
+                                                      wallet__cryptocurrency__currency_code='AXFund')
+        testuser2_axf_wallets = UserWallet.objects.get(user__username='tradeex_api_user2',
+                                                       wallet__cryptocurrency__currency_code='AXFund')
+        testuser2_cny_wallets = UserWallet.objects.get(user__username='tradeex_api_user2',
+                                                       wallet__cryptocurrency__currency_code='CNY')
+        master_cny_wallets = UserWallet.objects.get(user__username='admin',
+                                                    wallet__cryptocurrency__currency_code='CNY')
+
+        # after making purchase, nothing changed for the account not selected as seller
+        self.assertEqual(tttzhang2000_axf_wallets.balance, tttzhang2000_axf_wallets_prev.balance)
+        self.assertEqual(tttzhang2000_axf_wallets.locked_balance, tttzhang2000_axf_wallets_prev.locked_balance)
+        self.assertEqual(tttzhang2000_axf_wallets.available_balance,
+                         tttzhang2000_axf_wallets_prev.available_balance)
+
+        # after confirmed purchase, seller's axf wallet changed
+        self.assertEqual(yingzhou_axf_wallets.balance, yingzhou_axf_wallets_prev.balance - buy_order.units)
+        self.assertEqual(yingzhou_axf_wallets.locked_balance,
+                         yingzhou_axf_wallets_prev.locked_balance - buy_order.units)
+        self.assertEqual(yingzhou_axf_wallets.available_balance, yingzhou_axf_wallets_prev.available_balance)
+
+        # after confirmed purchase, buyer axf wallet changed
+        self.assertEqual(testuser2_axf_wallets.balance, testuser2_axf_wallets_prev.balance + buy_order.units)
+        self.assertEqual(testuser2_axf_wallets.locked_balance, testuser2_axf_wallets_prev.locked_balance)
+        self.assertEqual(testuser2_axf_wallets.available_balance,
+                         testuser2_axf_wallets_prev.available_balance + buy_order.units)
+
+        self.assertEqual(testuser2_cny_wallets.balance, testuser2_cny_wallets_prev.balance + buy_order.total_amount)
+        # the amount is locked because we made external transfer after the purchase
+        self.assertEqual(testuser2_cny_wallets.locked_balance,
+                         testuser2_cny_wallets_prev.locked_balance + buy_order.total_amount)
+        # nothing changed on available balance since purchased amount was transferred out
+        self.assertEqual(testuser2_cny_wallets.available_balance, testuser2_cny_wallets_prev.available_balance)
+
+        # before any pay or purchase, nothing is changed on master wallet
+        self.assertEqual(master_cny_wallets.balance, master_cny_wallets_prev.balance - buy_order.total_amount)
+        self.assertEqual(master_cny_wallets.locked_balance, master_cny_wallets_prev.locked_balance)
+        self.assertEqual(master_cny_wallets.available_balance,
+                         master_cny_wallets_prev.available_balance - buy_order.total_amount)
+
+        tttzhang2000_axf_wallets_prev = tttzhang2000_axf_wallets
+
+        buy_order.refresh_from_db()
+        self.assertTrue('PAID', buy_order.status)
+        self.assertTrue('OPEN', buy_order.reference_order)
+        self.assertEqual(0, buy_order.reference_order.units_locked)
+        self.assertEqual(1.0, buy_order.reference_order.units_available_to_trade)
+
+        c = Client()
+        c.login(username='yingzhou', password='user@123')
+        response = c.get('/trading/account/cron/order_batch_process/')
+
+        print('-------------------------------------------------------------------------------')
+        print('test_purchase_order_succeed(): show overview after order process routine executed')
+        show_user_wallet_overview()
+        show_order_overview()
+
+        unlock_wallet_function.assert_called_once()
+        send_cny_fund_function.assert_called_once()
+        send_gateway_notification_function.assert_called_once()
+
+        tttzhang2000_axf_wallets = UserWallet.objects.get(user__username='tttzhang2000@yahoo.com',
+                                                          wallet__cryptocurrency__currency_code='AXFund')
+        yingzhou_axf_wallets = UserWallet.objects.get(user__username='yingzhou61@yahoo.ca',
+                                                      wallet__cryptocurrency__currency_code='AXFund')
+        testuser1_axf_wallets = UserWallet.objects.get(user__username='tradeex_api_user1',
+                                                       wallet__cryptocurrency__currency_code='AXFund')
+        testuser1_cny_wallets = UserWallet.objects.get(user__username='tradeex_api_user1',
+                                                       wallet__cryptocurrency__currency_code='CNY')
+        master_cny_wallets = UserWallet.objects.get(user__username='admin',
+                                                    wallet__cryptocurrency__currency_code='CNY')
+
+        # after making purchase, nothing changed for the account not selected as seller
+        self.assertEqual(tttzhang2000_axf_wallets.balance, tttzhang2000_axf_wallets_prev.balance)
+        self.assertEqual(tttzhang2000_axf_wallets.locked_balance, tttzhang2000_axf_wallets_prev.locked_balance)
+        self.assertEqual(tttzhang2000_axf_wallets.available_balance,
+                         tttzhang2000_axf_wallets_prev.available_balance)
+
+        buy_order.refresh_from_db()
+        self.assertTrue('PAID', buy_order.status)
+        self.assertTrue('OPEN', buy_order.reference_order)
+        self.assertEqual(0, buy_order.reference_order.units_locked)
+        self.assertEqual(1.0, buy_order.reference_order.units_available_to_trade)
 
     # happy path for purchasing from 3rd party by using heepay (auto)
     @patch('trading.controller.coin_utils.CoinUtils.unlock_wallet', side_effect=unlock_wallet_for_purchase_test)

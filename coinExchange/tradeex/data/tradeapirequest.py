@@ -21,7 +21,7 @@ class TradeAPIRequest(object):
             client_ip='127.0.0.1', 
             subject=None, attach=None, notify_url=None, return_url=None,
             version='1.0', charset='utf-8', sign_type='MD5', timestamp=0,
-            sign=None, original_json_request=None, external_cny_rec_address = None, **kwargs):
+            sign=None, original_json_request=None, external_cny_rec_address = None, cad_cny_exchange_rate = 1.0, **kwargs):
         self.version = version
         self.charset = charset
         self.sign_type = sign_type
@@ -52,6 +52,7 @@ class TradeAPIRequest(object):
         self.meta_option = None
         self.pay_option = None
         self.external_cny_rec_address = external_cny_rec_address
+        self.cad_cny_exchange_rate = cad_cny_exchange_rate
         self.original_json_request = original_json_request
         if kwargs:
             for key,value in kwargs.items():
@@ -112,7 +113,8 @@ class TradeAPIRequest(object):
             original_json_request = json_input, 
             meta_option = biz_content_json.get('meta_option', None),
             pay_option = biz_content_json.get('pay_option', None),
-            external_cny_rec_address = json_input.get('external_cny_rec_address', None))
+            external_cny_rec_address = json_input.get('external_cny_rec_address', None),
+            cad_cny_exchange_rate = json_input.get('cad_cny_exchange_rate', 1.0))
 
     def __get_biz_content_json(self):
         biz_content_json = {}

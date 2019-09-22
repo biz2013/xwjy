@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from django.db.models import Q
+from django.db import transaction
 from django.conf import settings
 from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from tradeex.data.api_const import *
@@ -19,6 +20,8 @@ from trading.controller.global_constants import *
 import logging
 import datetime as dt
 import pytz
+
+from trading.views.paypalview import GetOrder
 
 logger = logging.getLogger("tradeex.tradeexchangemanager")
 
@@ -42,7 +45,21 @@ def create_prepurchase_response_from_heepay(heepay_response, api_user, api_trans
         payment_url = heepay_response.hy_url
     )
 
-    return response.to_json()       
+    return response.to_json()
+
+def create_prepurchase_response_from_paypal(api_user, api_trans_id, api_out_trade_no, paypal_payment_id):
+    response = TradeAPIResponse(
+        api_user.apiKey, api_user.secretKey,
+        None,
+        None,
+        None,
+        None,
+        api_out_trade_no,
+        api_trans_id,
+        paypal_payment_id
+    )
+
+    return response.to_json()
 
 
 class TradeExchangeManager(object):
@@ -287,9 +304,15 @@ class TradeExchangeManager(object):
         api_user_id = api_user.user.id
         amount_in_cent = int(request_obj.total_fee) 
         amount = float(amount_in_cent / 100.0)
+
         currency = 'CNY'
 
+        # Paypal only used for paying CNY to CAD order, so we need to modify the purchase amount and currency here.
         buyer_payment_provider = request_obj.payment_provider
+        if buyer_payment_provider.lower() == PAYMENTMETHOD_PAYPAL.lower():
+            currency = 'CAD'
+            amount = float(amount / request_obj.cad_cny_exchange_rate)
+
         buyer_payment_account =  request_obj.payment_account
         api_call_order_id =  request_obj.out_trade_no
         api_site_user = request_obj.attach
@@ -312,12 +335,15 @@ class TradeExchangeManager(object):
         for sell_order in qualify_orders:
             logger.info('Try to purchase order {0}amount {1}'.format(
                 sell_order.order_id, round(amount / sell_order.unit_price, 8)))
+
+            total_purchase_unit = round(amount / sell_order.unit_price, 8),
+
             order_item = OrderItem('', # order_id empty for purchase
                api_user_id, 
                '',  # no need for user login of the order
                sell_order.unit_price,
                sell_order.unit_price_currency,
-               round(amount / sell_order.unit_price, 8),
+               total_purchase_unit,
                0,  # no need for available_units
                amount,
                crypto,
@@ -336,7 +362,8 @@ class TradeExchangeManager(object):
                 continue
         
             # in case heepay api is working again... we need more logic
-            if buyer_payment_provider == PAYMENTMETHOD_HEEPAY and settings.PAYMENT_API_STATUS[PAYMENTMETHOD_HEEPAY] == 'auto':
+            if (buyer_payment_provider == PAYMENTMETHOD_HEEPAY and settings.PAYMENT_API_STATUS[PAYMENTMETHOD_HEEPAY] == 'auto') \
+                or buyer_payment_provider == PAYMENTMETHOD_PAYPAL:
                 seller_payment_account = seller_payment_method.account_at_provider
             
             buyorder_id = None
@@ -375,6 +402,20 @@ class TradeExchangeManager(object):
                     sitesettings, api_user,api_trans_id)
                 if final_response:
                     return final_response
+
+            if request_obj.payment_provider == PAYMENTMETHOD_PAYPAL:
+                return self.create_paypal_payment(
+                    request_obj,
+                    sell_order.order_id,
+                    buyorder_id,
+                    amount,
+                    total_purchase_unit,
+                    crypto,
+                    sell_order.unit_price,
+                    sell_order.unit_price_currency,
+                    api_user,
+                    api_trans_id
+                )
             
             payment_url = self.create_manual_payment_url(api_user, api_trans_id, buyorder_id)
             ordermanager.post_open_payment_order(
@@ -401,8 +442,42 @@ class TradeExchangeManager(object):
             logger.error("purchase_by_cash_amount(): [out_trade_no:{0}] None of the qualified sell order could be secured for purchase.".format(
                 api_call_order_id
             ))
-        raise ValueError(ERR_NO_RIGHT_SELL_ORDER_FOUND)    
-    
+        raise ValueError(ERR_NO_RIGHT_SELL_ORDER_FOUND)
+
+    # even we get clientID/Secret from each sell order, since we only allow one specific user could
+    # create paypal sell order, so it should always get the same client/secret.
+    def create_paypal_payment(self, request_obj, sell_order_id, buy_order_id, total_amount, quantity, crypto_currency, unit_price, unit_price_currency, api_user, api_trans_id):
+        # Create Order in Paypal
+        sell_order_info = ordermanager.get_order_info(sell_order_id)
+        seller_paypal_payment_method = userpaymentmethodmanager.get_user_paypal_payment_method(sell_order_info.user.id)
+
+        clientID = seller_paypal_payment_method.client_id
+        clientSecret = seller_paypal_payment_method.client_secret
+
+        purchase_description = "Total amount {0} {1} for {2} {3} with unit price {4} {5}." \
+            .format(total_amount, unit_price_currency, quantity, crypto_currency, unit_price, unit_price_currency)
+
+        orderInfo = GetOrder(clientID, clientSecret).create_order(buy_order_id[0], total_amount, purchase_description,
+                                                                  unit_price_currency)
+        if orderInfo.status_code != 201:
+            logger.error(
+                'fail to create paypal order, error code {0}, detail is {1}'.format(orderInfo.status_code, orderInfo))
+            raise RuntimeError(ERR_PAYPAL_PAYMENT_CREATION)
+
+        paypal_payment_id = orderInfo.result.id
+
+        # Update WalletTransaction to capture paypal transaction.
+        ordermanager.update_purchase_order_payment_transaction(buy_order_id, TRADE_STATUS_CREADED, "", paypal_payment_id)
+
+        # save paypal payment id to api user transaction (in tradeex)
+        with transaction.atomic():
+            api_trans = APIUserTransaction.objects.get(pk=api_trans_id)
+            api_trans.reference_bill_no = paypal_payment_id
+            api_trans.save()
+
+        return create_prepurchase_response_from_paypal(
+            api_user, api_trans_id, request_obj.out_trade_no, paypal_payment_id)
+
     def handle_payment_notificiation(self, payment_provider, notification, api_trans):
         logger.debug('handle_payment_notificiation()')
         if payment_provider != 'heepay':

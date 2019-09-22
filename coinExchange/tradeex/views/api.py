@@ -81,6 +81,13 @@ def validateUserInput(expected_method, request_obj, api_user):
             # return same error as missing payment account to hide we need cny_address.
             raise ValueError(ERR_REDEEM_REQUEST_NO_PAYMENT_ACCOUNT)
 
+        if request_obj.method == API_METHOD_PURCHASE and request_obj.payment_provider == PAYMENTMETHOD_PAYPAL:
+            if request_obj.cad_cny_exchange_rate < 4:
+                logger.error("Purchase request {0} payment provider is paypal, but exchange rate (cad -> cny) seems incorrect, its value is {1}, suppose to be something like 5.36".format(
+                    request_obj, request_obj.cad_cny_exchange_rate
+                ))
+                raise ValueError(ERR_INVALID_CAD_CHANGERATE_INPUT)
+
         # making sure we have external_cny_rec_address attribute in purchase request object.
         if request_obj.method == API_METHOD_PURCHASE and not hasattr(request_obj, 'external_cny_rec_address'):
             setattr(request_obj, "external_cny_rec_address", None)

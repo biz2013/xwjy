@@ -97,6 +97,39 @@ class GetOrder(PayPalClient):
         ]
       }
 
+  def build_purchase_order_body_with_redirect(self, buy_order_id, total_amount, description, unit_price_currency, redirect_url):
+    if not redirect_url:
+      return self.build_purchase_order_body(buy_order_id, total_amount, description, unit_price_currency)
+
+    # from the sample before, paypal support redirect when payment complete and canceled, but we only do redirect on payment complete (return).
+    # "redirect_urls": {
+    #         "return_url": "http://localhost:3000/payment/execute",
+    #         "cancel_url": "http://localhost:3000/"},
+    # https://github.com/paypal/PayPal-Python-SDK
+
+    """Method to create body with CAPTURE intent"""
+    return \
+      {
+        "intent": "CAPTURE",
+        "application_context": {
+          "shipping_preference": "NO_SHIPPING",
+        },
+        "purchase_units": [
+          {
+            "reference_id": buy_order_id,
+            "description": description,
+
+            "amount": {
+              "currency_code": unit_price_currency,
+              "value": total_amount
+            }
+          }
+        ],
+        "redirect_urls": {
+          "return_url": redirect_url
+        }
+      }
+
 @csrf_exempt
 def confirm_paypal_order(request):
   try:

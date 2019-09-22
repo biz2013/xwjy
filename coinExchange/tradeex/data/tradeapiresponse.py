@@ -22,6 +22,7 @@ class TradeAPIResponse(object):
         self.total_fee = 0
         self.payment_url = None
         self.trade_status = 'UNKNOWN'
+        self.paypal_payment_id = None
         if kwargs:
             for key,value in kwargs.items():
                 if key == 'subject':
@@ -34,6 +35,8 @@ class TradeAPIResponse(object):
                     self.payment_url = value
                 elif key == 'trade_status':
                     self.trade_status = value
+                elif key == 'paypal_payment_id':
+                    self.paypal_payment_id = value
         
         #if 'SUCCESS' == self.return_code:
         #    if not self.payment_url:
@@ -54,6 +57,8 @@ class TradeAPIResponse(object):
             content_json['total_fee'] = self.total_fee
         if self.payment_url:
             content_json['payment_url'] = self.payment_url
+        if self.paypal_payment_id:
+            content_json['paypal_payment_id'] = self.paypal_payment_id
         content_json['trade_status'] =self.trade_status
         return content_json
     
@@ -76,6 +81,8 @@ class TradeAPIResponse(object):
                 resp_json['attach'] = self.attach
             if self.trade_status:
                 resp_json['trade_status'] = self.trade_status
+            if self.paypal_payment_id:
+                resp_json['paypal_payment_id'] = self.paypal_payment_id
                 
             resp_json['sign'] = self.sign
         return resp_json
