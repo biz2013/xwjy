@@ -28,7 +28,7 @@ import hmac
 logger = logging.getLogger("site.testpaymentqrcode")
 
 def validate_signature(api_key, externaluserId, secret, original_signature):
-    string_to_be_signed = 'api_key={0}&externaluserId={1}&key={2}'.format(api_key, externaluserId, secret)
+    str_to_be_signed = 'api_key={0}&externaluserId={1}&key={2}'.format(api_key, externaluserId, secret)
     m = hashlib.md5()
     m.update(str_to_be_signed.encode('utf-8'))
     signature = m.hexdigest().upper()
@@ -41,19 +41,19 @@ def testpaymentqrcode(request):
     err_msg = {}
     try:
         if request.method == 'GET':
-            api_key = request.GET['api_key']
-            if not api_key:
+            if 'api_key' not in request.GET:
                 err_msg['status'] = 'ERROR_MISSING_API_KEY'
                 err_msg['message'] = '你的请求没有包含API KEY'
                 return HttpResponseBadRequest(json.dumps(err_msg, ensure_ascii=False))
 
+            api_key = request.GET['api_key']
             externaluserId = request.GET['externaluserId']
             auth_token = request.GET['auth_token']
             auth_check_url = request.GET['auth_check_url']
             signature = request.GET['signature']
             secret = None
             try:
-                api_account = APIUserAccount.objects.get(api_key=api_key)
+                api_account = APIUserAccount.objects.get(apiKey=api_key)
                 secret = api_account.secretKey
             except APIUserAccount.DoesNotExist:
                 err_msg['status'] = 'ERROR_API_KEY_NOTFOUND'
@@ -61,7 +61,7 @@ def testpaymentqrcode(request):
                 return HttpResponseNotFound(json.dumps(err_msg, ensure_ascii=False))
 
             if not validate_signature(api_key, externaluserId, secret, signature):
-                err_smg['status'] = 'ERROR_MISSING_SIGNATURE'
+                err_msg['status'] = 'ERROR_SIGNATURE_NOTMATCH'
                 err_msg['message'] = '你的请求签名不符'
                 return HttpResponseBadRequest(json.dumps(err_msg, ensure_ascii=False))
 
