@@ -1,0 +1,85 @@
+{% extends 'base_generic.html' %} {% block custom_headers %}
+<script type="text/javascript" src="/static/scripts/bootstrap-filestyle.min.js"></script>
+{% endblock %} {% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-sm-4">
+            <h3>设置微信支付</h3>
+            <h4>1. 微信账户信息</h4>
+            <form id="frm_weixin_accountInfo" method="POST" action="{{ payment_proxy }}/api/v1/member/member.php" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" id="api_key" name="api_key" value="{{ api_key }}" />
+                <input type="hidden" id="signature" name="signature" value="{{ signature }}" />
+                <div class="form_group">
+                    {% if messages %} {% for message in messages %} {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+                    <div id="div_message" class="text-danger">{{ message }}</div>
+                    {% else %}
+                    <div id="div_message" class="text-success">{{ message }}</div>
+                    {% endif %} {% endfor %} {% endif %}
+                    <div id="div_accountInfo_error" class="text-danger"></div>
+                    <div id="div_id_alias" class="form-group">
+                        <label for="id_alias" class="control-label">微信昵称</label><span class="asteriskField">*</span>
+                        <div class="controls ">
+                            <input type="text" class="textinput textInput form-control" id="h_weixin" maxlength="64" name="h_weixin" value="{% if weixin %}{{ weixin.account_alias }}{% endif %}" />
+                        </div>
+                    </div>
+                    <div id="div_id_qrcode" class="form-group">
+                        <label for="weixin_qrcode" class="control-label">收款二维码</label>
+                        <div class="controls ">
+                            <input type="file" id="weixin_qrcode" class="filestyle" name="weixin_qrcode" />
+                        </div>
+                        <p>
+                        {% if provider_qrcode_image %}
+                        <a href="# "><img src="{{ payment_proxy }}api/v1/member/getqrcode.php?api_key={{ api_key }}&externaluserId={{ externaluserId }}&signature={{ signature }}" width="300" height="400"></a>
+                        {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </form>
+            <div class="form-group">
+                <button type="button" class="btn btn-primary" id="btn_saveAccountInfo">保存</button>
+                <button type="button" class="btn btn-default" id="btn_cancel">撤销</button>
+            </div>
+        </div>
+        {% if weixin %}
+        <div class="col-sm-4">
+            <h4>2 添加店员二维码</h4>
+            <div class="form-group ">
+                <form action="{% url 'upload_shop_assistant_pic' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+                    <input type="hidden" id="id" name="id" value="{% if weixin_shop_assistant_image %}{{ weixin_shop_assistant_image.id }}{% endif %}" />
+                    <input type="hidden" id="user_payment_method" name="user_payment_method" value="{{ weixin.id }}" />
+                    <input type="hidden" id="image_tag" name="image_tag" value="WXSHOPASSTQRCODE" />
+                    <input type="hidden" id="created_by" name="created_by" value="{% if weixin_shop_assistant_image %}{{ weixin_shop_assistant_image.created_by.id }}{% elif user %}{{ user.id }}{% endif %}" />
+                    <input type="hidden" id="lastupdated_by" name="lastupdated_by" value="{% if weixin_shop_assistant_image %}{{ weixin_shop_assistant_image.lastupdated_by.id }}{% elif user %}{{ user.id }}{% endif %}" />
+                    <p>
+                        <input type="file" id="id_qrcode" class="filestyle" name="qrcode" />
+                    </p>
+                    <button type="button " class="btn btn-primary ">上传</button>
+                </form>
+                {% if weixin_shop_assistant_image %}
+                <a href="# "><img src="{{ weixin_shop_assistant_image.qrcode.url}}" width="64 " height="64 "></a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<script>
+$(document).ready(function() {
+    // submit on the weixin account info
+    $('#btn_saveAccountInfo').click(function() {
+        var alias = $('#h_weixin').val().trim();
+        if (alias === "") {
+            $('#div_accountInfo_error').text('请输入您的昵称');
+            return;
+        } else {
+            $('#div_accountInfo_error').text('');
+        }
+        $('#frm_weixin_accountInfo').submit();
+    })
+    $('#btn_cancel').click(function() {
+        window.location.replace('/trading/accounts/accountinfo/');
+    })
+})
+</script>
+{% endblock %}

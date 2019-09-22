@@ -28,10 +28,10 @@ import hmac
 logger = logging.getLogger("site.testpaymentqrcode")
 
 def validate_signature(api_key, externaluserId, secret, original_signature):
-    str_to_be_signed = 'api_key={0}&externaluserId={1}&key={2}'.format(api_key, externaluserId, secret)
+    str_to_be_signed = 'api_key={0}&externaluserId={1}&secret={2}'.format(api_key, externaluserId, secret)
     m = hashlib.md5()
     m.update(str_to_be_signed.encode('utf-8'))
-    signature = m.hexdigest().upper()
+    signature = m.hexdigest()
     logger.debug("sign_api_content(): str to be signed {0} with signature {1} and original signature {2}".format(
         str_to_be_signed, signature, original_signature))
     return signature == original_signature
@@ -66,15 +66,16 @@ def testpaymentqrcode(request):
                 return HttpResponseBadRequest(json.dumps(err_msg, ensure_ascii=False))
 
             user_payment_methods = userpaymentmethodmanager.get_user_payment_methods(request.user.id)
-            return render(request, 'trading/qrcode_client.html',
+            return render(request, 'trading/paymentmethod/qrcode_client.html',
             {  'user_payment_methods':user_payment_methods,
             'api_key': api_key,
             'auth_token': auth_token,
             'auth_check_url': auth_check_url,
             'externaluserId': externaluserId,
-            'signature': signature
+            'signature': signature,
+            'payment_proxy': settings.QRCODE_TEST_PAYMENTPROXY
             })
-        else:
+        else:   
             return HttpResponseNotAllowed(['GET'])
     except Exception as e:
        error_msg = 'testpaymentqrcode'
