@@ -1,5 +1,7 @@
 {% extends 'base_generic.html' %} {% block custom_headers %}
 <script type="text/javascript" src="/static/scripts/bootstrap-filestyle.min.js"></script>
+<script type="text/javascript" src="/static/scripts/md5.js"></script>
+
 {% endblock %} {% block content %}
 <div class="container">
     <div class="row">
@@ -9,6 +11,10 @@
             <form id="frm_weixin_accountInfo" method="POST" action="{{ payment_proxy }}/api/v1/member/member.php" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="hidden" id="api_key" name="api_key" value="{{ api_key }}" />
+                <input type="hidden" id="auth_token" name="auth_token" value="{{ auth_token }}"/>
+                <input type="hidden" id="auth_check_url" name="auth_check_url" value="{{ auth_check_url }}"/>
+                <input type="hidden" id="externaluserId" name="externaluserId" value="{{ externaluserId }}"/>
+                <input type="hidden" id="key" name="key" value="{{ key }}"/>
                 <input type="hidden" id="signature" name="signature" value="{{ signature }}" />
                 <div class="form_group">
                     {% if messages %} {% for message in messages %} {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
@@ -18,9 +24,9 @@
                     {% endif %} {% endfor %} {% endif %}
                     <div id="div_accountInfo_error" class="text-danger"></div>
                     <div id="div_id_alias" class="form-group">
-                        <label for="id_alias" class="control-label">微信昵称</label><span class="asteriskField">*</span>
+                        <label for="weixin_nickname" class="control-label">微信昵称</label><span class="asteriskField">*</span>
                         <div class="controls ">
-                            <input type="text" class="textinput textInput form-control" id="h_weixin" maxlength="64" name="h_weixin" value="{% if weixin %}{{ weixin.account_alias }}{% endif %}" />
+                            <input type="text" class="textinput textInput form-control" id="weixin_nickname" maxlength="64" name="weixin_nickname" value="{% if weixin %}{{ weixin.account_alias }}{% endif %}" />
                         </div>
                     </div>
                     <div id="div_id_qrcode" class="form-group">
@@ -68,13 +74,24 @@
 $(document).ready(function() {
     // submit on the weixin account info
     $('#btn_saveAccountInfo').click(function() {
-        var alias = $('#h_weixin').val().trim();
+        var alias = $('#weixin_nickname').val().trim();
         if (alias === "") {
             $('#div_accountInfo_error').text('请输入您的昵称');
             return;
         } else {
             $('#div_accountInfo_error').text('');
         }
+        var uri_param = "api_key=" + $("#api_key").val();
+        uri_param = uri_param + "&auth_token=" + $("#auth_token").val();
+        uri_param = uri_param + "&auth_check_url=" + $("#auth_check_url").val();
+        uri_param = uri_param + "&externaluserId=" + $("#externaluserId").val();
+        uri_param = uri_param + "&weixin=" + $("#weixin_nickname").val();
+        uri_param = uri_param + "&secret=" + $("#key").val();
+        var signature  = md5(uri_param);
+
+        alert("The string to be signed is " + uri_param + " and signature is " + signature);
+        $("#signature").val(signature);
+
         $('#frm_weixin_accountInfo').submit();
     })
     $('#btn_cancel').click(function() {

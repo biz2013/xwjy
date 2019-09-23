@@ -72,6 +72,7 @@ def testpaymentqrcode(request):
             'auth_token': auth_token,
             'auth_check_url': auth_check_url,
             'externaluserId': externaluserId,
+            'key': secret,
             'signature': signature,
             'payment_proxy': settings.QRCODE_TEST_PAYMENTPROXY
             })
