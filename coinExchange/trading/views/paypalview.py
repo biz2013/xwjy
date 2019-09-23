@@ -97,6 +97,8 @@ class GetOrder(PayPalClient):
         ]
       }
 
+  # Redirect seems is deprecated in paypal, since paypal button is doing callback, we could put logic there.
+  # https://developer.paypal.com/docs/archive/checkout/how-to/customize-flow/#
   def build_purchase_order_body_with_redirect(self, buy_order_id, total_amount, description, unit_price_currency, redirect_url):
     if not redirect_url:
       return self.build_purchase_order_body(buy_order_id, total_amount, description, unit_price_currency)
@@ -191,7 +193,9 @@ def confirm_paypal_order(request):
         raise Exception(error_msg)
 
       # Validate amount
-      if buy_order_info.total_amount != float(paypal_payment_info[0].value):
+      # Paypal only support decimal with 2, so it will round up from buy_order amount.
+      if round(buy_order_info.total_amount, 2) != round(float(paypal_payment_info[0].value), 2) and \
+        abs(buy_order_info.total_amount - float(paypal_payment_info[0].value)) > 1.0 :
         error_msg = "payment amount {0} user paid doesn't match with the number from paypal confirmation". \
           format(buy_order_info.total_amount, paypal_payment_info[0].value)
         raise Exception(error_msg)

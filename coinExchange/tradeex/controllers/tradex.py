@@ -3,6 +3,8 @@
 from django.db.models import Q
 from django.db import transaction
 from django.conf import settings
+from django.http import HttpResponse
+
 from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from tradeex.data.api_const import *
 from tradeex.models import *
@@ -48,19 +50,11 @@ def create_prepurchase_response_from_heepay(heepay_response, api_user, api_trans
     return response.to_json()
 
 def create_prepurchase_response_from_paypal(api_user, api_trans_id, api_out_trade_no, paypal_payment_id):
-    response = TradeAPIResponse(
-        api_user.apiKey, api_user.secretKey,
-        None,
-        None,
-        None,
-        None,
-        api_out_trade_no,
-        api_trans_id,
-        paypal_payment_id
-    )
-
-    return response.to_json()
-
+    data = {}
+    data['orderID'] = paypal_payment_id
+    data['api_out_trade_no'] = api_out_trade_no
+    data['api_trans_id'] = api_trans_id
+    return data;
 
 class TradeExchangeManager(object):
 
@@ -336,7 +330,7 @@ class TradeExchangeManager(object):
             logger.info('Try to purchase order {0}amount {1}'.format(
                 sell_order.order_id, round(amount / sell_order.unit_price, 8)))
 
-            total_purchase_unit = round(amount / sell_order.unit_price, 8),
+            total_purchase_unit = round(amount / sell_order.unit_price, 8)
 
             order_item = OrderItem('', # order_id empty for purchase
                api_user_id, 
@@ -454,10 +448,12 @@ class TradeExchangeManager(object):
         clientID = seller_paypal_payment_method.client_id
         clientSecret = seller_paypal_payment_method.client_secret
 
+        # If the currency supports decimals, only two decimal place precision is supported.
+        total_amount_round = round(total_amount, 2)
         purchase_description = "Total amount {0} {1} for {2} {3} with unit price {4} {5}." \
             .format(total_amount, unit_price_currency, quantity, crypto_currency, unit_price, unit_price_currency)
 
-        orderInfo = GetOrder(clientID, clientSecret).create_order(buy_order_id[0], total_amount, purchase_description,
+        orderInfo = GetOrder(clientID, clientSecret).create_order(buy_order_id, total_amount_round, purchase_description,
                                                                   unit_price_currency)
         if orderInfo.status_code != 201:
             logger.error(

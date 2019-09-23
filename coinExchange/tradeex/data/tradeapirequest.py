@@ -114,7 +114,7 @@ class TradeAPIRequest(object):
             meta_option = biz_content_json.get('meta_option', None),
             pay_option = biz_content_json.get('pay_option', None),
             external_cny_rec_address = json_input.get('external_cny_rec_address', None),
-            cad_cny_exchange_rate = json_input.get('cad_cny_exchange_rate', 1.0))
+            cad_cny_exchange_rate = json_input.get('cad_cny_exchange_rate', None))
 
     def __get_biz_content_json(self):
         biz_content_json = {}
@@ -152,6 +152,8 @@ class TradeAPIRequest(object):
         jsonobj['timestamp'] = self.timestamp
         if self.external_cny_rec_address is not None:
             jsonobj['external_cny_rec_address'] = self.external_cny_rec_address
+        if self.cad_cny_exchange_rate is not None:
+            jsonobj['cad_cny_exchange_rate'] = self.cad_cny_exchange_rate
 
         biz_content_json = self.__get_biz_content_json()
 
@@ -162,7 +164,7 @@ class TradeAPIRequest(object):
         self.secret_key = secret_key
         signed = sign_api_content(self.__create_json_to_sign(), secret_key)
         logger.info('signed is {0} original sign is {1}'.format(signed, self.sign))
-        return signed == self.sign
+        return signed.upper() == self.sign.upper()
 
     def getPayload(self):
         if not self.sign:
