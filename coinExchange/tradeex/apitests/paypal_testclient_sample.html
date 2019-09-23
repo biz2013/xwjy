@@ -45,6 +45,7 @@
         paypal.Buttons({
         createOrder: function (data, actions) {
           var total_amount_in_cent = 2000;
+          var cad_cny_exchange_rate = 5.46;
 
           var biz_json = {
               "api_account_type": "Account",
@@ -70,7 +71,7 @@
           var api_request = {
             "api_key": "UN57QVEE9RIS858PJ5GUAP2Y7WUS2VUO",
             "biz_content": JSON.stringify(biz_json_sorted),
-            "cad_cny_exchange_rate": 5.46,
+            "cad_cny_exchange_rate": cad_cny_exchange_rate,
             "charset": "utf-8",
             "method": "wallet.trade.buy",
             "sign_type":"MD5",
@@ -80,6 +81,7 @@
 
           api_request["sign"] = sign(api_request);
 
+          // return fetch('http://127.0.0.1:8000/api/v1/applypurchase/', {
           return fetch('http://127.0.0.1:8000/api/v1/applypurchase/', {
             method: 'POST',
             body: JSON.stringify(api_request),

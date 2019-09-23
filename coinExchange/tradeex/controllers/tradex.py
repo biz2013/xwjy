@@ -471,6 +471,12 @@ class TradeExchangeManager(object):
             api_trans.reference_bill_no = paypal_payment_id
             api_trans.save()
 
+        ordermanager.post_open_payment_order(
+            buy_order_id, PAYMENTPROVIDER_PAYPAL,
+            paypal_payment_id,
+            "paypal",
+            api_user.user.username)
+
         return create_prepurchase_response_from_paypal(
             api_user, api_trans_id, request_obj.out_trade_no, paypal_payment_id)
 
