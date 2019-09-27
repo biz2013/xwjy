@@ -17,12 +17,8 @@
                 <input type="hidden" id="key" name="key" value="{{ key }}"/>
                 <input type="hidden" id="signature" name="signature" value="{{ signature }}" />
                 <div class="form_group">
-                    {% if messages %} {% for message in messages %} {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
-                    <div id="div_message" class="text-danger">{{ message }}</div>
-                    {% else %}
-                    <div id="div_message" class="text-success">{{ message }}</div>
-                    {% endif %} {% endfor %} {% endif %}
-                    <div id="div_accountInfo_error" class="text-danger"></div>
+                    <div id="div_message" class="text-success"></div>
+                    <div id="div_error" class="text-danger"></div>
                     <div id="div_id_alias" class="form-group">
                         <label for="weixin_nickname" class="control-label">微信昵称</label><span class="asteriskField">*</span>
                         <div class="controls ">
@@ -36,7 +32,9 @@
                         </div>
                         <p>
                         {% if provider_qrcode_image %}
-                        <a href="# "><img src="{{ payment_proxy }}api/v1/member/getqrcode.php?api_key={{ api_key }}&externaluserId={{ externaluserId }}&signature={{ signature }}" width="300" height="400"></a>
+                        <div id="qrcodeDiv"><img id="img_qrcode" src="{{ payment_proxy }}api/v1/member/getqrcode.php?api_key={{ api_key }}&externaluserId={{ externaluserId }}&signature={{ signature }}" width="300" height="400"></div>
+                        {% else %}
+                        <div id="qrcodeDiv"></div>
                         {% endif %}
                         </p>
                     </div>
@@ -63,7 +61,7 @@
                     <button type="button " class="btn btn-primary ">上传</button>
                 </form>
                 {% if weixin_shop_assistant_image %}
-                <a href="# "><img src="{{ weixin_shop_assistant_image.qrcode.url}}" width="64 " height="64 "></a>
+                <a href="# "><img src="{{ weixin_shop_assistant_image.qrcode.url}}" width="64 " height="64 "/></a>
                 {% endif %}
             </div>
         </div>
@@ -72,6 +70,27 @@
 </div>
 <script>
 $(document).ready(function() {
+    $('#div_message').hide()
+    $('#div_error').hide()
+    $('#frm_weixin_accountInfo').submit(function (event){
+        event.preventDefault(); //prevent default action 
+        var post_url = $(this).attr("action"); //get form action url
+        var request_method = $(this).attr("method"); //get form GET/POST method
+        var form_data = new FormData(this);
+        $.ajax({
+            url : post_url,
+            type: request_method,
+            data : form_data,
+            processData: false,
+            contentType: false,
+            cache: false
+        }).done(function(response){ //
+            $('#div_message').text('付款信息更新成功');
+            $('#qrcodeDiv').prepend($('<img>',{id:'img_qrcode',src: response.qrcode}));
+        }).fail(function(jqXHR, textStatus, errorThrown ){
+            $('#div_error').text(textStatus);
+        });
+    });
     // submit on the weixin account info
     $('#btn_saveAccountInfo').click(function() {
         var alias = $('#weixin_nickname').val().trim();
