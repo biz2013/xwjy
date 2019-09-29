@@ -54,6 +54,12 @@ vi /home/ubuntu/workspace/xwjy/coinExchange/dj2env_p36/lib/python3.6/site-packag
 
 ```
 
+For CORS issue, making sure django-cors-headers is installed, check CORS_ORIGIN_WHITELIST in base.py, check following link for 
+detail https://stackoverflow.com/questions/43357687/django-python-rest-framework-no-access-control-allow-origin-header-is-present 
+```bash
+pip install django-cors-headers
+```
+
 ## Install wsgi module
 Installation steps below come from the following doc: http://modwsgi.readthedocs.io/en/develop/user-guides/quick-installation-guide.html
 wsgi module need to be built with same python version used in django, ex: we need to use python3.6 to build a new wsgi module
