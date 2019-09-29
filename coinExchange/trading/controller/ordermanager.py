@@ -1067,7 +1067,7 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, payment_url,
             reference_order__order_id = buyorder_id)
         if purchase_trans.status == 'FAILED':
             raise ValueError("Purchase user wallet transaction for purchase order {0} had failed before starting payment".format(buyorder_id))
-        if purchase_trans.payment_status != 'UNKNOWN':
+        if purchase_trans.payment_status != 'UNKNOWN' and purchase_trans.payment_status.upper() != TRADE_STATUS_CREADED.upper():
             raise ValueError("Purchase user wallet transaction for purchase order {0} had payemnt status {1} before starting payment".format(
                   buyorder_id, purchase_trans.payment_status))
         buyorder = Order.objects.select_for_update().get(pk=buyorder_id)

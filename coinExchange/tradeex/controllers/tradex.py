@@ -441,6 +441,10 @@ class TradeExchangeManager(object):
     # even we get clientID/Secret from each sell order, since we only allow one specific user could
     # create paypal sell order, so it should always get the same client/secret.
     def create_paypal_payment(self, request_obj, sell_order_id, buy_order_id, total_amount, quantity, crypto_currency, unit_price, unit_price_currency, api_user, api_trans_id):
+        logger.info("Start to create paypal order for sell_order {0}, buy_order {1}, total_amount {2}, quantity {3}, unit_price_currency {4}, apiuser {5}, api_trans_id {6}".format(
+            sell_order_id, buy_order_id, total_amount, quantity, unit_price_currency, api_user, api_trans_id
+        ))
+
         # Create Order in Paypal
         sell_order_info = ordermanager.get_order_info(sell_order_id)
         seller_paypal_payment_method = userpaymentmethodmanager.get_user_paypal_payment_method(sell_order_info.user.id)
@@ -453,6 +457,7 @@ class TradeExchangeManager(object):
         purchase_description = "Total amount {0} {1} for {2} {3} with unit price {4} {5}." \
             .format(total_amount, unit_price_currency, quantity, crypto_currency, unit_price, unit_price_currency)
 
+        logger.info("paypal order description for buy_order {0}: {1}".format(buy_order_id, purchase_description))
         orderInfo = GetOrder(clientID, clientSecret).create_order(buy_order_id, total_amount_round, purchase_description,
                                                                   unit_price_currency)
         if orderInfo.status_code != 201:
@@ -462,6 +467,7 @@ class TradeExchangeManager(object):
 
         paypal_payment_id = orderInfo.result.id
 
+        logger.info("Get paypal order created in paypal server, detail order info is {0}".format(orderInfo))
         # Update WalletTransaction to capture paypal transaction.
         ordermanager.update_purchase_order_payment_transaction(buy_order_id, TRADE_STATUS_CREADED, "", paypal_payment_id)
 
