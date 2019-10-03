@@ -19,7 +19,7 @@ DATABASES = {
         'NAME': 'mydb',
         'USER': 'root',
         # 'USER': 'tradeAdmin',
-        'PASSWORD': 'AXFund@017',
+        'PASSWORD': 'AXFund@019',
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'TEST':{
