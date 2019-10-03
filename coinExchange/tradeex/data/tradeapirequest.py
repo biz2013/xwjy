@@ -89,8 +89,11 @@ class TradeAPIRequest(object):
         if not method in [API_METHOD_PURCHASE, API_METHOD_REDEEM, API_METHOD_QUERY, API_METHOD_CANCEL]:
             raise ValueError('Unexpected method {0}'.format(method))
 
-        if method == API_METHOD_REDEEM and 'txid' not in json_input:
+        if method == API_METHOD_REDEEM and 'txid' not in json_input and version !='1.0':
             raise ValueError(ERR_REQUEST_MISS_TXID_FOR_REDEEM)
+
+        if method == API_METHOD_REDEEM and 'external_cny_rec_address' not in json_input and version !='1.0':
+            raise ValueError(ERR_REQUEST_MISS_EXTERNAL_CNYF_ADDRESS_FOR_REDEEM)
 
         biz_content_json = json.loads(json_input['biz_content'])
         if 'payment_account' not in biz_content_json and json_input['method'] == API_METHOD_REDEEM:

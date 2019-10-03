@@ -331,7 +331,7 @@ class APIUserTransactionManager(object):
                     notify_resp, comment)
         
         if api_trans.action == API_METHOD_PURCHASE:
-            external_crypto_addr = get_api_user_external_crypto_addr(api_trans)
+            external_crypto_addr = APIUserManager.get_api_user_external_crypto_addr(api_trans.api_user.user.id, 'CNY')
             if not external_crypto_addr:
                 logger.info('on_found_success_purchase_trans: buyer for api trans {0} has no external cny wallet, nothing to do'.format(
                     api_trans.transactionId
@@ -419,7 +419,7 @@ class APIUserTransactionManager(object):
         crypto_trans = None
         if api_trans.action == API_METHOD_REDEEM:
             logger.info("on_cancel_transaction() will try to repay the CNYF sent here for redeem")
-            external_crypto_addr = get_api_user_external_crypto_addr(api_trans)
+            external_crypto_addr = APIUserManager.get_api_user_external_crypto_addr(api_trans.api_user.user.id, 'CNY')
             if not external_crypto_addr:
                 logger.info('on_cancel_transaction: seller for api trans {0} has no external cny wallet, nothing to do'.format(
                     api_trans.transactionId
