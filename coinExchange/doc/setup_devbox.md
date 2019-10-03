@@ -146,3 +146,11 @@ python manage.py test trading.tests.<test file>[.testclass[.test_function]] --se
 
 
 https://1drv.ms/u/s!ApvPY5vduimfnCUFn3rXYqKF9uKm
+
+# Staring At Local
+You can start the docker of cnyfund at local so that you can run a full fledged trading site from local devbox
+
+The commend to start is 
+```
+sudo docker run -d -v ~/cnyfund/mount:/cnyfund:rw --privileged=true -p 18188:18188 -p 18189:18189 cnyfund/miner-pos-ubuntu
+```

@@ -107,7 +107,9 @@ def handleValueError(ve_msg, secretKey):
         ERR_REQUEST_MISS_TIMESTAMP : '请求缺少timestamp字段',
         ERR_REQUEST_MISS_SIGNATURE : '请求缺少sign(签名）字段',
         ERR_REQUEST_MISS_PAYMENT_PROVIDER : '请求缺少payment_provider字段',
-        ERR_REQUEST_MISS_PAYMENT_ACCOUNT_FOR_REDEEM : '提现请求缺少payment_account字段'
+        ERR_REQUEST_MISS_PAYMENT_ACCOUNT_FOR_REDEEM : '提现请求缺少payment_account字段',
+        ERR_REQUEST_MISS_TXID_FOR_REDEEM: '提现请求缺少txid字段',
+        ERR_REQUEST_MISS_EXTERNAL_CNYF_ADDRESS_FOR_REDEEM: '提现请求缺少external_cny_rec_address字段'
     }
 
     resp_json = {}
