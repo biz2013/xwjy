@@ -48,7 +48,7 @@ def get_coin_utils_imp(coin_name, config):
 def get_coin_utils(coin_code):
   try:
     wallet = Wallet.objects.get(cryptocurrency__currency_code=coin_code)
-    coin_name = wallet.cryptocurrency.name
+    coin_name = wallet.cryptocurrency.name.encode('utf-8')
     if not wallet.config_json:
       logger.error('get_coin_utils({0}): the wallet does not have config'.format(coin_code))
       raise ValueError('{0}: CRYPTO_WALLET_NO_CONFIG'.format(coin_code))
