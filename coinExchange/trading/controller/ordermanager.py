@@ -196,6 +196,7 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
                     notify_url = api_redeem_request.notify_url,
                     return_url = api_redeem_request.return_url,
                     expire_in_sec=api_redeem_request.expire_minute * 60,
+                    external_cny_receive_addr = api_redeem_request.external_cny_rec_address,
                     created_by = operatorObj,
                     lastupdated_by= operatorObj
                 )
