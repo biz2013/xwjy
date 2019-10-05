@@ -458,7 +458,7 @@ class APIUserTransactionManager(object):
                         operation_comment='api user {0} send his redeem amount {1} CNY back his wallet'.format(
                             api_trans.api_user.user.username, total_cny_in_units
                         )
-                        logger.debug('on_cancel_transaction(): create userwalletrans about {0}'.format(
+                        logger.info('on_cancel_transaction(): create userwalletrans about {0}'.format(
                             operation_comment
                         ))
 
