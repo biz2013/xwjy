@@ -21,7 +21,8 @@ class TradeAPIRequest(object):
             client_ip='127.0.0.1', 
             subject=None, attach=None, notify_url=None, return_url=None,
             version='1.0', charset='utf-8', sign_type='MD5', timestamp=0,
-            sign=None, original_json_request=None, external_cny_rec_address = None, cad_cny_exchange_rate = 1.0, **kwargs):
+            sign=None, original_json_request=None, external_cny_rec_address = None,
+            cad_cny_exchange_rate = 1.0, txid=None, **kwargs):
         self.version = version
         self.charset = charset
         self.sign_type = sign_type
@@ -53,6 +54,7 @@ class TradeAPIRequest(object):
         self.pay_option = None
         self.external_cny_rec_address = external_cny_rec_address
         self.cad_cny_exchange_rate = cad_cny_exchange_rate
+        self.txid = txid
         self.original_json_request = original_json_request
         if kwargs:
             for key,value in kwargs.items():
@@ -88,6 +90,12 @@ class TradeAPIRequest(object):
         if not method in [API_METHOD_PURCHASE, API_METHOD_REDEEM, API_METHOD_QUERY, API_METHOD_CANCEL]:
             raise ValueError('Unexpected method {0}'.format(method))
 
+        if method == API_METHOD_REDEEM and 'txid' not in json_input and json_input['version'] !='1.0':
+            raise ValueError(ERR_REQUEST_MISS_TXID_FOR_REDEEM)
+
+        if method == API_METHOD_REDEEM and 'external_cny_rec_address' not in json_input and json_input['version'] !='1.0':
+            raise ValueError(ERR_REQUEST_MISS_EXTERNAL_CNYF_ADDRESS_FOR_REDEEM)
+
         biz_content_json = json.loads(json_input['biz_content'])
         if 'payment_account' not in biz_content_json and json_input['method'] == API_METHOD_REDEEM:
             raise ValueError(ERR_REQUEST_MISS_PAYMENT_ACCOUNT_FOR_REDEEM)
@@ -114,7 +122,8 @@ class TradeAPIRequest(object):
             meta_option = biz_content_json.get('meta_option', None),
             pay_option = biz_content_json.get('pay_option', None),
             external_cny_rec_address = json_input.get('external_cny_rec_address', None),
-            cad_cny_exchange_rate = json_input.get('cad_cny_exchange_rate', None))
+            cad_cny_exchange_rate = json_input.get('cad_cny_exchange_rate', None),
+            txid = json_input.get('txid', None))
 
     def __get_biz_content_json(self):
         biz_content_json = {}
@@ -154,6 +163,8 @@ class TradeAPIRequest(object):
             jsonobj['external_cny_rec_address'] = self.external_cny_rec_address
         if self.cad_cny_exchange_rate is not None:
             jsonobj['cad_cny_exchange_rate'] = self.cad_cny_exchange_rate
+        if self.txid is not None:
+            jsonobj['txid'] = self.txid
 
         biz_content_json = self.__get_biz_content_json()
 

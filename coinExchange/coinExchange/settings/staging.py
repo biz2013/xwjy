@@ -19,3 +19,5 @@ API_TRANS_LIMIT_IN_CENT = 1000000
 API_SITE_URL = {
     'stakinguser1' : 'https://www.9lp.com/member/getpaymentqrcode.php?out_trade_no={0}'
 }
+
+QRCODE_TEST_PAYMENTPROXY = 'http://txproxy.9lp.com/'
