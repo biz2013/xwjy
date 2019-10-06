@@ -536,7 +536,7 @@ class APIUserTransactionManager(object):
                     from_account=api_trans.payment_account,
                     #to_account = api_trans.to_account,
                     attach = api_trans.attach,
-                    txid = crypto_trans['txid']
+                    txid = crypto_trans['txid'] if crypto_trans else ''
                 )
                 api_client = APIClient(api_trans.notify_url)
                 notify_resp = ""
