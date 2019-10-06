@@ -197,7 +197,7 @@ LOGGING = {
             'when': 'D',
             'interval': 1,
             'backupCount': 30,
-            'encoding': None,
+            'encoding': 'utf-8',
             'delay': False,
             'utc': False,
             'formatter': 'verbose'

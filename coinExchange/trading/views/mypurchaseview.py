@@ -198,6 +198,9 @@ def parseInfo(api_tran):
     if api_tran.attach :
         parts = api_tran.attach.split(';')
         for part in parts:
+            if part.startswith('http'):
+                payment_qrcode_url = part.strip()
+                continue
             subparts = part.split('=')
             if len(subparts) == 2:
                 if subparts[0].strip() == 'weixin':
