@@ -7,6 +7,8 @@ import hmac
 import string
 import random
 
+from tradeex.controllers.apiusermanager import APIUserManager
+
 logger = logging.getLogger("tradeex.utils")
 
 def sign_api_content(json_input, secret_key):
@@ -69,3 +71,16 @@ def create_access_keys(api_id):
     access_key = digest_maker.hexdigest()
     return access_key
 
+# used by API transaction to get the external cnyf address to transfer CNYF to.
+# this is used by both purchase and redeem.  In purchase, when the purchase is
+# succeeeded, CNYF will be transfered to the external cnyf address.  In redeem,
+# if redeem fails, CNYF will be returned to the external cnyf address
+def get_api_trans_external_cnyf_address(api_tran):
+    external_crypto_addr = api_trans.external_cny_receive_addr
+
+    # if there is no external cny address from user request (save as api transaction), read from APIUserExternalWalletAddress
+    if not external_crypto_addr:
+        logger.info("get_api_trans_external_cnyf_address({0}): could not find external cny receive addr in the request.  Try to read from the external wallet address table")
+        external_crypto_addr = APIUserManager.get_api_user_external_crypto_addr(api_trans.api_user.user.id, 'CNY')
+
+    return external_crypto_addr

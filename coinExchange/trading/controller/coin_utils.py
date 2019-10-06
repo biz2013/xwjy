@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 import json, subprocess, logging
 from trading.controller.coinrpc import CoinProxy
 from trading.models import Wallet

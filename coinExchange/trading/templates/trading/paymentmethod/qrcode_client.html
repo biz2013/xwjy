@@ -1,0 +1,121 @@
+{% extends 'base_generic.html' %} {% block custom_headers %}
+<script type="text/javascript" src="/static/scripts/bootstrap-filestyle.min.js"></script>
+<script type="text/javascript" src="/static/scripts/md5.js"></script>
+
+{% endblock %} {% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-sm-4">
+            <h3>设置微信支付</h3>
+            <h4>1. 微信账户信息</h4>
+            <form id="frm_weixin_accountInfo" method="POST" action="{{ payment_proxy }}/api/v1/member/member.php" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" id="api_key" name="api_key" value="{{ api_key }}" />
+                <input type="hidden" id="auth_token" name="auth_token" value="{{ auth_token }}"/>
+                <input type="hidden" id="auth_check_url" name="auth_check_url" value="{{ auth_check_url }}"/>
+                <input type="hidden" id="externaluserId" name="externaluserId" value="{{ externaluserId }}"/>
+                <input type="hidden" id="key" name="key" value="{{ key }}"/>
+                <input type="hidden" id="signature" name="signature" value="{{ signature }}" />
+                <div class="form_group">
+                    <div id="div_message" class="text-success"></div>
+                    <div id="div_error" class="text-danger"></div>
+                    <div id="div_id_alias" class="form-group">
+                        <label for="weixin_nickname" class="control-label">微信昵称</label><span class="asteriskField">*</span>
+                        <div class="controls ">
+                            <input type="text" class="textinput textInput form-control" id="weixin_nickname" maxlength="64" name="weixin_nickname" value="{% if weixin %}{{ weixin.account_alias }}{% endif %}" />
+                        </div>
+                    </div>
+                    <div id="div_id_qrcode" class="form-group">
+                        <label for="weixin_qrcode" class="control-label">收款二维码</label>
+                        <div class="controls ">
+                            <input type="file" id="weixin_qrcode" class="filestyle" name="weixin_qrcode" />
+                        </div>
+                        <p>
+                        {% if provider_qrcode_image %}
+                        <div id="qrcodeDiv"><img id="img_qrcode" src="{{ payment_proxy }}api/v1/member/getqrcode.php?api_key={{ api_key }}&externaluserId={{ externaluserId }}&signature={{ signature }}" width="300" height="400"></div>
+                        {% else %}
+                        <div id="qrcodeDiv"></div>
+                        {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </form>
+            <div class="form-group">
+                <button type="button" class="btn btn-primary" id="btn_saveAccountInfo">保存</button>
+                <button type="button" class="btn btn-default" id="btn_cancel">撤销</button>
+            </div>
+        </div>
+        {% if weixin %}
+        <div class="col-sm-4">
+            <h4>2 添加店员二维码</h4>
+            <div class="form-group ">
+                <form action="{% url 'upload_shop_assistant_pic' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+                    <input type="hidden" id="id" name="id" value="{% if weixin_shop_assistant_image %}{{ weixin_shop_assistant_image.id }}{% endif %}" />
+                    <input type="hidden" id="user_payment_method" name="user_payment_method" value="{{ weixin.id }}" />
+                    <input type="hidden" id="image_tag" name="image_tag" value="WXSHOPASSTQRCODE" />
+                    <input type="hidden" id="created_by" name="created_by" value="{% if weixin_shop_assistant_image %}{{ weixin_shop_assistant_image.created_by.id }}{% elif user %}{{ user.id }}{% endif %}" />
+                    <input type="hidden" id="lastupdated_by" name="lastupdated_by" value="{% if weixin_shop_assistant_image %}{{ weixin_shop_assistant_image.lastupdated_by.id }}{% elif user %}{{ user.id }}{% endif %}" />
+                    <p>
+                        <input type="file" id="id_qrcode" class="filestyle" name="qrcode" />
+                    </p>
+                    <button type="button " class="btn btn-primary ">上传</button>
+                </form>
+                {% if weixin_shop_assistant_image %}
+                <a href="# "><img src="{{ weixin_shop_assistant_image.qrcode.url}}" width="64 " height="64 "/></a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<script>
+$(document).ready(function() {
+    $('#div_message').hide()
+    $('#div_error').hide()
+    $('#frm_weixin_accountInfo').submit(function (event){
+        event.preventDefault(); //prevent default action 
+        var post_url = $(this).attr("action"); //get form action url
+        var request_method = $(this).attr("method"); //get form GET/POST method
+        var form_data = new FormData(this);
+        $.ajax({
+            url : post_url,
+            type: request_method,
+            data : form_data,
+            processData: false,
+            contentType: false,
+            cache: false
+        }).done(function(response){ //
+            $('#div_message').text('付款信息更新成功');
+            $('#qrcodeDiv').prepend($('<img>',{id:'img_qrcode',src: response.qrcode}));
+        }).fail(function(jqXHR, textStatus, errorThrown ){
+            $('#div_error').text(textStatus);
+        });
+    });
+    // submit on the weixin account info
+    $('#btn_saveAccountInfo').click(function() {
+        var alias = $('#weixin_nickname').val().trim();
+        if (alias === "") {
+            $('#div_accountInfo_error').text('请输入您的昵称');
+            return;
+        } else {
+            $('#div_accountInfo_error').text('');
+        }
+        var uri_param = "api_key=" + $("#api_key").val();
+        uri_param = uri_param + "&auth_token=" + $("#auth_token").val();
+        uri_param = uri_param + "&auth_check_url=" + $("#auth_check_url").val();
+        uri_param = uri_param + "&externaluserId=" + $("#externaluserId").val();
+        uri_param = uri_param + "&weixin=" + $("#weixin_nickname").val();
+        uri_param = uri_param + "&secret=" + $("#key").val();
+        var signature  = md5(uri_param);
+
+        alert("The string to be signed is " + uri_param + " and signature is " + signature);
+        $("#signature").val(signature);
+
+        $('#frm_weixin_accountInfo').submit();
+    })
+    $('#btn_cancel').click(function() {
+        window.location.replace('/trading/accounts/accountinfo/');
+    })
+})
+</script>
+{% endblock %}
