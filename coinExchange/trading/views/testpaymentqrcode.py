@@ -57,7 +57,7 @@ def testpaymentqrcode(request):
                 secret = api_account.secretKey
             except APIUserAccount.DoesNotExist:
                 err_msg['status'] = 'ERROR_API_KEY_NOTFOUND'
-                err_msg['message'] = '你的请求中的PI KEY不存在'
+                err_msg['message'] = '你的请求中的API KEY不存在'
                 return HttpResponseNotFound(json.dumps(err_msg, ensure_ascii=False))
 
             if not validate_signature(api_key, externaluserId, secret, signature):
