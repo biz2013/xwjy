@@ -1,30 +1,20 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import sys, io, traceback, time, json, copy, math
-import logging
+import sys
 
-from calendar import timegm
-import datetime as dt
-from datetime import timedelta
 sys.path.append('../stakingsvc/')
-from django.contrib.auth.models import User
-from django.test import TestCase, TransactionTestCase
-from django.test import Client
+from django.test import TransactionTestCase
 
-
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import patch
 
 from tradeex.data.tradeapirequest import TradeAPIRequest
 from tradeex.data.api_const import *
 from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from tradeex.apitests.tradingutils import *
 from tradeex.apitests.util_tests import *
-from tradeex.responses.heepaynotify import HeepayNotification
 from tradeex.controllers.crypto_utils import *
 from tradeex.models import *
 from trading.models import *
-from trading.controller import useraccountinfomanager
-from trading.controller import ordermanager
 import json
 
 TEST_HY_BILL_NO='180102122300364021000081666'

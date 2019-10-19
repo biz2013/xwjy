@@ -16,7 +16,6 @@ from tradeex.client.apiclient import APIClient
 from tradeex.controllers.apiusermanager import APIUserManager
 from tradeex.controllers.apiusertransmanager import APIUserTransactionManager
 from tradeex.controllers.tradex import TradeExchangeManager
-from tradeex.controllers.crypto_utils import CryptoUtility
 from tradeex.requests.heepayapirequestfactory import HeepayAPIRequestFactory
 from tradeex.responses.heepayresponse import HeepayResponse
 from tradeex.data.api_const import *

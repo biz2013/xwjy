@@ -13,7 +13,7 @@ from trading.models import *
 
 logger = logging.getLogger('tradeex.apitests.test_api_user')
 
-INVESTMENT_SITE_SOURCE = 'www.91.com'
+INVESTMENT_SITE_SOURCE = 'www.9lp.com'
 
 class TestAPIUser(TransactionTestCase):
     fixtures = ['fixture_test_tradeapi.json']

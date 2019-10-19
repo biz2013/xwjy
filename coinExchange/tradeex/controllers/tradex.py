@@ -74,6 +74,7 @@ class TradeExchangeManager(object):
 
         return False
 
+    # Currently the only manual payment method is weixin.
     def create_manual_payment_url(self, api_user, api_trans_id, buy_order_id):
         return '{0}?key={1}'.format(settings.TRADESITE_PAYMENT_URLPREFIX, buy_order_id)
 
@@ -99,7 +100,7 @@ class TradeExchangeManager(object):
             )
             raise ValueError('TOO_MANY_ACCOUNTS_AT_PROVIDER')
         
-    def get_qualified_orders_to_buy(self, crypto, amount, currency):
+    def get_qualified_orders_to_buy(self, crypto, amount, currency, buyer_payment_provider):
         # query all the orders that best fit the buy order
         candidates = []
         apitrans = APIUserTransaction.objects.filter(
@@ -112,7 +113,8 @@ class TradeExchangeManager(object):
         for tran in apitrans:
             api_orders.append(tran.reference_order.order_id)
         orders =  Order.objects.filter(
-            (Q(status='OPEN') | Q(status='PARTIALFILLED')) & 
+            (Q(status='OPEN') | Q(status='PARTIALFILLED')) &
+            Q(seller_payment_method__provider__code=buyer_payment_provider) &
             Q(order_type='SELL') & Q(units_available_to_trade__gt=0.0) &
             Q(unit_price_currency=currency) &
             Q(cryptocurrency__currency_code=crypto)).order_by('unit_price', 'total_amount','created_at')
@@ -209,8 +211,6 @@ class TradeExchangeManager(object):
             raise ValueError(ERR_NO_SELL_ORDER_TO_SUPPORT_PRICE)
         return processed_purchases[0].unit_price    
 
-    # Depreciate heepay related api, since it's no longer supported.
-
     # This function wrap old routine that call heepay to create order
     # It will return heepay's response which contains the payment url that will be
     # shown to the buyer
@@ -302,7 +302,7 @@ class TradeExchangeManager(object):
         open_buy_orders = self.get_open_buy_order(api_site_user)
         if len(open_buy_orders) > 0:
             raise ValueError(ERR_MORE_THAN_ONE_OPEN_BUYORDER)
-        qualify_orders = self.get_qualified_orders_to_buy(crypto, amount, currency)
+        qualify_orders = self.get_qualified_orders_to_buy(crypto, amount, currency, buyer_payment_provider)
         if qualify_orders:
             logger.info("purchase_by_cash_amount(): [out_trade_no {0}] Find {1} qualified sell orders to buy from".format(
                 api_call_order_id, len(qualify_orders)))

@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from tradeex.controllers.walletmanager import WalletManager
-from tradeex.controllers.crypto_utils import CryptoUtility
 
 def check_on_wallet(request):
     try:

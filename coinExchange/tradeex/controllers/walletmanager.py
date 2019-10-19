@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import json, logging
-from trading.models import Wallet
-from tradeex.controllers.crypto_utils import CryptoUtility
+from trading.models import Wallet, UserWalletTransaction
 from trading.controller.coin_utils import *
 
 logger = logging.getLogger("tradeex.walletmanager")

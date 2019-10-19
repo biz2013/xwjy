@@ -11,7 +11,8 @@
       "heepay_app_id" : "hyq17121610000800000911220E16AB0",
       "heepay_app_key" : "4AE4583FD4D240559F80ED39",
       "heepay_expire_in_sec" : 90,
-      "confirmation_timeout_insec" : 0
+      "confirmation_timeout_insec" : 0,
+      "min_trx_confirmation": 10
     }
   },
   {
@@ -56,7 +57,7 @@
      "fields":{
        "name":"AXFundWallet",
        "cryptocurrency": "AXFund",
-       "config_json": "{\"bin_path\":\"\/opt\/axfund\/bin\/axfund\",\"data_dir\":\"\/axfund\",\"host_ip\":\"192.168.1.214\",\"rpc_port\":\"18200\",\"rpc_user\":\"axfundrpc\",\"rpc_user_password\":\"FD45ViM8jsC6ySbqoweniVML1t65LtYmbuHB7Ds67JH\",\"transaction_lookback_count\":1000,\"account\":\"\",\"passphrase\":\"axfund_xxx\",\"min_trx_confirmation\":5}",
+       "config_json": "{\"bin_path\":\"\",\"data_dir\":\"\",\"host_ip\":\"192.168.1.214\",\"rpc_port\":\"18200\",\"rpc_user\":\"axfundrpc\",\"rpc_user_password\":\"FD45ViM8jsC6ySbqoweniVML1t65LtYmbuHB7Ds67JH\",\"transaction_lookback_count\":1000,\"account\":\"\",\"passphrase\":\"axfund_xxx\"}",
        "created_at": "2017-12-17T21:14:00+08:00",
        "lastupdated_at": "2017-12-17T21:14:00+08:00",
        "created_by": 1,
@@ -69,7 +70,7 @@
     "fields":{
       "name":"CNYWallet",
       "cryptocurrency": "CNY",
-      "config_json": "{\"bin_path\":\"\/opt\/cnyfund\/bin\/cnyfund\",\"data_dir\":\"\/cnyfund\",\"host_ip\":\"192.168.1.214\",\"rpc_port\":\"18189\",\"rpc_user\":\"cnyfundrpc\",\"rpc_user_password\":\"J4oxViM8jsC6ySbqoweniVML1t65LtYmbuHB7DsFYdH\",\"transaction_lookback_count\":1000,\"account\":\"\",\"passphrase\":\"xxxx\",\"min_trx_confirmation\":5}",
+      "config_json": "{\"bin_path\":\"\",\"\":\"\/cnyfund\",\"host_ip\":\"192.168.1.214\",\"rpc_port\":\"18189\",\"rpc_user\":\"cnyfundrpc\",\"rpc_user_password\":\"J4oxViM8jsC6ySbqoweniVML1t65LtYmbuHB7DsFYdH\",\"transaction_lookback_count\":1000,\"account\":\"\",\"passphrase\":\"xxxx\"}",
       "created_at": "2017-12-17T21:14:00+08:00",
       "lastupdated_at": "2017-12-17T21:14:00+08:00",
       "created_by": 1,
@@ -214,6 +215,63 @@
       "user": 5,
       "provider": "heepay",
       "account_at_provider": "api_user2_12345",
+      "provider_qrcode_image": "qrcode/test_qr_code.png",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
+
+  {
+    "model": "trading.userpaymentmethod",
+    "pk": 5,
+    "fields": {
+      "user": 2,
+      "provider": "weixin",
+      "account_at_provider": "158113027022",
+      "provider_qrcode_image": "qrcode/test_qr_code.png",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
+  {
+    "model": "trading.userpaymentmethod",
+    "pk": 6,
+    "fields": {
+      "user": 3,
+      "provider": "weixin",
+      "account_at_provider": "186007019616",
+      "provider_qrcode_image": "qrcode/test_qr_code.png",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
+  {
+    "model": "trading.userpaymentmethod",
+    "pk": 7,
+    "fields": {
+      "user": 4,
+      "provider": "weixin",
+      "account_at_provider": "139109785987",
+      "provider_qrcode_image": "qrcode/test_qr_code.png",
+      "created_at": "2017-12-17T21:14:00+08:00",
+      "lastupdated_at": "2017-12-17T21:14:00+08:00",
+      "created_by": 1,
+      "lastupdated_by": 1
+    }
+  },
+  {
+    "model": "trading.userpaymentmethod",
+    "pk": 8,
+    "fields": {
+      "user": 5,
+      "provider": "weixin",
+      "account_at_provider": "api_user2_123456",
       "provider_qrcode_image": "qrcode/test_qr_code.png",
       "created_at": "2017-12-17T21:14:00+08:00",
       "lastupdated_at": "2017-12-17T21:14:00+08:00",

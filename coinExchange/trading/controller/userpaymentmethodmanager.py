@@ -36,6 +36,15 @@ def get_user_payment_methods(userid):
         method_list.append(record)
     return method_list
 
+def get_user_payment_method_by_provider(userid, provider_code):
+    try:
+        return UserPaymentMethod.objects.get(user__id = userid, provider__code = provider_code)
+    except UserPaymentMethod.DoesNotExist:
+        return None
+
+def get_weixin_paymentmethod(userid):
+    return get_user_payment_method_by_provider(userid, PAYMENTMETHOD_WEIXIN)
+
 def get_user_paypal_payment_method(userid):
     try:
         paypal = UserPaymentMethod.objects.get(user__id = userid, provider__code = PAYMENTMETHOD_PAYPAL)
@@ -67,12 +76,6 @@ def create_update_user_payment_method(user_payment_method, operator):
             record.client_secret = user_payment_method.client_secret
             record.lastupdated_by = operatorObj
             record.save()
-
-def get_weixin_paymentmethod(userid):
-    try:
-        return UserPaymentMethod.objects.get(user__id=userid, provider= PAYMENTMETHOD_WEIXIN)
-    except UserPaymentMethod.DoesNotExist:
-        return None
 
 def get_weixin_images(weixin_id):
     weixin_payment_image = None
