@@ -44,11 +44,11 @@
           return false;
         }
 
-        var provider = $("#id_seller_payment_method").val();
-        if (provider.length == 0) {
-          $("#div_id_error").text("请选择付款方式");
-          return false;
-        }
+        {#var provider = $("#id_seller_payment_method").val();#}
+        {#if (provider.length == 0) {#}
+        {#  $("#div_id_error").text("请选择付款方式");#}
+        {#  return false;#}
+        {#}#}
 
         return true;
       }
@@ -85,13 +85,13 @@
           return;
         }
 
-        if ($("#id_seller_payment_method").length == 1) {
-            var provider = $("#id_seller_payment_method").val();
-            if (provider.length == 0) {
-              $("#div_id_error").text("请选择付款方式");
-              return;
-            }
-        }
+        {#if ($("#id_seller_payment_method").length == 1) {#}
+        {#    var provider = $("#id_seller_payment_method").val();#}
+        {#    if (provider.length == 0) {#}
+        {#      $("#div_id_error").text("请选择付款方式");#}
+        {#      return;#}
+        {#    }#}
+        {#}#}
 
         $("#create_purchase").submit();
       }

@@ -22,7 +22,7 @@ class TradeAPIRequest(object):
             subject=None, attach=None, notify_url=None, return_url=None,
             version='1.0', charset='utf-8', sign_type='MD5', timestamp=0,
             sign=None, original_json_request=None, external_cny_rec_address = None,
-            txid=None, **kwargs):
+            cad_cny_exchange_rate = 1.0, txid=None, **kwargs):
         self.version = version
         self.charset = charset
         self.sign_type = sign_type
@@ -53,6 +53,7 @@ class TradeAPIRequest(object):
         self.meta_option = None
         self.pay_option = None
         self.external_cny_rec_address = external_cny_rec_address
+        self.cad_cny_exchange_rate = cad_cny_exchange_rate
         self.txid = txid
         self.original_json_request = original_json_request
         if kwargs:
@@ -121,6 +122,7 @@ class TradeAPIRequest(object):
             meta_option = biz_content_json.get('meta_option', None),
             pay_option = biz_content_json.get('pay_option', None),
             external_cny_rec_address = json_input.get('external_cny_rec_address', None),
+            cad_cny_exchange_rate = json_input.get('cad_cny_exchange_rate', None),
             txid = json_input.get('txid', None))
 
     def __get_biz_content_json(self):
@@ -159,6 +161,8 @@ class TradeAPIRequest(object):
         jsonobj['timestamp'] = self.timestamp
         if self.external_cny_rec_address is not None:
             jsonobj['external_cny_rec_address'] = self.external_cny_rec_address
+        if self.cad_cny_exchange_rate is not None:
+            jsonobj['cad_cny_exchange_rate'] = self.cad_cny_exchange_rate
         if self.txid is not None:
             jsonobj['txid'] = self.txid
 
@@ -171,7 +175,7 @@ class TradeAPIRequest(object):
         self.secret_key = secret_key
         signed = sign_api_content(self.__create_json_to_sign(), secret_key)
         logger.info('signed is {0} original sign is {1}'.format(signed, self.sign))
-        return signed == self.sign
+        return signed.upper() == self.sign.upper()
 
     def getPayload(self):
         if not self.sign:

@@ -13,3 +13,4 @@ urllib3==1.24.2
 paypal-checkout-serversdk==1.0.0
 python-bitcoinrpc==1.0
 jinja2==2.10.1
+django-cors-headers==3.1.0

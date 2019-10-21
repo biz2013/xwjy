@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+
+<!-- check https://developer.paypal.com/demo/checkout/#/pattern/client and paste below code to run paypal checkout button test -->
+
+<head>
+    <!-- Add meta tags for mobile and IE -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+</head>
+
+<body>
+    <!-- Set up a container element for the button -->
+    <div id="paypal-button-container"></div>
+
+    <!-- Include the PayPal JavaScript SDK -->
+    <script src="https://www.paypal.com/sdk/js?client-id=AchuZE_jTfy2hm12omC1uBHBCd743uQ2sD8ijChtWO9AWMtfX8Mjz65iLi5zFqkV8WWHmw1pFOKeKM4y&currency=USD"></script>
+    <!-- for debugging <script src="https://www.paypal.com/sdk/js?client-id=AQ8uqFOUcbhQ7wNzRIGXFZ5RxZyUoV8tIS6T450-dsqyX8aPsvAGakXukEDBY-K21LeWHtAfGk_BwnNF&currency=USD"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.12.0/js/md5.js"></script>
+    <script language="JavaScript">
+
+        // sign given payload string with md5
+        // DO NOT expose secret here! this is just a demo.
+        // we should call a remote server to sign.
+        function sign(api_request){
+            var secret = "<secret>";
+            var api_request_sorted = {};
+            var request_to_sign = "";
+            Object.keys(api_request).sort().forEach(function(key) {
+              api_request_sorted[key] = api_request[key];
+              request_to_sign += ( key + "=" );
+              request_to_sign += ( api_request[key] + "&")
+            });
+            request_to_sign += ("key=" + secret);
+
+            return md5(request_to_sign);
+        }
+
+        function throw_if_fetch_error(response) {
+            if (!response.ok) {
+                throw Error(response.statusText);
+            }
+            return response;
+        }
+
+        paypal.Buttons({
+        createOrder: function (data, actions) {
+          var total_amount_in_cent = 2000;
+          var cad_cny_exchange_rate = 5.46;
+
+          var biz_json = {
+              "api_account_type": "Account",
+              "attach": "userid:1",
+              "client_ip": "59.47.37.43",
+              "expire_minute": 30,
+              "notify_url": "https://www.9lp.com/notify.php",
+              "out_trade_no": "20190812181025990473",
+              "payment_provider": "paypal",
+              "subject": "any",
+              "total_fee": total_amount_in_cent
+            };
+
+          // sort key to sign
+          var biz_json_sorted = {};
+          Object.keys(biz_json).sort().forEach(function(key) {
+              biz_json_sorted[key] = biz_json[key];
+          });
+
+          // do we want to pass in attachment for api_site_user ?
+          // customer seems not possible to provide this info? or we just
+          // want user to pass in any customer user id?
+          var api_request = {
+            "api_key": "UN57QVEE9RIS858PJ5GUAP2Y7WUS2VUO",
+            "biz_content": JSON.stringify(biz_json_sorted),
+            "cad_cny_exchange_rate": cad_cny_exchange_rate,
+            "charset": "utf-8",
+            "method": "wallet.trade.buy",
+            "sign_type":"MD5",
+            "timestamp":"20190812181025",
+            "version":"1.0"
+          };
+
+          api_request["sign"] = sign(api_request);
+
+          // return fetch('http://127.0.0.1:8000/api/v1/applypurchase/', {
+          return fetch('http://52.43.117.129:8081/api/v1/applypurchase/', {
+            method: 'POST',
+            body: JSON.stringify(api_request),
+          }).then(function(res) {
+            return throw_if_fetch_error(res)
+          }).then(function(res) {
+              return res.json();
+          }).then(function(data) {
+              //console.log(JSON.stringify(data))
+              return data.orderID;
+          }).catch(error => {
+            console.log(error);
+            alert("无法生成 PayPal支付， 请稍后再试")
+          });
+        },
+
+        onApprove: function (data, actions) {
+          return actions.order.capture().then(function (details) {
+            console.log(details);
+            return fetch('http://52.43.117.129:8081/trading/paypal/confirm_payment/', {
+              method: 'post',
+              body: JSON.stringify({
+                orderID: data.orderID,
+                details: details,
+                buy_order_id: details.purchase_units[0].reference_id,
+                amount: details.purchase_units[0].amount
+              }),
+            }).then(function(res) {
+              return throw_if_fetch_error(res)
+            }).then(function(data) {
+              // show a success page to user.
+              // data contains orderID(paypal payment id), api_trans_id and api_out_trade_no
+              alert("支付成功！")
+            }).catch(error => {
+              console.log(error);
+              alert("无法确认 PayPal支付是否成功，请稍后查看")
+            });
+          });
+        },
+
+        style: {
+          layout: 'vertical',
+          color: 'gold',
+          shape: 'rect',
+          label: 'paypal',
+          tagline: false
+        }
+      }).render('#paypal-button-container');
+    </script>
+</body>

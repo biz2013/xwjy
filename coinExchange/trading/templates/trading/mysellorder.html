@@ -229,14 +229,19 @@
                         <label for="id_currency" class="control-label">币种</label><span class="asteriskField">*</span> </label>
                         <select class="form-control" id="id_currency" onchange="show_total_amount($('#id_quantity').val(), $('#id_unit_price').val())">
                                 <option value="CNY" selected="selected" >人民币(CNY)</option>
+                                {% if isPrimaryPaypalUser %}
                                 <option value="CAD">加元(CAD)</option>
+                                {% endif %}
                             </select>
                     </div>
                     <div class="form-group">
                         <label for="id_payment_method" class="control-label">支付方式</label><span class="asteriskField">*</span> </label>
                         <select class="form-control" id="id_payment_method" name="payment_method">
                                 <option value="weixin" selected="selected" >微信支付</option>
+                                <option value="heepay">汇钱包</option>
+                                {% if isPrimaryPaypalUser %}
                                 <option value="paypal">Paypal</option>
+                                {% endif %}
                             </select>
                     </div>
                     <div id="div_id_total" class="form-group">

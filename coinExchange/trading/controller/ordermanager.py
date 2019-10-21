@@ -70,10 +70,10 @@ def get_and_update_sell_order_payment_methods(sell_order_id):
                 sell_order.save()
                 return weixin
             elif sell_order.unit_price_currency == 'CAD':
-                paypal = userpaymentmethodmanager.get_user_paypal_payment_method(sell_order.user.id)
+                paypal = userpaymentmethodmanager.get_paypal_paymentmethod(sell_order.user.id)
                 if not (paypal and paypal.client_id and paypal.client_secret):
                     raise ValueError(ERR_SELLER_PAYPAL_NOT_FULLY_SETUP)
-                sell_order.selected_payment_provider = paypal
+                sell_order.selected_payment_provider = paypal.provider
                 sell_order.account_at_selected_payment_provider = paypal.account_at_provider
                 sell_order.save()
                 return paypal
@@ -129,6 +129,15 @@ def create_sell_order(order, operator, api_user = None,  api_redeem_request = No
     userobj = User.objects.get(id = order.owner_user_id)
     operatorObj = User.objects.get(username = operator)
     crypto = Cryptocurrency.objects.get(currency_code = order.crypto)
+
+    # ensure user could only create RMB sell order.
+    if not context_processor.is_paypal_primary_user(userobj.username):
+        assert order.unit_price_currency == "CNY"
+
+    # making sure only the primary paypal account define in context_processor can create Paypal sell order.
+    if (order.selected_payment_provider == "paypal" or order.unit_price_currency == "CAD") \
+        and not context_processor.is_paypal_primary_user(userobj.username):
+        raise ValueError("user {0} doesn't have permission to create paypal or CAD sell order.".format(userobj.username))
 
     try:
         seller_payment_method= UserPaymentMethod.objects.get(
@@ -1059,7 +1068,7 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, payment_url,
             reference_order__order_id = buyorder_id)
         if purchase_trans.status == 'FAILED':
             raise ValueError("Purchase user wallet transaction for purchase order {0} had failed before starting payment".format(buyorder_id))
-        if purchase_trans.payment_status != 'UNKNOWN':
+        if purchase_trans.payment_status != 'UNKNOWN' and purchase_trans.payment_status.upper() != TRADE_STATUS_CREADED.upper():
             raise ValueError("Purchase user wallet transaction for purchase order {0} had payemnt status {1} before starting payment".format(
                   buyorder_id, purchase_trans.payment_status))
         buyorder = Order.objects.select_for_update().get(pk=buyorder_id)

@@ -97,6 +97,41 @@ class GetOrder(PayPalClient):
         ]
       }
 
+  # Redirect seems is deprecated in paypal, since paypal button is doing callback, we could put logic there.
+  # https://developer.paypal.com/docs/archive/checkout/how-to/customize-flow/#
+  def build_purchase_order_body_with_redirect(self, buy_order_id, total_amount, description, unit_price_currency, redirect_url):
+    if not redirect_url:
+      return self.build_purchase_order_body(buy_order_id, total_amount, description, unit_price_currency)
+
+    # from the sample before, paypal support redirect when payment complete and canceled, but we only do redirect on payment complete (return).
+    # "redirect_urls": {
+    #         "return_url": "http://localhost:3000/payment/execute",
+    #         "cancel_url": "http://localhost:3000/"},
+    # https://github.com/paypal/PayPal-Python-SDK
+
+    """Method to create body with CAPTURE intent"""
+    return \
+      {
+        "intent": "CAPTURE",
+        "application_context": {
+          "shipping_preference": "NO_SHIPPING",
+        },
+        "purchase_units": [
+          {
+            "reference_id": buy_order_id,
+            "description": description,
+
+            "amount": {
+              "currency_code": unit_price_currency,
+              "value": total_amount
+            }
+          }
+        ],
+        "redirect_urls": {
+          "return_url": redirect_url
+        }
+      }
+
 @csrf_exempt
 def confirm_paypal_order(request):
   try:
@@ -158,7 +193,9 @@ def confirm_paypal_order(request):
         raise Exception(error_msg)
 
       # Validate amount
-      if buy_order_info.total_amount != float(paypal_payment_info[0].value):
+      # Paypal only support decimal with 2, so it will round up from buy_order amount.
+      if round(buy_order_info.total_amount, 2) != round(float(paypal_payment_info[0].value), 2) and \
+        abs(buy_order_info.total_amount - float(paypal_payment_info[0].value)) > 1.0 :
         error_msg = "payment amount {0} user paid doesn't match with the number from paypal confirmation". \
           format(buy_order_info.total_amount, paypal_payment_info[0].value)
         raise Exception(error_msg)
@@ -175,7 +212,7 @@ def confirm_paypal_order(request):
         # Update buy order transaction as "SUCCESS".
         ordermanager.update_purchase_order_payment_transaction(buy_order_id, TRADE_STATUS_SUCCESS, "")
         # Confirm order complete.
-        ordermanager.confirm_purchase_order(buy_order_id, 'admin')
+        ordermanager.confirm_purchase_order(buy_order_id, buy_order_info.user.username)
         return HttpResponse(content='OK')
       elif capture.status.upper() == 'PENDING' and capture.status_details.reason.upper() == "RECEIVING_PREFERENCE_MANDATES_MANUAL_ACTION":
         # Paid by buyer but unclaimed from seller.
