@@ -9,4 +9,4 @@ pytz==2018.3
 qrcode==5.3
 requests==2.19.1
 six==1.11.0
-urllib3==1.23
+urllib3==1.24.2
