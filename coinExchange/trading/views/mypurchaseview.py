@@ -250,7 +250,7 @@ def create_purchase_order(request):
             if buyorderid is None:
                raise ValueError('Failed to get purchase order id')
 
-            if settings.PAYMENT_API_STATUS['heepay'] == 'auto':
+            if seller_payment_provider == 'heepay' and settings.PAYMENT_API_STATUS['heepay'] == 'auto':
                 # read the sitsettings
                 sitesettings = context_processor.settings(request)['settings']
                 json_response = send_payment_request(sitesettings, seller_payment_provider,
