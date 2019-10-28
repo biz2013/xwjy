@@ -86,19 +86,23 @@ $(document).ready(function() {
             cache: false
         }).done(function(response){ //
             $('#div_message').text('付款信息更新成功');
+            $('#div_message').show();
             $('#qrcodeDiv').prepend($('<img>',{id:'img_qrcode',src: response.qrcode}));
         }).fail(function(jqXHR, textStatus, errorThrown ){
             $('#div_error').text(textStatus);
+            $('#div_error').show();
         });
     });
     // submit on the weixin account info
     $('#btn_saveAccountInfo').click(function() {
         var alias = $('#weixin_nickname').val().trim();
         if (alias === "") {
-            $('#div_accountInfo_error').text('请输入您的昵称');
+            $('#div_error').text('请输入您的昵称');
+            $('#div_error').show();
             return;
         } else {
-            $('#div_accountInfo_error').text('');
+            $('#div_error').text('');
+            $('#div_error').hide();
         }
         var uri_param = "api_key=" + $("#api_key").val();
         uri_param = uri_param + "&auth_token=" + $("#auth_token").val();

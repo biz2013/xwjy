@@ -27,8 +27,9 @@ import hmac
 # logger for user registration
 logger = logging.getLogger("site.testpaymentqrcode")
 
-def validate_signature(api_key, externaluserId, secret, original_signature):
-    str_to_be_signed = 'api_key={0}&externaluserId={1}&secret={2}'.format(api_key, externaluserId, secret)
+def validate_signature(api_key, auth_token, auth_check_url, externaluserId, secret, original_signature):
+    str_to_be_signed = 'api_key={0}&auth_token={1}&auth_check_url={2}&externaluserId={3}&secret={4}'.format(
+        api_key, auth_token, auth_check_url, externaluserId, secret)
     m = hashlib.md5()
     m.update(str_to_be_signed.encode('utf-8'))
     signature = m.hexdigest()
@@ -62,7 +63,7 @@ def testpaymentqrcode(request):
                 #err_msg['message'] = '你的请求中的API KEY不存在'
                 #return HttpResponseNotFound(json.dumps(err_msg, ensure_ascii=False))
 
-            if not validate_signature(api_key, externaluserId, secret, signature):
+            if not validate_signature(api_key, auth_token, auth_check_url, externaluserId, secret, signature):
                 err_msg['status'] = 'ERROR_SIGNATURE_NOTMATCH'
                 err_msg['message'] = '你的请求签名不符'
                 return HttpResponseBadRequest(json.dumps(err_msg, ensure_ascii=False))
