@@ -47,6 +47,7 @@ urlpatterns = [
     re_path(r'^mysellorder/confirm_payment/$', mysellorderview.confirm_payment, name="confirm_payment_action"),
     re_path(r'^paypal/confirm_payment/$', paypalview.confirm_paypal_order, name="confirm_paypal_payment"),
     re_path(r'^heepay/confirm_payment/$', heepay_notify_view.heepay_confirm_payment, name="confirm_payment"),
+    re_path(r'^weixin/confirm_payment/$', yuque_notify_view.yuque_confirm_payment, name="yuque_confirm_payment"),
     re_path(r'^purchase/$', mypurchaseview.show_active_sell_orders, name='purchase'),
     re_path(r'^purchase/createorder1/$', mypurchaseview.show_purchase_input, name="input_purchase"),
     re_path(r'^purchase/createorder2/$', mypurchaseview.create_purchase_order, name="create_purchase_order"),
