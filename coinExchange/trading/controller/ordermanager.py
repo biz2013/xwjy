@@ -826,6 +826,56 @@ def update_order_with_heepay_notification(notify_json, operator):
 
         return buyorder.order_id
 
+def update_order_with_yuque_notification(notify_json, operator):
+    logger.info('update_order_with_yuque_notification(with inner_trade_no {0} out_trade_no {1}'.format(
+        notify_json['inner_trade_no'], notify_json['out_trade_no']
+    ))
+    operatorObj = User.objects.get(username=operator)
+
+    with transaction.atomic():
+        #get the original purchase user_wallet_trans
+        purchase_trans = lock_trans_of_purchase_order(notify_json['out_trade_no'],
+             notify_json['inner_trade_no'])
+        if purchase_trans.status == 'PROCESSED':
+            logger.info("The transaction has been processed.  Nothing to do")
+            return
+
+        updated = APIUserTransaction.objects.filter(
+                Q(reference_order__order_id=purchase_trans.reference_order.order_id) | 
+                Q(reference_order__order_id=purchase_trans.reference_order.reference_order.order_id)
+            ).update(
+                real_fee = notify_json['product_real_fee'],
+                payment_provider_last_notify = json.dumps(notify_json, ensure_ascii=False),
+                payment_provider_last_notified_at = dt.datetime.utcnow(),
+                payment_account = None,
+                payment_status = 'PAIDSUCCESS',
+                trade_status = 'PAIDSUCCESS',
+                lastupdated_by = operatorObj,
+                lastupdated_at = dt.datetime.utcnow()
+            )
+
+        if not updated and (purchase_trans.reference_order.order_source == 'API' or 
+            purchase_trans.reference_order.reference_order.order_source == 'API'):
+            raise ValueError('either purchase {0} or its matching sell order {1} did not update its api trans with yuque notification'.format(
+                purchase_trans.reference_order.order_id, 
+                purchase_trans.reference_order.reference_order.order_id
+            ))
+
+        # get original buy order
+        buyorder = Order.objects.select_for_update().get(
+            pk = notify_json['out_trade_no'])
+        buyorder.status = 'PAID'
+        buyorder.lastupdated_by = operatorObj
+        buyorder.save()
+
+        # release lock at the last moment
+        purchase_trans.payment_status = 'SUCCESS'
+        # we still make status = 'PENDING'
+        purchase_trans.lastupdated_by = operatorObj
+        purchase_trans.save()
+
+        return buyorder.order_id
+
 def lock_paid_trans_of_purchase_order(order_id):
     try:
         return UserWalletTransaction.objects.select_for_update().get(
@@ -1061,7 +1111,7 @@ def cancel_sell_order(userid, order_id, crypto, operator):
 # no matter whether that is doable, now call this routine to make sure that the buy order 
 # enters PAYING state from OPEN.  At the same time it will unlock seller order, change its
 # status from LOCKED to OPEN
-def post_open_payment_order(buyorder_id, payment_provider, bill_no, payment_url, username):
+def post_open_payment_order(buyorder_id, payment_provider, bill_no, payment_url, username, real_fee=0.0):
     operator = User.objects.get(username=username)
     with transaction.atomic():
         purchase_trans = UserWalletTransaction.objects.select_for_update().get(
@@ -1089,6 +1139,7 @@ def post_open_payment_order(buyorder_id, payment_provider, bill_no, payment_url,
                 ).update(
                     reference_bill_no = bill_no,
                     trade_status = TRADE_STATUS_INPROGRESS,
+                    real_fee = real_fee if real_fee > 0 else buyorder.total_amount,
                     lastupdated_by = operator,
                     lastupdated_at = dt.datetime.utcnow()
                 )

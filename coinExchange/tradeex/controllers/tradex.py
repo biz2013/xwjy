@@ -17,7 +17,9 @@ from trading.models import *
 from trading.controller import ordermanager, userpaymentmethodmanager
 from trading.controller.heepaymanager import *
 from trading.controller.global_constants import *
-
+from trading.proto.yuque.unifiedorder import *
+from trading.proto.yuque.unifiedorder_response import *
+from tradeex.client.apiclient import APIClient
 
 import logging
 import datetime as dt
@@ -293,6 +295,65 @@ class TradeExchangeManager(object):
             return None
 
 
+    def create_response_based_on_weixin_api_call(self, buyorder_id, sellorder_id, request_obj, seller_payment_method, sitesettings, api_user,api_trans_id):
+        notify_url = settings.YUEQUE_API_NOTIFY_URL
+
+        weixin_api_key = seller_payment_method.client_id
+        yuque_order = UnifiedOrder(weixin_api_key, request_obj.out_trade_no, 
+            float(request_obj.total_fee)/100.0, notify_url, 'any', 
+            settings.YUQUE_API_ORDER_TTL_IN_SEC)
+
+        json_payload = yuque_order.toJson()
+        api_client = APIClient(notify_url)
+        order_response = None
+        try:
+            logger.error('create_response_based_on_weixin_api_call: send request {0}'.format(
+                json.dumps(json_payload, ensure_ascii=False)
+            ))
+
+            resp_json = api_client.send_json_request(json_payload)
+            logger.error('create_response_based_on_weixin_api_call return: {0}'.format(
+                json.dumps(resp_json, ensure_ascii=False)))
+            order_response = UnifiedOrderResponse.parseFromJson(resp_json)
+            if order_response.code = 
+        except:
+            logger.error('create_response_based_on_weixin_api_call hit error {0}'.format(sys.exc_info()[0]))
+            raise ValueError(ERR_YUQUE_REQUEST_EXCEPTION)
+
+
+        if order_response.code == 0 and order_response.msg == 'success':
+            ordermanager.post_open_payment_order(
+                        buyorder_id, 'weixin',
+                        order_response.inner_trade_no,
+                        order_response.payment_url,
+                        api_user.user.username,
+                        order_reponse.product_real_fee)
+
+            heepay_response = HeepayResponse.parseFromJson(response_json, heepay_api_secret)
+            final_resp_json = create_prepurchase_response_from_heepay(
+                heepay_response, api_user,api_trans_id, request_obj.out_trade_no,
+                request_obj.subject, request_obj.attach)
+            logger.info('prepurchase(): send final reply {0}'.format(
+                json.dumps(final_resp_json, ensure_ascii=False)
+            ))
+            return final_resp_json
+        else:
+            if response_json['return_msg'] == HEEPAY_ERR_NONEXIST_RECEIVE_ACCOUNT:
+                logger.error('purchase_by_cash_amount(): target sell order {0} had bad account, cancel the sell order and the purchase order'.format(
+                     sellorder_id
+                ))
+                purchase_order = Order.objects.get(order_id=buyorder_id)
+                admin = User.objects.get(username='admin')
+
+                # cancel purchase order will flag sell order as bad account here
+                ordermanager.cancel_purchase_order(purchase_order, TRADE_STATUS_BADRECEIVINGACCOUNT,
+                    PAYMENT_STATUS_BADRECEIVINGACCOUNT, admin)
+            else:
+                logger.error('purchase_by_cash_amount(): submit heepay request for seller order {0} hit error {1}.  Move to next one'.format(
+                    sellorder_id, response_json['return_msg']
+                ))
+            return None
+
     # # This is the interface that handles the api call of purchase
     def purchase_by_cash_amount(self, api_user, request_obj, crypto, sitesettings, is_api_call=True):
         api_user_id = api_user.user.id
@@ -316,6 +377,8 @@ class TradeExchangeManager(object):
             buyer_payment_account, api_call_order_id, request_obj.external_cny_rec_address
         ))
 
+        # check whether the same user from app site already has a purchase order that had
+        # not been finished. If yes, not allow it to purchase more
         open_buy_orders = self.get_open_buy_order(api_site_user)
         if len(open_buy_orders) > 0:
             raise ValueError(ERR_MORE_THAN_ONE_OPEN_BUYORDER)
@@ -393,6 +456,14 @@ class TradeExchangeManager(object):
             # the payment url and return that to caller.
             if request_obj.payment_provider == 'heepay' and settings.PAYMENT_API_STATUS['heepay'] == 'auto':
                 final_response = self.create_response_based_on_heepay_call(buyorder_id, sell_order.order_id, request_obj, seller_payment_account,
+                    sitesettings, api_user,api_trans_id)
+                if final_response:
+                    return final_response
+
+            # If payment method is weixin and seller payment method is weixin and it has client_id, now
+            # we assume it is using our auto-notify api, so we will deal with it differently
+            if seller_payment_method and seller_payment_method.provider.code == 'weixin' and len(seller_payment_method.client_id) > 0:
+                final_response = self.create_response_based_on_weixin_api_call(buyorder_id, sell_order.order_id, request_obj, seller_payment_method,
                     sitesettings, api_user,api_trans_id)
                 if final_response:
                     return final_response

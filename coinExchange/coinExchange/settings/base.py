@@ -247,6 +247,10 @@ HEEPAY_NOTIFY_HOST='www.uuvc.com'
 HEEPAY_NOTIFY_URL_FORMAT='http://{0}:{1}/trading/heepay/confirm_payment/'
 HEEPAY_RETURN_URL_FORMAT='https://{0}:{1}/trading/heepay/confirm_payment/'
 
+# URL and config for YUQUE weixin API
+YUQUE_API_NOTIFY_URL='https://quicktiny.cn/cgi/unifiedorder'
+YUQUE_API_ORDER_TTL_IN_SEC = 90
+
 # These are execution behavior code
 TEST_REAL_CALL = False
 API_TRANS_LIMIT_IN_CENT = 1000000
