@@ -296,15 +296,16 @@ class TradeExchangeManager(object):
 
 
     def create_response_based_on_weixin_api_call(self, buyorder_id, sellorder_id, request_obj, seller_payment_method, sitesettings, api_user,api_trans_id):
-        notify_url = settings.YUEQUE_API_NOTIFY_URL
+        notify_url = settings.YUQUE_API_NOTIFY_URL
+        order_url = settings.YUQUE_API_ORDER_URL
 
         weixin_api_key = seller_payment_method.client_id
-        yuque_order = UnifiedOrder(weixin_api_key, request_obj.out_trade_no, 
+        yuque_order = UnifiedOrderRequest(weixin_api_key, request_obj.out_trade_no, 
             float(request_obj.total_fee)/100.0, notify_url, 'any', 
             settings.YUQUE_API_ORDER_TTL_IN_SEC)
 
         json_payload = yuque_order.toJson()
-        api_client = APIClient(notify_url)
+        api_client = APIClient(order_url)
         order_response = None
         try:
             logger.error('create_response_based_on_weixin_api_call: send request {0}'.format(
