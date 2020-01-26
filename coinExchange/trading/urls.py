@@ -23,7 +23,7 @@ from trading.views import mysellorderview, homeview, accountinfoview, mypurchase
 from trading.views import account_cronjob, externaladdrview, paymentmethodsview
 from trading.views import redeemview, heepay_notify_view, transactionview, paypalview
 from trading.views import order_batch_process_view, wallet_address_batch
-from trading.views import testpageview, transferview, userregistrationview
+from trading.views import testpageview, transferview, userregistrationview, yuque_notify_view
 from trading.views import weixinsetupview, transmanagement
 from trading.views import testpaymentqrcode
 from django.contrib.auth import views as auth_views

@@ -33,7 +33,7 @@ def yuque_confirm_payment(request):
             ))
             return HttpResponse(content='OK')
         else:
-        return HttpResponseNotAllowed
+            return HttpResponseNotAllowed
     except Exception as e:
         error_msg = 'Confirmation processing hit exception: {0}'.format(sys.exc_info()[0])
         logger.exception(error_msg)

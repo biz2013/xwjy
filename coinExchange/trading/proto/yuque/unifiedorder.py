@@ -23,7 +23,7 @@ class UnifiedOrderRequest(object):
        jsonobj['notify_url'] = self.notify_url
        jsonobj['strategy'] = self.strategy
        jsonobj['order_ttl'] = self.order_ttl
-       return json.dumps(jsonobj, ensure_ascii=False)
+       return jsonobj
 
 
 
