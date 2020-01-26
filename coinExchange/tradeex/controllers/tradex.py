@@ -315,7 +315,6 @@ class TradeExchangeManager(object):
             logger.error('create_response_based_on_weixin_api_call return: {0}'.format(
                 json.dumps(resp_json, ensure_ascii=False)))
             order_response = UnifiedOrderResponse.parseFromJson(resp_json)
-            if order_response.code = 
         except:
             logger.error('create_response_based_on_weixin_api_call hit error {0}'.format(sys.exc_info()[0]))
             raise ValueError(ERR_YUQUE_REQUEST_EXCEPTION)
