@@ -51,6 +51,7 @@ def create_prepurchase_response_from_heepay(heepay_response, api_user, api_trans
 
 def create_prepurchase_response_from_paypal(api_user, api_trans_id, api_out_trade_no, paypal_payment_id):
     data = {}
+    data['return_code'] = 'SUCCESS'
     data['orderID'] = paypal_payment_id
     data['api_out_trade_no'] = api_out_trade_no
     data['api_trans_id'] = api_trans_id
@@ -305,7 +306,8 @@ class TradeExchangeManager(object):
         buyer_payment_provider = request_obj.payment_provider
         if buyer_payment_provider.lower() == PAYMENTMETHOD_PAYPAL.lower():
             currency = 'CAD'
-            amount = float(amount / request_obj.cad_cny_exchange_rate)
+            if request_obj.cad_cny_exchange_rate:
+                amount = float(amount / request_obj.cad_cny_exchange_rate)
 
         buyer_payment_account =  request_obj.payment_account
         api_call_order_id =  request_obj.out_trade_no

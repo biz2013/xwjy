@@ -76,13 +76,14 @@ def validateUserInput(expected_method, request_obj, api_user):
 
         # making sure all purchase traffic not from investment site (www.9lp.com) has external_cny_rec_address defined.
         if request_obj.method == API_METHOD_PURCHASE and not re.search(settings.INVESTMENT_SITE, api_user.source, re.IGNORECASE)  \
+             and not re.search(settings.LIUSIJIU_SITE, api_user.source, re.IGNORECASE) \
              and ( not hasattr(request_obj, 'external_cny_rec_address') or not request_obj.external_cny_rec_address ):
             logger.error('parseUserInput(): missing external_cny_rec_address info')
             # return same error as missing payment account to hide we need cny_address.
-            raise ValueError(ERR_REDEEM_REQUEST_NO_PAYMENT_ACCOUNT)
+            raise ValueError(ERR_REQUEST_MISS_EXTERNAL_CNYF_ADDRESS_FOR_REDEEM)
 
         if request_obj.method == API_METHOD_PURCHASE and request_obj.payment_provider == PAYMENTMETHOD_PAYPAL:
-            if request_obj.cad_cny_exchange_rate < 4:
+            if request_obj.cad_cny_exchange_rate and request_obj.cad_cny_exchange_rate < 4:
                 logger.error("Purchase request {0} payment provider is paypal, but exchange rate (cad -> cny) seems incorrect, its value is {1}, suppose to be something like 5.36".format(
                     request_obj, request_obj.cad_cny_exchange_rate
                 ))

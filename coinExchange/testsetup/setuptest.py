@@ -162,8 +162,14 @@ def create_user(username, password, email, apiaccount, appId, secret,
                 existingwallets[0].id, existingwallets[0].wallet_addr, username
             ))
         else:
-            cnyutil = get_coin_utils(CNYFUND_CRYPTO_CODE)
-            addr = cnyutil.create_wallet_address() if not cny_address else cny_address
+            addr = ''
+            try:
+                cnyutil = get_coin_utils(CNYFUND_CRYPTO_CODE)
+                addr = cnyutil.create_wallet_address() if not cny_address else cny_address
+            except:
+                errmsg = 'Failed to create new wallet address for user: {0}'.format(sys.exc_info()[0])
+                logger.error(errmsg)
+                return False
             userwallet=UserWallet.objects.create(
                 user = user1,
                 wallet = cny_wallet,

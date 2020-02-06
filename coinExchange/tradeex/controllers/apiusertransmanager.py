@@ -332,7 +332,7 @@ class APIUserTransactionManager(object):
         
         if api_trans.action == API_METHOD_PURCHASE:
             external_crypto_addr = api_trans.external_cny_receive_addr if api_trans.external_cny_receive_addr else APIUserManager.get_api_user_external_crypto_addr(api_trans.api_user.user.id, 'CNY')
-            if not external_crypto_addr:
+            if not external_crypto_addr or len(external_crypto_addr) == 0:
                 logger.info('on_found_success_purchase_trans: buyer for api trans {0} has no external cny wallet, nothing to do'.format(
                     api_trans.transactionId
                 ))
