@@ -55,6 +55,7 @@ AXFWALLETBACKUP=axf_wallet_$LABEL.dat
 AXFSRC=/home/ubuntu/workspace/xwjy/smwy/src
 AWS=/home/ubuntu/.local/bin/aws
 UPLOADS=/var/www/coinexchange/media/uploads
+DOCKERBIN=/usr/bin/docker
 
 echo "`date -u` cd $WORKHOME"
 cd $WORKHOME
@@ -97,8 +98,8 @@ if [ -d "$CNYROOT/$CNYDIR" ]; then
   echo "`date -u` backup cnywallet files"
   echo "`date -u` cd $CNYROOT"
   cd $CNYROOT
-  echo "`date -u` $CNYBIN -datadir=$CNYDATA backupwallet $BACKUPDIR/$CNYWALLETBACKUP"
-  $CNYBIN -datadir=$CNYDATA backupwallet $CNYDATA/$CNYWALLETBACKUP
+  echo "`date -u` $DOCKERBIN exec d23 /opt/cnyfund/bin/cnyfund -datadir=/cnyfund -conf=/cnyfund/cnyfund.conf backupwallet /cnyfund/$CNYWALLETBACKUP"
+  $DOCKERBIN exec d23 /opt/cnyfund/bin/cnyfund -datadir=/cnyfund -conf=/cnyfund/cnyfund.conf backupwallet /cnyfund/$CNYWALLETBACKUP
   mv $CNYDATA/$CNYWALLETBACKUP $BACKUPDIR/
 fi
 
@@ -127,8 +128,13 @@ $AWS s3 cp $BACKUPDIR/$SCHEMABACKUPFILE s3://elasticbeanstalk-us-west-2-55144121
 echo "`date -u` aws copy: $AWS s3 cp $BACKUPDIR/$BACKUPDATAFILE s3://elasticbeanstalk-us-west-2-551441213847/AXFundBackup/"
 $AWS s3 cp $BACKUPDIR/$BACKUPDATAFILE s3://elasticbeanstalk-us-west-2-551441213847/AXFundBackup/
 
-echo "`date -u` aws copy: $AWS s3 cp $BACKUPDIR/$AXFWALLETBACKUP s3://elasticbeanstalk-us-west-2-551441213847/AXFundBackup/"
-$AWS s3 cp $BACKUPDIR/$AXFWALLETBACKUP s3://elasticbeanstalk-us-west-2-551441213847/AXFundBackup/
+if [ $FULLBACKUPWALLET -eq 1 ]; then
+    echo "`date -u` aws copy: $AWS s3 cp $BACKUPDIR/$AXFUNDBACKUPFILE s3://elasticbeanstalk-us-west-2-551441213847/AXFundBackup/"
+    $AWS s3 cp $BACKUPDIR/$AXFUNDBACKUPFILE s3://elasticbeanstalk-us-west-2-551441213847/AXFundBackup/
+else
+    echo "`date -u` aws copy: $AWS s3 cp $BACKUPDIR/$AXFWALLETBACKUP s3://elasticbeanstalk-us-west-2-551441213847/AXFundBackup/"
+    $AWS s3 cp $BACKUPDIR/$AXFWALLETBACKUP s3://elasticbeanstalk-us-west-2-551441213847/AXFundBackup/
+fi
 
 echo "`date -u` aws copy: $AWS s3 cp $BACKUPDIR/$CNYWALLETBACKUP s3://elasticbeanstalk-us-west-2-551441213847/AXFundBackup/"
 $AWS s3 cp $BACKUPDIR/$CNYWALLETBACKUP s3://elasticbeanstalk-us-west-2-551441213847/AXFundBackup/
