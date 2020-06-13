@@ -125,7 +125,7 @@ class TradeExchangeManager(object):
             api_orders.append(tran.reference_order.order_id)
         orders =  Order.objects.filter(
             (Q(status='OPEN') | Q(status='PARTIALFILLED')) &
-            Q(seller_payment_method__provider__code=buyer_payment_provider) &
+            #Q(seller_payment_method__provider__code=buyer_payment_provider) &
             Q(order_type='SELL') & Q(units_available_to_trade__gt=0.0) &
             Q(unit_price_currency=currency) &
             Q(cryptocurrency__currency_code=crypto)).order_by('unit_price', 'total_amount','created_at')
